@@ -1,0 +1,274 @@
+%% LaTeX-Beamer theme for the PyPSA Labs design
+%% by Fabian Neumann
+%%
+%% Option:
+%%   sectionslides   divider slide at the beginning of each section
+%%
+%% The theme sets the typeface (Inter, including maths), the list spacing,
+%% the title page, frame titles, blocks and the footline with logo. It adds
+%% the statement environment and provides \source, \seprule, the highlight
+%% chips \cb and \hl, and the colour shorthands \gr \rd \gray.
+
+\ProvidesPackage{beamerthemePyPSALabs}
+
+\newif\if@SectionSlides\@SectionSlidesfalse
+\DeclareOption{sectionslides}{\@SectionSlidestrue}
+\ProcessOptions
+
+\mode<presentation>
+
+%%%%%%%%%%%%%%
+%% PACKAGES %%
+%%%%%%%%%%%%%%
+
+\RequirePackage[sfdefault,semibold,math]{inter}
+\RequirePackage{microtype}
+\RequirePackage{parskip}
+\RequirePackage[absolute,overlay]{textpos}
+\RequirePackage{tikz}                 % inline highlight chips
+\RequirePackage{booktabs}             % proper table rules
+\RequirePackage[official]{eurosym}    % \euro
+\RequirePackage{qrcode}               % \qrcode on the closing slide
+
+\usecolortheme{PyPSALabs}
+\useinnertheme{rectangles}
+
+%%%%%%%%%%%
+%% FONTS %%
+%%%%%%%%%%%
+
+\setbeamerfont{title}{size=\LARGE,series=\bfseries}
+\setbeamerfont{subtitle}{size=\large,series=\mdseries}
+\setbeamerfont{author}{size=\normalsize}
+\setbeamerfont{institute}{size=\footnotesize}
+\setbeamerfont{date}{size=\footnotesize}
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+\setbeamerfont{framesubtitle}{size=\small,series=\mdseries}
+\setbeamerfont{block title}{size=\normalsize,series=\bfseries}
+\setbeamerfont{alerted text}{series=\bfseries}
+\setbeamerfont{footline}{size=\small}
+\setbeamerfont{framesource}{size=\scriptsize}
+\setbeamerfont{kicker}{size=\scriptsize,series=\bfseries}
+\setbeamerfont{section title}{size=\LARGE,series=\bfseries}
+\setbeamerfont{statement}{size=\Large,series=\bfseries}
+
+%%%%%%%%%%%%%%%%%%%%
+%% GENERAL LAYOUT %%
+%%%%%%%%%%%%%%%%%%%%
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamercovered{transparent}
+
+%% hairline progress bar along the very top (1.2pt, no other space)
+\newlength{\pypsalabs@progress}
+\setbeamertemplate{headline}{%
+  \ifnum\inserttotalframenumber>0\relax
+    \pgfmathsetlength{\pypsalabs@progress}%
+      {min(\paperwidth,\paperwidth*\insertframenumber/\inserttotalframenumber)}%
+  \else
+    \setlength{\pypsalabs@progress}{0pt}%
+  \fi
+  \nointerlineskip%
+  \hbox to\paperwidth{%
+    \color{brandblue}\rule{\pypsalabs@progress}{1.2pt}%
+    \color{brandblue!20}\rule{\dimexpr\paperwidth-\pypsalabs@progress\relax}{1.2pt}}%
+  \nointerlineskip%
+}
+
+\setlength{\parskip}{6pt}
+\linespread{1.1}
+\renewcommand{\arraystretch}{1.2}  % airier table rows
+
+%% default spacing around and inside lists (no manual \itemsep needed)
+\def\@listi{\leftmargin\leftmargini
+            \topsep 0.6em \@plus2\p@ \@minus2\p@
+            \parsep \z@
+            \itemsep 0.8em \@plus2\p@ \@minus2\p@}
+\let\@listI\@listi
+\@listi
+\def\@listii{\leftmargin\leftmarginii
+             \topsep 0.4em \@plus1\p@ \@minus1\p@
+             \parsep \z@
+             \itemsep 0.4em \@plus1\p@ \@minus1\p@}
+\def\@listiii{\leftmargin\leftmarginiii
+              \topsep 0.3em \@plus1\p@ \@minus1\p@
+              \parsep \z@
+              \itemsep 0.3em \@plus1\p@ \@minus1\p@}
+
+\hypersetup{
+  colorlinks=true,
+  citecolor=brandblue,
+  linkcolor=brandblue,
+  urlcolor=brandblue
+}
+
+%%%%%%%%%%%%%
+%% HELPERS %%
+%%%%%%%%%%%%%
+
+\newcommand{\seprule}{\par\noindent\textcolor{branddark!25}{\rule{\textwidth}{0.4pt}}}
+
+\newcommand{\gr}[1]{\textcolor{pypsagreen}{#1}}
+\newcommand{\rd}[1]{\textcolor{pypsared}{#1}}
+\newcommand{\gray}[1]{\textcolor{branddark!65}{#1}}
+
+%% inline highlight chips (do not break across lines, keep them short):
+%% \cb quiet tint, \hl loud accent
+\newcommand{\pypsalabs@chip}[4]{%
+  \tikz[baseline=(pypsalabschip.base)]{%
+    \node[inner xsep=3.5pt,inner ysep=1.5pt,rounded corners=2pt,%
+          fill=#1,text=#2,#3](pypsalabschip){#4};}}
+\newcommand{\cb}[1]{\pypsalabs@chip{brandblue!12}{branddark}{}{#1}}
+\newcommand{\hl}[1]{\pypsalabs@chip{pypsared}{white}{font=\bfseries}{#1}}
+
+%% small note next to the page number, e.g. \source{Source: ...};
+%% the y offset puts it on the same baseline as the footline
+\newcommand{\source}[1]{\begin{textblock*}{11cm}(2.2cm,8.288cm)%
+  {\usebeamerfont{framesource}\usebeamercolor[fg]{framesource}#1\par}%
+\end{textblock*}}
+
+%% fine print pushed to the bottom of a frame (imprint, credits, licence)
+\newcommand{\legalnote}[1]{%
+  \vfill
+  {\usebeamerfont{framesource}\usebeamercolor[fg]{framesource}%
+   \setlength{\parskip}{0pt}\raggedright #1\par}}
+
+%% the licence icon only shows up if the doclicense package is loaded
+\newcommand{\pypsalabs@license}{}
+\AtBeginDocument{%
+  \@ifpackageloaded{doclicense}{\renewcommand{\pypsalabs@license}{\doclicenseIcon}}{}%
+}
+
+%%%%%%%%%%%%%%%%
+%% TITLE PAGE %%
+%%%%%%%%%%%%%%%%
+
+\titlegraphic{\includegraphics[height=1.5cm]{logo}}
+
+\defbeamertemplate*{title page}{PyPSALabs}{%
+  \vfill
+  \begin{minipage}[c]{0.60\textwidth}
+    \raggedright
+    {\usebeamerfont{title}\usebeamercolor[fg]{title}\inserttitle\par}%
+    \ifx\insertsubtitle\@empty\else
+      \vskip0.4em{\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\insertsubtitle\par}%
+    \fi
+    \vskip1.2em
+    {\usebeamerfont{author}\usebeamercolor[fg]{author}\insertauthor\par}%
+    {\usebeamerfont{institute}\usebeamercolor[fg]{institute}\insertinstitute\par}%
+    \vskip0.8em
+    {\usebeamerfont{date}\usebeamercolor[fg]{date}\insertdate\par}%
+    \vskip1.2em
+    {\Large\usebeamercolor[fg]{framesource}\pypsalabs@license\par}%
+  \end{minipage}%
+  \hfill
+  \begin{minipage}[c]{0.34\textwidth}
+    \raggedleft\inserttitlegraphic
+  \end{minipage}%
+  \vfill
+}
+
+%%%%%%%%%%%%%%%%%
+%% FRAME TITLE %%
+%%%%%%%%%%%%%%%%%
+
+%% section kicker, shares the frame title line so it costs no vertical space;
+%% \insertsection (not \insertsectionhead) to avoid the navigation hyperlink
+\newcommand{\pypsalabs@kicker}{%
+  \ifx\insertsection\@empty\else
+    \hfill{\usebeamerfont{kicker}\usebeamercolor[fg]{kicker}\hypersetup{hidelinks}%
+      \textls[80]{\MakeUppercase{\insertsection}}}%
+  \fi}
+
+%% aligned with the left margin of the body text
+\defbeamertemplate*{frametitle}{PyPSALabs}{%
+  \nointerlineskip%
+  \@tempdima=\textwidth%
+  \advance\@tempdima by\beamer@leftmargin%
+  \advance\@tempdima by\beamer@rightmargin%
+  \begin{beamercolorbox}[wd=\the\@tempdima,leftskip=\beamer@leftmargin,%
+                         rightskip=\beamer@rightmargin plus 1fil]{frametitle}
+    \vskip1.6ex%
+    \hyphenpenalty=10000\exhyphenpenalty=10000% no hyphens in headings
+    {\usebeamerfont{frametitle}\strut\insertframetitle\strut
+     \pypsalabs@kicker\par}%
+    \ifx\insertframesubtitle\@empty\else
+      {\usebeamerfont{framesubtitle}\usebeamercolor[fg]{framesubtitle}%
+       \vskip-1ex\strut\insertframesubtitle\strut\par}%
+    \fi
+    \vskip0.8ex%
+  \end{beamercolorbox}%
+}
+
+%%%%%%%%%%%%%%
+%% FOOTLINE %%
+%%%%%%%%%%%%%%
+
+\setbeamertemplate{footline}{%
+  \usebeamerfont{footline}\usebeamercolor[fg]{footline}%
+  \hspace{0.3cm}
+  \makebox[1.9em][l]{\insertframenumber}\raisebox{1pt}{\pypsalabs@license}
+  \hfill
+  \includegraphics[height=0.6cm]{logo}
+  \hspace{0.3cm}
+  \vspace{0.25cm}
+}
+
+%%%%%%%%%%%%%%%%%%%%
+%% STATEMENT SLIDE %%
+%%%%%%%%%%%%%%%%%%%%
+
+%% \begin{statement} ... \end{statement} -- one big sentence on a brand-blue
+%% slide; the surrounding group keeps the colour changes local to the frame
+\newenvironment{statement}{%
+  \begingroup%
+  \usebeamercolor{statement}\usebeamercolor{statement alerted}%
+  \setbeamercolor{background canvas}{bg=statement.bg}%
+  \setbeamercolor{alerted text}{fg=statement alerted.fg}%
+  \begin{frame}[plain,c]%
+  \centering\usebeamerfont{statement}\usebeamercolor[fg]{statement}%
+}{%
+  \end{frame}%
+  \endgroup%
+}
+
+%%%%%%%%%%%%%%%%%%%%
+%% SECTION SLIDES %%
+%%%%%%%%%%%%%%%%%%%%
+
+\if@SectionSlides
+\AtBeginSection[]{%
+  \begin{frame}
+    \vfill
+    \begin{beamercolorbox}[ht=8ex,dp=4ex,sep=1em,wd=\paperwidth,center]{section}
+      \usebeamerfont{section title}\insertsectionhead\par
+    \end{beamercolorbox}
+    \vfill
+  \end{frame}}
+\fi
+
+%%%%%%%%%%%%
+%% BLOCKS %%
+%%%%%%%%%%%%
+
+%% a tinted card with a coloured heading -- #1 title colour, #2 body colour
+\newcommand{\pypsalabs@blockbegin}[2]{%
+  \par\vskip\medskipamount%
+  \usebeamerfont{block body}%
+  \begin{beamercolorbox}[sep=0.75em,vmode]{#2}%
+    \ifx\insertblocktitle\@empty\else
+      {\usebeamerfont{block title}\usebeamercolor[fg]{#1}\insertblocktitle\par\vskip0.3em}%
+    \fi%
+}
+\newcommand{\pypsalabs@blockend}{\end{beamercolorbox}\vskip\smallskipamount}
+
+\defbeamertemplate*{block begin}{PyPSALabs}{\pypsalabs@blockbegin{block title}{block body}}
+\defbeamertemplate*{block end}{PyPSALabs}{\pypsalabs@blockend}
+
+\defbeamertemplate*{block example begin}{PyPSALabs}{\pypsalabs@blockbegin{block title example}{block body example}}
+\defbeamertemplate*{block example end}{PyPSALabs}{\pypsalabs@blockend}
+
+\defbeamertemplate*{block alerted begin}{PyPSALabs}{\pypsalabs@blockbegin{block title alerted}{block body alerted}}
+\defbeamertemplate*{block alerted end}{PyPSALabs}{\pypsalabs@blockend}
+
+\mode<all>
