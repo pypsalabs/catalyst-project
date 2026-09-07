@@ -1,0 +1,15 @@
+*.synctex.gz
+*.aux
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.bbl
+*.bcf
+*.blg
+*.fls
+*.fdb_latexmk
+*.run.xml
+latexmk.out
+.snakemake/

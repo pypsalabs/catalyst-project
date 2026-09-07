@@ -1,0 +1,337 @@
+% Slides for the PyPSA Labs / Google "Catalyst" project (SOW WP2: 2025
+% techno-economic baseline). Figures come from ../tech/figures/slides/, the
+% 16:9 layout of the cost-baseline workflow; run the tech workflow first or
+% `snakemake -c1` here, which does both. Template: PyPSA Labs beamer theme
+% (copied from beamer/); the template's demonstration slides are kept at the
+% back as a style reference.
+\documentclass[11pt,aspectratio=169,t]{beamer}
+\usetheme{PyPSALabs}
+
+% LICENCE (also puts the icon on the title page and in the footline)
+\usepackage[type={CC},modifier={by},version={4.0}]{doclicense}
+\usepackage{array}   % ragged-right p-columns in the timeline table
+\usepackage{multicol} % two-column references slide
+\input{refnums}      % \ref<key> = reference number, generated from references.yaml
+
+% REFERENCES
+\usepackage[style=nature, doi=true, maxcitenames=3, backend=biber]{biblatex}
+\addbibresource{slides.bib}
+\renewcommand*{\bibfont}{\footnotesize}
+
+% GRAPHICS
+\graphicspath{{figures/}{screenshots/}{./}}
+
+% a figure that may be wider than the text block, centred on the page
+\newcommand{\wideimage}[2][15.2cm]{%
+  \makebox[\textwidth][c]{\includegraphics[width=#1]{#2}}}
+
+% like the theme's \source, but wider and two lines high (up to the logo)
+\newcommand{\sourcewide}[1]{\begin{textblock*}{10.9cm}(2.2cm,8.0cm)%
+  {\tiny\usebeamercolor[fg]{framesource}%
+   \setlength{\parskip}{0pt}\raggedright #1\par}%
+\end{textblock*}}
+
+% TIMELINE SLIDE helpers (TikZ; macros with arguments cannot be defined inside a frame)
+\newcommand{\wpbar}[5]{% row, start month, end month (inclusive), colour, label (left column)
+  \fill[#4, rounded corners=2pt] (#2-1,-#1+0.3) rectangle (#3,-#1-0.3);
+  \node[anchor=east, text=branddark, font=\scriptsize] at (-0.3,-#1) {#5};}
+\newcommand{\msmark}[3]{% month, row, short label above the tick
+  \draw[branddark, line width=1.2pt] (#1,-#2+0.42) -- (#1,-#2-0.42);
+  \node[anchor=south, text=branddark, font=\tiny\bfseries, inner sep=1pt] at (#1,-#2+0.42) {#3};}
+
+% TITLE PAGE
+\title{Catalytic Impact of Early Investments in Advanced Clean Energy Technologies}
+\subtitle{Kick-off}
+
+\author{}
+\institute{PyPSA Labs, Google}
+% both partner logos on the title page, PyPSA Labs above Google
+\titlegraphic{\includegraphics[height=1.5cm]{logo}\\[0.9cm]\includegraphics[height=0.8cm]{google_logo}}
+
+\date{September 2026}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+\addtocounter{framenumber}{-1}
+
+
+% PROJECT OVERVIEW: two columns of (placeholder) bullets, archetype map across the
+% full page width at the bottom (trimmed top/bottom so the bullets fit)
+\begin{frame}{Project overview}
+  \scriptsize\setlength{\parskip}{3pt}
+  \vspace{-0.3cm}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \textbf{Goal}
+      \begin{itemize}\setlength{\itemsep}{0.25em}
+        \item Quantifying the catalytic impact of early investment into advanced clean technologies:
+          Experience curves, emission reduction, global addressable market
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \textbf{Approach}
+      \begin{itemize}\setlength{\itemsep}{0.25em}
+        \item Model representative power systems from today to mid-century in PyPSA
+        \item Measure the impact of early investment onto late, \textit{catalysed} runs
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  % 1767 x 651 px screenshot, trimmed to 421 px height -> 16 cm x 3.8 cm, bottom edge at 7.85 cm
+  \begin{textblock*}{\paperwidth}(0cm,4.05cm)
+    \includegraphics[width=\paperwidth, trim=0 120px 0 110px, clip]{map_screenshot}
+  \end{textblock*}
+\end{frame}
+
+\begin{frame}[c]{Today}
+  \begin{itemize}
+    \item Modelled regions
+    \item Technologies
+    \item Technology learning
+  \end{itemize}
+\end{frame}
+
+% ARCHETYPE SLIDES: screenshots placed with textblocks (page is 16 x 9 cm; body
+% from ~1.8 cm below the title to ~8.1 cm above the footline)
+\begin{frame}{Modelled regions and grid archetypes}
+  \begin{textblock*}{6cm}(1cm,2.3cm)
+    \includegraphics[height=4.8cm]{archetypes}
+  \end{textblock*}
+\end{frame}
+
+\begin{frame}{Modelled regions and grid archetypes}
+  \begin{textblock*}{6cm}(1cm,2.3cm)
+    \includegraphics[height=4.8cm]{archetypes}
+  \end{textblock*}
+  % the map is 2.7:1, so it runs from the archetype list to the right page edge
+  \begin{textblock*}{9.2cm}(6.2cm,3.0cm)
+    \includegraphics[width=9.2cm]{map_screenshot}
+  \end{textblock*}
+\end{frame}
+
+\begin{frame}{Modelled regions and grid archetypes}
+  \begin{textblock*}{6cm}(1cm,2.3cm)
+    \includegraphics[height=4.8cm]{archetypes}
+  \end{textblock*}
+  \begin{textblock*}{6cm}(8.6cm,2.3cm)
+    \includegraphics[height=4.8cm]{shares}
+  \end{textblock*}
+\end{frame}
+
+% TECHNOLOGY PALETTE (SOW §1.2): mature = exogenous DEA/technology-data costs,
+% advanced = endogenous learning in the investment loop; keep in step with
+% ../tech/config.yaml
+\begin{frame}{Technologies}
+  \begin{columns}[T]
+    \begin{column}{0.47\textwidth}
+      \begin{block}{Mature: exogenous costs}
+        \footnotesize
+        \begin{itemize}\setlength{\itemsep}{0.15em}
+          \item Solar PV, onshore/offshore wind
+          \item Hydro: reservoir, run-of-river, pumped hydro
+          \item Biomass
+          \item Nuclear (large LWR)
+          \item Gas CCGT and OCGT
+          \item Li-ion battery
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \begin{exampleblock}{Advanced: endogenous learning}
+        \footnotesize
+        \begin{itemize}\setlength{\itemsep}{0.15em}
+          \item LDES: vanadium flow, CO\textsubscript{2} battery, iron-air, H\textsubscript{2} + SOFC
+          \item Nuclear SMR
+          \item Next-gen geothermal: EGS, closed-loop
+          \item Allam-cycle gas + CCS
+          \item Solid oxide fuel cell
+          \item Fusion (with caution)
+          \item CDR: direct air capture, cost cut-off
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{2025 capex baseline: mature generation}
+  \centering
+  \wideimage{figures/capex_generation_mature}
+\end{frame}
+
+\begin{frame}{2025 capex baseline: advanced generation}
+  \centering
+  \wideimage{figures/capex_generation_advanced}
+\end{frame}
+
+\begin{frame}{2025 capex baseline: mature storage}
+  \centering
+  \wideimage{figures/capex_storage_mature}
+\end{frame}
+
+\begin{frame}{2025 capex baseline: advanced storage}
+  \centering
+  \wideimage{figures/capex_storage_advanced}
+\end{frame}
+
+
+\begin{frame}{Endogenous learning in the world model (prototype)}
+  \centering
+  \wideimage{figures/learning_curve}
+\end{frame}
+
+
+% Gantt of the four SOW work packages (left) and the milestone list (right).
+% Month 1 is taken as September 2026 (SOW effective date = last signature).
+\newcommand{\tlstart}{Sep 2026}
+\begin{frame}{SOW work packages and milestones}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \vspace{0.3cm}
+      \begin{tikzpicture}[x=0.33cm, y=0.72cm, font=\scriptsize]
+        % month grid with calendar months
+        \foreach \m in {1,...,12} {
+          \draw[branddark!15] (\m-1,0.55) -- (\m-1,-4.6);
+          \node[anchor=south, text=branddark!65, font=\tiny] at (\m-0.5,0.55) {\m};
+        }
+        \foreach \m/\l in {1/Sep,4/Dec,7/Mar,10/Jun} {
+          \node[anchor=north west, text=branddark!50, font=\tiny, inner xsep=1pt] at (\m-1,0.55) {\l};
+        }
+        \draw[branddark!15] (12,0.55) -- (12,-4.6);
+        \node[anchor=east, text=branddark!65, font=\tiny] at (-0.3,0.85) {month};
+        % work packages
+        \wpbar{1}{1}{3}{brandblue}{WP1 Data \& RE workflow}
+        \wpbar{2}{4}{6}{pypsagreen}{WP2 Techno-economics}
+        \wpbar{3}{4}{9}{brandblue!70}{WP3 Model \& scenarios}
+        \wpbar{4}{10}{12}{pypsared!85}{WP4 Synthesis}
+        % milestones as ticks at the end of the month
+        \msmark{3}{1}{M3}
+        \msmark{4}{2}{M4}
+        \msmark{6}{2}{M6}
+        \msmark{9}{3}{M9}
+        \msmark{12}{4}{M12}
+        % today
+        \draw[pypsared, dashed] (0.25,0.55) -- (0.25,-4.6)
+          node[below, font=\tiny, text=pypsared] {today};
+        \node[anchor=north west, font=\tiny, text=branddark!55] at (1.2,-4.75)
+          {M1 = \tlstart{} assumed; SOW [\refsow]: 12 months from signature};
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \vspace{0.35cm}
+      {\scriptsize\setlength{\parskip}{0pt}\renewcommand{\arraystretch}{1.25}%
+      \begin{tabular}{@{}l@{\hspace{0.5em}}>{\raggedright\arraybackslash}p{5.3cm}@{}}
+        \textbf{M3} \gray{Nov} & archetypes \& region mapping fixed; atlite/ERA5 feed-in with exclusion layers \\
+        \textbf{M4} \gray{Dec} & calibrated data pipeline; advanced-tech parametrisation \& learning model \\
+        \textbf{M6} \gray{Feb} & archetype model end-to-end, learning loop across investment years \\
+        \textbf{M9} \gray{May} & full scenario suite solved 2025--2040; post-processing \& visualisation \\
+        \textbf{M12} \gray{Aug} & study published; code released under open licence \\
+      \end{tabular}}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{References}
+  \input{references}
+\end{frame}
+
+% ---------------------------------------------------------------------------
+% Template demonstration slides (kept from beamer/template.tex as a reference)
+% ---------------------------------------------------------------------------
+
+\section{Demonstration}
+
+\begin{frame}{Frame title}
+
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+
+      Text with \alert{alerted text}, the accents \gr{green}, \rd{red},
+      \gray{gray} and chips that highlight \cb{quietly} or
+      \hl{loudly}~\cite{PyPSA}.
+
+      \begin{itemize}
+        \item First item of an itemisation
+        \item Second item with \textbf{bold} text
+        \item Third item with a \href{https://pypsa.org}{hyperlink}
+      \end{itemize}
+
+      \begin{enumerate}
+        \item First item of an enumeration
+        \item Second item of an enumeration
+      \end{enumerate}
+
+    \end{column}
+    \begin{column}{0.5\textwidth}
+
+      \begin{block}{Block}
+        Uses the primary brand colour.
+      \end{block}
+
+      \begin{exampleblock}{Example block}
+        Uses the green accent.
+      \end{exampleblock}
+
+      \begin{alertblock}{Alert block}
+        Uses the red accent.
+      \end{alertblock}
+
+    \end{column}
+  \end{columns}
+
+  \source{Source: \url{https://pypsa.org}}
+\end{frame}
+
+\begin{frame}{Mathematics}
+
+  Consider a total system cost minimisation problem\footnote{Assume the investment costs are annualised.}:
+
+  \begin{equation*}
+    \min_{g_{s,t}, G_s}\overbrace{\sum_s c_s G_s}^{\text{investment costs}} + \overbrace{\sum_{s,t} o_{s} g_{s,t}}^{\text{fuel costs}},   \qquad \text{s.t.}
+  \end{equation*}
+  \begin{align*}
+    \sum_s g_{s,t} - d_t =  0 &\hspace{0.34cm}\perp \hspace{0.34cm} \lambda_t \tag{nodal energy balance}
+  \end{align*}
+
+  The dual variable $\lambda_t$ of the energy balance is the \alert{market price}.
+
+\end{frame}
+
+\begin{statement}
+  A statement slide for \alert{one} idea.
+\end{statement}
+
+\section{References}
+
+\begin{frame}{References}
+  \printbibliography[heading=none]
+\end{frame}
+
+\begin{frame}{Get in touch}
+
+  \begin{columns}[c]
+    \begin{column}{0.65\textwidth}
+      \textbf{Firstname Lastname} \\
+      Role or position \\[0.6em]
+      \href{mailto:name@pypsalabs.org}{name@pypsalabs.org} \\
+      \href{https://pypsalabs.org}{pypsalabs.org}
+    \end{column}
+    \begin{column}{0.3\textwidth}
+      \raggedleft\qrcode[height=2.6cm]{https://pypsalabs.org}
+    \end{column}
+  \end{columns}
+
+  % Imprint: mandatory on business letters of a GmbH/UG in electronic form
+  % (§ 35a GmbHG) and on publicly available slides (§ 5 DDG, ex § 5 TMG).
+  % Adjust the legal form, register entry and management to your entity.
+  \legalnote{%
+    PyPSA Labs gGmbH, Mertensstr. 16A, 13587 Berlin, Germany ~·~
+    District Court Charlottenburg \mbox{HRB 288490 B} ~·~
+    Managing Directors: Prof.~Dr.~Thomas William Brown \& Dr.-Ing.~Fabian Neumann ~·~
+    \mbox{VAT ID}: pending ~·~
+    \textcopyright{} 2026 The Authors ~·~ Slides and figures by the authors
+    unless stated otherwise, licensed under CC BY 4.0.}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,103 @@
+# Curated references for the slide deck. Order = reference number on the slides.
+# `match` lists substrings looked up in the `source` strings of the cost
+# workflow (technology-data rows, gap_fill.csv, observed_projects.csv); a source
+# that matches no entry is deliberately not cited on the slides (pruned to the
+# main organisations), but stays in scripts/sep/tech/build/sources.md.
+- key: td
+  short: PyPSA/technology-data v0.15.0
+  cite: "PyPSA, technology-data v0.15.0 (2025), cost assumptions for 2025"
+  url: https://github.com/PyPSA/technology-data
+  match: ["__technology-data__"]
+- key: dea
+  short: DEA catalogue
+  cite: "Danish Energy Agency, Technology Data catalogues: electricity generation; energy storage (2024/25)"
+  url: https://ens.dk/en/analyses-and-statistics/technology-data
+  match: ["Danish Energy Agency"]
+- key: diw
+  short: DIW 2013
+  cite: "Schröder et al. (DIW Berlin), Costs of Electricity Generation until 2050, Data Documentation 68 (2013)"
+  url: https://www.diw.de/documents/publikationen/73/diw_01.c.424566.de/diw_datadoc_2013-068.pdf
+  match: ["DIW DataDoc"]
+- key: lazard
+  short: Lazard LCOE+
+  cite: "Lazard, Levelized Cost of Energy+ (LCOE+), June 2025 and v16.0 (2023)"
+  url: https://www.lazard.com/research-insights/levelized-cost-of-energyplus/
+  match: ["Lazard"]
+- key: atb
+  short: NREL ATB 2024
+  cite: "NREL, Annual Technology Baseline 2024, electricity (v3 data)"
+  url: https://atb.nrel.gov/electricity/2024
+  match: ["NREL ATB 2024"]
+- key: pnnl
+  short: PNNL 2022
+  cite: "PNNL / DOE, 2022 Grid Energy Storage Technology Cost and Performance Assessment (Viswanathan et al.)"
+  url: https://www.pnnl.gov/projects/esgc-cost-performance
+  match: ["Viswanathan_2022", "PNNL"]
+- key: eia
+  short: EIA AEO2025 capital costs
+  cite: "EIA / Sargent & Lundy, Capital Cost and Performance Characteristics for Utility-Scale Generating Technologies (AEO2025)"
+  url: https://www.eia.gov/analysis/studies/powerplants/capitalcost/
+  match: ["EIA / Sargent & Lundy", "EIA AEO2025"]
+- key: liftoff-nuclear
+  short: DOE Liftoff nuclear
+  cite: "US DOE, Pathways to Commercial Liftoff: Advanced Nuclear (Sep 2024 update)"
+  url: https://liftoff.energy.gov/advanced-nuclear/
+  match: ["Liftoff: Advanced Nuclear"]
+- key: liftoff-geo
+  short: DOE Liftoff geothermal
+  cite: "US DOE, Pathways to Commercial Liftoff: Next-Generation Geothermal Power (Mar 2024)"
+  url: https://liftoff.energy.gov/next-generation-geothermal-power/
+  match: ["Liftoff: Next-Generation Geothermal"]
+- key: nrel-egs
+  short: NREL Geothermal Shot
+  cite: "NREL, Enhanced Geothermal Shot Analysis for the Geothermal Technologies Office (2023)"
+  url: https://www.nrel.gov/docs/fy23osti/84822.pdf
+  match: ["Enhanced Geothermal Shot"]
+- key: bnef
+  short: BNEF 2024
+  cite: "BloombergNEF, Energy Storage System Cost Survey 2024 (as reported by Energy-Storage.news)"
+  url: https://about.bnef.com/
+  match: ["BloombergNEF", "BNEF"]
+- key: fervo
+  short: Fervo S-1
+  cite: "Fervo Energy, Form S-1 registration statement (2026), Cape Station cost disclosures"
+  url: https://www.sec.gov/
+  match: ["Fervo Energy Form S-1"]
+- key: netpower
+  short: NET Power
+  cite: "NET Power, Q4 2024 results and business update (10 Mar 2025), Project Permian cost estimate"
+  url: https://ir.netpower.com/
+  match: ["NET Power Q4 2024"]
+- key: energydome
+  short: Energy Dome
+  cite: "Energy Dome, CO2 Battery cost and performance statements (2022–2024)"
+  url: https://energydome.com/co2-battery/
+  match: ["Energy Dome"]
+- key: form
+  short: Form Energy
+  cite: "Form Energy, iron-air modelling recommendations (2023) and cost target statements"
+  url: https://formenergy.com/
+  match: ["Form Energy"]
+- key: bloom
+  short: Bloom (SOFC)
+  cite: "Bloom Energy, product cost disclosures 2017–2023 (via Thunder Said Energy); Energy Server datasheet (2026)"
+  url: https://www.bloomenergy.com/
+  match: ["Bloom"]
+- key: projects
+  short: project disclosures
+  cite: "Developer, regulator and press disclosures of individual projects (Vogtle, Hinkley Point C, Flamanville 3, Darlington, Kemmerer, Snowy 2.0, Fengning, Dalian, Alliant, ...); per-project sources in the repository"
+  url: https://github.com/PyPSA/pypsa-labs-google
+  match: ["World Nuclear", "Snowy Hydro", "SSE press release", "SSE Renewables", "pv magazine", "Renewable Energy World",
+          "Canary Media", "AP, ", "Cour des comptes", "EDF statement", "ENEC", "Yle,", "Maritime Executive",
+          "WBUR", "NS Energy", "Gas Outlook", "Metlen", "Upstate Business Journal", "Quinbrook", "NRECA",
+          "POWER,", "E&E News", "MIT Technology Review", "Utility Dive", "GridLab", "IEA/NEA", "Bloomberg via"]
+- key: priam
+  short: priam-myopic
+  cite: "T. Brown, priam-myopic: myopic world electricity model with endogenous learning (prototype, 2026)"
+  url: https://github.com/nworbmot/priam-myopic
+  match: []
+- key: sow
+  short: SOW
+  cite: "PyPSA Labs and Google, Statement of Work: Catalytic Impact of Early Investments in Advanced Clean Energy Technologies (2026)"
+  url: ""
+  match: []
