@@ -28,10 +28,15 @@ If they exist and the user didn't ask for a re-run, skip straight to showing the
   ```bash
   cd models/octants
   for oct in 0-0 0-1 1-0 1-1 2-0 2-1 3-0 3-1; do for tech in solar onwind; do
-    f="octant-2011-${oct}-${tech}.nc"
-    [ -s "$f" ] || curl -sf -o "$f" "https://model.energy/octants/$f"
+    wget -c -q --tries=20 --read-timeout=60 --waitretry=5 \
+      "https://model.energy/octants/octant-2011-${oct}-${tech}.nc"
   done; done
   ```
+
+  Use `wget -c`, NOT plain curl — model.energy connections can stall mid-transfer
+  and hang indefinitely; `wget -c` resumes partial files and retries on stalls.
+  Verify completeness against the server's Content-Length (solar ≈ 292 MB,
+  onwind ≈ 556 MB per file) before trusting an existing file.
 
 - **Pixi environment**: `cd models/priam-myopic && pixi install --locked` (idempotent).
 - **Gurobi license**: `~/gurobi.lic` must exist.
