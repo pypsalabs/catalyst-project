@@ -13,7 +13,7 @@
 import sys
 from glob import glob
 
-SCREENSHOTS = ["map_screenshot", "archetypes", "shares"]   # names in ../screenshot_map.py SHOTS
+SCREENSHOTS = ["map_screenshot", "archetypes", "shares", "tsne"]   # names in ../screenshot_map.py SHOTS
 FIGURES = ["capex_generation_mature", "capex_generation_advanced",
            "capex_storage_mature", "capex_storage_advanced", "learning_curve"]
 
