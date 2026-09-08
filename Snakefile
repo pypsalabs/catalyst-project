@@ -56,7 +56,8 @@ rule screenshots:
     input:
         script="../screenshot_map.py",
         page="../land-grid-map/index.html",
-        data=["../land-grid-map/data/archetypes.js"] + sorted(glob("../land-grid-map/data/layers/*.js")),
+        data=["../land-grid-map/data/archetypes.js", "../land-grid-map/data/regions.js"]
+             + sorted(glob("../land-grid-map/data/layers/*.js")),
     output:
         expand("screenshots/{f}.png", f=SCREENSHOTS),
     resources:
