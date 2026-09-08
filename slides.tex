@@ -53,7 +53,7 @@
   \includegraphics[width=4.2cm]{google_logo}
 \end{minipage}}
 
-\date{September 2026}
+\date{8 September 2026}
 
 \begin{document}
 
@@ -63,46 +63,35 @@
 \addtocounter{framenumber}{-1}
 
 
-% PROJECT OVERVIEW: two columns of (placeholder) bullets, archetype map across the
-% full page width at the bottom (trimmed top/bottom so the bullets fit)
+% PROJECT OVERVIEW: project objective above a compact archetype map
 \begin{frame}{Project overview}
-  \scriptsize\setlength{\parskip}{3pt}
-  \vspace{-0.3cm}
-  \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-      \textbf{Goal}
-      \begin{itemize}\setlength{\itemsep}{0.25em}
-        \item Quantify the catalytic impact of early investment in advanced clean technologies:
-          experience curves, emission reductions, global addressable market
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-      \textbf{Approach}
-      \begin{itemize}\setlength{\itemsep}{0.25em}
-        \item Model representative power systems from today to mid-century in PyPSA
-        \item Measure how early investment triggers technology learning that delivers long-term emission reductions
-      \end{itemize}
-    \end{column}
-  \end{columns}
-  % 1767 x 651 px screenshot, trimmed to 421 px height -> 16 cm x 3.8 cm, bottom edge at 7.85 cm
-  \begin{textblock*}{\paperwidth}(0cm,4.05cm)
-    \includegraphics[width=\paperwidth, trim=0 120px 0 110px, clip]{map_screenshot}
+  \footnotesize
+  \vspace{-0.2cm}
+  \begin{itemize}\setlength{\itemsep}{0.3em}
+    \item Lay the foundation for understanding the \alert{catalytic impact of early investments} in advanced clean electricity technologies
+    \item Quantitative illustration of the \alert{direct and indirect} system-wide emissions reductions and cost-decline trajectories
+    \item Inform \alert{consequential and out-of-scope emissions accounting methodologies} and the broader conversation on how early-mover investments should be valued
+    \item Deliver an \alert{open-source, reproducible scientific workflow}
+  \end{itemize}
+  % Compact crop preserves geographic context without competing with the objective.
+  \begin{textblock*}{\paperwidth}(0cm,5.65cm)
+    \includegraphics[width=\paperwidth, height=2.15cm, trim=0 120px 0 110px, clip]{map_screenshot}
   \end{textblock*}
 \end{frame}
 
 % MODELLING APPROACH: bullets on the left, PyPSA-Eur network plot on the right
-\begin{frame}{Power System Modelling}
+\begin{frame}{Modelling setup 1/2}
   \begin{columns}[T]
-    \begin{column}{0.6\textwidth}
+    \begin{column}{0.55\textwidth}
       \small
       \begin{itemize}\setlength{\itemsep}{0.3em}
-        \item PyPSA for capacity expansion and dispatch optimisation
-        \item PyPSA-Earth as the global data pipeline: brownfield fleet, demand, grid topology
-        \item atlite for renewable resource potentials and capacity factors
-        \item Five power systems, each representing a \textit{grid archetype}, support a qualitative extrapolation to the global addressable market
+        \item \alert{PyPSA} for capacity expansion and dispatch optimisation
+        \item \alert{PyPSA-Earth} as the global data pipeline: brownfield fleet, demand, grid topology
+        \item \alert{atlite} for renewable resource potentials and capacity factors
+        \item Representative regions \alert{\textit{aka grid} archetypes} featuring jurisdictions with varying grid topologies, renewable resource potentials, technology portfolios, etc.
       \end{itemize}
     \end{column}
-    \begin{column}{0.38\textwidth}
+    \begin{column}{0.45\textwidth}
       \centering
       \vspace{0.3cm}
       \includegraphics[width=\linewidth]{pypsa-eur}
@@ -111,137 +100,64 @@
 \end{frame}
 
 % CATALYTIC INVESTMENT: bullets on the left, feedback-loop figure from the Joule paper on the right
-\begin{frame}{Catalytic Investment Mechanism}
+\begin{frame}{Modelling setup 2/2}
   \begin{columns}[T]
-    \begin{column}{0.54\textwidth}
-      \small
-      \begin{itemize}\setlength{\itemsep}{0.5em}
-        \item Each system is modelled for 2025, 2030, \ldots, 2050
-        \item 2025 serves as a basic validation year
-        \item 2030 to 2050 are first run as a \enquote{baseline} scenario without catalytic investment
-        \item In \textit{catalysed} runs, advanced technologies are then pulled into the market, triggering technology learning and lower investment costs in subsequent years
+    \begin{column}{0.55\textwidth}
+      \footnotesize
+      \vspace{-0.2cm}
+      \begin{itemize}\setlength{\itemsep}{0.35em}
+        \item Use 2025 as a \alert{validation year}
+        \item Run a \alert{capacity-expansion model} for each grid archetype across investment years from 2025 to 2050
+        \item Clear markets for advanced technologies between investment years; learning curves pass updated costs forward \alert{myopically}
+        \item Compare a \alert{benchmark scenario} without catalytic action with a scenario including action by early investors
+        \item Like-for-like comparison in system metrics (e.g. avoided emissions) to quantify impact of catalytic action
       \end{itemize}
     \end{column}
-    \begin{column}{0.44\textwidth}
+    \begin{column}{0.5\textwidth}
       \centering
-      \vspace{0.5cm}
+      \vspace{0.3cm}
       \includegraphics[width=\linewidth]{riepin_catalytic_investment}
     \end{column}
   \end{columns}
 \end{frame}
 
-
-\begin{frame}{Prototype: Endogenous learning in the world model}
-  \centering
-  \wideimage{figures/learning_curve}
-\end{frame}
-
-\begin{frame}[c]{The Initial Investment Mechanism}
-  \centering
-  {\usebeamercolor[fg]{framesource}{\Huge TBD}\\[0.4em]{\small (in decision items)}}
-\end{frame}
-
-
 \begin{frame}{Scenarios}
-  \small
-  \begin{itemize}\setlength{\itemsep}{0.6em}
-    \item \textbf{Wind/solar acceptance limits:} land scarcity (e.g. Singapore), protected areas, \ldots
-    \item \textbf{CDR breakthrough:} engineered CO\textsubscript{2} removal becomes cheap (e.g. 150 \$/tCO\textsubscript{2} by 2040)
-    \item \textbf{Advanced baseload breakthrough:} SMRs or another firm clean technology see a rapid cost decline
-    \item \textbf{Advanced geothermal breakthrough:} some regions gain access to high-temperature bedrock through advanced drilling
-    \item \textbf{Solid oxide fuel cell breakthrough:} cheap backup power from hydrogen or from natural gas with carbon capture
-  \end{itemize}
-\end{frame}
-
-
-\begin{frame}{Goals and Priorities}
-  \vspace{0.3cm}
-  \begin{itemize}\setlength{\itemsep}{1em}
-    \item Results are framed to be \textbf{generally applicable to any investor}, expressed as a \enquote{procurement volume} or a \enquote{green premium volume}
-    \item Everything is open source; our contributions are fed back into the model ecosystem
-    \item The modelling abstracts from forward-looking national energy and climate policies, focusing on the brownfield fleet, announced retirements and an exogenous CO\textsubscript{2} price
-  \end{itemize}
-\end{frame}
-
-
-\begin{frame}[c]{Decision Items}
-  \begin{itemize}
-    \item Technologies
-    \item Initial investment mechanism
-    \item Modelled regions
-  \end{itemize}
-\end{frame}
-
-% TECHNOLOGY PALETTE (SOW §1.2): mature = exogenous DEA/technology-data costs,
-% advanced = endogenous learning in the investment loop; keep in step with
-% ../tech/config.yaml
-\begin{frame}{Technologies}
+  \vspace{-0.25cm}
   \begin{columns}[T]
-    \begin{column}{0.47\textwidth}
-      \begin{block}{Mature: exogenous costs}
-        \footnotesize
-        \begin{itemize}\setlength{\itemsep}{0.15em}
-          \item Solar PV, onshore/offshore wind
-          \item Hydro: reservoir, run-of-river, pumped hydro
-          \item Biomass
-          \item Nuclear (large LWR)
-          \item Gas CCGT and OCGT
-          \item Li-ion battery
-        \end{itemize}
-      \end{block}
+    \begin{column}{0.48\textwidth}
+      \footnotesize
+      \textbf{\alert{S1 --- Reference pathway}}\par
+      Each archetype follows current cost trajectories and announced retirements, without catalytic investment. \alert{Establishes the counterfactual baseline} for all impact estimates.
     \end{column}
-    \begin{column}{0.47\textwidth}
-      \begin{exampleblock}{Advanced: endogenous learning}
-        \footnotesize
-        \begin{itemize}\setlength{\itemsep}{0.15em}
-          \item LDES: vanadium flow, CO\textsubscript{2} battery, iron-air, H\textsubscript{2} + SOFC
-          \item Nuclear SMR
-          \item Next-gen geothermal: EGS, closed-loop
-          \item Allam-cycle gas + CCS
-          \item Solid oxide fuel cell
-          \item Fusion (with caution)
-          \item CDR: direct air capture, cost cut-off
-        \end{itemize}
-      \end{exampleblock}
+    \begin{column}{0.48\textwidth}
+      \footnotesize
+      \textbf{\alert{S2 --- Catalytic early investment}}\par
+      Corporate and institutional buyers directly procure advanced clean technologies, with investment scale anchored to a share of regional demand and the portfolio optimised for local system needs. \alert{Early deployment accelerates learning and cost competitiveness} beyond buyers' regions.
+    \end{column}
+  \end{columns}
+
+  \vspace{0.25cm}
+  {\scriptsize\textbf{Additional scenarios} represent alternative futures to baseline.}
+  \vspace{-0.05cm}
+  \begin{columns}[T]
+    \begin{column}{0.49\textwidth}
+      \tiny
+      \begin{itemize}\setlength{\itemsep}{0.35em}
+        \item \gr{Wind/solar acceptance limits:} tighter land-use, protected-area and social-acceptance constraints increase the value of clean firm power.
+        \item \gr{CDR breakthrough:} engineered removal reaches about 150 EUR/tCO\textsubscript{2} by 2040, making gas plus CDR a competitive backup option.
+        \item \gr{Advanced baseload breakthrough:} rapid FOAK-to-commercial cost decline for SMRs or another firm clean technology.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \tiny
+      \begin{itemize}\setlength{\itemsep}{0.35em}
+        \item \gr{Advanced geothermal breakthrough:} commercial success in geologically suitable regions creates locally significant catalytic impact.
+        \item \gr{SOFC breakthrough:} enable cheap, efficient backup running on hydrogen or natural gas with high CO\textsubscript{2} capture; reduces the premium for LDES and flexible clean generation.
+      \end{itemize}
     \end{column}
   \end{columns}
 \end{frame}
 
-\begin{frame}{The Initial Investment Mechanism}
-  \centering
-  \wideimage[12cm]{screenshots/investment_mechanism}
-  \vspace{0.2cm}
-  \begin{itemize}
-    \item A well-tested mechanism for early investment that yields a general investment framing: investment volume, emission savings, etc.
-  \end{itemize}
-\end{frame}
-
-% ARCHETYPE SLIDES: screenshots placed with textblocks (page is 16 x 9 cm; body
-% from ~1.8 cm below the title to ~8.1 cm above the footline)
-\begin{frame}{Modelled regions and grid archetypes}
-  \begin{textblock*}{6cm}(1cm,2.3cm)
-    \includegraphics[height=4.8cm]{archetypes}
-  \end{textblock*}
-\end{frame}
-
-\begin{frame}{Modelled regions and grid archetypes}
-  \begin{textblock*}{6cm}(1cm,2.3cm)
-    \includegraphics[height=4.8cm]{archetypes}
-  \end{textblock*}
-  % the map is 2.7:1, so it runs from the archetype list to the right page edge
-  \begin{textblock*}{9.2cm}(6.2cm,3.0cm)
-    \includegraphics[width=9.2cm]{map_screenshot}
-  \end{textblock*}
-\end{frame}
-
-\begin{frame}{Modelled regions and grid archetypes}
-  \begin{textblock*}{6cm}(1cm,2.3cm)
-    \includegraphics[height=4.8cm]{archetypes}
-  \end{textblock*}
-  \begin{textblock*}{6cm}(8.6cm,2.3cm)
-    \includegraphics[height=4.8cm]{shares}
-  \end{textblock*}
-\end{frame}
 
 % Gantt of the four SOW work packages (left) and the milestone list (right).
 % Month 1 is taken as September 2026 (SOW effective date = last signature).
@@ -294,7 +210,102 @@
 \end{frame}
 
 \begin{statement}
-  Open Discussion
+  Prototype: Endogenous learning in the world model
+\end{statement}
+
+\begin{frame}{Prototype: Endogenous learning in the world model}
+  \centering
+  \wideimage{figures/learning_curve}
+  \source{\url{https://github.com/nworbmot/priam-myopic}}
+\end{frame}
+
+\begin{statement}
+  Open questions
+\end{statement}
+
+\begin{frame}[c]{Open questions}
+  \begin{itemize}
+    \item Technology palette
+    \item Initial investment mechanism
+    \item Modelled regions
+  \end{itemize}
+\end{frame}
+
+% TECHNOLOGY PALETTE (SOW §1.2): mature = exogenous DEA/technology-data costs,
+% advanced = endogenous learning in the investment loop; keep in step with
+% ../tech/config.yaml
+\begin{frame}{Technology palette}
+  \begin{columns}[T]
+    \begin{column}{0.47\textwidth}
+      \begin{block}{Mature: exogenous costs}
+        \footnotesize
+        \begin{itemize}\setlength{\itemsep}{0.15em}
+          \item Solar PV, onshore/offshore wind
+          \item Hydro: reservoir, run-of-river, pumped hydro
+          \item Biomass
+          \item Nuclear (large LWR)
+          \item Gas CCGT and OCGT
+          \item Li-ion battery
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \begin{exampleblock}{Advanced: endogenous learning}
+        \footnotesize
+        \begin{itemize}\setlength{\itemsep}{0.15em}
+          \item LDES: CO\textsubscript{2} battery, iron-air battery, H\textsubscript{2} + SOFC, vanadium flow
+          \item Nuclear SMR
+          \item Next-gen geothermal: EGS, closed-loop
+          \item Allam-cycle gas + CCS
+          \item Solid oxide fuel cell
+          \item CDR: direct air capture, cost cut-off
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{The Initial Investment Mechanism}
+  \centering
+  \wideimage[10cm]{screenshots/investment_mechanism}
+  \vspace{-0.2cm}
+  \begin{itemize}\footnotesize\setlength{\itemsep}{0.25em}
+    \item Generalise the initial action beyond 24/7 CFE to represent \alert{multiple forms of catalytic investment}
+    \item Let the model select the \alert{locally appropriate technology portfolio}, rather than prescribing which technologies are procured
+    \item Test two mechanisms with endogenous portfolio selection: a \alert{demand-linked procurement target} and a \alert{green-premium budget}
+  \end{itemize}
+\end{frame}
+
+% ARCHETYPE SLIDES: screenshots placed with textblocks (page is 16 x 9 cm; body
+% from ~1.8 cm below the title to ~8.1 cm above the footline)
+\begin{frame}{Modelled regions and grid archetypes}
+  \begin{textblock*}{6cm}(1cm,2.3cm)
+    \includegraphics[height=4.8cm]{archetypes}
+  \end{textblock*}
+\end{frame}
+
+\begin{frame}{Modelled regions and grid archetypes}
+  \begin{textblock*}{6cm}(1cm,2.3cm)
+    \includegraphics[height=4.8cm]{archetypes}
+  \end{textblock*}
+  % the map is 2.7:1, so it runs from the archetype list to the right page edge
+  \begin{textblock*}{9.2cm}(6.2cm,3.0cm)
+    \includegraphics[width=9.2cm]{map_screenshot}
+  \end{textblock*}
+\end{frame}
+
+\begin{frame}{Modelled regions and grid archetypes}
+  \begin{textblock*}{6cm}(1cm,2.3cm)
+    \includegraphics[height=4.8cm]{archetypes}
+  \end{textblock*}
+  \begin{textblock*}{6cm}(8.6cm,2.3cm)
+    \includegraphics[height=4.8cm]{shares}
+  \end{textblock*}
+\end{frame}
+
+
+\begin{statement}
+  Annex
 \end{statement}
 
 
@@ -325,85 +336,12 @@
   \input{references}
 \end{frame}
 
-% ---------------------------------------------------------------------------
-% Template demonstration slides (kept from beamer/template.tex as a reference)
-% ---------------------------------------------------------------------------
-
-\section{Demonstration}
-
-\begin{frame}{Frame title}
-
-  \begin{columns}[T]
-    \begin{column}{0.5\textwidth}
-
-      Text with \alert{alerted text}, the accents \gr{green}, \rd{red},
-      \gray{gray} and chips that highlight \cb{quietly} or
-      \hl{loudly}~\cite{PyPSA}.
-
-      \begin{itemize}
-        \item First item of an itemisation
-        \item Second item with \textbf{bold} text
-        \item Third item with a \href{https://pypsa.org}{hyperlink}
-      \end{itemize}
-
-      \begin{enumerate}
-        \item First item of an enumeration
-        \item Second item of an enumeration
-      \end{enumerate}
-
-    \end{column}
-    \begin{column}{0.5\textwidth}
-
-      \begin{block}{Block}
-        Uses the primary brand colour.
-      \end{block}
-
-      \begin{exampleblock}{Example block}
-        Uses the green accent.
-      \end{exampleblock}
-
-      \begin{alertblock}{Alert block}
-        Uses the red accent.
-      \end{alertblock}
-
-    \end{column}
-  \end{columns}
-
-  \source{Source: \url{https://pypsa.org}}
-\end{frame}
-
-\begin{frame}{Mathematics}
-
-  Consider a total system cost minimisation problem\footnote{Assume the investment costs are annualised.}:
-
-  \begin{equation*}
-    \min_{g_{s,t}, G_s}\overbrace{\sum_s c_s G_s}^{\text{investment costs}} + \overbrace{\sum_{s,t} o_{s} g_{s,t}}^{\text{fuel costs}},   \qquad \text{s.t.}
-  \end{equation*}
-  \begin{align*}
-    \sum_s g_{s,t} - d_t =  0 &\hspace{0.34cm}\perp \hspace{0.34cm} \lambda_t \tag{nodal energy balance}
-  \end{align*}
-
-  The dual variable $\lambda_t$ of the energy balance is the \alert{market price}.
-
-\end{frame}
-
-\begin{statement}
-  A statement slide for \alert{one} idea.
-\end{statement}
-
-\section{References}
-
-\begin{frame}{References}
-  \printbibliography[heading=none]
-\end{frame}
 
 \begin{frame}{Get in touch}
 
   \begin{columns}[c]
     \begin{column}{0.65\textwidth}
-      \textbf{Firstname Lastname} \\
-      Role or position \\[0.6em]
-      \href{mailto:name@pypsalabs.org}{name@pypsalabs.org} \\
+      \textbf{Dr. Lukas Franken, Dr. Iegor Riepin, Prof. Dr. Tom Brown} \\
       \href{https://pypsalabs.org}{pypsalabs.org}
     \end{column}
     \begin{column}{0.3\textwidth}
