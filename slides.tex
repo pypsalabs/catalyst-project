@@ -45,8 +45,13 @@
 
 \author{}
 \institute{PyPSA Labs, Google}
-% both partner logos on the title page, PyPSA Labs above Google
-\titlegraphic{\includegraphics[height=1.5cm]{logo}\\[0.9cm]\includegraphics[height=0.8cm]{google_logo}}
+% both partner logos on the title page, PyPSA Labs above Google. Both PNGs have
+% the same 3:1 aspect ratio, so equal widths give equal heights; the minipage
+% centres them on a common axis.
+\titlegraphic{\begin{minipage}{4.2cm}\centering
+  \includegraphics[width=4.2cm]{logo}\\[0.9cm]
+  \includegraphics[width=4.2cm]{google_logo}
+\end{minipage}}
 
 \date{September 2026}
 
@@ -67,15 +72,15 @@
     \begin{column}{0.48\textwidth}
       \textbf{Goal}
       \begin{itemize}\setlength{\itemsep}{0.25em}
-        \item Quantifying the catalytic impact of early investment into advanced clean technologies:
-          Experience curves, emission reduction, global addressable market
+        \item Quantify the catalytic impact of early investment in advanced clean technologies:
+          experience curves, emission reductions, global addressable market
       \end{itemize}
     \end{column}
     \begin{column}{0.48\textwidth}
       \textbf{Approach}
       \begin{itemize}\setlength{\itemsep}{0.25em}
         \item Model representative power systems from today to mid-century in PyPSA
-        \item Measure the impact of early investment onto late, \textit{catalysed} runs
+        \item Measure how early investment triggers technology learning that delivers long-term emission reductions
       \end{itemize}
     \end{column}
   \end{columns}
@@ -85,39 +90,86 @@
   \end{textblock*}
 \end{frame}
 
-\begin{frame}[c]{Today}
-  \begin{itemize}
-    \item Modelled regions
-    \item Technologies
-    \item Technology learning
+% MODELLING APPROACH: bullets on the left, PyPSA-Eur network plot on the right
+\begin{frame}{Power System Modelling}
+  \begin{columns}[T]
+    \begin{column}{0.6\textwidth}
+      \small
+      \begin{itemize}\setlength{\itemsep}{0.3em}
+        \item PyPSA for capacity expansion and dispatch optimisation
+        \item PyPSA-Earth as the global data pipeline: brownfield fleet, demand, grid topology
+        \item atlite for renewable resource potentials and capacity factors
+        \item Five power systems, each representing a \textit{grid archetype}, support a qualitative extrapolation to the global addressable market
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.38\textwidth}
+      \centering
+      \vspace{0.3cm}
+      \includegraphics[width=\linewidth]{pypsa-eur}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% CATALYTIC INVESTMENT: bullets on the left, feedback-loop figure from the Joule paper on the right
+\begin{frame}{Catalytic Investment Mechanism}
+  \begin{columns}[T]
+    \begin{column}{0.54\textwidth}
+      \small
+      \begin{itemize}\setlength{\itemsep}{0.5em}
+        \item Each system is modelled for 2025, 2030, \ldots, 2050
+        \item 2025 serves as a basic validation year
+        \item 2030 to 2050 are first run as a \enquote{baseline} scenario without catalytic investment
+        \item In \textit{catalysed} runs, advanced technologies are then pulled into the market, triggering technology learning and lower investment costs in subsequent years
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \centering
+      \vspace{0.5cm}
+      \includegraphics[width=\linewidth]{riepin_catalytic_investment}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+
+\begin{frame}{Prototype: Endogenous learning in the world model}
+  \centering
+  \wideimage{figures/learning_curve}
+\end{frame}
+
+\begin{frame}[c]{The Initial Investment Mechanism}
+  \centering
+  {\usebeamercolor[fg]{framesource}{\Huge TBD}\\[0.4em]{\small (in decision items)}}
+\end{frame}
+
+
+\begin{frame}{Scenarios}
+  \small
+  \begin{itemize}\setlength{\itemsep}{0.6em}
+    \item \textbf{Wind/solar acceptance limits:} land scarcity (e.g. Singapore), protected areas, \ldots
+    \item \textbf{CDR breakthrough:} engineered CO\textsubscript{2} removal becomes cheap (e.g. 150 \$/tCO\textsubscript{2} by 2040)
+    \item \textbf{Advanced baseload breakthrough:} SMRs or another firm clean technology see a rapid cost decline
+    \item \textbf{Advanced geothermal breakthrough:} some regions gain access to high-temperature bedrock through advanced drilling
+    \item \textbf{Solid oxide fuel cell breakthrough:} cheap backup power from hydrogen or from natural gas with carbon capture
   \end{itemize}
 \end{frame}
 
-% ARCHETYPE SLIDES: screenshots placed with textblocks (page is 16 x 9 cm; body
-% from ~1.8 cm below the title to ~8.1 cm above the footline)
-\begin{frame}{Modelled regions and grid archetypes}
-  \begin{textblock*}{6cm}(1cm,2.3cm)
-    \includegraphics[height=4.8cm]{archetypes}
-  \end{textblock*}
+
+\begin{frame}{Goals and Priorities}
+  \vspace{0.3cm}
+  \begin{itemize}\setlength{\itemsep}{1em}
+    \item Results are framed to be \textbf{generally applicable to any investor}, expressed as a \enquote{procurement volume} or a \enquote{green premium volume}
+    \item Everything is open source; our contributions are fed back into the model ecosystem
+    \item The modelling abstracts from forward-looking national energy and climate policies, focusing on the brownfield fleet, announced retirements and an exogenous CO\textsubscript{2} price
+  \end{itemize}
 \end{frame}
 
-\begin{frame}{Modelled regions and grid archetypes}
-  \begin{textblock*}{6cm}(1cm,2.3cm)
-    \includegraphics[height=4.8cm]{archetypes}
-  \end{textblock*}
-  % the map is 2.7:1, so it runs from the archetype list to the right page edge
-  \begin{textblock*}{9.2cm}(6.2cm,3.0cm)
-    \includegraphics[width=9.2cm]{map_screenshot}
-  \end{textblock*}
-\end{frame}
 
-\begin{frame}{Modelled regions and grid archetypes}
-  \begin{textblock*}{6cm}(1cm,2.3cm)
-    \includegraphics[height=4.8cm]{archetypes}
-  \end{textblock*}
-  \begin{textblock*}{6cm}(8.6cm,2.3cm)
-    \includegraphics[height=4.8cm]{shares}
-  \end{textblock*}
+\begin{frame}[c]{Decision Items}
+  \begin{itemize}
+    \item Technologies
+    \item Initial investment mechanism
+    \item Modelled regions
+  \end{itemize}
 \end{frame}
 
 % TECHNOLOGY PALETTE (SOW §1.2): mature = exogenous DEA/technology-data costs,
@@ -155,6 +207,47 @@
   \end{columns}
 \end{frame}
 
+\begin{frame}{The Initial Investment Mechanism}
+  \centering
+  \wideimage[12cm]{screenshots/investment_mechanism}
+  \vspace{0.2cm}
+  \begin{itemize}
+    \item A well-tested mechanism for early investment that yields a general investment framing: investment volume, emission savings, etc.
+  \end{itemize}
+\end{frame}
+
+% ARCHETYPE SLIDES: screenshots placed with textblocks (page is 16 x 9 cm; body
+% from ~1.8 cm below the title to ~8.1 cm above the footline)
+\begin{frame}{Modelled regions and grid archetypes}
+  \begin{textblock*}{6cm}(1cm,2.3cm)
+    \includegraphics[height=4.8cm]{archetypes}
+  \end{textblock*}
+\end{frame}
+
+\begin{frame}{Modelled regions and grid archetypes}
+  \begin{textblock*}{6cm}(1cm,2.3cm)
+    \includegraphics[height=4.8cm]{archetypes}
+  \end{textblock*}
+  % the map is 2.7:1, so it runs from the archetype list to the right page edge
+  \begin{textblock*}{9.2cm}(6.2cm,3.0cm)
+    \includegraphics[width=9.2cm]{map_screenshot}
+  \end{textblock*}
+\end{frame}
+
+\begin{frame}{Modelled regions and grid archetypes}
+  \begin{textblock*}{6cm}(1cm,2.3cm)
+    \includegraphics[height=4.8cm]{archetypes}
+  \end{textblock*}
+  \begin{textblock*}{6cm}(8.6cm,2.3cm)
+    \includegraphics[height=4.8cm]{shares}
+  \end{textblock*}
+\end{frame}
+
+\begin{statement}
+  Open Discussion
+\end{statement}
+
+
 \begin{frame}{2025 capex baseline: mature generation}
   \centering
   \wideimage{figures/capex_generation_mature}
@@ -175,11 +268,6 @@
   \wideimage{figures/capex_storage_advanced}
 \end{frame}
 
-
-\begin{frame}{Endogenous learning in the world model (prototype)}
-  \centering
-  \wideimage{figures/learning_curve}
-\end{frame}
 
 
 % Gantt of the four SOW work packages (left) and the milestone list (right).
