@@ -278,10 +278,47 @@
 
 % ARCHETYPE SLIDES: screenshots placed with textblocks (page is 16 x 9 cm; body
 % from ~1.8 cm below the title to ~8.1 cm above the footline)
+% SOW §1.2 illustrative archetypes on the left, the set we ended up with on the right
 \begin{frame}{Modelled regions and grid archetypes}
-  \begin{textblock*}{6cm}(1cm,2.3cm)
-    \includegraphics[height=4.8cm]{archetypes}
-  \end{textblock*}
+  \begin{columns}[T]
+    \begin{column}{0.56\textwidth}
+      \small\textbf{Archetypes proposed in the SOW}\\[0.6em]
+      \scriptsize
+      \begin{itemize}\setlength{\itemsep}{0.5em}
+        \item \textbf{Renewables-constrained, high-density:} Western Europe, South Korea, Japan
+        \item \textbf{Geothermal-favourable:} US West, South-East Asia, Turkey, Italy
+        \item \textbf{Islanded / weakly interconnected:} Western Australia, Ireland
+        \item \textbf{Hydro-rich:} Norway, Brazil, parts of Canada
+        \item \textbf{Fossil-heavy brownfield with large economies:} parts of the US and Europe, India
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.40\textwidth}
+      \small\textbf{Archetypes and regions selected}\\[0.7em]
+      \includegraphics[height=4.8cm]{archetypes}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% how the archetypes were derived: the seven k-means features (scripts/sep/cluster_tsne.py) and
+% the t-SNE view of the KMeans tab of the front-end (screenshots/tsne.png)
+\begin{frame}{$k$-means for archetype classification}
+  \begin{columns}[T]
+    \begin{column}{0.47\textwidth}
+      \scriptsize
+      \begin{itemize}\setlength{\itemsep}{0.4em}
+        \item \textbf{Autarky:} 1 at zero trade, 0 at $|$net imports$|$ $\geq 20\,\%$ of demand
+        \item \textbf{Population density:} $\log_{10}$ people per km$^2$
+        \item \textbf{2050 demand per capita:} $\log_{10}$ kWh per person
+        \item \textbf{Demand growth to 2050:} $\log_2$ of 2050 over today's demand
+        \item \textbf{Clean incumbent share:} hydro + nuclear, \% of generation
+        \item \textbf{Fossil share:} coal, gas and oil, \% of generation
+        \item \textbf{Geothermal potential:} installed capacity, EGS-suitable land, temperature at 5\,km
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.51\textwidth}
+      \includegraphics[width=\linewidth]{tsne}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 \begin{frame}{Modelled regions and grid archetypes}
