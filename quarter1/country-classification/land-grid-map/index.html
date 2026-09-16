@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Land Grid Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
+<script src="data/countries.js"></script>
+<script src="data/regions.js"></script>
+<script src="data/population.js"></script>
+<script src="data/archetypes.js"></script>
+<!-- data versions: one file each, see README.md. Order here = order in the dropdown. -->
+<script src="data/layers/clusters-v1.js"></script>
+<script src="data/layers/rules-v1.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  a { color: #8a4a22; } a:hover { color: #5f3115; }
+  .leaflet-container { font-family: Helvetica, Arial, sans-serif; }
+
+  #root { position: fixed; inset: 0; overflow: hidden; font-family: Helvetica, Arial, sans-serif; background: #e8e6e1; color: #1a1a1a; }
+  #map { position: absolute; inset: 0; }
+  #grid { position: absolute; inset: 0; pointer-events: none; z-index: 500; opacity: 1; transition: opacity 180ms; }
+
+  .panel {
+    position: absolute; top: 14px; left: 14px; z-index: 1200; width: 300px;
+    background: rgba(255,255,255,0.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.14); overflow: hidden;
+  }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px 9px; }
+  .panel-title { font-size: 13px; font-weight: 700; letter-spacing: 0.01em; }
+  .panel-toggle {
+    border: none; background: rgba(0,0,0,0.06); color: #444; width: 20px; height: 20px; border-radius: 5px;
+    cursor: pointer; font-size: 12px; line-height: 1; padding: 0; font-family: inherit;
+  }
+  .tabs { display: flex; gap: 2px; margin: 0 14px 10px; background: rgba(0,0,0,0.06); padding: 3px; border-radius: 8px; }
+  .tabs button {
+    flex: 1; border: none; padding: 6px 4px; font-size: 11px; font-weight: 600; border-radius: 6px; cursor: pointer;
+    font-family: inherit; background: transparent; color: #666; white-space: nowrap;
+  }
+  .tabs button.on { background: #fff; color: #1a1a1a; box-shadow: 0 1px 3px rgba(0,0,0,0.18); }
+  .panel-body { display: flex; flex-direction: column; gap: 13px; padding: 2px 14px 14px; max-height: calc(100vh - 118px); overflow-y: auto; }
+
+  /* legend tab */
+  .lg-title { font-size: 13px; font-weight: 700; }
+  .lg-sub { font-size: 11px; color: #777; line-height: 1.45; margin-top: -8px; }
+  .lg-list { display: flex; flex-direction: column; gap: 10px; }
+  .lg-item { display: flex; gap: 12px; align-items: flex-start; }
+  .lg-tile { flex: none; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; border: 1px solid rgba(0,0,0,0.06); }
+  .lg-tile svg { width: 30px; height: 30px; }
+  .lg-name { font-size: 13px; font-weight: 600; line-height: 1.3; }
+  .lg-ex { font-size: 11px; color: #777; line-height: 1.4; margin-top: 2px; }
+  .lg-mod { font-size: 11px; color: #333; margin-top: 4px; display: flex; align-items: center; gap: 6px; }
+  .lg-mod .box { width: 14px; height: 9px; border: 2px solid #111; border-radius: 1px; }
+  .lg-mod .none { color: #999; }
+  .lg-bars { display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; padding: 4px 0 0; }
+  .lg-bar { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 84px; flex: none; }
+  /* the svg holds the 44px bar at its left edge plus a label gutter; captions are centred under the bar itself */
+  .lg-bar .cap, .lg-bar .tot, .lg-bar .yr { width: 84px; margin-left: -20px; text-align: center; }
+  .lg-bar svg { display: block; }
+  .lg-bar .cap { font-size: 11px; font-weight: 600; line-height: 1.3; min-height: 29px; margin-top: 2px; }
+  .lg-bar .tot { font-size: 10.5px; color: #777; font-family: ui-monospace, Menlo, monospace; }
+  .lg-bar .yr { font-size: 9.5px; color: #999; line-height: 1.3; }
+  .lg-note { font-size: 10px; color: #999; line-height: 1.45; }
+  .panel-body[hidden] { display: none; }
+
+  /* classification views: replace the map with feature profiles (left) and the method (right) */
+  .mview { position: absolute; inset: 0; z-index: 1000; background: #f4f3ef; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); overflow: hidden; }
+  .mview[hidden] { display: none; }
+  .m-left { padding: 112px 8px 20px 16px; overflow-y: auto; min-width: 0; }
+  .m-right { padding: 16px 16px 16px 8px; display: flex; flex-direction: column; min-width: 0; min-height: 0; border-left: 1px solid rgba(0,0,0,0.07); }
+  .m-title { font-size: 15px; font-weight: 700; }
+  .m-sub { font-size: 11.5px; color: #666; line-height: 1.5; margin-top: 4px; max-width: 720px; }
+  .m-feats { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 14px; }
+  .m-chip { display: flex; align-items: center; gap: 6px; font-size: 11px; padding: 3px 9px 3px 7px; border-radius: 999px; background: #fff; border: 1px solid rgba(0,0,0,0.1); cursor: default; }
+  .m-chip i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .m-chip:hover { border-color: rgba(0,0,0,0.35); }
+  .m-cluster { margin-bottom: 16px; }
+  .m-chead { display: flex; align-items: center; gap: 10px; padding: 4px 0 6px; }
+  .m-chead .lg-tile { width: 32px; height: 32px; border-radius: 9px; }
+  .m-chead .lg-tile svg { width: 22px; height: 22px; }
+  .m-chead .nm { font-size: 13px; font-weight: 700; line-height: 1.25; }
+  .m-chead .n { font-size: 10.5px; color: #777; }
+  .m-cards { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  .m-card { background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 6px 6px 5px; cursor: default; min-width: 0; }
+  .m-card.cent { background: transparent; border-style: dashed; }
+  .m-card.hi { border-color: #1a1a1a; box-shadow: 0 0 0 1px #1a1a1a; }
+  .m-card svg.prof { display: block; width: 100%; height: 58px; }
+  .m-card .cn { font-size: 11px; font-weight: 600; line-height: 1.25; margin-top: 5px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; min-height: 27px; }
+  .m-card .cn .box { display: inline-block; width: 11px; height: 7px; border: 2px solid #111; border-radius: 1px; vertical-align: middle; margin-right: 4px; }
+  .m-card .cn .ov { color: #b45309; font-weight: 400; font-size: 10px; margin-left: 3px; }
+  .m-card .dm { font-size: 10px; color: #777; font-family: ui-monospace, Menlo, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .m-card .dm small { font-family: Helvetica, Arial, sans-serif; color: #aaa; }
+  svg.prof rect.fb { transition: opacity 120ms; }
+  .mview[data-hf] svg.prof rect.fb { opacity: 0.18; }
+  .mview[data-hf="0"] svg.prof rect.fb.f0, .mview[data-hf="1"] svg.prof rect.fb.f1, .mview[data-hf="2"] svg.prof rect.fb.f2, .mview[data-hf="3"] svg.prof rect.fb.f3, .mview[data-hf="4"] svg.prof rect.fb.f4, .mview[data-hf="5"] svg.prof rect.fb.f5, .mview[data-hf="6"] svg.prof rect.fb.f6, .mview[data-hf="7"] svg.prof rect.fb.f7, .mview[data-hf="8"] svg.prof rect.fb.f8, .mview[data-hf="9"] svg.prof rect.fb.f9, .mview[data-hf="10"] svg.prof rect.fb.f10 { opacity: 1; }
+  .m-clist { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0 6px; }
+  .m-citem { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+  .m-citem i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .m-citem small { color: #888; }
+  .m-plot { flex: 1; min-height: 0; background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; overflow: hidden; }
+  .m-plot svg { width: 100%; height: 100%; display: block; }
+  .m-plot circle { stroke: #fff; stroke-width: 0.8; cursor: default; }
+  .m-plot circle.mod { stroke: #111; stroke-width: 2; }
+  .m-plot circle.hi { stroke: #1a1a1a; stroke-width: 3.2; }
+  .m-plot text { font-size: 9px; fill: #333; pointer-events: none; font-family: Helvetica, Arial, sans-serif; }
+  .m-note { font-size: 10px; color: #999; line-height: 1.45; margin-top: 8px; }
+  .m-cards.six { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .m-card .rb { display: inline-block; font-size: 9px; font-weight: 700; padding: 0 4px; border-radius: 4px; background: rgba(0,0,0,0.08); color: #444; margin-left: 4px; vertical-align: 1px; font-family: ui-monospace, Menlo, monospace; }
+  svg.prof line.tk { stroke: #1a1a1a; stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .r-tree { flex: 1; min-height: 0; overflow-y: auto; background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 12px 14px; }
+  .r-node { display: grid; grid-template-columns: 30px minmax(0, 1fr) 16px 205px; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 8px; border: 1px solid transparent; cursor: default; }
+  .r-node.p { background: rgba(0,0,0,0.04); }
+  .r-node.on { border-color: #1a1a1a; background: rgba(0,0,0,0.05); }
+  .r-node.hi { border-color: rgba(0,0,0,0.35); }
+  .r-node .id { font-size: 11px; font-weight: 700; font-family: ui-monospace, Menlo, monospace; color: #444; }
+  .r-node .cond { font-size: 11.5px; line-height: 1.35; }
+  .r-node .cond b { font-weight: 700; }
+  .r-node .arr { font-size: 12px; color: #999; text-align: center; }
+  .r-node .out { display: flex; align-items: center; gap: 6px; font-size: 11px; min-width: 0; }
+  .r-node .out i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .r-node .out span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .r-node .out small { color: #888; flex: none; }
+  .r-no { font-size: 9.5px; color: #999; padding: 1px 0 1px 12px; line-height: 1.2; }
+  .r-no::before { content: '↓ no'; }
+  .r-scores { margin-top: 12px; font-size: 10.5px; color: #555; line-height: 1.5; }
+  .r-scores b { color: #333; }
+  .r-scores div { display: flex; gap: 6px; align-items: baseline; }
+  .r-scores i { width: 8px; height: 8px; border-radius: 2px; flex: none; display: inline-block; position: relative; top: -1px; }
+  #mTip .path { margin: 4px 0 2px; }
+  #mTip .path div { display: flex; gap: 5px; align-items: baseline; }
+  #mTip .path .r { font-family: ui-monospace, Menlo, monospace; font-size: 10px; color: #777; flex: none; width: 22px; }
+  #mTip .path .no { color: #999; }
+  #mTip .path .yes { font-weight: 700; }
+  #mTip { position: fixed; z-index: 1300; pointer-events: none; background: rgba(255,255,255,0.97); border: 1px solid rgba(0,0,0,0.12); border-radius: 8px;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.16); padding: 8px 10px; font-size: 11px; line-height: 1.45; width: max-content; max-width: min(440px, calc(100vw - 24px)); box-sizing: border-box; }
+  #mTip[hidden] { display: none; }
+  #mTip b { font-size: 12px; }
+  #mTip .k { color: #777; }
+  #mTip table { border-collapse: collapse; margin-top: 4px; }
+  #mTip td { padding: 1px 6px 1px 0; vertical-align: top; white-space: nowrap; }
+  #mTip td.v { font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; color: #444; white-space: normal; overflow-wrap: anywhere; }
+  #mTip td.z { font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; text-align: right; }
+  #mTip tr.on td { font-weight: 700; color: #1a1a1a; }
+
+  .group { display: flex; flex-direction: column; gap: 6px; }
+  .group[hidden] { display: none; }
+  .group-label { font-size: 10px; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.08em; }
+  select.select {
+    width: 100%; font: inherit; font-size: 12px; font-weight: 600; padding: 6px 8px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.14);
+    background: #fff; color: #1a1a1a;
+  }
+  /* ?shot=map|archetypes|shares: export mode for ../screenshot_map.py (headless Chrome renders the page
+     and the slides pick the PNGs up). map: only the map, #root pinned to ?w x ?h at the top left;
+     archetypes / shares: that block of the Map tab alone, on white, the exporter trims to content;
+     tsne: the cluster key and t-SNE plot of the KMeans tab alone, on white. */
+  html[data-shot] body { background: #fff; }
+  html[data-shot] #root { inset: auto; left: 0; top: 0; }
+  html[data-shot] .leaflet-control-container, html[data-shot] .toast { display: none; }
+  html[data-shot="map"] .panel { display: none; }
+  html[data-shot="archetypes"] #map, html[data-shot="archetypes"] #grid,
+  html[data-shot="shares"] #map, html[data-shot="shares"] #grid { visibility: hidden; }
+  html[data-shot="archetypes"] #root, html[data-shot="shares"] #root { background: #fff; }
+  html[data-shot="archetypes"] .panel, html[data-shot="shares"] .panel {
+    top: 0; left: 0; background: #fff; border: none; border-radius: 0; box-shadow: none;
+    backdrop-filter: none; -webkit-backdrop-filter: none;
+  }
+  html[data-shot="archetypes"] .panel-head, html[data-shot="archetypes"] .tabs,
+  html[data-shot="shares"] .panel-head, html[data-shot="shares"] .tabs { display: none; }
+  html[data-shot] .panel-body { max-height: none; overflow: visible; }
+  html[data-shot="archetypes"] .panel-body > :not(.lg-list) { display: none; }
+  html[data-shot="shares"] .panel-body > :not(.lg-bars) { display: none; }
+  /* tsne: the t-SNE panel of the KMeans tab alone (cluster key + plot), on white */
+  html[data-shot="tsne"] #map, html[data-shot="tsne"] #grid, html[data-shot="tsne"] .panel { visibility: hidden; }
+  html[data-shot="tsne"] #kmeans { grid-template-columns: minmax(0, 1fr); background: #fff; }
+  html[data-shot="tsne"] #kmeans .m-left { display: none; }
+  html[data-shot="tsne"] #kmeans .m-right { border: none; padding: 0; }
+  html[data-shot="tsne"] #kmeans .m-title, html[data-shot="tsne"] #kmeans .m-note { display: none; }
+  html[data-shot="tsne"] #kmeans .m-right { position: relative; }
+  html[data-shot="tsne"] #kmeans .m-plot { border: none; border-radius: 0; }
+  html[data-shot="tsne"] #kmeans .m-plot text { display: none; }   /* no country labels in the export */
+  /* cluster key as a two-column legend in the bottom-left corner of the plot */
+  html[data-shot="tsne"] #kmeans .m-clist {
+    position: absolute; left: 14px; bottom: 14px; z-index: 1; margin: 0; display: grid;
+    grid-template-columns: auto auto; gap: 8px 20px; padding: 10px 14px; border-radius: 8px;
+    background: rgba(255,255,255,0.92); border: 1px solid rgba(0,0,0,0.08);
+  }
+  html[data-shot="tsne"] #kmeans .m-citem { font-size: 22px; gap: 10px; }
+  html[data-shot="tsne"] #kmeans .m-citem i { width: 18px; height: 18px; }
+
+  .toast {
+    position: absolute; bottom: 16px; left: 14px; z-index: 1200; border-radius: 8px; padding: 6px 11px; font-size: 11px;
+  }
+  .toast[hidden] { display: none; }
+  #loading { background: rgba(255,255,255,0.92); border: 1px solid rgba(0,0,0,0.08); color: #555; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  #err { background: rgba(255,240,238,0.95); border: 1px solid rgba(160,40,30,0.25); color: #8a2a20; }
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="map"></div>
+  <canvas id="grid"></canvas>
+  <!-- full-screen views that replace the map: how each classification was made -->
+  <div id="kmeans" class="mview" hidden>
+    <div class="m-left" id="kLeft"></div>
+    <div class="m-right" id="kRight"></div>
+  </div>
+  <div id="rules" class="mview" hidden>
+    <div class="m-left" id="rLeft"></div>
+    <div class="m-right" id="rRight"></div>
+  </div>
+  <div id="mTip" hidden></div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title">Grid archetype map</div>
+      <button class="panel-toggle" id="toggle" aria-label="Collapse panel">–</button>
+    </div>
+    <div class="tabs" id="tabs">
+      <button data-tab="legend" class="on">Map</button>
+      <button data-tab="kmeans">KMeans clustering</button>
+      <!-- rule-based view: hidden for now, still reachable with ?tab=rules
+      <button data-tab="rules">Rule-based</button> -->
+    </div>
+    <div class="panel-body" id="legendBody"></div>
+  </div>
+
+  <div class="toast" id="loading">Loading coastlines…</div>
+  <div class="toast" id="err" hidden>Couldn't load coastline data — check network.</div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // Design-time props from the Claude Design canvas. Override via URL, e.g. ?accent=%231f6b6e&dataScale=30
+  const PROPS = {
+    accent: '#b4552d',      // uniform square colour
+    colorLow: '#e8b64c',    // population ramp start
+    colorHigh: '#93242f',   // population ramp end
+    cornerRadius: 1,        // px, 0–10
+    dataScale: 18           // noise frequency of the synthetic demo field, 4–60
+  };
+  const qs = new URLSearchParams(location.search);
+  for (const k of Object.keys(PROPS)) {
+    if (!qs.has(k)) continue;
+    const v = qs.get(k);
+    PROPS[k] = typeof PROPS[k] === 'number' ? +v : v;
+  }
+
+  const LAND_URL = 'https://unpkg.com/world-atlas@2/land-50m.json';
+  const HAVE_POP = !!(window.POPULATION_GRID && window.POPULATION_GRID.png);
+  const HAVE_COUNTRIES = !!(window.COUNTRIES_TOPO && window.COUNTRIES_TOPO.objects && window.COUNTRIES_TOPO.objects.countries);
+  const LAYERS = HAVE_COUNTRIES ? (window.LAYERS || []) : [];
+  const ARCH_DEFS = window.ARCHETYPES || [];      // shared archetype definitions (colour, icon, names)
+  const MASK_SIZE = HAVE_COUNTRIES ? 4096 : 2048;
+  const MAX_CELLS = 300000;      // visible-cell cap per frame
+  const MAX_EXPORT_K = 10;       // 1024 x 1024 world cells
+  const SIZE_MIN = 0.25;         // smallest drawn square, as a fraction of the cell
+  const VANISH_DENSITY = 0.5;    // people per km² below which a population-sized square is not drawn
+
+  // Highlight: countries whose grid cells get a black outline with a white halo.
+  const HL = {
+    count: 5,
+    minKm2: 200000,              // random pick band, "medium": France, Kenya, Thailand size and up
+    maxKm2: 3500000,             // "large": up to India / Argentina; excludes the continental giants
+    color: '#111111',
+    width: 2.2,
+    halo: 'rgba(255,255,255,0.9)',   // drawn under the outline so it reads on dark cells and on the basemap alike
+    areaLevel: 9                 // grid level used to measure each country's cell area
+  };
+
+  const PROXIMITY_SHADING = false;   // true: cell colour fades to white with low proximity
+
+  const state = {
+    data: HAVE_POP ? 'population' : 'demo',
+    sizeBy: HAVE_POP ? 'population' : 'uniform',
+    colorBy: LAYERS.length ? 'archetype' : 'uniform',
+    layer: LAYERS.length ? LAYERS[0].id : null,
+    cellPx: 8, gapPct: 0, alpha: 78, lineAlpha: 0,   // gap and connector lines are fixed (no controls)
+    tab: 'legend',               // panel tab: 'legend' (map) | 'kmeans' | 'rules' (full-screen classification views)
+    lockK: null,                 // null = follow zoom; otherwise the fixed grid level
+    basemap: 'light', panelOpen: true, loading: true, err: false, popLoading: HAVE_POP,
+    highlight: new Set(),        // country indices with the black cell outline
+    highlightMode: LAYERS.length ? 'modelled' : 'random',   // 'modelled' | 'random' | 'custom'
+    seed: null                   // seed of the current random selection
+  };
+
+  // display options: no controls in the UI any more, still settable through the URL
+  const DATASETS = [['population', 'GPW v4'], ['demo', 'Synthetic']];
+  const SIZE_BY = [['uniform', 'Uniform'], ['population', 'Population']];
+  const COLOR_BY = [['uniform', 'Uniform'], ['population', 'Population']];
+  if (HAVE_COUNTRIES) COLOR_BY.push(['country', 'Country']);
+  if (LAYERS.length) COLOR_BY.push(['archetype', 'Archetype']);
+  const BASEMAPS = [['light', 'Light'], ['streets', 'OSM']];
+
+  // URL state: ?layer=clusters-v1&sizeBy=population&colorBy=archetype&basemap=streets&cellPx=8&lockK=8&wheel=0
+  if (LAYERS.some(l => l.id === qs.get('layer'))) state.layer = qs.get('layer');
+  if (SIZE_BY.some(m => m[0] === qs.get('sizeBy'))) state.sizeBy = qs.get('sizeBy');
+  if (COLOR_BY.some(m => m[0] === qs.get('colorBy'))) state.colorBy = qs.get('colorBy');
+  // legacy ?mode= from the original design: even | size | color | both | country
+  const legacy = { even: ['uniform', 'uniform'], size: ['population', 'uniform'], color: ['uniform', 'population'], both: ['population', 'population'], country: ['uniform', 'country'] }[qs.get('mode')];
+  if (legacy) { state.sizeBy = legacy[0]; if (COLOR_BY.some(m => m[0] === legacy[1])) state.colorBy = legacy[1]; }
+  if (BASEMAPS.some(b => b[0] === qs.get('basemap'))) state.basemap = qs.get('basemap');
+  if (DATASETS.some(d => d[0] === qs.get('data')) && (qs.get('data') !== 'population' || HAVE_POP)) state.data = qs.get('data');
+  for (const k of ['cellPx', 'alpha']) {
+    if (qs.has(k) && Number.isFinite(+qs.get(k))) state[k] = +qs.get(k);
+  }
+  if (['legend', 'kmeans', 'rules'].includes(qs.get('tab'))) state.tab = qs.get('tab');
+  if (qs.get('tab') === 'method') state.tab = 'kmeans';   // old name
+  if (qs.has('lockK') && Number.isFinite(+qs.get('lockK'))) state.lockK = Math.max(2, Math.min(14, +qs.get('lockK')));
+  // ?seed=123 reproduces a random outline selection; ?highlight=France,Kenya (names or ISO numeric ids) fixes one;
+  // ?highlight=none disables; ?highlight=modelled (default with a data version) outlines the modelled countries
+  if (qs.has('seed') && Number.isFinite(+qs.get('seed'))) { state.seed = +qs.get('seed'); state.highlightMode = 'random'; }
+  const highlightParam = qs.get('highlight');
+
+  const $ = id => document.getElementById(id);
+  const mapEl = $('map'), canvas = $('grid');
+
+  // ?shot=map|archetypes|shares&w=1767&h=651: export mode for ../screenshot_map.py, see the CSS block
+  const shot = ['map', 'archetypes', 'shares', 'tsne'].includes(qs.get('shot')) ? qs.get('shot') : null;
+  if (shot) {
+    document.documentElement.dataset.shot = shot;
+    if (shot === 'tsne') state.tab = 'kmeans';
+    $('root').style.width = (+qs.get('w') || 1767) + 'px';
+    $('root').style.height = (+qs.get('h') || 651) + 'px';
+  }
+
+  let map = null, tiles = null, raf = null;
+  let cid = null;                        // Uint16 per mask pixel: 0 = water, else country index (1 with land-only data)
+  let countryAnchor = null;              // per country index: [nx, ny] of a mask pixel inside it (see anchorCountries)
+  let countries = [];                    // index -> { id, name }, index 0 = "no country"
+  let pop = null;                        // { levels: [{w,h,data}], total }
+  let legendRange = null;                // { lo, hi } in people per km², current frame
+  let layer = null;                      // resolved active data version, see applyLayer()
+
+  // ---------- map ----------
+  function initMap() {
+    // finer zoom: quarter-level steps for buttons and keyboard, and twice the scroll travel per zoom level
+    map = L.map(mapEl, { zoomControl: false, worldCopyJump: true, minZoom: 2, maxZoom: 11,
+                         zoomSnap: 0.25, zoomDelta: 0.25, wheelPxPerZoomLevel: 140, wheelDebounceTime: 30 });
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    // initial view can be set via URL, e.g. ?lat=50&lon=10&zoom=5
+    const lat = +qs.get('lat'), lon = +qs.get('lon'), zoom = +qs.get('zoom');
+    map.setView([Number.isFinite(lat) && qs.has('lat') ? lat : 12, Number.isFinite(lon) && qs.has('lon') ? lon : 8],
+                Number.isFinite(zoom) && qs.has('zoom') ? zoom : 2.5);
+    setBase(state.basemap);
+    map.on('move', schedule);
+    map.on('zoomstart', () => { canvas.style.opacity = 0; });
+    map.on('zoomend moveend resize viewreset', () => { canvas.style.opacity = 1; schedule(); });
+    schedule();
+  }
+
+  function setBase(name) {
+    if (!map) return;
+    if (tiles) map.removeLayer(tiles);
+    const esriAttr = 'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, OpenStreetMap contributors';
+    const defs = {
+      light: ['https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', esriAttr, null, 16],
+      dark: ['https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', esriAttr, null, 16],
+      streets: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png', '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', 'abc', 19]
+    };
+    const d = defs[name];
+    const opts = { attribution: d[1], maxZoom: d[3] };
+    if (d[2]) opts.subdomains = d[2];
+    tiles = L.tileLayer(d[0], opts).addTo(map);
+    map.getContainer().style.background = name === 'dark' ? '#0f1112' : '#e8e6e1';
+  }
+
+  // ---------- projection helpers ----------
+  function mercY(lat) {
+    lat = Math.max(-85.0511, Math.min(85.0511, lat));
+    const s = Math.sin(lat * Math.PI / 180);
+    return 0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI);
+  }
+  // inverse: normalised Mercator y (0 = north edge, 1 = south) -> latitude in radians
+  function latOfNy(ny) {
+    return 2 * Math.atan(Math.exp((0.5 - ny) * 2 * Math.PI)) - Math.PI / 2;
+  }
+
+  // ---------- land + country mask ----------
+  // Every country is filled with a colour that encodes its index (R = low byte, G = high byte,
+  // B = checksum). Land = any filled pixel. With only land data every pixel encodes index 0.
+  function loadMask() {
+    if (HAVE_COUNTRIES) {
+      const go = () => {
+        if (!window.topojson) { setTimeout(go, 60); return; }
+        const t = window.COUNTRIES_TOPO;
+        const fc = window.topojson.feature(t, t.objects.countries);
+        // grid regions (data/regions.js) replace their parent country geometry: sub-national splits
+        // (one parent) or merged regions (`replaces` is a list of parents)
+        const regions = (window.REGIONS_GEO && window.REGIONS_GEO.features) || [];
+        const parentsOf = r => [].concat(r.properties.replaces).map(String);
+        const replaced = new Set(regions.flatMap(parentsOf));
+        countries = [{ id: null, name: '(no country)' }];
+        const feats = [];
+        for (const f of fc.features) {
+          if (f.id != null && replaced.has(String(f.id))) continue;
+          countries.push({ id: f.id == null ? null : String(f.id), name: (f.properties && f.properties.name) || '' });
+          feats.push({ geometry: f.geometry, index: countries.length - 1 });
+        }
+        for (const r of regions) {
+          countries.push({ id: String(r.properties.id), name: r.properties.name || String(r.properties.id), region: true, parents: parentsOf(r) });
+          feats.push({ geometry: r.geometry, index: countries.length - 1 });
+        }
+        buildMask(feats);
+      };
+      go();
+      return;
+    }
+    fetch(LAND_URL)
+      .then(r => r.json())
+      .then(t => {
+        const go = () => {
+          if (!window.topojson) { setTimeout(go, 60); return; }
+          const out = window.topojson.feature(t, t.objects.land);
+          buildMask((out.features || [out]).map(f => ({ geometry: f.geometry, index: 0 })));
+        };
+        go();
+      })
+      .catch(() => { state.loading = false; state.err = true; renderPanel(); });
+  }
+
+  const idColor = idx => {
+    const r = idx & 255, g = (idx >> 8) & 255;
+    return 'rgb(' + r + ',' + g + ',' + ((r ^ g ^ 0xA5) & 255) + ')';
+  };
+  const decodeId = (r, g, b) => (((r ^ g ^ 0xA5) & 255) === b ? (r | (g << 8)) : -1);
+
+  function buildMask(feats) {
+    const W = MASK_SIZE, H = MASK_SIZE, c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const g = c.getContext('2d', { willReadFrequently: true });
+    for (const f of feats) {
+      const gg = f.geometry; if (!gg) continue;
+      g.fillStyle = idColor(f.index);
+      const polys = gg.type === 'Polygon' ? [gg.coordinates] : gg.coordinates;
+      for (const poly of polys) {
+        g.beginPath();
+        for (const ring of poly) {
+          // unwrap longitudes so antimeridian-crossing rings don't draw a world-spanning edge
+          const pts = [];
+          let lon = ring[0][0];
+          for (let i = 0; i < ring.length; i++) {
+            if (i) {
+              let d = ring[i][0] - ring[i - 1][0];
+              if (d > 180) d -= 360; else if (d < -180) d += 360;
+              lon += d;
+            }
+            pts.push([(lon + 180) / 360 * W, mercY(ring[i][1]) * H]);
+          }
+          for (const off of [-W, 0, W]) {
+            for (let i = 0; i < pts.length; i++) {
+              const x = pts[i][0] + off, y = pts[i][1];
+              i ? g.lineTo(x, y) : g.moveTo(x, y);
+            }
+            g.closePath();
+          }
+        }
+        g.fill('evenodd');
+      }
+    }
+    cid = decodeMask(g, W, H);
+    countryAnchor = anchorCountries(cid, W, H);
+    c.width = c.height = 0;                       // release the canvas backing store
+    if (HAVE_COUNTRIES) { assignCountryColors(); measureCountries(); applyLayer(state.layer); initialHighlight(); }
+    state.loading = false;
+    renderPanel();
+    schedule();
+  }
+
+  // Turn the RGBA render into a compact index array, reading the canvas in row bands so no full-size
+  // RGBA copy is ever held. Clean pixels decode directly; anti-aliased border pixels (checksum fails or
+  // partial alpha) are marked and then take the nearest decoded neighbour. Uint8 when all indices fit.
+  function decodeMask(g, W, H) {
+    const wide = countries.length > 254;
+    const out = wide ? new Uint16Array(W * H) : new Uint8Array(W * H);
+    const PENDING = wide ? 0xFFFF : 0xFF;
+    const pending = [];
+    const BAND = 256;
+    for (let y0 = 0; y0 < H; y0 += BAND) {
+      const rows = Math.min(BAND, H - y0);
+      const px = g.getImageData(0, y0, W, rows).data;
+      for (let r = 0, p = y0 * W, q = 0; r < rows * W; r++, p++, q += 4) {
+        const a = px[q + 3];
+        if (a <= 60) continue;
+        const id = a === 255 ? decodeId(px[q], px[q + 1], px[q + 2]) : -1;
+        if (id >= 0) out[p] = HAVE_COUNTRIES ? id : 1; else { out[p] = PENDING; pending.push(p); }
+      }
+    }
+    for (const p of pending) {
+      const cx = p % W, cy = (p / W) | 0;
+      let found = 0;
+      outer: for (let r = 1; r <= 4; r++) {
+        for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+          const x = (((cx + dx) % W) + W) % W, y = cy + dy;
+          if (y < 0 || y >= H) continue;
+          const v = out[y * W + x];
+          if (v && v !== PENDING) { found = v; break outer; }
+        }
+      }
+      out[p] = found;
+    }
+    return out;
+  }
+
+  // One representative mask pixel per country: the mean pixel if it lies inside the country, else the
+  // first pixel in row order. Used to force a grid cell for highlighted countries too small to catch a
+  // cell centre at coarse levels (Singapore), so a modelled city-state keeps its outline on the map.
+  function anchorCountries(out, W, H) {
+    const N = countries.length, sx = new Float64Array(N), sy = new Float64Array(N), cnt = new Float64Array(N);
+    const first = new Int32Array(N).fill(-1);
+    for (let p = 0, y = 0; y < H; y++) for (let x = 0; x < W; x++, p++) {
+      const v = out[p]; if (!v) continue;
+      sx[v] += x; sy[v] += y; cnt[v]++;
+      if (first[v] < 0) first[v] = p;
+    }
+    const anchors = new Array(N).fill(null);
+    for (let v = 1; v < N; v++) {
+      if (!cnt[v]) continue;
+      const mx = Math.round(sx[v] / cnt[v]), my = Math.round(sy[v] / cnt[v]);
+      const pxl = out[my * W + mx] === v ? my * W + mx : first[v];
+      anchors[v] = [((pxl % W) + 0.5) / W, (Math.floor(pxl / W) + 0.5) / H];
+    }
+    return anchors;
+  }
+
+  function maskIndex(nx, ny) {
+    nx = ((nx % 1) + 1) % 1;
+    const x = Math.min(MASK_SIZE - 1, (nx * MASK_SIZE) | 0);
+    const y = Math.min(MASK_SIZE - 1, (ny * MASK_SIZE) | 0);
+    return y * MASK_SIZE + x;
+  }
+
+  function landAt(nx, ny) {
+    if (!cid || ny < 0 || ny >= 1) return false;
+    return cid[maskIndex(nx, ny)] > 0;
+  }
+
+  function countryAtPoint(nx, ny) {
+    if (!cid || ny < 0 || ny >= 1) return 0;
+    return cid[maskIndex(nx, ny)];
+  }
+
+  // Country membership of grid cell (k, i, j): decided by the cell centre (a single array read).
+  function countryOfCell(k, i, j) {
+    const n = 1 << k, ii = ((i % n) + n) % n;
+    return countryAtPoint((ii + 0.5) / n, (j + 0.5) / n);
+  }
+
+  // Greedy map colouring for the country mode: adjacency is read off the mask so neighbours differ.
+  let countryColorIdx = null;
+  function assignCountryColors() {
+    const N = countries.length, adj = Array.from({ length: N }, () => new Set());
+    const S = MASK_SIZE, step = 2;
+    const idAt = (x, y) => cid[y * S + x];
+    for (let y = 0; y < S; y += step) for (let x = 0; x < S; x += step) {
+      const a = idAt(x, y); if (a <= 0) continue;
+      for (const [dx, dy] of [[3, 0], [0, 3]]) {
+        const xx = x + dx, yy = y + dy;
+        if (xx >= S || yy >= S) continue;
+        const b = idAt(xx, yy);
+        if (b > 0 && b !== a) { adj[a].add(b); adj[b].add(a); }
+      }
+    }
+    const P = COUNTRY_PALETTE.length;
+    countryColorIdx = new Int16Array(N).fill(-1);
+    const order = [...Array(N).keys()].slice(1).sort((a, b) => adj[b].size - adj[a].size);
+    const usage = new Array(P).fill(0);
+    for (const c of order) {
+      const used = new Set();
+      for (const o of adj[c]) if (countryColorIdx[o] >= 0) used.add(countryColorIdx[o]);
+      let best = -1;
+      for (let p = 0; p < P; p++) if (!used.has(p) && (best < 0 || usage[p] < usage[best])) best = p;
+      if (best < 0) best = (Math.imul(c, 2654435761) >>> 0) % P;  // palette exhausted: fall back to a hash
+      countryColorIdx[c] = best; usage[best]++;
+    }
+  }
+
+  // ---------- data versions (archetype proximity per country) ----------
+  // Resolves a LAYERS entry against the loaded country list:
+  //   layer.arch[idx]  -> archetype position (0..4) or -1 for countries without data
+  //   layer.prox[idx]  -> proximity 0..1
+  //   layer.modelled   -> Set of country indices (one per archetype)
+  function findCountry(s) {
+    s = String(s).trim().toLowerCase();
+    for (let c = 1; c < countries.length; c++) {
+      if ((countries[c].id != null && String(countries[c].id).toLowerCase() === s) || countries[c].name.toLowerCase() === s) return c;
+    }
+    return 0;
+  }
+
+  const SHORT_NAMES = { 'United States of America': 'United States', 'Dem. Rep. Congo': 'DR Congo', 'Central African Rep.': 'CAR',
+    'Bosnia and Herz.': 'Bosnia', 'Dominican Rep.': 'Dominican Rep.', 'Eq. Guinea': 'Eq. Guinea', 'S. Sudan': 'South Sudan',
+    'United States (East)': 'US East', 'United States (West)': 'US West' };
+  const shortName = n => SHORT_NAMES[n] || n;
+
+  function applyLayer(id) {
+    const def = LAYERS.find(l => l.id === id) || LAYERS[0];
+    if (!def || !cid) { layer = null; return; }
+    // archetypes: ids (or override objects) resolved against data/archetypes.js; default = all, in file order
+    const list = def.archetypes && def.archetypes.length ? def.archetypes : ARCH_DEFS.map(a => a.id);
+    const defs = list.map(a => {
+      const aid = typeof a === 'string' ? a : a.id;
+      const base = ARCH_DEFS.find(d => d.id === aid) || { id: aid, name: aid, color: '#888888', tint: '#eeeeee', icon: '' };
+      return typeof a === 'string' ? { ...base } : { ...base, ...a };
+    });
+    const archIdx = new Map(defs.map((a, i) => [a.id, i]));
+    const N = countries.length;
+    const arch = new Int8Array(N).fill(-1), prox = new Float32Array(N);
+    let unresolved = 0;
+    for (const key of Object.keys(def.countries || {})) {
+      const c = findCountry(key);
+      const rec = def.countries[key];
+      if (!c || !archIdx.has(rec.archetype)) { unresolved++; continue; }
+      arch[c] = archIdx.get(rec.archetype);
+      prox[c] = Math.max(0, Math.min(1, +rec.proximity || 0));
+    }
+    const modelled = new Set(), modelledBy = new Map();
+    for (const [aid, key] of Object.entries(def.modelled || {})) {
+      const c = findCountry(key);
+      if (c && archIdx.has(aid)) { modelled.add(c); modelledBy.set(archIdx.get(aid), c); }
+    }
+    layer = {
+      def, id: def.id, name: def.name, description: def.description || '',
+      archetypes: defs.map(a => ({ ...a, rgb: hexRgb(a.color), img: iconImage(a) })),
+      arch, prox, modelled, modelledBy, unresolved
+    };
+    state.layer = def.id;
+    if (state.highlightMode === 'modelled') state.highlight = new Set(modelled);
+  }
+
+  function setLayer(id) {
+    archetypeColorCache.clear();
+    applyLayer(id);
+    renderPanel();
+    schedule();
+  }
+
+  // archetype icon as an Image (SVG data URI), stroke in the archetype colour
+  const iconCache = new Map();
+  function iconSvg(a, color, strokeWidth) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke="' + color +
+      '" stroke-width="' + strokeWidth + '" stroke-linecap="round" stroke-linejoin="round">' + (a.icon || '') + '</svg>';
+  }
+  function iconImage(a) {
+    const key = a.id + '|' + a.color;
+    let im = iconCache.get(key);
+    if (im) return im;
+    im = new Image();
+    im.onload = () => schedule();
+    im.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(iconSvg(a, a.color, window.ARCHETYPE_STROKE || 3));
+    iconCache.set(key, im);
+    return im;
+  }
+
+  // ---------- highlight selection ----------
+  let countryAreaKm2 = null;     // index -> land-cell area at HL.areaLevel
+  function measureCountries() {
+    const k = HL.areaLevel, n = 1 << k;
+    countryAreaKm2 = new Float64Array(countries.length);
+    for (let j = 0; j < n; j++) {
+      const latTop = latOfNy(j / n), latBot = latOfNy((j + 1) / n);
+      const area = R2 * (2 * Math.PI / n) * (Math.sin(latTop) - Math.sin(latBot));
+      for (let i = 0; i < n; i++) {
+        if (!landAt((i + 0.5) / n, (j + 0.5) / n)) continue;
+        countryAreaKm2[countryOfCell(k, i, j)] += area;
+      }
+    }
+  }
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function highlightCandidates() {
+    const out = [];
+    for (let c = 1; c < countries.length; c++) {
+      const a = countryAreaKm2[c];
+      if (a >= HL.minKm2 && a <= HL.maxKm2) out.push(c);
+    }
+    return out;
+  }
+
+  function pickRandomCountries(seed, count) {
+    const rnd = mulberry32(seed), pool = highlightCandidates();
+    for (let i = pool.length - 1; i > 0; i--) {           // Fisher–Yates
+      const j = Math.floor(rnd() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    return pool.slice(0, count);
+  }
+
+  function setHighlightRandom(seed) {
+    state.seed = seed;
+    state.highlightMode = 'random';
+    state.highlight = new Set(pickRandomCountries(seed, HL.count));
+    renderPanel();
+    schedule();
+  }
+
+  function setHighlightModelled() {
+    state.highlightMode = 'modelled';
+    state.seed = null;
+    state.highlight = layer ? new Set(layer.modelled) : new Set();
+    renderPanel();
+    schedule();
+  }
+
+  function initialHighlight() {
+    if (highlightParam === 'none') { state.highlight = new Set(); state.highlightMode = 'custom'; return; }
+    if (highlightParam && highlightParam !== 'modelled') {
+      state.highlight = new Set(highlightParam.split(',').map(findCountry).filter(Boolean));
+      state.highlightMode = 'custom'; state.seed = null;
+      return;
+    }
+    if (state.highlightMode === 'random' || !layer) {
+      if (state.seed == null) state.seed = Math.floor(Math.random() * 1e6);
+      state.highlightMode = 'random';
+      state.highlight = new Set(pickRandomCountries(state.seed, HL.count));
+      return;
+    }
+    state.highlight = new Set(layer.modelled);
+  }
+
+  // Trace the boundary of each highlighted country's cells: an edge is drawn wherever a cell's
+  // 4-neighbour is not a land cell of the same country. Edges lie on the cell boundaries, i.e.
+  // in the gap between squares.
+  function drawHighlightOutlines(ctx, rows, cs) {
+    if (!state.highlight.size) return;
+    ctx.beginPath();
+    for (let J = 0; J < rows.length; J++) {
+      const row = rows[J], up = rows[J - 1], dn = rows[J + 1];
+      for (let I = 0; I < row.length; I++) {
+        const c = row[I];
+        if (!c || !state.highlight.has(c.country)) continue;
+        const x0 = c.cx - cs / 2, y0 = c.cy - cs / 2, x1 = x0 + cs, y1 = y0 + cs;
+        const same = o => o && o.country === c.country;
+        if (up && !same(up[I])) { ctx.moveTo(x0, y0); ctx.lineTo(x1, y0); }
+        if (dn && !same(dn[I])) { ctx.moveTo(x0, y1); ctx.lineTo(x1, y1); }
+        if (I > 0 && !same(row[I - 1])) { ctx.moveTo(x0, y0); ctx.lineTo(x0, y1); }
+        if (I < row.length - 1 && !same(row[I + 1])) { ctx.moveTo(x1, y0); ctx.lineTo(x1, y1); }
+      }
+    }
+    ctx.lineCap = 'square';
+    ctx.lineWidth = HL.width + 2;
+    ctx.strokeStyle = HL.halo;
+    ctx.stroke();
+    ctx.lineWidth = HL.width;
+    ctx.strokeStyle = HL.color;
+    ctx.stroke();
+  }
+
+  // ---------- population grid (GPW v4 2020, 4 arc-minute, equirectangular) ----------
+  function loadPopulation() {
+    if (!HAVE_POP) return;
+    const meta = window.POPULATION_GRID;
+    const img = new Image();
+    img.onload = () => {
+      const W = meta.width, H = meta.height;
+      const c = document.createElement('canvas');
+      c.width = W; c.height = H;
+      const g = c.getContext('2d', { willReadFrequently: true });
+      g.drawImage(img, 0, 0);
+      // base level keeps the 16-bit log code per pixel (2 bytes) and decodes through a lookup table;
+      // the canvas is read in row bands so no full-size RGBA copy is held
+      const k = meta.logMax / 65535;
+      const lut = new Float32Array(65536);
+      for (let v = 1; v < 65536; v++) lut[v] = Math.pow(10, v * k) - 1;
+      const base = new Uint16Array(W * H);
+      let total = 0;
+      const BAND = 256;
+      for (let y0 = 0; y0 < H; y0 += BAND) {
+        const rows = Math.min(BAND, H - y0);
+        const px = g.getImageData(0, y0, W, rows).data;
+        for (let r = 0, p = y0 * W, q = 0; r < rows * W; r++, p++, q += 4) {
+          const v = px[q] * 256 + px[q + 1];
+          if (v) { base[p] = v; total += lut[v]; }
+        }
+      }
+      c.width = c.height = 0;                     // release the canvas backing store
+      img.src = ''; meta.png = null;              // drop the decoded bitmap and the 4 MB base64 source
+      // sum pyramid (float): each level halves both dimensions (exact halving only, so geometry stays aligned)
+      const levels = [{ w: W, h: H, data: base, lut }];
+      while (levels[levels.length - 1].w % 2 === 0 && levels[levels.length - 1].h % 2 === 0 && levels[levels.length - 1].w > 512) {
+        const s = levels[levels.length - 1], w = s.w / 2, h = s.h / 2, d = new Float32Array(w * h);
+        const L = s.lut, val = L ? (i => L[s.data[i]]) : (i => s.data[i]);
+        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+          const o = (2 * y) * s.w + 2 * x;
+          d[y * w + x] = val(o) + val(o + 1) + val(o + s.w) + val(o + s.w + 1);
+        }
+        levels.push({ w, h, data: d });
+      }
+      pop = { levels, total };
+      state.popLoading = false;
+      renderPanel();
+      schedule();
+    };
+    img.onerror = () => { state.popLoading = false; renderPanel(); };
+    img.src = meta.png;
+  }
+
+  // Sum of the grid over a lon/lat box (degrees), with fractional weights at the box edges.
+  function popInBox(level, lon0, lon1, latTop, latBot) {
+    const { w, h, data, lut } = level;
+    const x0 = (lon0 + 180) / 360 * w, x1 = (lon1 + 180) / 360 * w;
+    const y0 = (90 - latTop) / 180 * h, y1 = (90 - latBot) / 180 * h;
+    const cx0 = Math.floor(x0), cx1 = Math.ceil(x1) - 1;
+    const cy0 = Math.max(0, Math.floor(y0)), cy1 = Math.min(h - 1, Math.ceil(y1) - 1);
+    let sum = 0;
+    for (let y = cy0; y <= cy1; y++) {
+      const wy = Math.min(y + 1, y1) - Math.max(y, y0);
+      if (wy <= 0) continue;
+      const row = y * w;
+      for (let x = cx0; x <= cx1; x++) {
+        const wx = Math.min(x + 1, x1) - Math.max(x, x0);
+        if (wx <= 0) continue;
+        const xx = ((x % w) + w) % w;
+        sum += (lut ? lut[data[row + xx]] : data[row + xx]) * wx * wy;
+      }
+    }
+    return sum;
+  }
+
+  function popLevelFor(n) {
+    let level = pop.levels[0];
+    for (const L of pop.levels) if (L.w / n >= 8) level = L;
+    return level;
+  }
+
+  const R2 = 6371 * 6371;
+  function cellInfo(k, i, j, level) {
+    const n = 1 << k, ii = ((i % n) + n) % n;
+    const lon0 = ii / n * 360 - 180, lon1 = (ii + 1) / n * 360 - 180;
+    const latTop = latOfNy(j / n), latBot = latOfNy((j + 1) / n);
+    const areaKm2 = R2 * (2 * Math.PI / n) * (Math.sin(latTop) - Math.sin(latBot));
+    const info = {
+      k, i: ii, j, n, lon: (lon0 + lon1) / 2, lat: latOfNy((j + 0.5) / n) * 180 / Math.PI,
+      lon0, lon1, latTop: latTop * 180 / Math.PI, latBot: latBot * 180 / Math.PI, areaKm2,
+      country: countryOfCell(k, i, j), count: null, density: null
+    };
+    if (pop) {
+      info.count = popInBox(level || popLevelFor(n), lon0, lon1, info.latTop, info.latBot);
+      info.density = info.count / areaKm2;
+    }
+    return info;
+  }
+
+  // ---------- synthetic field ----------
+  function h2(i, j) {
+    let h = (i * 374761393 + j * 668265263) | 0;
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    h ^= h >>> 16;
+    return (h >>> 0) / 4294967296;
+  }
+  function vnoise(x, y) {
+    const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+    const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+    const lerp = (a, b, t) => a + (b - a) * t;
+    return lerp(lerp(h2(xi, yi), h2(xi + 1, yi), u), lerp(h2(xi, yi + 1), h2(xi + 1, yi + 1), u), v);
+  }
+  function value(nx, ny, seed) {
+    const f = PROPS.dataScale ?? 18;
+    let a = 0, amp = 0.55, fr = f;
+    for (let o = 0; o < 3; o++) {
+      a += amp * vnoise(nx * fr + o * 7.3 + seed * 51.7, ny * fr + o * 3.1 + seed * 29.3);
+      amp *= 0.5; fr *= 2.1;
+    }
+    return Math.max(0, Math.min(1, (a - 0.28) / 0.5));
+  }
+
+  // ---------- colour ----------
+  function hexRgb(h) {
+    h = String(h).replace('#', '');
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+  const WHITE = [255, 255, 255];
+  const mix = (a, b, t) => [0, 1, 2].map(i => Math.round(a[i] + (b[i] - a[i]) * t));
+  const rgba = (c, a) => 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')';
+  function ramp() {
+    return {
+      lo: hexRgb(PROPS.colorLow ?? '#e8b64c'),
+      hi: hexRgb(PROPS.colorHigh ?? '#93242f'),
+      flat: hexRgb(PROPS.accent ?? '#b4552d')
+    };
+  }
+  const COUNTRY_PALETTE = ['#b4552d', '#1f6b6e', '#5b4a9f', '#93242f', '#c9a227', '#3a7d44', '#2f5f9e', '#a4497a',
+    '#7a5230', '#4f8a8b', '#8c6d1f', '#5a6b2a', '#b03a2e', '#356c8f', '#7b6c9d', '#c0703a'].map(hexRgb);
+  const NO_COUNTRY = hexRgb('#9a9a9a');
+  const NO_DATA = hexRgb('#d9d9d9');
+  function countryColor(idx) {
+    if (!idx) return NO_COUNTRY;
+    if (countryColorIdx && countryColorIdx[idx] >= 0) return COUNTRY_PALETTE[countryColorIdx[idx]];
+    const h = Math.imul(idx ^ (idx >>> 3), 2654435761) >>> 0;
+    return COUNTRY_PALETTE[h % COUNTRY_PALETTE.length];
+  }
+  // archetype colour: the archetype's full colour (with PROXIMITY_SHADING: white at proximity 0 up to full colour at 1)
+  const archetypeColorCache = new Map();
+  function archetypeColor(idx) {
+    if (!layer || !idx) return NO_COUNTRY;
+    const a = layer.arch[idx];
+    if (a < 0) return NO_DATA;
+    if (!PROXIMITY_SHADING) return layer.archetypes[a].rgb;
+    let c = archetypeColorCache.get(idx);
+    if (!c) { c = mix(WHITE, layer.archetypes[a].rgb, layer.prox[idx]); archetypeColorCache.set(idx, c); }
+    return c;
+  }
+
+  // ---------- grid level ----------
+  function currentLevel() {
+    const world = 256 * Math.pow(2, map.getZoom());
+    const k = state.lockK != null ? state.lockK : Math.max(2, Math.min(14, Math.round(Math.log2(world / state.cellPx))));
+    return { world, k, n: 1 << k, cs: world / (1 << k) };
+  }
+
+  // ---------- drawing ----------
+  function schedule() {
+    if (raf) return;
+    raf = requestAnimationFrame(() => { raf = null; redraw(); });
+  }
+
+  const usingPop = () => state.data === 'population' && !!pop;
+
+  function redraw() {
+    if (!map) return;
+    const dpr = window.devicePixelRatio || 1, sz = map.getSize(), w = sz.x, hh = sz.y;
+    if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(hh * dpr)) {
+      canvas.width = Math.round(w * dpr); canvas.height = Math.round(hh * dpr);
+      canvas.style.width = w + 'px'; canvas.style.height = hh + 'px';
+    }
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, hh);
+    if (!cid) return;
+
+    const st = state;
+    const { k, n, cs } = currentLevel();
+    const pb = map.getPixelBounds();
+    const i0 = Math.floor(pb.min.x / cs) - 1, i1 = Math.ceil(pb.max.x / cs) + 1;
+    const j0 = Math.max(0, Math.floor(pb.min.y / cs) - 1), j1 = Math.min(n - 1, Math.ceil(pb.max.y / cs) + 1);
+    if ((i1 - i0) * (j1 - j0) > MAX_CELLS) return;   // too many cells: zoom in or unlock
+
+    const { lo, hi, flat } = ramp();
+    const mid = mix(lo, hi, 0.5);
+    const alpha = st.alpha / 100, lineA = st.lineAlpha / 100;
+    const gapF = 1 - st.gapPct / 100;
+    const rad = PROPS.cornerRadius ?? 1;
+    const needSize = st.sizeBy === 'population';
+    const needColorVal = st.colorBy === 'population';
+    const needVal = needSize || needColorVal;
+    const popMode = usingPop() && needVal;
+    const needCountry = st.colorBy === 'country' || st.colorBy === 'archetype' || st.highlight.size > 0;
+    const level = popMode ? popLevelFor(n) : null;
+    const dlon = 2 * Math.PI / n;
+
+    const rows = [], dens = [];
+    const mkCell = (i, j) => {
+      const nx = (i + 0.5) / n, ny = (j + 0.5) / n, wx = ((nx % 1) + 1) % 1;
+      const cell = { i, j, cx: (i + 0.5) * cs - pb.min.x, cy: (j + 0.5) * cs - pb.min.y, vs: 1, vc: 0, d: 0, country: 0 };
+      if (needCountry) cell.country = countryOfCell(k, i, j);
+      if (popMode) {
+        const latTop = latOfNy(j / n), latBot = latOfNy((j + 1) / n);
+        const areaKm2 = R2 * dlon * (Math.sin(latTop) - Math.sin(latBot));
+        const ii = ((i % n) + n) % n;
+        const count = popInBox(level, ii / n * 360 - 180, (ii + 1) / n * 360 - 180, latTop * 180 / Math.PI, latBot * 180 / Math.PI);
+        cell.d = count / areaKm2;
+        if (cell.d > 0) dens.push(cell.d);
+      } else if (needVal) {
+        cell.vs = needSize ? value(wx, ny, 0) : 1;
+        cell.vc = needColorVal ? value(wx, ny, needSize ? 1 : 0) : 0;
+      }
+      return cell;
+    };
+    for (let j = j0; j <= j1; j++) {
+      const row = [], ny = (j + 0.5) / n;
+      for (let i = i0; i <= i1; i++) row.push(landAt((i + 0.5) / n, ny) ? mkCell(i, j) : null);
+      rows.push(row);
+    }
+    // highlighted countries without a single cell at this level (city-states at coarse levels) get
+    // the cell holding their anchor pixel, so the outline never disappears
+    if (needCountry && st.highlight.size && countryAnchor) {
+      const seen = new Set();
+      for (const row of rows) for (const c of row) if (c) seen.add(c.country);
+      for (const hc of st.highlight) {
+        const a = countryAnchor[hc];
+        if (seen.has(hc) || !a) continue;
+        const j = Math.floor(a[1] * n);
+        if (j < j0 || j > j1) continue;
+        let i = Math.floor(a[0] * n);
+        while (i < i0) i += n;
+        while (i - n >= i0) i -= n;
+        if (i > i1) continue;
+        const row = rows[j - j0], cell = row[i - i0] || mkCell(i, j);
+        cell.country = hc; row[i - i0] = cell;
+      }
+    }
+
+    // population: log-scale density, normalised per frame to the 99th percentile of populated land cells
+    if (popMode) {
+      let hiD = 1;
+      if (dens.length) { dens.sort((a, b) => a - b); hiD = dens[Math.floor(dens.length * 0.99)]; }
+      hiD = Math.max(hiD, 2);
+      const lg = d => Math.log10(d + 1) / Math.log10(hiD + 1);
+      legendRange = { lo: 0, hi: hiD };
+      for (const row of rows) for (const c of row) {
+        if (!c) continue;
+        const v = Math.max(0, Math.min(1, lg(c.d)));
+        c.vs = needSize ? v : 1;
+        c.vc = needColorVal ? v : 0;
+      }
+    } else {
+      legendRange = null;
+    }
+
+    for (const row of rows) for (const c of row) {
+      if (!c) continue;
+      // population-sized squares vanish where the value is essentially zero
+      c.hidden = needSize && (popMode ? c.d < VANISH_DENSITY : c.vs < 0.02);
+      const sizeF = needSize ? (SIZE_MIN + (1 - SIZE_MIN) * c.vs) : 1;
+      c.half = cs * gapF * 0.5 * sizeF;
+      c.col = st.colorBy === 'archetype' ? archetypeColor(c.country)
+        : st.colorBy === 'country' ? countryColor(c.country)
+        : needColorVal ? mix(lo, hi, c.vc) : flat;
+    }
+
+    if (lineA > 0.01) {
+      ctx.lineWidth = Math.max(0.75, cs * 0.045);
+      ctx.strokeStyle = rgba(st.colorBy === 'population' ? mid : flat, lineA);
+      ctx.beginPath();
+      for (let J = 0; J < rows.length; J++) for (let I = 0; I < rows[J].length; I++) {
+        const c = rows[J][I]; if (!c || c.hidden) continue;
+        const r = rows[J][I + 1];
+        if (r && r.cx - r.half > c.cx + c.half + 0.5) { ctx.moveTo(c.cx + c.half, c.cy); ctx.lineTo(r.cx - r.half, r.cy); }
+        const d = rows[J + 1] && rows[J + 1][I];
+        if (d && d.cy - d.half > c.cy + c.half + 0.5) { ctx.moveTo(c.cx, c.cy + c.half); ctx.lineTo(d.cx, d.cy - d.half); }
+      }
+      ctx.stroke();
+    }
+
+    for (const row of rows) for (const c of row) {
+      if (!c || c.hidden) continue;
+      ctx.fillStyle = rgba(c.col, alpha);
+      const s = c.half * 2;
+      if (s < 1.2 || !ctx.roundRect) { ctx.fillRect(c.cx - c.half, c.cy - c.half, s, s); continue; }
+      ctx.beginPath();
+      ctx.roundRect(c.cx - c.half, c.cy - c.half, s, s, Math.min(rad, c.half * 0.6));
+      ctx.fill();
+    }
+
+    drawHighlightOutlines(ctx, rows, cs);
+  }
+
+  // ---------- export ----------
+  // All land cells of the world at the current level, as CSV. Cells are identified by (k, i, j);
+  // i counts east from lon -180, j counts south from the Mercator top edge (lat 85.05°).
+  function exportCsv() {
+    if (!map || !cid) return;
+    const { k, n } = currentLevel();
+    if (k > MAX_EXPORT_K) { alert('Level ' + k + ' has ' + (n * n).toLocaleString() + ' cells. Lock or choose a level of ' + MAX_EXPORT_K + ' or lower to export.'); return; }
+    const level = pop ? popLevelFor(n) : null;
+    const lines = ['k,i,j,lon,lat,lon_min,lon_max,lat_min,lat_max,area_km2,country_index,country_id,country,population,density_per_km2,archetype,proximity,modelled'];
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+      if (!landAt((i + 0.5) / n, (j + 0.5) / n)) continue;
+      const c = cellInfo(k, i, j, level);
+      const co = countries[c.country] || { id: null, name: '' };
+      const a = layer && c.country ? layer.arch[c.country] : -1;
+      lines.push([k, i, j, c.lon.toFixed(5), c.lat.toFixed(5), c.lon0.toFixed(5), c.lon1.toFixed(5), c.latBot.toFixed(5), c.latTop.toFixed(5),
+        c.areaKm2.toFixed(2), c.country, co.id == null ? '' : co.id, '"' + String(co.name).replace(/"/g, '""') + '"',
+        c.count == null ? '' : c.count.toFixed(1), c.density == null ? '' : c.density.toFixed(3),
+        a >= 0 ? layer.archetypes[a].id : '', a >= 0 ? layer.prox[c.country].toFixed(3) : '', layer && layer.modelled.has(c.country) ? 1 : 0].join(','));
+    }
+    const blob = new Blob([lines.join('\n') + '\n'], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'land-grid-k' + k + (layer ? '-' + layer.id : '') + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  }
+
+  // programmatic access, e.g. from the console
+  window.landGrid = {
+    level: () => map ? currentLevel() : null,
+    cell: (k, i, j) => cellInfo(k, i, j),
+    countries: () => countries,
+    layers: () => LAYERS.map(l => l.id),
+    setLayer,
+    layer: () => layer,
+    highlight: (list) => {                 // landGrid.highlight(['France','Kenya']) or a seed number or 'modelled'
+      if (typeof list === 'number') return setHighlightRandom(list);
+      if (list === 'modelled') return setHighlightModelled();
+      state.highlight = new Set((list || []).map(findCountry).filter(Boolean)); state.highlightMode = 'custom'; state.seed = null; renderPanel(); schedule();
+    },
+    candidates: () => highlightCandidates().map(c => ({ index: c, name: countries[c].name, areaKm2: Math.round(countryAreaKm2[c]) })),
+    cells: (k) => {
+      const n = 1 << k, level = pop ? popLevelFor(n) : null, out = [];
+      for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) if (landAt((i + 0.5) / n, (j + 0.5) / n)) out.push(cellInfo(k, i, j, level));
+      return out;
+    },
+    exportCsv,                             // landGrid.exportCsv(): download every land cell at the current level
+    set: (patch) => { Object.assign(state, patch); renderPanel(); schedule(); }   // e.g. landGrid.set({ cellPx: 12, colorBy: 'country' })
+  };
+
+  // ---------- panel ----------
+  // ---------- legend tab: archetype meanings, then vertical stacked share bars ----------
+  function fmtTotal(q, v) {
+    if (q === 'population') return (v / 1e9).toFixed(1) + ' bn';
+    if (q === 'demand_twh') return v >= 10000 ? (v / 1000).toFixed(1) + ' PWh' : Math.round(v).toLocaleString('en-US') + ' TWh';
+    if (q === 'emissions_mt') return (v / 1000).toFixed(1) + ' Gt';
+    return Math.round(v).toLocaleString('en-US');
+  }
+  const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+  function renderLegendTab() {
+    const el = $('legendBody');
+    if (!layer) { el.innerHTML = '<div class="lg-sub">' + (LAYERS.length ? 'Loading…' : 'No data version loaded.') + '</div>'; return; }
+    const A = layer.archetypes;
+    let h = '<div class="group"><div class="group-label">Classification</div><select class="select" id="layerLegend">'
+      + LAYERS.map(l => '<option value="' + esc(l.id) + '"' + (l.id === layer.id ? ' selected' : '') + '>' + esc(l.name) + '</option>').join('')
+      + '</select></div>';
+
+    // 1. label meanings
+    h += '<div class="lg-list">';
+    A.forEach((a, i) => {
+      const mc = layer.modelledBy.get(i);
+      h += '<div class="lg-item">';
+      h += '<div class="lg-tile" style="background:' + (a.tint || '#eee') + '">' + iconSvg(a, a.color, window.ARCHETYPE_STROKE || 3) + '</div>';
+      h += '<div><div class="lg-name">' + esc(a.name) + '</div>';
+      h += '<div class="lg-mod">' + (mc ? '<span class="box"></span>modelled: ' + esc(countries[mc].name) : '<span class="none">no modelled country</span>') + '</div>';
+      h += '</div></div>';
+    });
+    h += '</div>';
+
+    // 2. vertical stacked bars
+    const T = layer.def.totals, meta = layer.def.totals_meta || {};
+    const qs = T ? Object.keys(T).filter(q => T[q] && typeof T[q] === 'object') : [];
+    if (qs.length) {
+      const W = 44, H = 220, LW = 40;   // bar, height, label gutter for the modelled-share marker
+      const MT = layer.def.modelled_totals || null;
+      h += '<div class="group-label" style="margin-top:4px">Share by archetype</div>';
+      h += '<div class="lg-bars">';
+      for (const q of qs) {
+        const vals = A.map(a => +T[q][a.id] || 0), total = vals.reduce((s, v) => s + v, 0);
+        let svg = '<svg width="' + (W + LW) + '" height="' + (H + 6) + '" viewBox="0 ' + (-3) + ' ' + (W + LW) + ' ' + (H + 6) + '">';
+        let y = 0;
+        A.forEach((a, i) => {
+          const hh = total > 0 ? vals[i] / total * H : 0;
+          if (hh <= 0) return;
+          svg += '<rect x="0" y="' + y.toFixed(1) + '" width="' + W + '" height="' + hh.toFixed(1) + '" fill="' + a.color + '"/>';
+          const pct = Math.round(vals[i] / total * 100);
+          if (hh >= 13) svg += '<text x="' + (W / 2) + '" y="' + (y + hh / 2 + 3.5).toFixed(1) + '" text-anchor="middle" font-size="10" font-weight="600" fill="#fff" font-family="Helvetica, Arial, sans-serif">' + pct + '%</text>';
+          y += hh;
+        });
+        svg += '<rect x="0.5" y="0.5" width="' + (W - 1) + '" height="' + (H - 1) + '" fill="none" stroke="rgba(0,0,0,0.18)"/>';
+        // marker: share of the quantity covered by the modelled countries, measured from the bottom
+        if (MT && total > 0 && MT[q] != null) {
+          const share = Math.max(0, Math.min(1, (+MT[q] || 0) / total)), ym = H - share * H;
+          svg += '<line x1="-3" y1="' + ym.toFixed(1) + '" x2="' + (W + 5) + '" y2="' + ym.toFixed(1) + '" stroke="#1a1a1a" stroke-width="2"/>';
+          // labels sit below the line, or above it when the marker is near the bottom of the bar
+          const up = ym > H - 18, y1 = up ? ym - 12 : ym + 3.5, y2 = up ? ym - 2 : ym + 14;
+          svg += '<text x="' + (W + 6) + '" y="' + y1.toFixed(1) + '" font-size="10" font-weight="600" fill="#1a1a1a" font-family="Helvetica, Arial, sans-serif">' + (share * 100).toFixed(1) + '%</text>';
+          svg += '<text x="' + (W + 6) + '" y="' + y2.toFixed(1) + '" font-size="8.5" fill="#777" font-family="Helvetica, Arial, sans-serif">modelled</text>';
+        }
+        svg += '</svg>';
+        const m = meta[q] || {};
+        h += '<div class="lg-bar">' + svg + '<div class="cap">' + esc(m.label || q) + '</div><div class="tot">' + esc(fmtTotal(q, total)) + '</div>'
+          + (m.year ? '<div class="yr">' + esc(m.year) + '</div>' : '') + '</div>';
+      }
+      h += '</div>';
+    }
+    el.innerHTML = h;
+    $('layerLegend').addEventListener('change', e => setLayer(e.target.value));
+  }
+
+  // ---------- classification views ----------
+  // ----- k-means: how the clusters were assigned
+  // Uses the `explain` block a data version may carry (features, per-grid z-scores and raw values,
+  // centroids, t-SNE coordinates); written by scripts/sep/cluster_tsne.py. Left: one block per
+  // cluster, members sorted by 2050 demand, a seven-bar z-score profile per grid. Right: t-SNE.
+  const FEAT_COLORS = ['#8E7CC3', '#5B8DB8', '#C9A227', '#E07B39', '#3FA7A0', '#6D6A65', '#C24E4E'];
+  const ZMAX = 2;
+  const TOP_N = 6;           // grids shown per cluster in the method tab
+  let kmFor = null;          // '<layer id>|<selected layer>' the k-means view is rendered for
+  let kmEx = null;           // its explain block, for tooltips
+
+  function archOf(def, aid) {
+    const o = (def.archetypes || []).find(a => typeof a === 'object' && a.id === aid);
+    const base = ARCH_DEFS.find(d => d.id === aid) || { id: aid, name: aid, color: '#888', tint: '#eee', icon: '' };
+    return o ? Object.assign({}, base, o) : base;
+  }
+
+  function profileSvg(z, h, r) {
+    // seven bars around a mid baseline, up = above the average grid; r = row index for tooltips
+    const n = z.length, bw = 22, gap = 8, W = n * (bw + gap) - gap, mid = h / 2, amp = (h - 2) / 2;
+    let s = '<svg class="prof" viewBox="0 0 ' + W + ' ' + h + '" preserveAspectRatio="none">';
+    s += '<line x1="0" y1="' + mid + '" x2="' + W + '" y2="' + mid + '" stroke="rgba(0,0,0,0.25)" stroke-width="0.6"/>';
+    for (let i = 0; i < n; i++) {
+      const v = Math.max(-ZMAX, Math.min(ZMAX, z[i])), hh = Math.abs(v) / ZMAX * amp;
+      const x = i * (bw + gap);
+      // hit area over the full column, then the visible bar
+      s += '<rect x="' + x + '" y="0" width="' + bw + '" height="' + h + '" fill="transparent"' + (r != null ? ' data-r="' + r + '"' : '') + ' data-f="' + i + '"/>';
+      s += '<rect class="fb f' + i + '" x="' + x + '" y="' + (v >= 0 ? mid - hh : mid).toFixed(1) + '" width="' + bw + '" height="' + Math.max(hh, 0.8).toFixed(1) + '" fill="' + FEAT_COLORS[i] + '" pointer-events="none"/>';
+    }
+    return s + '</svg>';
+  }
+  const fmtTwh = v => v >= 1000 ? (v / 1000).toFixed(1) + ' PWh' : Math.round(v) + ' TWh';
+  const fmtZ = z => (z >= 0 ? '+' : '−') + Math.abs(z).toFixed(1);
+
+  function renderKmeansTab() {
+    const def = LAYERS.find(l => l.id === state.layer && l.explain && l.explain.kind === 'kmeans') || LAYERS.find(l => l.explain && l.explain.kind === 'kmeans');
+    const L = $('kLeft'), R = $('kRight');
+    if (!def) { L.innerHTML = '<div class="m-title">No clustering data</div><div class="m-sub">None of the loaded data versions carries a k-means <code>explain</code> block (written by cluster_tsne.py).</div>'; R.innerHTML = ''; return; }
+    const key = def.id + '|' + state.layer;
+    if (kmFor === key) return;
+    kmFor = key; kmEx = def.explain;
+    const ex = def.explain, F = ex.features, rows = ex.rows;
+    // only archetypes with a cluster behind them; display-only ones (e.g. islanded) have no centroid
+    const ids = def.archetypes.map(a => typeof a === 'object' ? a.id : a).filter(id => !ex.centroids || ex.centroids[id]);
+    const A = ids.map(id => archOf(def, id));
+    const modelledKeys = new Set(ids.map(id => (def.modelled || {})[id]).filter(k => k != null));
+    const total2050 = rows.reduce((s, r) => s + r.demand_twh_2050, 0);
+
+    // ----- left: feature legend, then one block per cluster
+    let h = '<div class="m-title">How the clusters were assigned</div>';
+    h += '<div class="m-sub">' + esc(ex.method || '') + (def.id !== state.layer ? ' <b>The map currently shows the other classification.</b>' : '') + '</div>';
+    h += '<div class="m-feats">' + F.map((f, i) => '<span class="m-chip" data-f="' + i + '"><i style="background:' + FEAT_COLORS[i] + '"></i>' + esc(f.label) + '</span>').join('') + '</div>';
+    h += '<div class="m-sub" style="margin:-6px 0 12px">Bars: z-score of each feature, up = above the average grid, clipped at ±' + ZMAX + '. Per cluster the centroid (dashed) and the ' + TOP_N + ' largest grids by 2050 demand. Hover a bar, a card or a point for the raw values; hover a feature chip to isolate it.</div>';
+    ids.forEach((cidStr, ci) => {
+      const a = A[ci];
+      const mem = rows.map((r, i) => [r, i]).filter(([r]) => r.cluster === cidStr).sort((p, q) => q[0].demand_twh_2050 - p[0].demand_twh_2050);
+      const d = mem.reduce((s, [r]) => s + r.demand_twh_2050, 0);
+      const shown = mem.slice(0, TOP_N), rest = mem.length - shown.length;
+      h += '<div class="m-cluster"><div class="m-chead">';
+      h += '<div class="lg-tile" style="background:' + (a.tint || '#eee') + '">' + iconSvg(a, a.color, window.ARCHETYPE_STROKE || 3) + '</div>';
+      h += '<div><div class="nm">' + esc(a.name) + '</div><div class="n">' + mem.length + ' grids · ' + Math.round(d / total2050 * 100) + '% of 2050 demand' + (rest > 0 ? ' · ' + rest + ' smaller grids not shown' : '') + '</div></div>';
+      h += '</div><div class="m-cards">';
+      if (ex.centroids && ex.centroids[cidStr]) {
+        h += '<div class="m-card cent">' + profileSvg(ex.centroids[cidStr], 58, null) + '<div class="cn">Centroid</div><div class="dm"><small>cluster mean</small></div></div>';
+      }
+      for (const [r, i] of shown) {
+        h += '<div class="m-card" data-r="' + i + '">' + profileSvg(r.z, 58, i);
+        h += '<div class="cn">' + (modelledKeys.has(r.key) ? '<span class="box" title="modelled"></span>' : '') + esc(shortName(r.name)) + (r.override ? '<span class="ov">manual</span>' : '') + '</div>';
+        h += '<div class="dm">' + fmtTwh(r.demand_twh_2050) + ' <small>2050</small></div></div>';
+      }
+      h += '</div></div>';
+    });
+    L.innerHTML = h;
+
+    // ----- right: cluster key + t-SNE scatter
+    let g = '<div class="m-title">t-SNE projection of the seven-feature space</div>';
+    g += '<div class="m-clist">' + ids.map((cidStr, ci) => {
+      const n = rows.filter(r => r.cluster === cidStr).length;
+      return '<span class="m-citem"><i style="background:' + A[ci].color + '"></i>' + esc(A[ci].short || A[ci].name) + ' <small>' + n + '</small></span>';
+    }).join('') + '</div>';
+    const W = 1000, H = 760, PAD = 40;
+    const xs = rows.map(r => r.x), ys = rows.map(r => r.y);
+    const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+    const sx = x => PAD + (x - x0) / (x1 - x0 || 1) * (W - 2 * PAD), sy = y => H - PAD - (y - y0) / (y1 - y0 || 1) * (H - 2 * PAD);
+    const rad = r => 2.2 + 1.05 * Math.cbrt(r.demand_twh_2050);
+    const colorOf = Object.fromEntries(ids.map((id, ci) => [id, A[ci].color]));
+    const order = rows.map((r, i) => i).sort((p, q) => rows[q].demand_twh_2050 - rows[p].demand_twh_2050);   // big first, small on top
+    const labelled = new Set(order.slice(0, 45));
+    for (let i = 0; i < rows.length; i++) if (/^(USE|USW|AUN|AUW|MYW|MYE|NWE)$/.test(rows[i].iso3) || modelledKeys.has(rows[i].key)) labelled.add(i);
+    let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet">';
+    for (const i of order) {
+      const r = rows[i];
+      svg += '<circle data-r="' + i + '" cx="' + sx(r.x).toFixed(1) + '" cy="' + sy(r.y).toFixed(1) + '" r="' + rad(r).toFixed(1) + '" fill="' + colorOf[r.cluster] + '" fill-opacity="0.8"' + (modelledKeys.has(r.key) ? ' class="mod"' : '') + '/>';
+    }
+    for (const i of labelled) {
+      const r = rows[i];
+      svg += '<text x="' + (sx(r.x) + rad(r) * 0.7 + 2).toFixed(1) + '" y="' + (sy(r.y) - rad(r) * 0.7 - 1).toFixed(1) + '">' + esc(r.iso3) + '</text>';
+    }
+    svg += '</svg>';
+    g += '<div class="m-plot">' + svg + '</div>';
+    g += '<div class="m-note">Dot area grows with expected 2050 demand; black ring = modelled grid; grids labelled: the 45 largest, the sub-national grids and the modelled ones. Axes have no unit: t-SNE preserves neighbourhoods, not distances.</div>';
+    R.innerHTML = g;
+  }
+
+  // shared tooltip: positioned next to the pointer, kept inside the viewport
+  const tipEl = $('mTip');
+  function showTip(e, html) {
+    tipEl.innerHTML = html; tipEl.hidden = false;
+    const tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
+    let x = e.clientX + 14, y = e.clientY + 14;
+    if (x + tw > window.innerWidth - 8) x = e.clientX - tw - 14;
+    if (y + th > window.innerHeight - 8) y = e.clientY - th - 14;
+    tipEl.style.left = Math.max(8, Math.min(x, window.innerWidth - tw - 8)) + 'px';
+    tipEl.style.top = Math.max(8, Math.min(y, window.innerHeight - th - 8)) + 'px';
+  }
+  const hideTip = () => { tipEl.hidden = true; };
+  const swatch = c => '<i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:' + c + ';margin-right:5px"></i>';
+
+  // k-means hover: bars, cards, chips and points; cross-highlight card <-> point
+  (function bindKmeansHover() {
+    const root = $('kmeans');
+    let curR = null;
+    const setHi = r => {
+      if (curR === r) return;
+      if (curR != null) for (const el of root.querySelectorAll('[data-r="' + curR + '"]')) el.classList.remove('hi');
+      curR = r;
+      if (r != null) for (const el of root.querySelectorAll('.m-card[data-r="' + r + '"], circle[data-r="' + r + '"]')) el.classList.add('hi');
+    };
+    const featRow = (f, r, i, on) => '<tr' + (on ? ' class="on"' : '') + '><td>' + swatch(FEAT_COLORS[i]) + esc(f.label) + '</td><td class="v">' + esc(r.disp[i]) + '</td><td class="z">' + fmtZ(r.z[i]) + '</td></tr>';
+    root.addEventListener('mousemove', e => {
+      const t = e.target.closest('[data-r], [data-f]');
+      if (!t || !kmEx) { setHi(null); hideTip(); root.removeAttribute('data-hf'); return; }
+      const F = kmEx.features, fi = t.dataset.f != null ? +t.dataset.f : null, ri = t.dataset.r != null ? +t.dataset.r : null;
+      if (fi != null) root.setAttribute('data-hf', fi); else root.removeAttribute('data-hf');   // bar or chip: isolate that feature in every card
+      let html;
+      if (ri == null) {
+        const f = F[fi];
+        html = '<b>' + esc(f.label) + '</b> <span class="k">' + esc(f.unit) + '</span><div>' + esc(f.desc) + '</div>';
+      } else {
+        const r = kmEx.rows[ri], def = LAYERS.find(l => l.id === kmFor.split('|')[0]), a = archOf(def, r.cluster);
+        html = '<b>' + esc(r.name) + '</b> <span class="k">' + esc(r.iso3) + '</span><div><span style="color:' + a.color + '">●</span> ' + esc(a.name)
+          + ' · proximity ' + r.proximity.toFixed(2) + (r.override ? ' · <span style="color:#b45309">manual override</span>' : '') + '</div>'
+          + '<div class="k">' + fmtTwh(r.demand_twh) + ' today → ' + fmtTwh(r.demand_twh_2050) + ' in 2050</div>';
+        if (fi != null) html += '<div style="margin-top:4px">' + esc(F[fi].desc) + '</div>';
+        html += '<table>' + F.map((f, i) => featRow(f, r, i, i === fi)).join('') + '</table>';
+      }
+      setHi(ri);
+      showTip(e, html);
+    });
+    root.addEventListener('mouseleave', () => { setHi(null); hideTip(); root.removeAttribute('data-hf'); });
+  })();
+
+  // ----- rule-based: features with thresholds, the ordered rules, every grid's decision path
+  const RULE_COLORS = ['#5B8DB8', '#C24E4E', '#E07B39', '#3FA7A0', '#8E7CC3', '#6D6A65', '#2F9E9E', '#B58A2A', '#7A9E3F', '#C9A227', '#D4A5A5'];
+  let rlFor = null, rlEx = null;
+
+  function levelSvg(v, ticks, h, r) {
+    // bars from the bottom on each feature's own 0..1 scale, threshold ticks as short black lines
+    const n = v.length, bw = 16, gap = 5, W = n * (bw + gap) - gap, amp = h - 3;
+    let s = '<svg class="prof" viewBox="0 0 ' + W + ' ' + h + '" preserveAspectRatio="none">';
+    s += '<line x1="0" y1="' + (h - 0.5) + '" x2="' + W + '" y2="' + (h - 0.5) + '" stroke="rgba(0,0,0,0.25)" stroke-width="0.6"/>';
+    for (let i = 0; i < n; i++) {
+      const x = i * (bw + gap), hh = Math.max(0, Math.min(1, v[i])) * amp;
+      s += '<rect x="' + x + '" y="0" width="' + bw + '" height="' + h + '" fill="transparent"' + (r != null ? ' data-r="' + r + '"' : '') + ' data-f="' + i + '"/>';
+      s += '<rect class="fb f' + i + '" x="' + x + '" y="' + (h - hh).toFixed(1) + '" width="' + bw + '" height="' + Math.max(hh, 0.8).toFixed(1) + '" fill="' + RULE_COLORS[i] + '" pointer-events="none"/>';
+      for (const t of ticks[i] || []) {
+        const y = (h - t * amp).toFixed(1);
+        s += '<line class="tk" x1="' + (x - 1) + '" y1="' + y + '" x2="' + (x + bw + 1) + '" y2="' + y + '" pointer-events="none"/>';
+      }
+    }
+    return s + '</svg>';
+  }
+
+  function renderRulesTab() {
+    const def = LAYERS.find(l => l.id === state.layer && l.explain && l.explain.kind === 'rules') || LAYERS.find(l => l.explain && l.explain.kind === 'rules');
+    const L = $('rLeft'), R = $('rRight');
+    if (!def) { L.innerHTML = '<div class="m-title">No rule data</div><div class="m-sub">None of the loaded data versions carries a rule-based <code>explain</code> block (written by classify.py).</div>'; R.innerHTML = ''; return; }
+    const key = def.id + '|' + state.layer;
+    if (rlFor === key) return;
+    rlFor = key; rlEx = def.explain;
+    const ex = def.explain, F = ex.features, rows = ex.rows, ticks = F.map(f => f.ticks || []);
+    const ids = def.archetypes.map(a => typeof a === 'object' ? a.id : a);
+    const A = ids.map(id => archOf(def, id)), byId = Object.fromEntries(ids.map((id, i) => [id, A[i]]));
+    const modelledKeys = new Set(Object.values(def.modelled || {}));
+    const totalD = rows.reduce((s, r) => s + r.demand_twh, 0);
+
+    // ----- left: feature legend, then one row of cards per archetype
+    let h = '<div class="m-title">How the rule-based classification works</div>';
+    h += '<div class="m-sub">' + esc(ex.method || '') + (def.id !== state.layer ? ' <b>The map currently shows the other classification.</b>' : '') + '</div>';
+    h += '<div class="m-feats">' + F.map((f, i) => '<span class="m-chip" data-f="' + i + '"><i style="background:' + RULE_COLORS[i] + '"></i>' + esc(f.label) + '</span>').join('') + '</div>';
+    h += '<div class="m-sub" style="margin:-6px 0 12px">Bars: each feature on its own scale (log for density, capacity and demand), black ticks = the thresholds the rules test. Badge = the rule that decided. Per archetype the ' + TOP_N + ' largest grids by demand. Hover a bar, a card, a feature chip or a rule for details.</div>';
+    ids.forEach((aid, ci) => {
+      const a = A[ci];
+      const mem = rows.map((r, i) => [r, i]).filter(([r]) => r.archetype === aid).sort((p, q) => q[0].demand_twh - p[0].demand_twh);
+      const d = mem.reduce((s, [r]) => s + r.demand_twh, 0);
+      const shown = mem.slice(0, TOP_N), rest = mem.length - shown.length;
+      const viaRules = [...new Set(mem.map(([r]) => r.rule))].sort().join(', ');
+      h += '<div class="m-cluster"><div class="m-chead">';
+      h += '<div class="lg-tile" style="background:' + (a.tint || '#eee') + '">' + iconSvg(a, a.color, window.ARCHETYPE_STROKE || 3) + '</div>';
+      h += '<div><div class="nm">' + esc(a.name) + '</div><div class="n">' + mem.length + ' grids · ' + Math.round(d / totalD * 100) + '% of demand · via ' + esc(viaRules) + (rest > 0 ? ' · ' + rest + ' smaller grids not shown' : '') + '</div></div>';
+      h += '</div><div class="m-cards six">';
+      for (const [r, i] of shown) {
+        h += '<div class="m-card" data-r="' + i + '" data-rule="' + esc(r.rule) + '">' + levelSvg(r.v, ticks, 58, i);
+        h += '<div class="cn">' + (modelledKeys.has(r.key) ? '<span class="box" title="modelled"></span>' : '') + esc(shortName(r.name)) + '<span class="rb">' + esc(r.rule) + '</span></div>';
+        h += '<div class="dm">' + fmtTwh(r.demand_twh) + ' <small>today</small></div></div>';
+      }
+      h += '</div></div>';
+    });
+    L.innerHTML = h;
+
+    // ----- right: the decision tree, first match wins
+    const nBy = {}, dBy = {};
+    for (const r of rows) { nBy[r.rule] = (nBy[r.rule] || 0) + 1; dBy[r.rule] = (dBy[r.rule] || 0) + r.demand_twh; }
+    let g = '<div class="m-title">Decision procedure: rules fire in order, first match wins</div>';
+    g += '<div class="m-clist">' + ids.map((id, ci) => '<span class="m-citem"><i style="background:' + A[ci].color + '"></i>' + esc(A[ci].short || A[ci].name) + ' <small>' + rows.filter(r => r.archetype === id).length + '</small></span>').join('') + '</div>';
+    g += '<div class="r-tree">';
+    ex.rules.forEach((ru, i) => {
+      const a = ru.archetype ? byId[ru.archetype] : null;
+      const n = nBy[ru.id] || 0, dsh = totalD > 0 ? Math.round((dBy[ru.id] || 0) / totalD * 100) : 0;
+      g += '<div class="r-node" data-rule="' + esc(ru.id) + '"><div class="id">' + esc(ru.id) + '</div>';
+      g += '<div class="cond"><b>' + esc(ru.title) + ':</b> ' + esc(ru.cond) + '</div><div class="arr">→</div>';
+      g += '<div class="out">' + (a ? '<i style="background:' + a.color + '"></i><span>' + esc(a.short || a.name) + '</span>' : '<i style="background:conic-gradient(' + A.map(x => x.color).join(',') + ')"></i><span>nearest score</span>')
+        + '<small>' + n + ' · ' + dsh + '%</small></div></div>';
+      if (i < ex.rules.length - 1) g += '<div class="r-no"></div>';
+    });
+    g += '<div class="r-scores"><b>Membership scores</b> (R8 fallback, each 0–1):' + ids.map((id, ci) => '<div><i style="background:' + A[ci].color + '"></i><span><b>' + esc(A[ci].short || A[ci].name) + '</b> = ' + esc((ex.scores || {})[id] || '') + '</span></div>').join('') + '</div>';
+    g += '</div>';
+    g += '<div class="m-note">Counts: grids decided by each rule and their share of today\'s demand. Hover a rule to see the grids it decided; hover a card to trace its path through the tree.</div>';
+    R.innerHTML = g;
+  }
+
+  // rule-based hover: cards, bars, chips and rule nodes; card <-> path in the tree, rule <-> its cards
+  (function bindRulesHover() {
+    const root = $('rules');
+    let curR = null, curRule = null;
+    const clear = () => {
+      for (const el of root.querySelectorAll('.hi, .p, .on')) el.classList.remove('hi', 'p', 'on');
+      curR = null; curRule = null;
+    };
+    const setPath = (ri) => {
+      if (curR === ri) return;
+      clear(); curR = ri;
+      if (ri == null) return;
+      const r = rlEx.rows[ri];
+      for (const el of root.querySelectorAll('.m-card[data-r="' + ri + '"]')) el.classList.add('hi');
+      for (const st of r.path) {
+        const node = root.querySelector('.r-node[data-rule="' + st.rule + '"]');
+        if (node) node.classList.add(st.pass ? 'on' : 'p');
+      }
+    };
+    const setRule = (id) => {
+      if (curRule === id) return;
+      clear(); curRule = id;
+      if (id == null) return;
+      for (const el of root.querySelectorAll('.r-node[data-rule="' + id + '"], .m-card[data-rule="' + id + '"]')) el.classList.add('hi');
+    };
+    root.addEventListener('mousemove', e => {
+      const t = e.target.closest('[data-r], [data-f], [data-rule]');
+      if (!t || !rlEx) { clear(); hideTip(); root.removeAttribute('data-hf'); return; }
+      const F = rlEx.features, fi = t.dataset.f != null ? +t.dataset.f : null, ri = t.dataset.r != null ? +t.dataset.r : null;
+      if (fi != null) root.setAttribute('data-hf', fi); else root.removeAttribute('data-hf');
+      const def = LAYERS.find(l => l.id === rlFor.split('|')[0]);
+      let html;
+      if (ri == null && fi != null) {
+        const f = F[fi];
+        html = '<b>' + esc(f.label) + '</b> <span class="k">' + esc(f.unit) + '</span><div>' + esc(f.desc) + '</div>';
+        setPath(null);
+      } else if (ri == null) {
+        const ru = rlEx.rules.find(x => x.id === t.dataset.rule);
+        if (!ru) { clear(); hideTip(); return; }
+        const decided = rlEx.rows.filter(r => r.rule === ru.id).sort((p, q) => q.demand_twh - p.demand_twh);
+        html = '<b>' + esc(ru.id) + ' · ' + esc(ru.title) + '</b><div>' + esc(ru.cond) + '</div><div class="k" style="margin-top:3px">' + esc(ru.note) + '</div>';
+        html += '<div style="margin-top:5px"><b>' + decided.length + ' grids decided here</b>' + (decided.length ? ': ' + esc(decided.slice(0, 14).map(r => shortName(r.name)).join(', ')) + (decided.length > 14 ? ', …' : '') : '') + '</div>';
+        setRule(ru.id);
+      } else {
+        const r = rlEx.rows[ri], a = archOf(def, r.archetype);
+        html = '<b>' + esc(r.name) + '</b> <span class="k">' + esc(r.iso3) + '</span><div><span style="color:' + a.color + '">●</span> ' + esc(a.name) + ' · proximity ' + r.proximity.toFixed(2) + ' · ' + fmtTwh(r.demand_twh) + ' today</div>';
+        html += '<div class="path">' + r.path.map(st => '<div class="' + (st.pass ? 'yes' : 'no') + '"><span class="r">' + esc(st.rule) + '</span><span>' + (st.pass ? '✓ ' : '✗ ') + esc(st.why) + '</span></div>').join('') + '</div>';
+        if (fi != null) html += '<div style="margin-top:4px">' + esc(F[fi].desc) + '</div>';
+        html += '<table>' + F.map((f, i) => '<tr' + (i === fi ? ' class="on"' : '') + '><td>' + swatch(RULE_COLORS[i]) + esc(f.label) + '</td><td class="v">' + esc(r.disp[i]) + '</td></tr>').join('') + '</table>';
+        html += '<div class="k" style="margin-top:4px">scores: ' + Object.entries(r.scores).map(([k, v]) => esc(k) + ' ' + v.toFixed(2)).join(' · ') + '</div>';
+        setPath(ri);
+      }
+      showTip(e, html);
+    });
+    root.addEventListener('mouseleave', () => { clear(); hideTip(); root.removeAttribute('data-hf'); });
+  })();
+
+  function renderPanel() {
+    const st = state;
+    for (const b of $('tabs').children) b.classList.toggle('on', b.dataset.tab === st.tab);
+    $('legendBody').hidden = !st.panelOpen || st.tab !== 'legend';
+    $('tabs').hidden = !st.panelOpen;
+    $('kmeans').hidden = st.tab !== 'kmeans';
+    $('rules').hidden = st.tab !== 'rules';
+    if (st.tab === 'legend') renderLegendTab();
+    if (st.tab === 'kmeans') renderKmeansTab();
+    if (st.tab === 'rules') renderRulesTab();
+    $('toggle').textContent = st.panelOpen ? '–' : '+';
+    $('toggle').setAttribute('aria-label', st.panelOpen ? 'Collapse panel' : 'Expand panel');
+
+    const loadingMsg = st.loading ? 'Loading coastlines…' : (st.popLoading ? 'Decoding population grid…' : '');
+    $('loading').textContent = loadingMsg;
+    $('loading').hidden = !loadingMsg;
+    $('err').hidden = !st.err;
+  }
+
+  for (const b of $('tabs').children) b.addEventListener('click', () => { state.tab = b.dataset.tab; renderPanel(); });
+  $('toggle').addEventListener('click', () => { state.panelOpen = !state.panelOpen; renderPanel(); });
+  renderPanel();
+
+  // ?memprobe=1: after 25 s write JS heap use into the document title (headless measurement aid)
+  if (qs.has('memprobe')) setTimeout(() => {
+    const m = performance.memory || {};
+    document.title = 'MEM ' + JSON.stringify({ usedMB: Math.round((m.usedJSHeapSize || 0) / 1048576), totalMB: Math.round((m.totalJSHeapSize || 0) / 1048576) });
+  }, 25000);
+  const wait = () => { if (window.L) initMap(); else setTimeout(wait, 60); };
+  wait();
+  loadMask();
+  loadPopulation();
+})();
+</script>
+</body>
+</html>
