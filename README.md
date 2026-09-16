@@ -11,4 +11,3 @@ The present repo and the `pypsa-earth` softfork should contain all project conte
 | `misc-quarterN/` | Self-contained code/data for complementary experiments and visualisations |
 | `beamer/<date>/` | |
 | `meetings/` | Meeting notes, `YYYY-MM-DD.md`. |
-| `lit/` | Project literature (SOW, papers). Gitignored: copyrighted PDFs, kept locally only. |
