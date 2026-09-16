@@ -1,0 +1,263 @@
+# Configuration for the 2025 techno-economic baseline workflow (misc-quarter1/technology-costs).
+#
+# All monetary values are normalised to `base_currency` of `base_currency_year`:
+#   value_base = value * fx_eur_per_unit[cur][y] / fx_eur_per_unit[base][y]
+#                      * cpi[base][base_year] / cpi[base][y]
+# i.e. convert to the base currency at the exchange rate of the original price
+# year, then inflate with the base currency's CPI. Rows with no stated currency
+# year are assumed to be in the base year and flagged in the `note` column.
+
+technology_data:
+  tag: v0.15.0
+  url: "https://raw.githubusercontent.com/PyPSA/technology-data/{tag}/outputs/costs_2025.csv"
+
+base_currency: USD
+base_currency_year: 2024
+discount_rate: 0.07          # real, Lazard-style commercial WACC (priam-myopic uses 0.02 social)
+co2_price_eur_t: 0.0         # set >0 to include carbon cost in LCOE
+hours_per_year: 8760
+
+dac:
+  capacity_factor: 0.9       # for converting EUR/(tCO2/h) capex to EUR/tCO2 (capex + FOM only)
+
+# Fuel prices (EUR/MWh_th) and CO2 intensity (tCO2/MWh_th). Values come from
+# technology-data rows `gas`, `uranium`, `biomass` unless overridden here.
+fuel_override: {}
+co2_intensity_t_mwh_th:
+  gas: 0.198
+
+capture_rate:
+  allam-ccs: 0.97
+
+# Capacity-factor band [low, high] used for the LCOE sensitivity range.
+capacity_factor:
+  solar-utility: [0.12, 0.25]
+  onwind: [0.25, 0.45]
+  offwind: [0.40, 0.55]
+  nuclear-large: [0.85, 0.93]
+  smr-nuclear: [0.85, 0.93]
+  CCGT: [0.40, 0.85]
+  OCGT: [0.05, 0.20]
+  hydro: [0.35, 0.55]
+  ror: [0.35, 0.55]
+  biomass: [0.50, 0.85]
+  egs: [0.80, 0.95]
+  closed-loop-geo: [0.80, 0.95]
+  allam-ccs: [0.60, 0.90]
+  sofc: [0.80, 0.95]
+
+# Technology palette. `td` maps our parameters to technology-data technology
+# names (parameter name -> technology-data `technology`). Parameters:
+#   investment (EUR/kW), investment_kwh (EUR/kWh), investment_kw (EUR/kW, storage
+#   power component), FOM (%/year of the matching investment), FOM_kwh (%/year of
+#   investment_kwh), VOM, lifetime, efficiency, efficiency_2 (multiplied into
+#   efficiency, for charge/discharge pairs), fuel (fuel price row).
+# Values missing here (or listed under `gap`) come from data/gap_fill.csv.
+# `bar: false` keeps the technology's row and observed points in the figures but
+# draws no assumption bar (costs too site-specific for a single number).
+# `energy_per_output: true` divides the energy-capacity cost (and its FOM) by the
+# discharge efficiency `efficiency_2`, so a fuel store is priced per kWh out.
+# Storage entries are ordered by typical discharge duration within each group.
+technologies:
+  # ---- mature: exogenous DEA/technology-data costs -------------------------
+  - key: solar-utility
+    label: Solar PV
+    group: mature
+    kind: generation
+    colour: "#f6c945"
+    td: {investment: solar-utility, FOM: solar-utility, lifetime: solar-utility}
+  - key: onwind
+    label: Onshore wind
+    group: mature
+    kind: generation
+    colour: "#74c6f2"
+    td: {investment: onwind, FOM: onwind, VOM: onwind, lifetime: onwind}
+  - key: offwind
+    label: Offshore wind
+    group: mature
+    kind: generation
+    colour: "#3b6fb6"
+    td: {investment: offwind, FOM: offwind, VOM: offwind, lifetime: offwind}
+  - key: hydro
+    label: Hydro (reservoir)
+    group: mature
+    kind: generation
+    colour: "#2a9d8f"
+    td: {investment: hydro, FOM: hydro, lifetime: hydro}
+  - key: ror
+    label: Hydro (run-of-river)
+    group: mature
+    kind: generation
+    colour: "#5fc4b5"
+    td: {investment: ror, FOM: ror, lifetime: ror}
+  - key: biomass
+    label: Biomass
+    group: mature
+    kind: generation
+    colour: "#7d9a3a"
+    td: {investment: biomass, FOM: biomass, lifetime: biomass, efficiency: biomass, fuel: biomass}
+  - key: nuclear-large
+    label: Nuclear (large LWR)
+    group: mature
+    kind: generation
+    colour: "#c94c4c"
+    td: {investment: nuclear, FOM: nuclear, VOM: nuclear, lifetime: nuclear, efficiency: nuclear, fuel: uranium}
+  - key: CCGT
+    label: Gas CCGT
+    group: mature
+    kind: generation
+    colour: "#e5833a"
+    td: {investment: CCGT, FOM: CCGT, VOM: CCGT, lifetime: CCGT, efficiency: CCGT, fuel: gas}
+  - key: OCGT
+    label: Gas OCGT
+    group: mature
+    kind: generation
+    colour: "#f0b27a"
+    td: {investment: OCGT, FOM: OCGT, VOM: OCGT, lifetime: OCGT, efficiency: OCGT, fuel: gas}
+  - key: battery-liion
+    label: Li-ion battery (4 h)
+    group: mature
+    kind: storage
+    colour: "#8d6ccf"
+    td: {investment_kwh: battery storage, investment_kw: battery inverter, FOM: battery inverter,
+         lifetime: battery storage, efficiency: battery inverter}
+  - key: PHS
+    label: Pumped hydro (6–20 h)
+    group: mature
+    kind: storage
+    colour: "#1f6f8b"
+    # Site-specific in reality; PyPSA-Eur/-Earth default runs keep PHS as fixed existing
+    # capacity (powerplantmatching, 6 h) and do not expand it. For a cost bar we use the
+    # PNNL 2022 split that PyPSA-Earth maps to (`phs:` in its config) rather than the
+    # 2013 DIW `PHS` placeholder: powerhouse per kW + reservoir per kWh.
+    td: {investment_kw: Pumped-Storage-Hydro-bicharger, investment_kwh: Pumped-Storage-Hydro-store,
+         FOM: Pumped-Storage-Hydro-bicharger, FOM_kwh: Pumped-Storage-Hydro-store,
+         lifetime: Pumped-Storage-Hydro-bicharger, efficiency: Pumped-Storage-Hydro-bicharger}
+  # ---- advanced: endogenous learning in the study --------------------------
+  - key: vrfb
+    label: Vanadium flow battery (4–10 h)
+    group: advanced
+    kind: storage
+    colour: "#d977c9"
+    td: {investment_kwh: Vanadium-Redox-Flow-store, investment_kw: Vanadium-Redox-Flow-bicharger,
+         FOM: Vanadium-Redox-Flow-bicharger, FOM_kwh: Vanadium-Redox-Flow-store,
+         lifetime: Vanadium-Redox-Flow-store, efficiency: Vanadium-Redox-Flow-bicharger}
+  - key: co2-battery
+    label: CO2 battery (10 h)
+    group: advanced
+    kind: storage
+    colour: "#ff7fbf"
+    td: {}
+  - key: iron-air
+    label: Iron-air battery (100 h)
+    group: advanced
+    kind: storage
+    colour: "#b2189a"
+    td: {investment_kwh: iron-air battery, FOM_kwh: iron-air battery, lifetime: iron-air battery,
+         efficiency: iron-air battery charge, efficiency_2: iron-air battery discharge}
+  - key: h2-sofc
+    label: H2 tank + SOFC (100+ h)
+    group: advanced
+    kind: storage
+    colour: "#2f9e9e"
+    # energy: DEA 151a pressurised tank incl. compressor (per kWh_H2, divided by the
+    # SOFC efficiency to express it per kWh of electricity out); power: electrolyser
+    # (technology-data) + SOFC (gap_fill, ADD); round trip = electrolysis x SOFC.
+    # Salt caverns (DEA 151c, ~3 EUR/kWh_H2) are far cheaper but geology-bound.
+    energy_per_output: true
+    td: {investment_kwh: hydrogen storage tank type 1 including compressor,
+         FOM_kwh: hydrogen storage tank type 1 including compressor,
+         lifetime: hydrogen storage tank type 1 including compressor,
+         investment_kw: electrolysis, FOM: electrolysis, efficiency: electrolysis}
+  - key: smr-nuclear
+    label: Nuclear SMR
+    group: advanced
+    kind: generation
+    colour: "#df3439"
+    td: {fuel: uranium}
+  - key: egs
+    label: Enhanced geothermal (EGS)
+    group: advanced
+    kind: generation
+    colour: "#99582a"
+    bar: false      # resource-dependent: shown as observed points only
+    td: {}
+  - key: closed-loop-geo
+    label: Closed-loop geothermal
+    group: advanced
+    kind: generation
+    colour: "#c98a5a"
+    bar: false      # resource-dependent: shown as observed points only
+    td: {}
+  - key: allam-ccs
+    label: Allam-cycle gas + CCS
+    group: advanced
+    kind: generation
+    colour: "#540b0e"
+    td: {investment: allam, VOM: allam, lifetime: allam, efficiency: allam, fuel: gas}
+  - key: sofc
+    label: Solid oxide fuel cell
+    group: advanced
+    kind: generation
+    colour: "#4a7c59"
+    td: {fuel: gas}
+  - key: dac
+    label: Direct air capture
+    group: advanced
+    kind: dac
+    colour: "#6c757d"
+    td: {investment: direct air capture, FOM: direct air capture, lifetime: direct air capture}
+  - key: fusion
+    label: Fusion
+    group: advanced
+    kind: note
+    colour: "#adb5bd"
+    td: {}
+
+# Marker style per observed-point type (matplotlib marker, filled?)
+point_type_style:
+  final_cost:      {marker: "o", filled: true,  label: "Realised project cost"}
+  estimate:        {marker: "^", filled: true,  label: "Project estimate / target"}
+  ppa_price:       {marker: "D", filled: true,  label: "PPA / auction price"}
+  weighted_average: {marker: "s", filled: false, label: "Global weighted average (IRENA)"}
+  benchmark_range: {marker: "|", filled: false, label: "Benchmark range (Lazard, ATB, ...)"}
+
+plotting:
+  dpi: 200
+  formats: [png, pdf]
+  # technologies left out of the 16:9 slide figures (kept in the tables and report figures):
+  # closed-loop geothermal has no project data beyond one DOE model value; the SOFC
+  # only appears on the storage slide as the discharge side of the hydrogen store.
+  slide_exclude: [closed-loop-geo, sofc]
+  # curated, numbered references for the slide figures (see beamer/2026-09-08/references.yaml);
+  # sources that match no entry there are not cited on the slides
+  # curated reference list of the deck the slide figures are made for; the slide
+  # figures are skipped when the file is missing
+  slide_references: ../../beamer/2026-09-08/references.yaml
+
+# ---- macro tables ------------------------------------------------------------
+# ECB euro foreign exchange reference rates, annual averages
+# (series EXR/A.{USD,GBP,CAD}.EUR.SP00.A), https://data.ecb.europa.eu/data/datasets/EXR
+# accessed 2026-09-06 (AUD added 2026-09-07). eur_per_unit = 1 / (units of currency per 1 EUR).
+fx_eur_per_unit:
+  EUR: {2010: 1, 2011: 1, 2012: 1, 2013: 1, 2014: 1, 2015: 1, 2016: 1, 2017: 1, 2018: 1, 2019: 1, 2020: 1, 2021: 1, 2022: 1, 2023: 1, 2024: 1, 2025: 1}
+  USD: {2010: 0.7543, 2011: 0.7184, 2012: 0.7783, 2013: 0.7529, 2014: 0.7527, 2015: 0.9013, 2016: 0.9034, 2017: 0.8852, 2018: 0.8468, 2019: 0.8933, 2020: 0.8755, 2021: 0.8455, 2022: 0.9496, 2023: 0.9248, 2024: 0.9239, 2025: 0.8850}
+  GBP: {2010: 1.1657, 2011: 1.1522, 2012: 1.2332, 2013: 1.1775, 2014: 1.2405, 2015: 1.3777, 2016: 1.2203, 2017: 1.1407, 2018: 1.1303, 2019: 1.1392, 2020: 1.1240, 2021: 1.1633, 2022: 1.1727, 2023: 1.1497, 2024: 1.1812, 2025: 1.1671}
+  CAD: {2010: 0.7325, 2011: 0.7267, 2012: 0.7787, 2013: 0.7308, 2014: 0.6821, 2015: 0.7049, 2016: 0.6822, 2017: 0.6827, 2018: 0.6539, 2019: 0.6732, 2020: 0.6536, 2021: 0.6745, 2022: 0.7302, 2023: 0.6852, 2024: 0.6747, 2025: 0.6334}
+  AUD: {2010: 0.6933, 2011: 0.7416, 2012: 0.8060, 2013: 0.7258, 2014: 0.6794, 2015: 0.6767, 2016: 0.6719, 2017: 0.6788, 2018: 0.6330, 2019: 0.6208, 2020: 0.6043, 2021: 0.6349, 2022: 0.6593, 2023: 0.6139, 2024: 0.6099, 2025: 0.5709}
+
+# Consumer price indices, annual averages (only ratios are used, so the base
+# year of each index is irrelevant). Accessed 2026-09-06.
+cpi:
+  # Euro area HICP all-items, 2015=100, Eurostat prc_hicp_aind (geo=EA, INX_A_AVG)
+  # https://ec.europa.eu/eurostat/databrowser/view/prc_hicp_aind/
+  EUR: {2010: 93.14, 2011: 95.66, 2012: 98.05, 2013: 99.38, 2014: 99.81, 2015: 100.00, 2016: 100.23, 2017: 101.78, 2018: 103.56, 2019: 104.80, 2020: 105.06, 2021: 107.78, 2022: 116.82, 2023: 123.15, 2024: 126.07, 2025: 128.75}
+  # US CPI-U all items, 1982-84=100, BLS series CUUR0000SA0 annual average
+  # https://data.bls.gov/timeseries/CUUR0000SA0
+  USD: {2010: 218.056, 2011: 224.939, 2012: 229.594, 2013: 232.957, 2014: 236.736, 2015: 237.017, 2016: 240.007, 2017: 245.120, 2018: 251.107, 2019: 255.657, 2020: 258.811, 2021: 270.970, 2022: 292.655, 2023: 304.702, 2024: 313.689, 2025: 321.943}
+  # UK CPI all items, 2015=100, ONS series D7BT (MM23)
+  # https://www.ons.gov.uk/economy/inflationandpriceindices/timeseries/d7bt/mm23
+  GBP: {2010: 89.4, 2011: 93.4, 2012: 96.1, 2013: 98.5, 2014: 100.0, 2015: 100.0, 2016: 100.7, 2017: 103.4, 2018: 105.9, 2019: 107.8, 2020: 108.7, 2021: 111.6, 2022: 121.7, 2023: 130.5, 2024: 133.9, 2025: 138.4}
+  # Canada CPI all-items, 2002=100, Statistics Canada table 18-10-0005-01 (v41693271)
+  # https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810000501
+  CAD: {2010: 116.5, 2011: 119.9, 2012: 121.7, 2013: 122.8, 2014: 125.2, 2015: 126.6, 2016: 128.4, 2017: 130.4, 2018: 133.4, 2019: 136.0, 2020: 137.0, 2021: 141.6, 2022: 151.2, 2023: 157.1, 2024: 160.9, 2025: 164.2}

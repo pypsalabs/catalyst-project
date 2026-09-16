@@ -1,0 +1,100 @@
+# Snakemake workflow: 2025 techno-economic cost baseline for the SOW technology
+# palette (mature + advanced), with observed real-project cost points.
+#
+#   data/technology-data/costs_2025_<tag>.csv   (download, cached)
+#   data/gap_fill.csv, data/observed_projects.csv (hand-curated, referenced)
+#     -> build/costs_2025_compiled.csv   long format, every parameter with origin
+#     -> build/costs_2025_table.csv      one row per technology, USD2024, + LCOE
+#     -> build/observed_normalised.csv   observed points in USD2024
+#     -> build/sources.md                numbered source list
+#     -> figures/{capex_generation,capex_storage,opex,lcoe,dac}.{png,pdf}   report layout
+#     -> figures/slides/<same>.{png,pdf}                                       16:9 layout for the kickoff deck (beamer/2026-09-08)
+#
+# Run from misc-quarter1/technology-costs with the priam-myopic pixi env:
+#   ../../models/priam-myopic/.pixi/envs/default/bin/snakemake -c1
+
+import os
+
+configfile: "config.yaml"
+
+TAG = config["technology_data"]["tag"]
+TD_CSV = f"data/technology-data/costs_2025_{TAG}.csv"
+FIGURES = ["capex_generation", "capex_generation_mature", "capex_generation_advanced",
+           "capex_storage", "capex_storage_mature", "capex_storage_advanced", "opex", "lcoe", "dac"]
+FORMATS = config["plotting"]["formats"]
+# slide-layout figures need the deck's curated reference list (plotting.slide_references)
+REFERENCES = config["plotting"]["slide_references"]
+SLIDE_FIGURES = expand("figures/slides/{figure}.{fmt}", figure=FIGURES, fmt=FORMATS) if os.path.exists(REFERENCES) else []
+
+wildcard_constraints:
+    figure="|".join(FIGURES),
+
+
+rule all:
+    input:
+        "build/costs_2025_table.csv",
+        expand("figures/{figure}.{fmt}", figure=FIGURES, fmt=FORMATS),
+        SLIDE_FIGURES,
+
+
+rule retrieve_technology_data:
+    output:
+        TD_CSV
+    params:
+        tag=TAG,
+        url=config["technology_data"]["url"].format(tag=TAG),
+    resources:
+        mem_mb=500, runtime="5m",
+    script:
+        "retrieve_technology_data.py"
+
+
+rule compile_costs:
+    input:
+        td=TD_CSV,
+        gap_fill="data/gap_fill.csv",
+        observed="data/observed_projects.csv",
+        config="config.yaml",
+    output:
+        compiled="build/costs_2025_compiled.csv",
+        table="build/costs_2025_table.csv",
+        observed="build/observed_normalised.csv",
+        sources="build/sources.md",
+    resources:
+        mem_mb=1000, runtime="5m",
+    script:
+        "compile_costs.py"
+
+
+rule plot:
+    input:
+        table="build/costs_2025_table.csv",
+        observed="build/observed_normalised.csv",
+        compiled="build/costs_2025_compiled.csv",
+        config="config.yaml",
+    output:
+        expand("figures/{{figure}}.{fmt}", fmt=FORMATS),
+    params:
+        figure=lambda w: w.figure,
+    resources:
+        mem_mb=1000, runtime="5m",
+    script:
+        "plot_costs.py"
+
+
+rule plot_slide:
+    input:
+        table="build/costs_2025_table.csv",
+        observed="build/observed_normalised.csv",
+        compiled="build/costs_2025_compiled.csv",
+        config="config.yaml",
+        references=REFERENCES,
+    output:
+        expand("figures/slides/{{figure}}.{fmt}", fmt=FORMATS),
+    params:
+        figure=lambda w: w.figure,
+        slide=True,
+    resources:
+        mem_mb=1000, runtime="5m",
+    script:
+        "plot_costs.py"

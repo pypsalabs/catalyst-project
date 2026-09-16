@@ -1,0 +1,168 @@
+# Snakemake workflow: data/ -> country_features.csv -> atlas + archetypes.
+#
+# Run from misc-quarter1/country-classification with the priam-myopic pixi env on PATH:
+#   ../../models/priam-myopic/.pixi/envs/default/bin/snakemake -c1
+# Dry run: snakemake -n     force a rule: snakemake -c1 -R egs_cells
+#
+# The split rules are chained post-processors (each replaces one national row
+# with sub-grid rows) and merge_nwe folds eight North-West European rows into
+# one grid; the expensive EGS cell grid is computed once by egs_cells and read
+# from build/egs_cells.pkl everywhere else.
+
+import os
+import sys
+from pathlib import Path
+
+# GDAL/pyogrio has a compiled-in PROJ search path that misses the pixi env;
+# point it at the env's proj.db so geopandas stops warning
+os.environ.setdefault(
+    "PROJ_DATA", str(Path(sys.executable).parent.parent / "share" / "proj"))
+
+WDI_INDICATORS = ["EN.POP.DNST", "ER.LND.PTLD.ZS", "AG.LND.TOTL.K2",
+                  "SP.POP.TOTL", "SP.POP.TOTL.2050"]
+
+
+rule all:
+    input:
+        "country_features.csv",
+        "country_archetypes.csv",
+        "country_atlas.html",
+        "land-grid-map/data/layers/rules-v1.js",
+
+
+rule egs_cells:
+    input:
+        hf="data/lucazeau2019_heat_flux_0p5deg.nc",
+        tavg="data/worldclim21_tavg_annual_10m.nc",
+        plates="data/PB2002_boundaries.json",
+    output:
+        "build/egs_cells.pkl"
+    params:
+        data_dir="data",
+    resources:
+        mem_mb=6000, runtime="30m",
+    script:
+        "geothermal_egs.py"
+
+
+rule build_features:
+    input:
+        cells="build/egs_cells.pkl",
+        egs_module="geothermal_egs.py",   # imported; snakemake only tracks the rule's own script
+        iso="data/iso3166.csv",
+        coords="data/country_coords.csv",
+        ember="data/yearly_full_release_long_format.csv",
+        pv="data/solargis_pvpotential_countryranking_2020_data-Country indicators.csv",
+        wdi=expand("data/wdi_{ind}.json", ind=WDI_INDICATORS),
+        un="data/un_energy_electricity_balance.csv",
+        geo="data/installed-geothermal-capacity.csv",
+        borders="data/GEODATASOURCE-COUNTRY-BORDERS.CSV",
+        plates="data/PB2002_boundaries.json",
+        ne="data/ne_50m_admin_0_countries/ne_50m_admin_0_countries.shp",
+    output:
+        "build/features_national.csv"
+    params:
+        data_dir="data",
+    resources:
+        mem_mb=6000, runtime="30m",
+    script:
+        "build_features.py"
+
+
+rule split_us:
+    input:
+        features="build/features_national.csv",
+        cells="build/egs_cells.pkl",
+        egs_module="geothermal_egs.py",
+        gen="data/annual_generation_state.csv",
+        cap="data/existcapacity_annual.csv",
+        population="data/state-population.csv",
+        areas="data/state-areas.csv",
+        plates="data/PB2002_boundaries.json",
+        states="data/ne_50m_admin_1_states_provinces/ne_50m_admin_1_states_provinces.shp",
+    output:
+        "build/features_us.csv"
+    params:
+        data_dir="data",
+    resources:
+        mem_mb=6000, runtime="15m",
+    script:
+        "split_us.py"
+
+
+rule split_au:
+    input:
+        features="build/features_us.csv",
+        cells="build/egs_cells.pkl",
+        egs_module="geothermal_egs.py",
+        wem="data/wem_energy.json",
+        facilities="data/au_facilities.json",
+        plates="data/PB2002_boundaries.json",
+        states="data/ne_50m_admin_1_states_provinces/ne_50m_admin_1_states_provinces.shp",
+    output:
+        "build/features_au.csv"
+    params:
+        data_dir="data",
+    resources:
+        mem_mb=6000, runtime="15m",
+    script:
+        "split_au.py"
+
+
+rule split_my:
+    input:
+        features="build/features_au.csv",
+        cells="build/egs_cells.pkl",
+        egs_module="geothermal_egs.py",
+        plates="data/PB2002_boundaries.json",
+        ne="data/ne_50m_admin_0_countries/ne_50m_admin_0_countries.shp",
+    output:
+        "build/features_my.csv"
+    params:
+        data_dir="data",
+    resources:
+        mem_mb=6000, runtime="15m",
+    script:
+        "split_my.py"
+
+
+rule merge_nwe:
+    input:
+        features="build/features_my.csv",
+        cells="build/egs_cells.pkl",
+        egs_module="geothermal_egs.py",
+        borders="data/GEODATASOURCE-COUNTRY-BORDERS.CSV",
+        ne="data/ne_50m_admin_0_countries/ne_50m_admin_0_countries.shp",
+    output:
+        "country_features.csv"   # the final dataset keeps its historic name
+    params:
+        data_dir="data",
+    resources:
+        mem_mb=6000, runtime="15m",
+    script:
+        "merge_nwe.py"
+
+
+rule classify:
+    input:
+        features="country_features.csv",
+        iso="data/iso3166.csv",
+    output:
+        table="country_archetypes.csv",
+        layer="land-grid-map/data/layers/rules-v1.js",
+    resources:
+        mem_mb=1000, runtime="5m",
+    script:
+        "classify.py"
+
+
+rule dashboard:
+    input:
+        features="country_features.csv",
+        template="dashboard_template.html",
+    output:
+        "country_atlas.html"
+    resources:
+        mem_mb=1000, runtime="5m",
+    script:
+        "make_dashboard.py"

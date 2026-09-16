@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Country Atlas — SOW Archetype Dimensions</title>
+<style>
+:root{
+  --paper:#f5f1e6; --paper2:#efe9da; --ink:#1c1913; --ink2:#5a5344; --hair:#c9c0ab;
+  --amber:#d98e04; --teal:#1f6f6b; --red:#b3422e;
+  --coal:#3d3733; --gas:#c96f32; --ofossil:#96755a; --nuclear:#8a5ba6;
+  --hydro:#3a6ea8; --wind:#7fb2dd; --solar:#e8c341; --bio:#7a8f3c; --orenew:#4f9e7d;
+  --mono:"DejaVu Sans Mono","SF Mono","Cascadia Mono",ui-monospace,monospace;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"DejaVu Serif",Georgia,serif;
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper) ;color:var(--ink);font-family:var(--serif);
+  background-image:
+    repeating-linear-gradient(0deg,transparent 0 2px,rgba(28,25,19,.012) 2px 4px),
+    radial-gradient(ellipse 90% 60% at 50% -10%,rgba(217,142,4,.07),transparent 60%);
+  line-height:1.45;
+}
+a{color:var(--teal)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px 120px}
+
+/* ---------- masthead ---------- */
+header{padding:54px 0 22px;border-bottom:3px double var(--ink);
+  animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--ink2);display:flex;justify-content:space-between}
+h1{font-size:clamp(34px,5.4vw,58px);font-weight:600;letter-spacing:-.015em;
+  margin:10px 0 6px;line-height:1.02}
+h1 em{font-style:italic;color:var(--amber)}
+.standfirst{max-width:62ch;font-size:15.5px;color:var(--ink2);font-style:italic}
+.statline{display:flex;gap:0;margin-top:22px;border-top:1px solid var(--hair);
+  font-family:var(--mono)}
+.stat{padding:12px 26px 4px 0;margin-right:26px;border-right:1px solid var(--hair)}
+.stat:last-child{border-right:0}
+.stat b{display:block;font-size:26px;font-weight:400;color:var(--ink)}
+.stat span{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+
+/* ---------- section headings ---------- */
+section{margin-top:64px;animation:rise .7s .12s cubic-bezier(.2,.7,.2,1) both}
+section+section{animation-delay:.2s}
+.sechead{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--ink);
+  padding-bottom:8px;margin-bottom:18px}
+.secno{font-family:var(--mono);font-size:12px;color:var(--amber);letter-spacing:.2em}
+h2{font-size:23px;font-weight:600;font-style:italic}
+.sechint{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink2)}
+
+/* ---------- scatter ---------- */
+.controls{display:flex;flex-wrap:wrap;gap:18px;font-family:var(--mono);
+  font-size:12px;margin-bottom:10px;align-items:center}
+.controls label{display:flex;gap:7px;align-items:center;color:var(--ink2)}
+select{font-family:var(--mono);font-size:12px;background:var(--paper2);color:var(--ink);
+  border:1px solid var(--hair);border-radius:0;padding:4px 6px;cursor:pointer}
+select:focus{outline:2px solid var(--amber);outline-offset:1px}
+.legend{margin-left:auto;display:flex;gap:16px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;
+  margin-right:5px;vertical-align:baseline}
+#scatterbox{position:relative;background:var(--paper2);border:1px solid var(--hair);
+  box-shadow:4px 4px 0 rgba(28,25,19,.08)}
+#scatter{display:block;width:100%;height:auto}
+.axis text{font-family:var(--mono);font-size:10.5px;fill:var(--ink2)}
+.axis line{stroke:var(--hair);stroke-dasharray:2 3}
+.axlab{font-family:var(--mono);font-size:11px;fill:var(--ink);letter-spacing:.08em}
+.dot{stroke:var(--paper);stroke-width:.8;cursor:pointer;transition:opacity .15s}
+.dot:hover{stroke:var(--ink);stroke-width:1.5}
+#tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--paper);
+  font-family:var(--mono);font-size:11.5px;padding:8px 11px;max-width:260px;
+  opacity:0;transition:opacity .12s;z-index:5;box-shadow:5px 5px 0 rgba(28,25,19,.25)}
+#tip b{color:var(--solar);font-weight:400}
+#htip{position:fixed;pointer-events:none;background:var(--ink);color:var(--paper);
+  font-family:var(--mono);font-size:11.5px;line-height:1.55;padding:10px 13px;
+  max-width:320px;opacity:0;transition:opacity .12s;z-index:30;
+  box-shadow:5px 5px 0 rgba(28,25,19,.25);border-left:3px solid var(--solar);
+  white-space:normal}
+#htip b{color:var(--solar);font-weight:400;display:block;margin-bottom:3px;
+  letter-spacing:.08em;text-transform:uppercase;font-size:10px}
+
+/* ---------- table ---------- */
+.tablebar{display:flex;gap:14px;align-items:center;margin-bottom:10px;
+  font-family:var(--mono);font-size:12px}
+#q{font-family:var(--mono);font-size:13px;padding:7px 10px;width:260px;
+  border:1px solid var(--hair);background:var(--paper2);color:var(--ink)}
+#q:focus{outline:2px solid var(--amber);outline-offset:1px}
+#q::placeholder{color:var(--ink2);font-style:italic}
+.count{color:var(--ink2)}
+.mixkey{margin-left:auto;display:flex;flex-wrap:wrap;gap:10px;font-size:10.5px;color:var(--ink2)}
+.mixkey i{display:inline-block;width:8px;height:8px;margin-right:4px}
+.tscroll{overflow-x:auto;border:1px solid var(--hair);background:var(--paper2);
+  box-shadow:4px 4px 0 rgba(28,25,19,.08)}
+table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12px;min-width:1050px}
+thead th{position:sticky;top:0;background:var(--ink);color:var(--paper);font-weight:400;
+  text-align:left;padding:9px 10px;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;cursor:pointer;user-select:none;white-space:nowrap}
+thead th:hover{color:var(--solar)}
+thead th .arr{color:var(--solar)}
+tbody td{padding:7px 10px;border-bottom:1px solid var(--hair);white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:rgba(217,142,4,.10)}
+tbody tr.sel{background:rgba(31,111,107,.12)}
+td.name{font-family:var(--serif);font-size:13.5px;font-style:italic}
+td.name .iso{font-family:var(--mono);font-style:normal;font-size:10px;color:var(--ink2);
+  margin-left:6px;letter-spacing:.08em}
+.bar{display:inline-block;height:9px;background:var(--amber);vertical-align:middle;
+  margin-right:6px}
+.bar.teal{background:var(--teal)}
+.mix{display:inline-flex;width:150px;height:11px;vertical-align:middle;
+  outline:1px solid rgba(28,25,19,.25)}
+.mix i{height:100%}
+.flag{color:var(--amber)} .dim{color:var(--ink2)}
+.num{text-align:right}
+
+/* ---------- drawer ---------- */
+#drawer{position:fixed;top:0;right:0;height:100vh;width:min(430px,92vw);
+  background:var(--ink);color:var(--paper);transform:translateX(102%);
+  transition:transform .3s cubic-bezier(.2,.7,.2,1);z-index:20;overflow-y:auto;
+  box-shadow:-10px 0 40px rgba(28,25,19,.35);padding:30px 30px 60px}
+#drawer.open{transform:none}
+#drawer .close{position:absolute;top:16px;right:18px;background:none;border:1px solid
+  rgba(245,241,230,.35);color:var(--paper);font-family:var(--mono);font-size:13px;
+  padding:4px 10px;cursor:pointer}
+#drawer .close:hover{border-color:var(--solar);color:var(--solar)}
+#drawer h3{font-size:30px;font-weight:600;font-style:italic;margin:8px 0 2px}
+#drawer .sub{font-family:var(--mono);font-size:11px;color:rgba(245,241,230,.6);
+  letter-spacing:.15em;text-transform:uppercase}
+#drawer .grp{margin-top:26px}
+#drawer .grp h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--solar);border-bottom:1px solid
+  rgba(245,241,230,.2);padding-bottom:6px;margin-bottom:8px;font-weight:400}
+#drawer dl{display:grid;grid-template-columns:1fr auto;font-family:var(--mono);
+  font-size:12.5px;row-gap:5px}
+#drawer dt{color:rgba(245,241,230,.65)}
+#drawer dd{text-align:right;font-variant-numeric:tabular-nums}
+#drawer .mix{width:100%;height:14px;margin:6px 0 2px;outline-color:rgba(245,241,230,.4)}
+
+footer{margin-top:80px;padding-top:14px;border-top:3px double var(--ink);
+  font-family:var(--mono);font-size:11px;color:var(--ink2);line-height:1.8}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+::selection{background:var(--solar);color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker"><span>PyPSA Labs × Google — SOW: Catalyst</span><span>__DATE__</span></div>
+  <h1>Country <em>Atlas</em> of Archetype Dimensions</h1>
+  <p class="standfirst">Every country scored on the six dimensions the Statement of
+  Work names as shaping the value and catalysed impact of advanced clean energy
+  technologies. Screening-grade data, assembled for a train ride.</p>
+  <div class="statline">
+    <div class="stat"><b id="s-n">—</b><span>countries</span></div>
+    <div class="stat"><b id="s-dem">—</b><span>TWh demand covered</span></div>
+    <div class="stat"><b id="s-geo">—</b><span>geothermal-favourable</span></div>
+    <div class="stat"><b id="s-isl">—</b><span>islands</span></div>
+  </div>
+</header>
+
+<section>
+  <div class="sechead">
+    <span class="secno">§1</span><h2>The feature space</h2>
+    <span class="sechint">pick axes · dot area = demand · hover for detail</span>
+  </div>
+  <div class="controls">
+    <label>x <select id="selx"></select></label>
+    <label>y <select id="sely"></select></label>
+    <div class="legend">
+      <span><i style="background:var(--amber)"></i>geothermal-favourable</span>
+      <span><i style="background:var(--teal)"></i>other</span>
+    </div>
+  </div>
+  <div id="scatterbox">
+    <svg id="scatter" viewBox="0 0 1120 560" preserveAspectRatio="xMidYMid meet"></svg>
+    <div id="tip"></div>
+  </div>
+</section>
+
+<section>
+  <div class="sechead">
+    <span class="secno">§2</span><h2>The ledger</h2>
+    <span class="sechint">click a header to sort · click a row for the full record</span>
+  </div>
+  <div class="tablebar">
+    <input id="q" type="search" placeholder="filter countries…">
+    <span class="count" id="count"></span>
+    <div class="mixkey" id="mixkey"></div>
+  </div>
+  <div class="tscroll">
+    <table id="tbl"><thead></thead><tbody></tbody></table>
+  </div>
+</section>
+
+<footer>
+  Sources — Ember yearly electricity data (latest year per country) · Solargis/World Bank
+  PV potential (2020) · OWID/IRENA geothermal capacity · Lucazeau (2019) heat flow +
+  WorldClim 2.1 surface temperature (EGS-suitable share) · World Bank WDI ·
+  Bird (2003) plate boundaries · GeoDataSource land borders.<br>
+  Caveats — realized CFs conflate resource quality with fleet age; the EGS cutoff
+  (200 °C at 5 km) is strict, so only ~4% of all land qualifies and narrow volcanic
+  provinces (Taupo, Kenyan rift, Larderello) are under-resolved by the 0.5° map; Ember lumps
+  geothermal generation into “other renewables”. See misc-quarter1/country-classification/README.md.
+</footer>
+</div>
+
+<div id="htip"></div>
+
+<aside id="drawer" aria-hidden="true">
+  <button class="close" onclick="closeDrawer()">esc ✕</button>
+  <div id="drawer-body"></div>
+</aside>
+
+<script>
+const DATA = __DATA__;
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const fmt=(v,d=1)=>v==null||isNaN(v)?"·":(+v).toLocaleString("en",{maximumFractionDigits:d});
+const FUELS=[["coal","--coal","Coal"],["gas","--gas","Gas"],["other_fossil","--ofossil","Other fossil"],
+  ["nuclear","--nuclear","Nuclear"],["hydro","--hydro","Hydro"],["wind","--wind","Wind"],
+  ["solar","--solar","Solar"],["bioenergy","--bio","Bioenergy"],["other_renewables","--orenew","Other RES"]];
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n);
+
+/* ---------- masthead stats ---------- */
+$("#s-n").textContent=DATA.length;
+$("#s-dem").textContent=Math.round(DATA.reduce((a,d)=>a+(d.demand_twh||0),0)).toLocaleString("en");
+$("#s-geo").textContent=DATA.filter(d=>d.geothermal_favourable).length;
+$("#s-isl").textContent=DATA.filter(d=>d.is_island).length;
+
+/* ---------- scatter ---------- */
+const AXES={
+  demand_twh:["Demand [TWh/a]",true],
+  demand_kwh_per_capita:["Demand per capita [kWh/cap/a]",true],
+  population:["Population",true],
+  pvout_kwh_per_kwp_day:["PV practical potential [kWh/kWp/day]",false],
+  cf_wind_realized:["Wind CF (realized)",false],
+  cf_solar_realized:["Solar CF (realized)",false],
+  share_fossil_pct:["Fossil share of generation [%]",false],
+  share_hydro_pct:["Hydro share of generation [%]",false],
+  geothermal_capacity_mw:["Geothermal capacity [MW]",true],
+  egs_suitable_share:["EGS-suitable land share (≥200 °C at 5 km)",false],
+  t5km_p90_c:["T at 5 km, 90th pct of land [°C]",false],
+  plate_share_300km:["Land share within 300 km of plate boundary",false],
+  plate_distance_km:["Capital → plate boundary [km]",true],
+  net_import_share_pct:["Net-import share of demand [%]",false],
+  pop_density_per_km2:["Population density [/km²]",true],
+  protected_area_pct:["Protected land share [%]",false],
+};
+for(const sel of["selx","sely"])
+  $("#"+sel).innerHTML=Object.entries(AXES)
+    .map(([k,[l]])=>`<option value="${k}">${l}</option>`).join("");
+$("#selx").value="pvout_kwh_per_kwp_day";
+$("#sely").value="share_fossil_pct";
+
+function niceTicks(lo,hi,n=6){
+  const span=hi-lo, step0=Math.pow(10,Math.floor(Math.log10(span/n)));
+  const step=[1,2,5,10].map(m=>m*step0).find(s=>span/s<=n)||10*step0;
+  const t=[];for(let v=Math.ceil(lo/step)*step;v<=hi+1e-9;v+=step)t.push(v);return t;
+}
+function drawScatter(){
+  const kx=$("#selx").value, ky=$("#sely").value;
+  const [lx,logx]=AXES[kx],[ly,logy]=AXES[ky];
+  const pts=DATA.filter(d=>d[kx]!=null&&d[ky]!=null&&!isNaN(d[kx])&&!isNaN(d[ky]));
+  const tx=v=>logx?Math.log10(Math.max(v,0)+1):v, ty=v=>logy?Math.log10(Math.max(v,0)+1):v;
+  const xs=pts.map(d=>tx(d[kx])),ys=pts.map(d=>ty(d[ky]));
+  const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+  const M={l:70,r:24,t:18,b:56},W=1120,H=560;
+  const X=v=>M.l+(tx(v)-x0)/((x1-x0)||1)*(W-M.l-M.r);
+  const Y=v=>H-M.b-(ty(v)-y0)/((y1-y0)||1)*(H-M.t-M.b);
+  const dmax=Math.max(...pts.map(d=>d.demand_twh||0));
+  const R=d=>2.5+16*Math.sqrt((d.demand_twh||0)/dmax);
+  const xticks=logx?niceTicks(x0,x1).map(v=>Math.pow(10,v)-1):niceTicks(Math.min(...pts.map(d=>d[kx])),Math.max(...pts.map(d=>d[kx])));
+  const yticks=logy?niceTicks(y0,y1).map(v=>Math.pow(10,v)-1):niceTicks(Math.min(...pts.map(d=>d[ky])),Math.max(...pts.map(d=>d[ky])));
+  let s=`<g class="axis">`;
+  for(const t of xticks)s+=`<line x1="${X(t)}" x2="${X(t)}" y1="${M.t}" y2="${H-M.b}"/>
+    <text x="${X(t)}" y="${H-M.b+18}" text-anchor="middle">${fmt(t,t<10?1:0)}</text>`;
+  for(const t of yticks)s+=`<line y1="${Y(t)}" y2="${Y(t)}" x1="${M.l}" x2="${W-M.r}"/>
+    <text x="${M.l-8}" y="${Y(t)+3.5}" text-anchor="end">${fmt(t,t<10?1:0)}</text>`;
+  s+=`</g>
+  <text class="axlab" x="${(M.l+W-M.r)/2}" y="${H-14}" text-anchor="middle">${lx}${logx?"  (log)":""}</text>
+  <text class="axlab" x="18" y="${(M.t+H-M.b)/2}" transform="rotate(-90 18 ${(M.t+H-M.b)/2})" text-anchor="middle">${ly}${logy?"  (log)":""}</text>`;
+  const sorted=[...pts].sort((a,b)=>(b.demand_twh||0)-(a.demand_twh||0));
+  for(const d of sorted){
+    const c=d.geothermal_favourable?cssv("--amber"):cssv("--teal");
+    s+=`<circle class="dot" data-iso="${d.iso3}" cx="${X(d[kx])}" cy="${Y(d[ky])}" r="${R(d)}" fill="${c}" fill-opacity=".62"/>`;
+  }
+  $("#scatter").innerHTML=s;
+  $("#scatter").querySelectorAll(".dot").forEach(el=>{
+    const d=DATA.find(x=>x.iso3===el.dataset.iso);
+    el.addEventListener("mousemove",e=>{
+      const bb=$("#scatterbox").getBoundingClientRect();
+      $("#tip").style.opacity=1;
+      $("#tip").style.left=Math.min(e.clientX-bb.left+14,bb.width-270)+"px";
+      $("#tip").style.top=(e.clientY-bb.top+12)+"px";
+      $("#tip").innerHTML=`<b>${d.name}</b><br>${lx.split("[")[0]}: ${fmt(d[kx],2)}<br>${ly.split("[")[0]}: ${fmt(d[ky],2)}<br>demand: ${fmt(d.demand_twh)} TWh`;
+    });
+    el.addEventListener("mouseleave",()=>$("#tip").style.opacity=0);
+    el.addEventListener("click",()=>openDrawer(d));
+  });
+}
+$("#selx").onchange=drawScatter;$("#sely").onchange=drawScatter;
+drawScatter();
+
+/* ---------- table ---------- */
+const COLS=[
+  ["name","Country",d=>`${d.name}<span class="iso">${d.iso3}</span>`,"name"],
+  ["demand_twh","Demand TWh",d=>bar(d.demand_twh,4600,110,"")+fmt(d.demand_twh,0)],
+  ["demand_kwh_per_capita","kWh/cap",d=>fmt(d.demand_kwh_per_capita,0)],
+  ["mix","Generation mix",d=>mixbar(d),null,"share_fossil_pct"],
+  ["pvout_kwh_per_kwp_day","PVOUT",d=>bar(d.pvout_kwh_per_kwp_day,5.5,46,"teal")+fmt(d.pvout_kwh_per_kwp_day,2)],
+  ["cf_wind_realized","Wind CF",d=>fmt(d.cf_wind_realized,2)],
+  ["geothermal_capacity_mw","Geo MW",d=>(d.geothermal_favourable?`<span class="flag">◆ </span>`:"")+fmt(d.geothermal_capacity_mw,0)],
+  ["net_import_share_pct","Imp %",d=>fmt(d.net_import_share_pct,1)],
+  ["n_land_borders","Borders",d=>d.is_island?`<span class="flag">isl.</span>`:d.n_land_borders],
+  ["pop_density_per_km2","Pop/km²",d=>fmt(d.pop_density_per_km2,0)],
+  ["protected_area_pct","Prot %",d=>fmt(d.protected_area_pct,1)],
+];
+const COLDESC={
+  name:["Country","ISO 3166 country, or a sub-national grid: US interconnections (USE east / USW west / UST ERCOT, few GW of DC ties between them), Australia (AUN NEM / AUW SWIS — the SWIS around Perth has zero ties to the east coast; figures are AEMO WEM data via OpenNEM 2023 incl. rooftop PV, not WA state statistics, which are ~2x the SWIS due to off-grid mining gas) and Malaysia (MYW Peninsular / MYE Borneo — no interconnector exists; Borneo is Sarawak's smelter-baseload hydro plus gas-fired Sabah, from the Energy Commission handbook + Sarawak Energy/SESB figures). Each residual row (NEM, Peninsular) absorbs its country's remnants. NWE merges Spain, Portugal, France, Germany, Belgium, the Netherlands, Luxembourg and the UK into one grid (merge_nwe.py)."],
+  demand_twh:["Demand — TWh/a","Annual electricity demand from the Ember yearly release, latest available year per country (mostly 2024; see the drawer for the exact year and source). Where Ember has no data (7 microstates) the UN Energy Statistics gross demand is used; Monaco and San Marino are a neighbour per-capita proxy (France / Italy). US regions: national demand apportioned by each interconnection's share of EIA 2024 state-level generation."],
+  demand_kwh_per_capita:["Demand per capita — kWh/cap/a","Annual electricity demand divided by population (World Bank SP.POP.TOTL, 2025). Separates demand volume from country size: a small rich island and a large poor country can have the same TWh."],
+  mix:["Generation mix","Share of total generation by fuel, Ember latest year (EIA 2024 state data for the US halves, states assigned whole to WECC or East). Colours in the key above. Sorting this column sorts by fossil share."],
+  pvout_kwh_per_kwp_day:["PVOUT — kWh/kWp/day","Practical PV power potential: long-term average daily output per installed kWp, from the Solargis/World Bank 2020 country ranking (land-use level-1 constrained). US halves are approximate Global Solar Atlas map readings (West 4.8, East 4.0)."],
+  cf_wind_realized:["Wind CF (realized)","Realized capacity factor = annual wind generation ÷ (installed capacity × 8760 h), from Ember. Blank where capacity < 0.1 GW. Caveat: conflates resource quality with fleet age and curtailment — screening proxy, not a resource atlas."],
+  geothermal_capacity_mw:["Geothermal — MW","Installed geothermal power capacity, OWID/IRENA latest year (EIA 2024 for the US halves). ◆ marks the geothermal-favourable flag: > 10 MW installed OR at least 10% of land EGS-suitable (modelled T ≥ 200 °C at 5 km from Lucazeau 2019 heat flow, WorldClim surface temperature, k = 2.5 W/m/K, A = 1 µW/m³, evaluated on a 0.1° grid inside country polygons). Rank resource quality by the 90th-percentile T at 5 km, not by the flag."],
+  net_import_share_pct:["Net-import share — %","Net electricity imports ÷ demand, Ember latest year. Negative = net exporter (e.g. Norway). Caveat: nets out gross flows, so understates interconnection for balanced traders."],
+  n_land_borders:["Land borders","Number of countries sharing a land border (GeoDataSource pairs); 'isl.' = none — an electrical island unless subsea-connected. US regions count only external neighbours (West: Canada+Mexico; East: Canada; ERCOT: Mexico), ignoring the thin inter-US DC ties."],
+  pop_density_per_km2:["Population density — /km²","People per km² of land area, World Bank WDI, most recent non-empty value. Proxy for land/acceptance pressure on wind and solar build-out."],
+  protected_area_pct:["Protected land — %","Terrestrial protected areas as share of land area, World Bank WDI. Together with density, proxies the SOW's land/acceptance/transmission constraint dimension. US halves keep the national value."],
+};
+function bar(v,max,w,cls){if(v==null||isNaN(v))return"";
+  return`<span class="bar ${cls}" style="width:${Math.max(2,w*Math.min(v,max)/max)}px"></span>`}
+function mixbar(d){
+  if(!d.total_generation_twh)return`<span class="dim">·</span>`;
+  let s=`<span class="mix">`;
+  for(const[f,c]of FUELS){
+    const v=d[`gen_${f}_twh`];if(!v||v<=0)continue;
+    s+=`<i style="width:${100*v/d.total_generation_twh}%;background:var(${c})"></i>`;
+  }
+  return s+"</span>";
+}
+$("#mixkey").innerHTML=FUELS.map(([f,c,l])=>`<span><i style="background:var(${c})"></i>${l}</span>`).join("");
+let sortKey="demand_twh",sortDir=-1,query="";
+function renderTable(){
+  const rows=DATA
+    .filter(d=>!query||d.name.toLowerCase().includes(query)||d.iso3.toLowerCase().includes(query)||(d.iso2||"").toLowerCase()===query)
+    .sort((a,b)=>{
+      const k=sortKey==="mix"?"share_fossil_pct":sortKey;
+      const av=a[k],bv=b[k];
+      if(k==="name")return sortDir*String(av).localeCompare(String(bv));
+      return sortDir*(((av==null||isNaN(av))?-Infinity:av)-((bv==null||isNaN(bv))?-Infinity:bv));
+    });
+  $("#tbl thead").innerHTML="<tr>"+COLS.map(([k,l])=>
+    `<th data-k="${k}">${l}${k===sortKey?`<span class="arr"> ${sortDir<0?"▾":"▴"}</span>`:""}</th>`).join("")+"</tr>";
+  $("#tbl tbody").innerHTML=rows.map(d=>"<tr data-iso='"+d.iso3+"'>"+
+    COLS.map(([k,l,render,cls])=>`<td class="${cls||(k==="mix"?"":"num")}">${render(d)}</td>`).join("")+"</tr>").join("");
+  $("#count").textContent=rows.length+" shown";
+  $("#tbl thead").querySelectorAll("th").forEach(th=>{
+    th.onclick=()=>{
+      const k=th.dataset.k;
+      if(k===sortKey)sortDir*=-1;else{sortKey=k;sortDir=k==="name"?1:-1}
+      renderTable();
+    };
+    const desc=COLDESC[th.dataset.k];
+    if(desc){
+      th.addEventListener("mousemove",e=>{
+        const t=$("#htip");
+        t.innerHTML=`<b>${desc[0]}</b>${desc[1]}`;t.style.opacity=1;
+        const w=Math.min(320,window.innerWidth-24);
+        t.style.left=Math.min(e.clientX+14,window.innerWidth-w-12)+"px";
+        t.style.top=Math.min(e.clientY+16,window.innerHeight-t.offsetHeight-12)+"px";
+      });
+      th.addEventListener("mouseleave",()=>$("#htip").style.opacity=0);
+    }
+  });
+  $("#tbl tbody").querySelectorAll("tr").forEach(tr=>tr.onclick=()=>{
+    openDrawer(DATA.find(d=>d.iso3===tr.dataset.iso));
+    $("#tbl tbody").querySelectorAll("tr.sel").forEach(x=>x.classList.remove("sel"));
+    tr.classList.add("sel");
+  });
+}
+$("#q").addEventListener("input",e=>{query=e.target.value.trim().toLowerCase();renderTable()});
+renderTable();
+
+/* ---------- drawer ---------- */
+function row(dt,dd){return`<dt>${dt}</dt><dd>${dd}</dd>`}
+function openDrawer(d){
+  const gshare=f=>d.total_generation_twh?100*(d[`gen_${f}_twh`]||0)/d.total_generation_twh:null;
+  $("#drawer-body").innerHTML=`
+    <div class="sub">${d.iso2} · ${d.iso3} · ${d.capital||"—"} · demand: ${d.demand_source||"—"} ${d.demand_year||""}</div>
+    <h3>${d.name}</h3>
+    <div class="grp"><h4>Demand</h4><dl>
+      ${row("Electricity demand",fmt(d.demand_twh)+" TWh/a")}
+      ${row("Demand per capita",fmt(d.demand_kwh_per_capita,0)+" kWh/a")}
+      ${row("Population",fmt(d.population,0)+(d.population_year?" ("+d.population_year+")":""))}
+      ${d.demand_un_twh!=null?row("UN gross demand",fmt(d.demand_un_twh)+" TWh/a ("+d.demand_un_year+")"):""}
+    </dl></div>
+    <div class="grp"><h4>Brownfield mix</h4>
+      ${mixbar(d)}<dl>
+      ${FUELS.map(([f,c,l])=>{const s=gshare(f);return s>0.05?row(l,fmt(s,1)+" % · "+fmt(d[`cap_${f}_gw`],1)+" GW"):""}).join("")}
+      ${row("Total generation",fmt(d.total_generation_twh)+" TWh")}
+    </dl></div>
+    <div class="grp"><h4>Renewable quality</h4><dl>
+      ${row("PV practical potential",fmt(d.pvout_kwh_per_kwp_day,2)+" kWh/kWp/day")}
+      ${row("Solar CF (realized)",fmt(d.cf_solar_realized,2))}
+      ${row("Wind CF (realized)",fmt(d.cf_wind_realized,2))}
+    </dl></div>
+    <div class="grp"><h4>Clean firm</h4><dl>
+      ${row("Hydro share",fmt(d.share_hydro_pct,1)+" %")}
+      ${row("Geothermal installed",fmt(d.geothermal_capacity_mw,0)+" MW")}
+      ${row("EGS-suitable land (≥200 °C @ 5 km)",fmt(100*d.egs_suitable_share,0)+" %")}
+      ${row("T at 5 km, 90th pct",fmt(d.t5km_p90_c,0)+" °C")}
+      ${row("Land within 300 km of plate",fmt(100*d.plate_share_300km,0)+" %")}
+      ${row("Capital → plate boundary",fmt(d.plate_distance_km,0)+" km")}
+      ${row("Geothermal-favourable",d.geothermal_favourable?"◆ yes":"no")}
+    </dl></div>
+    <div class="grp"><h4>Interconnection</h4><dl>
+      ${row("Net-import share",fmt(d.net_import_share_pct,1)+" %")}
+      ${row("Land borders",d.n_land_borders)}
+      ${row("Island",d.is_island?"yes":"no")}
+    </dl></div>
+    <div class="grp"><h4>Land constraints</h4><dl>
+      ${row("Population density",fmt(d.pop_density_per_km2,0)+" /km²")}
+      ${row("Protected land",fmt(d.protected_area_pct,1)+" %")}
+      ${row("Land area",fmt(d.land_area_km2,0)+" km²")}
+    </dl></div>`;
+  $("#drawer").classList.add("open");
+}
+function closeDrawer(){$("#drawer").classList.remove("open")}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer()});
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# Large redistributions of public datasets are not committed (140 MB together);
+# fetch them as described in ../README.md "Data files". Small API pulls and
+# hand-curated tables stay in git.
+# GPW v4 population grid, built by prepare_population.py
+gpw_v4_2020_4min.npy
+# Ember yearly release (49 MB)
+yearly_full_release_long_format.csv
+# Energy Commission Malaysia handbook (8 MB)
+Malaysia_Energy_Statistics_Handbook_2023.pdf
+# EIA state generation and capacity tables
+annual_generation_state.xls
+annual_generation_state.csv
+existcapacity_annual.xlsx
+existcapacity_annual.csv
+# UN Energy Statistics
+un_energy_electricity_balance.csv
+# WorldClim 2.1 and Lucazeau 2019 rasters
+worldclim21_tavg_annual_10m.nc
+lucazeau2019_heat_flux_0p5deg.nc
+# Natural Earth 50m shapefiles
+ne_50m_admin_0_countries/
+ne_50m_admin_1_states_provinces/

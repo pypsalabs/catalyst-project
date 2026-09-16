@@ -2,7 +2,7 @@
 # `match` lists substrings looked up in the `source` strings of the cost
 # workflow (technology-data rows, gap_fill.csv, observed_projects.csv); a source
 # that matches no entry is deliberately not cited on the slides (pruned to the
-# main organisations), but stays in scripts/sep/tech/build/sources.md.
+# main organisations), but stays in ../../misc-quarter1/technology-costs/build/sources.md.
 - key: td
   short: PyPSA/technology-data v0.15.0
   cite: "PyPSA, technology-data v0.15.0 (2025), cost assumptions for 2025"

@@ -1,5 +1,3 @@
 models/
-
-# front-end with its own git repo (deployed to Vercel), not part of this repo
-scripts/sep/land-grid-map/
-beamer/
+lit/
+CLAUDE.md

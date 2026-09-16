@@ -1,19 +1,25 @@
 # Compile the kickoff slides. Everything the deck needs is in this directory:
-# figures/ holds the 16:9 renders from ../tech/figures/slides (cost baseline)
+# figures/ holds the 16:9 renders from ../../misc-quarter1/technology-costs/figures/slides
+# (cost baseline)
 # and the priam-myopic learning-curve plot; copy fresh figures in by hand when
 # those workflows change. screenshots/ holds the map and archetype images,
-# rendered here from ../land-grid-map by ../screenshot_map.py (headless
+# rendered here from ../../misc-quarter1/country-classification/{land-grid-map,screenshot_map.py}
+# (headless
 # Chrome) whenever the page or its data changes, so `snakemake -c1` alone
 # brings the slides up to date with the front-end.
 #
 # Run from this directory (needs snakemake, latexmk, biber and the TeX packages
 # listed in README.md on PATH), e.g. with the priam-myopic pixi env:
-#   ../../../models/priam-myopic/.pixi/envs/default/bin/snakemake -c1
+#   ../../models/priam-myopic/.pixi/envs/default/bin/snakemake -c1
+#
+# The theme files are copies of ../theme (kept self-contained so old decks keep compiling).
 
 import sys
 from glob import glob
 
-SCREENSHOTS = ["map_screenshot", "archetypes", "shares", "tsne"]   # names in ../screenshot_map.py SHOTS
+CC = "../../misc-quarter1/country-classification"
+
+SCREENSHOTS = ["map_screenshot", "archetypes", "shares", "tsne"]   # names in {CC}/screenshot_map.py SHOTS
 FIGURES = ["capex_generation_mature", "capex_generation_advanced",
            "capex_storage_mature", "capex_storage_advanced", "learning_curve"]
 
@@ -54,10 +60,10 @@ rule references:
 # (or CHROME=...) and network access for the basemap tiles
 rule screenshots:
     input:
-        script="../screenshot_map.py",
-        page="../land-grid-map/index.html",
-        data=["../land-grid-map/data/archetypes.js", "../land-grid-map/data/regions.js"]
-             + sorted(glob("../land-grid-map/data/layers/*.js")),
+        script=f"{CC}/screenshot_map.py",
+        page=f"{CC}/land-grid-map/index.html",
+        data=[f"{CC}/land-grid-map/data/archetypes.js", f"{CC}/land-grid-map/data/regions.js"]
+             + sorted(glob(f"{CC}/land-grid-map/data/layers/*.js")),
     output:
         expand("screenshots/{f}.png", f=SCREENSHOTS),
     resources:
