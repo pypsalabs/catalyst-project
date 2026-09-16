@@ -6,9 +6,10 @@ of the global data pipeline the SOW prescribes (SOW §methodology: PyPSA-Earth s
 atlite/ERA5 feed-in). Everything runs under three constraints: **≤ 8 GB RAM for the whole
 process tree, no Snakemake parallelism (`-c1 -j1`), and a bounded disk footprint**.
 
-The model code lives in `models/pypsa-earth` (gitignored here): a clone of
-`pypsa-meets-earth/pypsa-earth`, branch **`catalyst`** = tag v0.9.0 plus four small patches
-(`git log v0.9.0..catalyst`):
+The model code lives in `models/pypsa-earth` (gitignored here): a clone of the soft fork
+`pypsalabs/catalyst-pypsa-earth` (GitHub fork of `pypsa-meets-earth/pypsa-earth`; remote `origin`
+is the fork, `upstream` is pypsa-meets-earth), branch **`catalyst`** = tag v0.9.0 plus six small
+patches (`git log v0.9.0..catalyst`), each a candidate upstream pull request:
 
 | patch | why |
 |---|---|
@@ -16,6 +17,8 @@ The model code lives in `models/pypsa-earth` (gitignored here): a clone of
 | `download_osm_data`: honour `download_osm_data_nprocesses` | earth-osm otherwise parses the PBF with `cpu_count-1` = 15 workers. |
 | `retrieve_databundle_light`: `wget -c` for Zenodo | the 6.5 GB `bundle_data_earth.zip` resumes instead of restarting. |
 | `build_cutout`: `monthly_requests=True, concurrent_requests=False` | small, sequential CDS requests. |
+| `base_network`: drop branch WKT geometry before netCDF export | the geometry column is not serialisable to netCDF. |
+| `build_demand_profiles`: fall back to population weights when shapes carry no GDP | `gdp_method: false` leaves the GDP column empty. |
 
 ## Files
 

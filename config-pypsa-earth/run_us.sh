@@ -8,7 +8,8 @@
 # full Snakemake output to logs/catalyst/<stage>.log.
 set -u
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PE="$(cd "$HERE/../models/pypsa-earth" && pwd)"
+PE=""; d="$HERE"; while [ "$d" != "/" ]; do [ -d "$d/models/pypsa-earth" ] && { PE="$d/models/pypsa-earth"; break; }; d="$(dirname "$d")"; done
+[ -n "$PE" ] || { echo "models/pypsa-earth not found above $HERE" >&2; exit 1; }
 LOGDIR="$PE/logs/catalyst"; mkdir -p "$LOGDIR"
 STATUS="$LOGDIR/status.log"
 MEM_MAX=${MEM_MAX:-8G}
@@ -20,6 +21,7 @@ export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_TH
 export PATH="$HOME/.pixi/bin:$HOME/.local/bin:$PATH"
 
 log() { echo "[$(date '+%F %T')] $*" | tee -a "$STATUS"; }
+attempt_log() { tac "$slog" | sed "/######## \[$run\] attempt $attempt /q" | tac; }   # this attempt's part of the stage log
 free_gb() { df -BG --output=avail "$PE" | tail -1 | tr -dc 0-9; }
 
 run_stage() {   # $1 = run name: US-smoke | US
@@ -61,10 +63,10 @@ run_stage() {   # $1 = run name: US-smoke | US
     kill "$wd" 2>/dev/null; wait "$wd" 2>/dev/null
     log "[$run] attempt $attempt finished rc=$rc; $(grep -o 'SCOPE memory.peak=.*' "$slog" | tail -1)"
     [ -f "$target" ] && { log "[$run] SUCCESS $target ($(du -h "$target" | cut -f1)); free $(free_gb) GB"; return 0; }
-    if [ "$rc" -eq 137 ] || sed -n "/######## \[$run\] attempt $attempt /,\$p" "$slog" | grep -qE "SCOPE .*oom_kill [1-9]|MemoryError|Killed"; then
+    if [ "$rc" -eq 137 ] || attempt_log | grep -qE "SCOPE .*oom_kill [1-9]|MemoryError"; then
       log "[$run] OOM under the ${MEM_MAX} cap -> no retry, needs reconfiguration"; return 3; fi
     [ "$rc" -eq 124 ] && { log "[$run] stage timed out after $STAGE_TIMEOUT -> no retry"; return 4; }
-    rule=$(sed -n "/######## \[$run\] attempt $attempt /,\$p" "$slog" | grep -oP "Error in rule \K\w+" | tail -1)
+    rule=$(attempt_log | grep -oP "Error in rule \K\w+" | tail -1)
     if echo "${rule:-}" | grep -qE "^($NETWORK_RULES)$"; then
       log "[$run] rule '$rule' failed (network/data rule) -> retry in 120 s"; sleep 120
     else

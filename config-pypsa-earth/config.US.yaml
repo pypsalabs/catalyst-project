@@ -49,7 +49,7 @@ electricity:
 
 build_shape_options:
   nprocesses: 1
-  gdp_method: false       # GDP raster is in no bundle; not needed (clusters distributed by load)
+  gdp_method: standard    # GDP_PPP raster ships in bundle_data_earth (data/GDP); used with population to distribute demand to buses
   clip_bbox: [-125.0, 24.0, -66.5, 50.0]   # fork patch: drop Alaska, Hawaii, Pacific EEZ
 
 solving:

@@ -9,7 +9,8 @@
 # Idempotent and resumable; safe to re-run. Never runs two wgets on one file.
 set -u
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PE="$(cd "$HERE/../models/pypsa-earth" && pwd)"
+PE=""; d="$HERE"; while [ "$d" != "/" ]; do [ -d "$d/models/pypsa-earth" ] && { PE="$d/models/pypsa-earth"; break; }; d="$(dirname "$d")"; done
+[ -n "$PE" ] || { echo "models/pypsa-earth not found above $HERE" >&2; exit 1; }
 LOGDIR="$PE/logs/catalyst"; mkdir -p "$LOGDIR"
 STATUS="$LOGDIR/status.log"
 MIN_FREE_GB=${MIN_FREE_GB:-20}
