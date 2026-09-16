@@ -7,6 +7,10 @@ LCOE for the SOW technology palette from the **2025** file of
 observed real-project cost points overlaid. Only the 2025 file is used because
 cost decline of advanced technologies is endogenous (learning) in the study.
 
+<img src="figures/capex_generation.png" alt="2025 generation capex baseline vs observed project costs" width="640">
+
+*Generation capex baseline (bars) against observed and estimated project costs (markers); storage, opex, LCOE and DAC figures are in `figures/`.*
+
 ```
 data/technology-data/costs_2025_v0.15.0.csv    pinned download (committed; retrieve rule skips if present)
 data/gap_fill.csv                               parameters technology-data lacks or gets wrong, with URL

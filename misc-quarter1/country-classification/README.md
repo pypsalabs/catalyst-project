@@ -4,6 +4,10 @@
 dimensions named in the SOW §1.2 *Geographic scope*. Built for low-bandwidth
 conditions: ~50 MB total downloads, all cached under `data/`.
 
+<img src="screenshots/map_screenshot.png" alt="Grid archetype map: every grid coloured by archetype, modelled representatives outlined" width="100%">
+
+*Every country or sub-national grid coloured by its archetype; the outlined regions are the modelled representatives. Interactive version in `land-grid-map/`.*
+
 Rebuild with Snakemake (the `Snakefile` maps `data/` → dataset → outputs):
 
 ```bash
