@@ -1,0 +1,129 @@
+\documentclass[11pt,aspectratio=169,t]{beamer}
+\usetheme{PyPSALabs}
+
+% LICENCE (also puts the icon on the title page and in the footline)
+\usepackage[type={CC},modifier={by},version={4.0}]{doclicense}
+
+% REFERENCES
+\usepackage[style=nature, doi=true, maxcitenames=3, backend=biber]{biblatex}
+\addbibresource{template.bib}
+\renewcommand*{\bibfont}{\footnotesize}
+
+% GRAPHICS
+\graphicspath{{graphics/}{./}}
+
+% TITLE PAGE
+\title{Presentation Title}
+\subtitle{An optional subtitle}
+
+\author{Firstname Lastname}
+
+\institute{
+  PyPSA Labs \\
+  \href{mailto:name@pypsalabs.org}{name@pypsalabs.org}
+}
+
+\date{\alert{Occasion, Location} \\ 1 January 2026}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+\addtocounter{framenumber}{-1}
+
+\section{Demonstration}
+
+\begin{frame}{Frame title}
+
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+
+      Text with \alert{alerted text}, the accents \gr{green}, \rd{red},
+      \gray{gray} and chips that highlight \cb{quietly} or
+      \hl{loudly}~\cite{PyPSA}.
+
+      \begin{itemize}
+        \item First item of an itemisation
+        \item Second item with \textbf{bold} text
+        \item Third item with a \href{https://pypsa.org}{hyperlink}
+      \end{itemize}
+
+      \begin{enumerate}
+        \item First item of an enumeration
+        \item Second item of an enumeration
+      \end{enumerate}
+
+    \end{column}
+    \begin{column}{0.5\textwidth}
+
+      \begin{block}{Block}
+        Uses the primary brand colour.
+      \end{block}
+
+      \begin{exampleblock}{Example block}
+        Uses the green accent.
+      \end{exampleblock}
+
+      \begin{alertblock}{Alert block}
+        Uses the red accent.
+      \end{alertblock}
+
+    \end{column}
+  \end{columns}
+
+  \source{Source: \url{https://pypsa.org}}
+\end{frame}
+
+\begin{frame}{Mathematics}
+
+  Consider a total system cost minimisation problem\footnote{Assume the investment costs are annualised.}:
+
+  \begin{equation*}
+    \min_{g_{s,t}, G_s}\overbrace{\sum_s c_s G_s}^{\text{investment costs}} + \overbrace{\sum_{s,t} o_{s} g_{s,t}}^{\text{fuel costs}},   \qquad \text{s.t.}
+  \end{equation*}
+  \begin{align*}
+    \sum_s g_{s,t} - d_t =  0 &\hspace{0.34cm}\perp \hspace{0.34cm} \lambda_t \tag{nodal energy balance}
+  \end{align*}
+
+  The dual variable $\lambda_t$ of the energy balance is the \alert{market price}.
+
+\end{frame}
+
+\begin{statement}
+  A statement slide for \alert{one} idea.
+\end{statement}
+
+\section{References}
+
+\begin{frame}{References}
+  \printbibliography[heading=none]
+\end{frame}
+
+\begin{frame}{Get in touch}
+
+  \begin{columns}[c]
+    \begin{column}{0.65\textwidth}
+      \textbf{Firstname Lastname} \\
+      Role or position \\[0.6em]
+      \href{mailto:name@pypsalabs.org}{name@pypsalabs.org} \\
+      \href{https://pypsalabs.org}{pypsalabs.org}
+    \end{column}
+    \begin{column}{0.3\textwidth}
+      \raggedleft\qrcode[height=2.6cm]{https://pypsalabs.org}
+    \end{column}
+  \end{columns}
+
+  % Imprint: mandatory on business letters of a GmbH/UG in electronic form
+  % (§ 35a GmbHG) and on publicly available slides (§ 5 DDG, ex § 5 TMG).
+  % Adjust the legal form, register entry and management to your entity.
+  \legalnote{%
+    PyPSA Labs gGmbH, Mertensstr. 16A, 13587 Berlin, Germany ~·~
+    District Court Charlottenburg \mbox{HRB 288490 B} ~·~
+    Managing Directors: Prof.~Dr.~Thomas William Brown \& Dr.-Ing.~Fabian Neumann ~·~
+    \mbox{VAT ID}: pending ~·~
+    \textcopyright{} 2026 The Authors ~·~ Slides and figures by the authors
+    unless stated otherwise, licensed under CC BY 4.0.}
+\end{frame}
+
+\end{document}
