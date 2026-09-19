@@ -1,0 +1,68 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Catalyst / WP1: Singapore power-only prenetwork, STAGE A (smoke test, January 2013).
+# Diff over pypsa-earth config.default.yaml; copied to models/pypsa-earth/config.yaml
+# by config-pypsa-earth/run.sh. One month of weather so every rule runs end-to-end fast.
+# Stage B (config.SG.yaml) is identical except run name, snapshots, cutout name and gdp_method.
+
+countries: [SG]
+
+run:
+  name: SG-smoke
+  shared_cutouts: true
+
+scenario:
+  simpl: [""]            # empty: simplify_network skips its pre-clustering (no solver call)
+  clusters: [1]           # Singapore is one node: OSM has the 230/400 kV substations but not the underground cables between them,
+                          # so every base bus is isolated; cluster_options below merges them into a single bus before clustering
+  ll: [copt]
+  opts: [Co2L]
+
+snapshots:
+  start: "2013-01-01"
+  end: "2013-02-01"
+  inclusive: left
+
+enable:
+  retrieve_databundle: true
+  retrieve_cost_data: true
+  retrieve_cutout: false  # no prebuilt cutout; build a Singapore one via CDS (tiny box, 6 x 5 cells)
+  build_cutout: true      # needs ~/.cdsapirc; bounds fixed below, time = snapshots; run.sh flips it off once the file exists
+  download_osm_data: true
+  build_natura_raster: false
+  progress_bar: false
+
+download_osm_data_nprocesses: 1   # fork patch: earth-osm single process
+
+osm:
+  clean_osm_data:
+    threshold_voltage: 200000   # [V] keeps SP PowerGrid's 400 / 230 kV transmission (mostly underground cables in OSM); same threshold as US, BR, IN.
+                                # 66 / 22 kV distribution is left out.
+
+atlite:
+  nprocesses: 1
+  default: cutout-2013-era5-singapore-jan
+  cutouts:
+    cutout-2013-era5-singapore-jan:
+      module: era5
+      dx: 0.3
+      dy: 0.3
+      x: [103.0, 104.7]    # GADM Singapore 103.6..104.1 E, 1.15..1.47 N; EEZ 103.5..104.1 E, 1.13..1.48 N;
+      y: [0.6, 2.0]        # padded by ~2 cells so the Voronoi cells and the offshore strip are fully covered
+
+cluster_options:
+  simplify_network:
+    p_threshold_drop_isolated: false   # default 20 MW would drop unpopulated buses together with their plants (Jurong Island)
+    p_threshold_merge_isolated: 1000000   # [MW] above the national load: every isolated sub-network merges into one Singapore bus
+
+electricity:
+  renewable_carriers: [solar, onwind, offwind-ac, offwind-dc]   # no hydro in Singapore
+
+build_shape_options:
+  nprocesses: 1
+  gdp_method: false       # smoke test only: demand distributed by population (fork fallback patch); stage B uses the GDP raster
+  clip_bbox: [103.0, 0.6, 104.7, 2.0]   # fork patch: same box as the cutout (nothing to drop; kept for the invariant)
+
+solving:
+  solver:
+    name: gurobi          # only cluster_network's MIQP uses it before prepare_network; scip is the fallback

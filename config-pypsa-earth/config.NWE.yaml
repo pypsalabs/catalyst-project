@@ -1,0 +1,74 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Catalyst / WP1: North-West and Central Europe power-only prenetwork (12 countries, full weather year 2013).
+# Diff over pypsa-earth config.default.yaml; copied to models/pypsa-earth/config.yaml by
+# config-pypsa-earth/run.sh. Single stage (no January smoke stage): the cutout is the prebuilt
+# PyPSA-Eur europe-2013-sarah3-era5 cutout hardlinked into models/pypsa-earth/cutouts/, and
+# build_renewable_profiles computes over the whole cutout year regardless of the snapshots, so a
+# smoke month would cost almost as much as the full year. Reuses data/ (bundles, GADM).
+
+countries: [AT, BE, CH, CZ, DE, DK, FR, GB, IE, LU, NL, PL]   # the dense / renewables-constrained archetype (SOW §1.2, archetype 1)
+
+run:
+  name: NWE
+  shared_cutouts: true
+
+scenario:
+  simpl: [""]            # empty: simplify_network skips its pre-clustering (no solver call)
+  clusters: [50]         # distributed across countries and synchronous islands by load (cluster_network MIQP, Gurobi)
+  ll: [copt]
+  opts: [Co2L]
+
+snapshots:
+  start: "2013-01-01"
+  end: "2014-01-01"
+  inclusive: left
+
+enable:
+  retrieve_databundle: true
+  retrieve_cost_data: true
+  retrieve_cutout: false  # prebuilt cutout already in cutouts/ (see atlite below)
+  build_cutout: false     # never build: cutouts/europe-2013-sarah3-era5.nc is a hardlink to the PyPSA-Eur cutout
+  download_osm_data: true
+  build_natura_raster: false
+  progress_bar: false
+
+download_osm_data_nprocesses: 1   # fork patch: earth-osm single process (12 pre-filtered Geofabrik extracts, one after the other)
+
+osm:
+  clean_osm_data:
+    threshold_voltage: 200000   # [V] keeps the ENTSO-E transmission level (220 / 380-400 kV) and GB's 275 / 400 kV;
+                                # DK's 150 / 132 kV and the 110 / 132 kV grids of IE, GB and the continent are left out
+                                # (same threshold as US, BR, IN, SG)
+
+atlite:
+  nprocesses: 1
+  default: europe-2013-sarah3-era5   # PyPSA-Eur cutout v1.0 (data.pypsa.org): ERA5 wind / temperature / runoff + SARAH-3 solar,
+                                     # 0.3 deg, 2013, hardlinked from ~/.cache/snakemake-pypsa-eur/data.pypsa.org/workflows/cutout/v1.0/
+  cutouts:
+    europe-2013-sarah3-era5:         # bounds recorded for documentation only (build_cutout is off)
+      module: era5
+      dx: 0.3
+      dy: 0.3
+      x: [-12.0, 40.8]
+      y: [33.0, 72.0]
+
+electricity:
+  renewable_carriers: [solar, onwind, offwind-ac, offwind-dc, hydro]   # hydro: Alps (AT, CH), FR, DE
+
+build_shape_options:
+  nprocesses: 1
+  gdp_method: standard    # GDP_PPP raster from bundle_data_earth; with population it distributes demand to buses
+  clip_bbox: [-12.0, 41.0, 25.0, 61.5]   # fork patch: inside the cutout. Corsica 41.4 N, Shetland 60.9 N, Poland's east 24.2 E;
+                                         # drops the Irish / UK EEZ west of 12 W (Rockall, far offshore, no wind sites) and
+                                         # France's / the Netherlands' overseas EEZ polygons
+
+cluster_options:
+  simplify_network:
+    s_threshold_fetch_isolated: 0.05   # isolated AC fragments below 5 % of the national load (unmapped 220 kV pockets in DE, FR, GB,
+                                       # DK, PL, CH, IE: 20-1350 MW mean load each) are merged into the nearest backbone bus of their
+                                       # country instead of each claiming a cluster; GB and IE(+NI) are backbones and stay separate
+
+solving:
+  solver:
+    name: gurobi          # only cluster_network's MIQP uses it before prepare_network; scip is the fallback

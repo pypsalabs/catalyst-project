@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Catalyst / WP1: India power-only prenetwork, STAGE B (full weather year 2013).
+# Diff over pypsa-earth config.default.yaml; copied to models/pypsa-earth/config.yaml
+# by config-pypsa-earth/run.sh after the smoke stage succeeded. Reuses data/ (bundles, OSM, GADM).
+# Stage A (config.IN-smoke.yaml) is identical except run name, snapshots, cutout name and gdp_method.
+
+countries: [IN]
+
+run:
+  name: IN
+  shared_cutouts: true
+
+scenario:
+  simpl: [""]            # empty: simplify_network skips its pre-clustering (no solver call)
+  clusters: [50]
+  ll: [copt]
+  opts: [Co2L]
+
+snapshots:
+  start: "2013-01-01"
+  end: "2014-01-01"
+  inclusive: left
+
+enable:
+  retrieve_databundle: true
+  retrieve_cost_data: true
+  retrieve_cutout: false  # no prebuilt cutout; build an India one via CDS
+  build_cutout: true      # needs ~/.cdsapirc; bounds fixed below, time = snapshots; run.sh flips it off once the file exists
+  download_osm_data: true
+  build_natura_raster: false
+  progress_bar: false
+
+download_osm_data_nprocesses: 1   # fork patch: earth-osm single process
+
+osm:
+  clean_osm_data:
+    threshold_voltage: 200000   # [V] keeps 765 / 400 / 220 kV; 220 kV is the top intra-state level, same threshold as US and BR.
+                                # 132 / 110 / 66 kV subtransmission is left out.
+
+atlite:
+  nprocesses: 1
+  default: cutout-2013-era5-india
+  cutouts:
+    cutout-2013-era5-india:
+      module: era5
+      dx: 0.3
+      dy: 0.3
+      x: [65.5, 98.0]      # GADM India (68.1..97.4 E, 6.7..37 N incl. Andaman & Nicobar and Lakshadweep) plus the
+      y: [4.5, 37.5]       # mainland EEZ (65.6 E, 4.8 N); the Andaman EEZ has no ISO_TER1 and is dropped by build_shapes anyway
+
+electricity:
+  renewable_carriers: [solar, onwind, offwind-ac, offwind-dc, hydro]
+
+build_shape_options:
+  nprocesses: 1
+  gdp_method: standard    # GDP_PPP raster ships in bundle_data_earth (data/GDP); used with population to distribute demand to buses
+  clip_bbox: [65.5, 4.5, 98.0, 37.5]   # fork patch: same box as the cutout (nothing to drop for India; kept for the invariant)
+
+solving:
+  solver:
+    name: gurobi          # only cluster_network's MIQP uses it before prepare_network; scip is the fallback

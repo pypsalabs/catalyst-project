@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Catalyst / WP1: Brazil power-only prenetwork, STAGE B (full weather year 2013).
+# Diff over pypsa-earth config.default.yaml; copied to models/pypsa-earth/config.yaml
+# by config-pypsa-earth/run.sh after the smoke stage succeeded. Reuses data/ (bundles, OSM, GADM).
+# Stage A (config.BR-smoke.yaml) is identical except run name, snapshots, cutout name and gdp_method.
+
+countries: [BR]
+
+run:
+  name: BR
+  shared_cutouts: true
+
+scenario:
+  simpl: [""]            # empty: simplify_network skips its pre-clustering (no solver call)
+  clusters: [50]
+  ll: [copt]
+  opts: [Co2L]
+
+snapshots:
+  start: "2013-01-01"
+  end: "2014-01-01"
+  inclusive: left
+
+enable:
+  retrieve_databundle: true
+  retrieve_cost_data: true
+  retrieve_cutout: false  # no prebuilt cutout; build a Brazil one via CDS
+  build_cutout: true      # needs ~/.cdsapirc; bounds fixed below, time = snapshots; run.sh flips it off once the file exists
+  download_osm_data: true
+  build_natura_raster: false
+  progress_bar: false
+
+download_osm_data_nprocesses: 1   # fork patch: earth-osm single process
+
+osm:
+  clean_osm_data:
+    threshold_voltage: 200000   # [V] >= 230 kV = ONS "Rede Básica" (the transmission system proper); same as the US run.
+                                # 138 kV subtransmission is left out; it would roughly triple the base buses.
+
+atlite:
+  nprocesses: 1
+  default: cutout-2013-era5-brazil
+  cutouts:
+    cutout-2013-era5-brazil:
+      module: era5
+      dx: 0.3
+      dy: 0.3
+      x: [-74.5, -31.0]    # mainland Brazil + Fernando de Noronha; the EEZ lobes around Trindade and
+      y: [-34.5, 6.0]      # St Peter & Paul (to 26°W) are clipped away (no offshore wind out there)
+
+electricity:
+  renewable_carriers: [solar, onwind, offwind-ac, offwind-dc, hydro]
+
+build_shape_options:
+  nprocesses: 1
+  gdp_method: standard    # GDP_PPP raster ships in bundle_data_earth (data/GDP); used with population to distribute demand to buses
+  clip_bbox: [-74.5, -34.5, -31.0, 6.0]   # fork patch: same box as the cutout; drops the far-offshore EEZ islands
+
+solving:
+  solver:
+    name: gurobi          # only cluster_network's MIQP uses it before prepare_network; scip is the fallback

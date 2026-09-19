@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
-# Supervised, sequential driver for the CONUS pypsa-earth prenetwork.
-#   bash config-pypsa-earth/run_us.sh [prestage] [US-smoke] [US]     (default: all three, in order)
+# Supervised, sequential driver for pypsa-earth prenetworks (one country per stage).
+#   bash config-pypsa-earth/run.sh [prestage:<CC>] [<stage> ...]
+#   e.g. bash config-pypsa-earth/run.sh prestage:BR BR-smoke BR     (default: prestage:US US-smoke US)
+# A stage <name> is any config-pypsa-earth/config.<name>.yaml; its target is
+# networks/<name>/elec_s_<clusters>_ec_lcopt_Co2L.nc. "prestage:<CC>" runs prestage.sh for that
+# country (OSM pre-filter, bundle); a bare "prestage" uses the country prefix of the next
+# stage name (BR-smoke -> BR).
 # Constraints enforced here: no Snakemake parallelism (-c1 -j1), the whole
 # process tree capped at MEM_MAX RAM with no swap (systemd user scope), a disk
 # watchdog that stops the run below MIN_FREE_GB, retries only for network-type
@@ -15,7 +20,7 @@ STATUS="$LOGDIR/status.log"
 MEM_MAX=${MEM_MAX:-8G}
 MIN_FREE_GB=${MIN_FREE_GB:-15}
 STAGE_TIMEOUT=${STAGE_TIMEOUT:-20h}
-TARGET_TMPL='networks/%s/elec_s_50_ec_lcopt_Co2L.nc'
+TARGET_TMPL='networks/%s/elec_s_%s_ec_lcopt_Co2L.nc'   # %s = run name, cluster count (scenario.clusters[0] of the stage config)
 NETWORK_RULES='retrieve_databundle_light|download_osm_data|build_cutout|retrieve_cost_data|build_shapes|build_powerplants'
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 export PATH="$HOME/.pixi/bin:$HOME/.local/bin:$PATH"
@@ -24,9 +29,10 @@ log() { echo "[$(date '+%F %T')] $*" | tee -a "$STATUS"; }
 attempt_log() { tac "$slog" | sed "/######## \[$run\] attempt $attempt /q" | tac; }   # this attempt's part of the stage log
 free_gb() { df -BG --output=avail "$PE" | tail -1 | tr -dc 0-9; }
 
-run_stage() {   # $1 = run name: US-smoke | US
-  local run="$1" cfg="$HERE/config.$1.yaml" target slog rc attempt wd rule
-  target=$(printf "$TARGET_TMPL" "$run"); slog="$LOGDIR/$run.log"
+run_stage() {   # $1 = stage / run name (config.<name>.yaml must exist)
+  local run="$1" cfg="$HERE/config.$1.yaml" target slog rc attempt wd rule ncl
+  ncl=$(sed -n 's/^  clusters: \[\([0-9]*\)\].*/\1/p' "$cfg" | head -1); ncl=${ncl:-50}
+  target=$(printf "$TARGET_TMPL" "$run" "$ncl"); slog="$LOGDIR/$run.log"
   cd "$PE" || return 1
   [ -f "$cfg" ] || { log "[$run] missing $cfg"; return 1; }
   if [ -f "$target" ]; then log "[$run] $target exists, skip"; return 0; fi
@@ -52,10 +58,12 @@ run_stage() {   # $1 = run name: US-smoke | US
           pkill -TERM -f "snakemake networks/$run/" ; fi
       done ) & wd=$!
     # the scope caps snakemake + the job + any workers; memory.peak is read from
-    # inside the scope before it disappears
+    # inside the scope before it disappears. --rerun-triggers mtime input: never re-run a rule only
+    # because its params/code provenance changed (NWE: retrieve_databundle_light wanted to re-run
+    # over the read-only, shared data/ files although the bundle list was identical to the earlier stages)
     timeout --signal=TERM --kill-after=5m "$STAGE_TIMEOUT" \
       systemd-run --user --scope --quiet -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -p OOMPolicy=continue -- \
-      bash -c 'pixi run snakemake "$1" -c1 -j1 --rerun-incomplete --set-resources build_shapes:mem_mb=2000; rc=$?
+      bash -c 'pixi run snakemake "$1" -c1 -j1 --rerun-incomplete --rerun-triggers mtime input --set-resources build_shapes:mem_mb=2000; rc=$?
                cg=/sys/fs/cgroup$(cut -d: -f3 /proc/self/cgroup)
                echo "SCOPE memory.peak=$(( $(cat $cg/memory.peak 2>/dev/null || echo 0) / 1048576 )) MiB events: $(tr "\n" " " < $cg/memory.events 2>/dev/null)"
                exit $rc' _ "$target" >> "$slog" 2>&1
@@ -76,13 +84,18 @@ run_stage() {   # $1 = run name: US-smoke | US
   log "[$run] GAVE UP after 3 attempts"; return 1
 }
 
-stages=("$@"); [ ${#stages[@]} -eq 0 ] && stages=(prestage US-smoke US)
-log "######## run_us.sh start: ${stages[*]} ########"
-for s in "${stages[@]}"; do
+stages=("$@"); [ ${#stages[@]} -eq 0 ] && stages=(prestage:US US-smoke US)
+log "######## run.sh start: ${stages[*]} ########"
+for i in "${!stages[@]}"; do
+  s="${stages[$i]}"
   case "$s" in
-    prestage) bash "$HERE/prestage.sh" || { log "prestage FAILED -> stop"; exit 1; } ;;
-    US-smoke|US) run_stage "$s" || { log "stage $s FAILED -> stop"; exit 1; } ;;
-    *) log "unknown stage $s"; exit 1 ;;
+    prestage|prestage:*)
+      cc="${s#prestage}"; cc="${cc#:}"
+      [ -n "$cc" ] || { cc="${stages[$((i+1))]:-US}"; cc="${cc%%-*}"; }
+      bash "$HERE/prestage.sh" "$cc" || { log "prestage $cc FAILED -> stop"; exit 1; } ;;
+    *)
+      [ -f "$HERE/config.$s.yaml" ] || { log "unknown stage $s (no config.$s.yaml)"; exit 1; }
+      run_stage "$s" || { log "stage $s FAILED -> stop"; exit 1; } ;;
   esac
 done
-log "######## run_us.sh finished all stages: ${stages[*]} ########"
+log "######## run.sh finished all stages: ${stages[*]} ########"

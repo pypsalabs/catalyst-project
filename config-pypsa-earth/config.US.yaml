@@ -33,6 +33,11 @@ enable:
 
 download_osm_data_nprocesses: 1   # fork patch: earth-osm single process
 
+osm:
+  clean_osm_data:
+    threshold_voltage: 200000   # [V] keep the 230 kV+ backbone (61k lines, 5.6k buses); at the 51 kV default the US has
+                                # 30k buses and the per-bus availability matrices in build_renewable_profiles exceed 8 GB
+
 atlite:
   nprocesses: 1
   default: cutout-2013-era5-conus
