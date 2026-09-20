@@ -1,4 +1,4 @@
-# `config-pypsa-earth/` — how the PyPSA-Earth soft fork is run (CONUS, Brazil, India, Singapore and North-West/Central Europe prenetworks, WP1 pipeline test)
+# `config-pypsa-earth/` — how the PyPSA-Earth soft fork is run (CONUS, Brazil, India, Singapore and North-West/Central Europe prenetworks + screening solves, WP1 pipeline test)
 
 Builds **power-only PyPSA-Earth models up to the `prepare_network` output** ("prenetwork",
 not solved), one country (or country group) per stage, as the end-to-end exercise of the global data pipeline the
@@ -7,7 +7,9 @@ contiguous United States (`US`, 2026-09-16), Brazil (`BR`, the hydro-rich archet
 2026-09-17) India (`IN`, the fossil-heavy archetype next to US East, 2026-09-18) and Singapore (`SG`, the islanded
 archetype of the kickoff slides, 2026-09-18, a single node); North-West and Central Europe (`NWE`, twelve
 countries, the dense / renewables-constrained archetype, 2026-09-19) is the first multi-country stage and
-reuses the PyPSA-Eur 2013 cutout found on this machine. Everything runs under three constraints: **≤ 8 GB RAM for the whole
+reuses the PyPSA-Eur 2013 cutout found on this machine. Since 2026-09-19 the same driver also solves two
+screening scenarios per region ("current system" and "carbon-neutral", see the last section) and renders one
+validation dashboard per region. Everything runs under three constraints: **≤ 8 GB RAM for the whole
 process tree, no Snakemake parallelism (`-c1 -j1`), and a bounded disk footprint**.
 
 The model code lives in `models/pypsa-earth` (gitignored here): a clone of the soft fork
@@ -46,6 +48,22 @@ propose to pypsa-meets-earth, `(no relevance 4 upstream)` a fork-only change:
   IE, LU, NL, PL]`, 50 clusters, `threshold_voltage: 200000` = 220 / 275 / 380 / 400 kV, `clip_bbox [-12, 41, 25, 61.5]`,
   cutout `europe-2013-sarah3-era5` = the PyPSA-Eur cutout hardlinked into `cutouts/`, `build_cutout: false`);
   no `-smoke` pair because nothing is built via CDS; see the Europe section below.
+- `overlay.now.yaml`, `overlay.zero.yaml` — the two screening scenarios as small diffs applied *on top of* a stage
+  config: `run.sh <R>-now` / `<R>-zero` deep-merges `config.<R>.yaml` with the overlay (`merge_config.py`, which also
+  prints the stage target and writes the merged file to `models/pypsa-earth/config.yaml` and
+  `logs/catalyst/config.<stage>.yaml`). `now`: `ll copt`, `opts 3h` (no CO2 constraint, 3-hourly averaging), `costs.year 2025`; `zero`:
+  `opts Co2L0-3h` (CO2 limit 0), `costs.year 2050`; both `build_cutout: false`, Gurobi 8 threads and the validation rules
+  below. Hourly was tried first (BR: 19.0 M rows × 9.3 M columns, OOM in Gurobi's presolve under the 12 GB cap);
+  3-hourly is pypsa-earth's own default (`opts: [Co2L-3h]`). Everything else (countries, cutout, thresholds, clustering, default extendables) is the base stage's.
+- `validation.smk` + `scripts/plot_validation.py` — the validation dashboard, wired into the fork through its
+  `custom_rules` config key (path `../../config-pypsa-earth/validation.smk` relative to the fork root, so the fork
+  itself is untouched): rule `plot_validation` draws one 16:9 block per solved network
+  (`results/<run>/plots/validation_<stem>.png`), rule `validation_dashboard` one 16:9 page per region with the
+  `now` block left and the `zero` block right (`results/catalyst/validation_<R>.png`). Eight tiles per block:
+  generation mix, installed capacity (hatched = added by the optimiser), price statistics (load-weighted duration
+  curve, band across buses, CO2 shadow price), monthly demand + load shedding, CO2 by carrier, curtailment, system
+  cost (existing-fleet annuity / new build / transmission / operation; the shedding penalty is listed but not
+  added), summary tile. Standalone: `pixi run python ../../config-pypsa-earth/scripts/plot_validation.py A.nc [B.nc] -o out.png`.
 - `check_network.py <run>` — sanity table + map for a finished stage
   (`cd models/pypsa-earth && pixi run python ../../config-pypsa-earth/check_network.py BR`);
   writes `results/catalyst/<run>_map.png`.
@@ -72,10 +90,15 @@ propose to pypsa-meets-earth, `(no relevance 4 upstream)` a fork-only change:
   is never resumed with `wget -c` (Geofabrik rotates the extract daily; resuming across a rotation
   corrupts it).
   `bundle_data_earth.zip` is fetched to `models/pypsa-earth/tempfile.zip`, which the patched rule resumes.
-- `run.sh [prestage:<CC>] [<stage> ...]` — the supervisor (default `prestage:US US-smoke US`; a stage is any
-  `config.<stage>.yaml`, e.g. `prestage:BR BR-smoke BR`). Each stage runs
-  `pixi run snakemake networks/<run>/elec_s_<clusters>_ec_lcopt_Co2L.nc -c1 -j1 --rerun-incomplete --rerun-triggers mtime input`
-  (cluster count read from `scenario.clusters` of the stage config; rules re-run only for missing or outdated
+- `run.sh [prestage:<CC>] [<stage> ...]` — the supervisor (default `prestage:US US-smoke US`). Stage kinds: a bare
+  `<stage>` builds the prenetwork of `config.<stage>.yaml` (`prestage:BR BR-smoke BR`); `<R>-now` / `<R>-zero` solve a
+  screening scenario of region `R` (overlay merge, `resources/<R>-<scen>` symlinked to `resources/<R>` and
+  `networks/<R>-<scen>/base.nc` hardlinked, so only `add_electricity` → `solve_network` → `plot_validation` run:
+  3–5 min of rebuild plus the solve); `dashboard:<R>` renders the region page from the two solved networks.
+  `CONTINUE_ON_FAIL=1` goes on with the next stage after a failure (overnight queues), `MEM_MAX` sets the cgroup cap
+  (`8G` default, `12G`–`14G` for solves), `STAGE_TIMEOUT` the wall-clock cap per stage. Each stage runs
+  `pixi run snakemake <target> -c1 -j1 --rerun-incomplete --rerun-triggers mtime input`
+  (target derived from the first entry of every `scenario` list; rules re-run only for missing or outdated
   outputs, never because their params/code provenance changed: the NWE stage otherwise re-ran `retrieve_databundle_light`
   over the read-only shared `data/` files although the bundle list was unchanged; after a script or config change
   delete the affected outputs by hand) inside
@@ -98,6 +121,11 @@ setsid nohup systemd-inhibit --what=handle-lid-switch:sleep:idle --who=catalyst 
 tail -f models/pypsa-earth/logs/catalyst/status.log
 # re-run a single stage (targets that exist are skipped; Snakemake resumes)
 bash config-pypsa-earth/run.sh US
+# screening solves + dashboards for all regions, overnight, going on after a failed stage
+CONTINUE_ON_FAIL=1 MEM_MAX=12G STAGE_TIMEOUT=4h setsid nohup systemd-inhibit --what=handle-lid-switch:sleep:idle \
+  --who=catalyst --why="screening solves" bash config-pypsa-earth/run.sh SG-now SG-zero dashboard:SG BR-now BR-zero dashboard:BR \
+  IN-now IN-zero dashboard:IN NWE-now NWE-zero dashboard:NWE US-now US-zero dashboard:US > models/pypsa-earth/logs/catalyst/driver.out 2>&1 &
+(nohup eog models/pypsa-earth/results/catalyst/validation_*.png >/dev/null 2>&1 &)
 ```
 
 ## Caveats (screening-grade run, not study results)
@@ -336,3 +364,91 @@ archetype (SOW §1.2, archetype 1), 50 clusters, weather year 2013, built 2026-0
   peak 7.1 GB incl. page cache, largest rule RSS 3.0 GB (`build_shapes`, `solar`), zero OOM. Third attempt
   16:09–16:11 re-ran the four rules after `elec.nc` with the DC-bus patch and the fetch threshold
   (`elec_s*.nc` deleted by hand). Disk: 105 GB free afterwards; keep the hardlinked cutout.
+
+## Screening solves (stages `<R>-now`, `<R>-zero`, `dashboard:<R>`; 2026-09-19/20)
+
+First look at how the five prenetworks behave *when solved as the model comes*, before anything is patched:
+per region one **current-system** and one **carbon-neutral** run (weather 2013, the prenetwork topology,
+**3-hourly**: the hourly 50-node LP does not fit the laptop, see below), rendered side by side on one 16:9 page per
+region (`results/catalyst/validation_<R>.png`).
+
+- **`now` = current system, brownfield expansion, no CO2 cap**: the ≈2022 powerplantmatching fleet + IRENA 2023
+  wind/solar fixed (`p_nom_min`), the model's default extendables (solar, onshore/offshore wind, battery and H2
+  stores, AC lines + HVDC via `ll copt`) at `costs_2025.csv`, no `Co2L` opt → no CO2 constraint.
+- **`zero` = carbon-neutral, the way pypsa-earth does it by default**: same fleet and extendables, `opts Co2L0`
+  (CO2 limit 0 → fossil units stay in the model but cannot run), `costs_2050.csv`, `ll copt`. No new firm clean
+  technology, no imports, no biomass/CCS: only VRE + batteries + H2 storage + existing nuclear / hydro.
+- Both inherit the defaults that shape the results: **GEGIS SSP2-2.6 2030 demand** (not 2024/25; `load_options`
+  unchanged), load shedding at 100 kEUR/MWh at every bus (`solving.options.load_shedding: 100`), Gurobi barrier
+  without crossover, `noisy_costs`, `clip_p_max_pu 0.01`, 6 h hydro reservoirs, HVDC per-cable defaults. The
+  prenetwork files themselves still carry the European `co2.limit` 77.5 Mt as `CO2Limit` (opt `Co2L` with the
+  default `co2.limit`); the screening runs replace that with no cap / a zero cap.
+- **Mechanics**: `costs.year` is not a Snakemake wildcard but a config key baked into
+  `resources/<run>/costs_<year>_elec.csv`, so each scenario is its own `run.name` (`<R>-now`, `<R>-zero`). To avoid
+  rebuilding shapes, OSM, profiles, powerplants and demand (hours), `run.sh` makes `resources/<R>-<scen>/` a
+  directory of symlinks to the base run's entries, with its **own `bus_regions/`** holding only symlinks to the
+  two `build_bus_regions` outputs, and hardlinks `networks/<R>-<scen>/base.nc` (same inode, same mtime, so the
+  shared resources stay newer than their inputs). A dry run then schedules only `retrieve/process_cost_data`,
+  `add_electricity`, `simplify_network`, `cluster_network`, `add_extra_components`, `prepare_network`,
+  `solve_network`, `plot_validation`. The first version used one directory symlink; `simplify_network` /
+  `cluster_network` then rewrote the busmaps and clustered regions in the shared `bus_regions/`, and the sibling
+  scenario (and the base prenetwork chain) looked outdated to Snakemake — `IN-now` was re-solved by a plot-only
+  pass at 02:09 and its solved network deleted. Fixed by the per-run `bus_regions/` plus `snakemake --touch` of
+  every intact target. Solver: `gurobi-default` (barrier, no crossover, `BarConvTol 1e-6`), 8 threads via the
+  overlay. Deleting a scenario: `rm -r resources/<R>-<scen> networks/<R>-<scen> results/<R>-<scen>`.
+- **OOM safety of the overnight queue**: `MEM_MAX=12G` cgroup cap with `MemorySwapMax=0` (a runaway solve is
+  killed inside the scope instead of swapping), `CONTINUE_ON_FAIL=1` so an OOM/timeout/infeasible stage is
+  logged and the next region starts, 4 h per stage, `-c1 -j1`, disk watchdog, small regions first. Check the
+  `SCOPE memory.peak=` lines in `status.log` afterwards. The host had only 12 GB available at launch (desktop
+  applications), hence the 12 GB cap and the `WARNING` line in the log.
+- **Singapore pilot** (23:25, one node, both solves in 1 min): `now` dispatches 65 TWh of the 66 TWh demand
+  from the 11 GW CCGT fleet, builds solar up to its 1.5 GW potential, 22.5 Mt CO2 (338 g/kWh), flat price
+  47.7 EUR/MWh (= gas marginal cost), 4.6 bn EUR/a. `zero` is the expected failure mode of a one-node island
+  without imports or firm clean supply: solar (1.45 GW potential) + offshore wind (1.3 GW) deliver 2 TWh and the
+  model **sheds 64 TWh = 96 % of demand** in every hour at the 100 kEUR/MWh penalty (objective 6,400 bn EUR,
+  CO2 shadow price 303 kEUR/t). Batteries/H2 are not built (nothing to store). SG needs the ASEAN imports /
+  SMR / geothermal-import options of the study before a zero-carbon run means anything.
+- **Hourly does not fit**: the first queue (23:29, hourly) built BR-now in 3 min and died in Gurobi's presolve at
+  the 12 GB cap: 19.0 M rows × 9.3 M columns × 37 M nonzeros (linopy keeps its own copy of the model while Gurobi
+  presolves). The fork's own `memory()` estimate for `solve_network` is 59 GB hourly / 20 GB 3-hourly at 50 clusters,
+  i.e. hourly 50-node solves belong on the ZIB cluster (or need ≥ 25 GB free here). SG (one node) solved hourly in
+  seconds: `results/SG-{now,zero}/plots/validation_*_lcopt_{,Co2L0}.png` are those hourly runs.
+- **Run history** (2026-09-19/20): hourly queue 23:29–23:34 (SG ok, BR-now OOM, stopped by hand); 3-hourly queue
+  23:34–02:08 for the ten solves and five pages, all `SUCCESS`, zero OOM events; a plot-only pass at 02:09 tripped
+  over the shared `bus_regions/` (see Mechanics; IN-now re-solved 02:23–02:33 after the restructuring); final plot
+  pass 02:36–02:39. Rebuild per scenario (cost data → prepare_network) 3–4 min; Gurobi barrier, 8 threads:
+
+  | run | solve | scope peak | run | solve | scope peak |
+  |---|---|---|---|---|---|
+  | SG-now | 8 s | 1.3 GB | SG-zero | 8 s | 1.2 GB |
+  | BR-now | 23 min | 9.1 GB | BR-zero | 22 min | 8.8 GB |
+  | IN-now | 9 min | 9.5 GB | IN-zero | 22 min | 9.9 GB |
+  | NWE-now | 9 min | 10.5 GB | NWE-zero | 26 min | 10.3 GB |
+  | US-now | 9 min | 10.2 GB | US-zero | 13 min | 10.4 GB |
+
+  3-hourly, 50 nodes: 6.3 M rows × 3.1 M columns (BR), 8–9 GB RSS in the solve rule, 9–10.5 GB scope peak, so
+  the 12 GB cap has 1.5 GB of headroom; the four regions take 2.5 h in total.
+- **What the pages show** (`results/catalyst/validation_<R>.png`, numbers per region; demand is GEGIS 2030):
+
+  | region | demand TWh | now: CO2 Mt (g/kWh), price EUR/MWh, cost bn/a, main additions GW | zero: price, cost bn/a, CO2 shadow EUR/t, additions GW, curtailment |
+  |---|---|---|---|
+  | SG | 66 | 22.5 (338), 47.7, 4.6, solar 1 (at its potential) | sheds 96 % of demand, 1.6 bn + 6,400 bn penalty, 303 k, solar 1 + offwind 1, — |
+  | BR | 777 | 51 (66), 65, 42.0, solar 76 + onwind 73 | 39, 39.6, 4,351, solar 405 + battery 129 GW / 728 GWh, 119 TWh (16 %) |
+  | IN | 1,888 | 1,217 (645), 37, 175.8, solar 196 + battery 25 | 47, 187.8, 10,250, solar 1,357 + battery 389 GW / 2,750 GWh, 394 TWh |
+  | NWE | 2,206 | 871 (395), 37, 192.4, onwind 14 | 80, 249.1, 39,867, onwind 339 + solar 332 + battery 151 GW / 2,557 GWh, 478 TWh (19 %) |
+  | US | 4,649 | 1,877 (404), 47 excl. shedding, 374.6, solar 373 + onwind 50 | 58 excl. shedding, 418.8, 14,936, solar 2,293 + battery 795 GW / 5.5 TWh, 714 TWh (14 %) |
+
+  Observations for the patch list: (1) every zero-carbon run is solar + batteries (+ wind in NWE/US); the H2
+  store is built only in IN/US at a few hundred GWh and the model never touches nuclear extension, CCS, biomass
+  or imports, so the CO2 shadow prices (4–40 kEUR/t) measure the cost of the last fossil kWh under those
+  defaults, not a plausible abatement cost. (2) `now` already builds 70–370 GW of solar per region at 2025
+  costs because the ≈2022 fleet cannot serve 2030 demand at the fuel prices in `costs_2025.csv`; a 2024/25
+  validation needs observed demand (demcast or a `load_options.scale` per country) and the 2024 fleet. (3) US
+  bus `US5 0` (western Massachusetts, 1.1 GW mean load) has no line or HVDC connection in the prenetwork and
+  sheds 2.9 TWh in both scenarios; the fix is `s_threshold_fetch_isolated: 0.05` as for NWE (US config +
+  re-run of simplify/cluster). (4) NWE `now`: 596 TWh nuclear (2022 fleet incl. the last German reactors),
+  lignite 382 TWh, coal 388 TWh, 871 Mt; prices flat at fuel cost with no scarcity hours — the CO2 price of
+  the ETS is absent (`co2.emission_price: 0`). (5) Hydro: BR reservoir + ror deliver 252 TWh vs ≈ 430 TWh
+  observed (6 h reservoirs, inflow calibration). (6) Curtailment of 14–19 % in the zero runs and battery
+  fleets of 2.5–5.5 TWh are the model's only flexibility; LDES / firm clean options of the study palette are
+  exactly what is missing here.

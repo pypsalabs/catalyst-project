@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Catalyst screening scenario "zero" = carbon-neutral, done the way pypsa-earth does it by default: the
+# existing fleet stays in the model (fossil units cannot run under the zero cap, nuclear / hydro / existing
+# wind and solar keep operating), the default extendables (solar, wind, battery, H2 store, lines via
+# ll=copt) are built at 2050 costs, and the opts wildcard Co2L0 sets the CO2 limit to 0 (co2.base * 0).
+# Applied by config-pypsa-earth/run.sh on top of config.<R>.yaml for a stage named <R>-zero.
+scenario:
+  simpl: [""]
+  ll: [copt]
+  opts: [Co2L0-3h]      # 3h: see overlay.now.yaml
+
+costs:
+  year: 2050            # technology-data v0.13.2 costs_2050.csv
+
+enable:
+  build_cutout: false
+
+custom_rules:
+  - ../../config-pypsa-earth/validation.smk
+
+solving:
+  solver_options:
+    gurobi-default:
+      threads: 8

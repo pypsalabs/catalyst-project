@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Catalyst screening scenario "now" = current system: the existing fleet (powerplantmatching ≈2022 + IRENA
+# 2023 wind/solar) plus the model's default brownfield expansion (solar, wind, battery, H2 store, lines
+# via ll=copt) at 2025 costs and WITHOUT any CO2 cap. Applied by config-pypsa-earth/run.sh on top of
+# config.<R>.yaml for a stage named <R>-now (run.sh sets run.name = <R>-now and symlinks
+# resources/<R>-now -> resources/<R>, so only add_electricity and everything downstream are rebuilt).
+scenario:
+  simpl: [""]
+  ll: [copt]
+  opts: [3h]            # no Co2L -> no CO2 constraint (prepare_network adds one only for a Co2L* opt); 3h = 3-hourly
+                        # averaging (pypsa-earth default resolution): the hourly 50-node LP (BR: 19.0 M rows x 9.3 M
+                        # columns) needs more than the 12 GB this laptop can give Gurobi (OOM in presolve, 2026-09-19)
+
+costs:
+  year: 2025            # technology-data v0.13.2 costs_2025.csv: today's investment costs and fuel prices
+
+enable:
+  build_cutout: false   # the base stage's cutout exists; never rebuild
+
+custom_rules:
+  - ../../config-pypsa-earth/validation.smk   # plot_validation / validation_dashboard rules (path relative to the fork root)
+
+solving:
+  solver_options:
+    gurobi-default:
+      threads: 8        # 16-core laptop; barrier memory does not scale with threads
