@@ -1,0 +1,77 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Catalyst / WP1: China power-only prenetwork, STAGE A (smoke test, January 2013).
+# Diff over pypsa-earth config.default.yaml; copied to models/pypsa-earth/config.yaml
+# by config-pypsa-earth/run.sh. One month of weather so every rule runs end-to-end fast.
+# Stage B (config.CN.yaml) is identical except run name, snapshots, cutout name and gdp_method.
+#
+# Scope: GADM CHN = mainland + Hong Kong + Macau (ADM_1 rows CHN.HKG / CHN.MAC) and, with the default
+# build_shape_options.contended_flag "set_by_country", the contended polygons Z02/Z03/Z08 (Aksai Chin, Shaksgam,
+# South Tibet) merged into CN. Taiwan is a separate GADM/Geofabrik/GEGIS entity and stays out. GEGIS demand for
+# HK is 0 in the SSP2-2.6 2030 file. The cutout is cropped from the pypsa-earth Asia cutout with
+# config-pypsa-earth/crop_cutout.py (no CDS build), see README "China".
+
+countries: [CN]
+
+run:
+  name: CN-smoke
+  shared_cutouts: true
+
+scenario:
+  simpl: [""]            # empty: simplify_network skips its pre-clustering (no solver call)
+  clusters: [50]
+  ll: [copt]
+  opts: [Co2L]
+
+snapshots:
+  start: "2013-01-01"
+  end: "2013-02-01"
+  inclusive: left
+
+enable:
+  retrieve_databundle: true
+  retrieve_cost_data: true
+  retrieve_cutout: false  # bundle_cutouts_asia (31 GB zipped) is redundant: the local Asia cutout is cropped instead
+  build_cutout: false     # cutouts/cutout-2013-era5-china.nc is cropped from ~/Desktop/earth/pypsa-earth/cutouts/cutout-2013-era5-asia.nc
+  download_osm_data: true
+  build_natura_raster: false
+  progress_bar: false
+
+download_osm_data_nprocesses: 1   # fork patch: earth-osm single process
+
+osm:
+  clean_osm_data:
+    threshold_voltage: 200000   # [V] keeps 1000 / 750 / 500 / 330 / 220 kV (220 kV is the provincial backbone level); 110 / 66 / 35 kV
+                                # is left out, same threshold as the other regions. Note: electricity.voltages has no 330 / 1000 kV
+                                # entry, so base_network snaps those lines to the nearest configured type (380 / 750 kV) — a known
+                                # screening-grade simplification (UHV capacity understated), listed in the README caveats.
+
+atlite:
+  nprocesses: 1
+  default: cutout-2013-era5-china-jan
+  cutouts:
+    cutout-2013-era5-china-jan:
+      module: era5
+      dx: 0.3
+      dy: 0.3
+      x: [73.5, 135.0]     # GADM CHN (73.6..134.8 E, 18.2..53.6 N) plus the EEZ south of Hainan / Beibu Gulf; cropped from the
+      y: [15.0, 54.0]      # Asia cutout (24.9..158.1 E, -14.4..55.8 N, 114k cells) to 206 x 131 cells so that the per-bus
+                           # availability matrices of build_renewable_profiles stay within the memory cap
+
+electricity:
+  renewable_carriers: [solar, onwind, offwind-ac, offwind-dc, hydro]
+
+build_shape_options:
+  nprocesses: 1
+  gdp_method: false       # smoke test only: demand distributed by population (fork fallback patch); stage B uses the GDP raster
+  clip_bbox: [73.5, 15.0, 135.0, 54.0]   # fork patch: same box as the cutout (drops nothing of GADM CHN; keeps the invariant)
+
+cluster_options:
+  simplify_network:
+    s_threshold_fetch_isolated: 0.05   # isolated AC fragments below 5 % of the national load (unmapped 220 kV pockets in OSM) are merged
+                                       # into the nearest backbone bus instead of each claiming a cluster (the NWE lever; the US run
+                                       # showed what happens without it: bus US5 0 sheds 2.9 TWh)
+
+solving:
+  solver:
+    name: gurobi          # only cluster_network's MIQP uses it before prepare_network; scip is the fallback

@@ -22,6 +22,7 @@ case "$CC" in   # Geofabrik extracts per stage, space separated (earth-osm names
   US) GFS=north-america/us ;;
   BR) GFS=south-america/brazil ;;
   IN) GFS=asia/india ;;
+  CN) GFS=asia/china ;;
   SG) GFS=asia/malaysia-singapore-brunei ;;   # Geofabrik bundles SG with MY and BN; clean_osm_data keeps only features inside the SG shape
   NWE) GFS="europe/ireland-and-northern-ireland europe/great-britain europe/france europe/belgium europe/netherlands europe/luxembourg
             europe/germany europe/denmark europe/poland europe/czech-republic europe/austria europe/switzerland" ;;   # NI comes with IE

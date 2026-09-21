@@ -48,6 +48,14 @@ propose to pypsa-meets-earth, `(no relevance 4 upstream)` a fork-only change:
   IE, LU, NL, PL]`, 50 clusters, `threshold_voltage: 200000` = 220 / 275 / 380 / 400 kV, `clip_bbox [-12, 41, 25, 61.5]`,
   cutout `europe-2013-sarah3-era5` = the PyPSA-Eur cutout hardlinked into `cutouts/`, `build_cutout: false`);
   no `-smoke` pair because nothing is built via CDS; see the Europe section below.
+- `config.CN-smoke.yaml`, `config.CN.yaml` — China (`countries: [CN]`, 50 clusters, `threshold_voltage: 200000`
+  = 220 / 330 / 500 / 750 / 1000 kV, `clip_bbox [73.5, 15.0, 135.0, 54.0]`, cutouts `cutout-2013-era5-china[-jan]`
+  **cropped from the pypsa-earth Asia cutout** with `crop_cutout.py` instead of built via CDS, `build_cutout: false`,
+  plus `s_threshold_fetch_isolated: 0.05` as for NWE); see the China section below.
+- `crop_cutout.py` — cut an existing atlite cutout down to a lon/lat box (and optionally a time window),
+  streaming through dask under a memory cap: `pixi run python ../../config-pypsa-earth/crop_cutout.py SRC OUT
+  --x 73.5 135.0 --y 15.0 54.0 [--time T0 T1]`. Written for China; it also repairs the NaN-column defect of the
+  continental pypsa-earth cutouts (see the China section).
 - `overlay.now.yaml`, `overlay.zero.yaml` — the two screening scenarios as small diffs applied *on top of* a stage
   config: `run.sh <R>-now` / `<R>-zero` deep-merges `config.<R>.yaml` with the overlay (`merge_config.py`, which also
   prints the stage target and writes the merged file to `models/pypsa-earth/config.yaml` and
@@ -59,11 +67,22 @@ propose to pypsa-meets-earth, `(no relevance 4 upstream)` a fork-only change:
   `custom_rules` config key (path `../../config-pypsa-earth/validation.smk` relative to the fork root, so the fork
   itself is untouched): rule `plot_validation` draws one 16:9 block per solved network
   (`results/<run>/plots/validation_<stem>.png`), rule `validation_dashboard` one 16:9 page per region with the
-  `now` block left and the `zero` block right (`results/catalyst/validation_<R>.png`). Eight tiles per block:
+  `now` block left and the `zero` block right (`results/catalyst/validation_<R>.png`). Nine tiles per block:
   generation mix, installed capacity (hatched = added by the optimiser), price statistics (load-weighted duration
-  curve, band across buses, CO2 shadow price), monthly demand + load shedding, CO2 by carrier, curtailment, system
-  cost (existing-fleet annuity / new build / transmission / operation; the shedding penalty is listed but not
-  added), summary tile. Standalone: `pixi run python ../../config-pypsa-earth/scripts/plot_validation.py A.nc [B.nc] -o out.png`.
+  curve, band across buses, stats box top right, CO2 shadow price), annual demand per country + load shedding,
+  CO2 by carrier, curtailment, and a bottom row with system cost (existing-fleet annuity / new build / transmission /
+  operation; the shedding penalty is listed but not added), summary tile and a map of the clustered network (nodes
+  sized by annual load, AC lines by optimised capacity, HVDC links purple, cartopy 50m coastlines/borders). Generation, capacity and emission bars are grouped into validation
+  carriers (gas = CCGT|OCGT, wind = on|offAC|offDC, ...; the segment order is in the tick label) and carry
+  **validation dots** (one colour/marker per source, legend under the block title); the price tile shows
+  published annual averages as dashed levels. Standalone:
+  `pixi run python ../../config-pypsa-earth/scripts/plot_validation.py A.nc [B.nc] --points validation_points.csv -o out.png`.
+- `scripts/build_validation.py` + `data/validation/` — the validation points (rules `retrieve_validation_data`,
+  `build_validation_points` in `validation.smk` → `resources/catalyst/validation_points.csv`). Sources: Ember
+  yearly data and European wholesale prices (downloaded), IRENA (the fork's databundle copy), the Energy Institute
+  Statistical Review 2025 workbook (Cloudflare-gated, fetched once with a browser and kept in the repo), ECB annual FX,
+  and `data/validation/manual_points.csv` with cited national statistics, prices and 2050 outlooks. See
+  "Validation data" below.
 - `check_network.py <run>` — sanity table + map for a finished stage
   (`cd models/pypsa-earth && pixi run python ../../config-pypsa-earth/check_network.py BR`);
   writes `results/catalyst/<run>_map.png`.
@@ -365,6 +384,54 @@ archetype (SOW §1.2, archetype 1), 50 clusters, weather year 2013, built 2026-0
   16:09–16:11 re-ran the four rules after `elec.nc` with the DC-bus patch and the fetch threshold
   (`elec_s*.nc` deleted by hand). Disk: 105 GB free afterwards; keep the hardlinked cutout.
 
+## China (stages `CN-smoke`, `CN`; 2026-09-21)
+
+The sixth region, and the first whose cutout was **not** built via CDS: the pypsa-earth Asia cutout already on
+this machine covers all of China, so it was cropped instead (40 min instead of a 3-6 h CDS queue).
+
+- **Cutout** `cutouts/cutout-2013-era5-china.nc` (11.4 GB) and `-china-jan.nc` (1.0 GB), cut from
+  `~/Desktop/earth/pypsa-earth/cutouts/cutout-2013-era5-asia.nc` (27.7 GB, ERA5 2013, 0.3 deg, x 24.9..158.1,
+  y -14.4..55.8) with `crop_cutout.py` to `x [73.5, 135.0] y [15.0, 54.0]` = 206 x 131 = 26,986 cells, 8,760 h.
+  The Asia file carries 13 of the 15 variables the CDS-built cutouts have; the two missing ones
+  (`wnd_shear_exp`, `dewpoint temperature`) are only read by atlite's `interpolation_method: "power"` and by the
+  heat/sector conversions, neither of which this power-only fork uses. Verified before use: atlite reports
+  `dx = dy = 0.3`, `prepared_features [height, wind, influx, temperature, runoff]`, and the wind/PV conversions
+  return no NaNs (Inner Mongolia January CF 0.28 at 6.1 m/s mean, central-plains 0.06 at 3.4 m/s - the low-wind
+  interior is real, not a defect).
+- **Defect repaired while cropping** (the reason `crop_cutout.py` is more than an `xr.sel`): east of ~128 E the
+  Asia cutout has 41 pairs of near-identical longitudes (128.1 *and* 128.10001, from two merged ERA5 tiles), and
+  **one column of each pair is entirely NaN**. Ten of those pairs fall inside the China box, right across
+  Heilongjiang and Jilin; left in place they would have produced NaN wind and solar profiles over north-east
+  China, and the duplicate also made atlite read `dx = 0.286` instead of 0.3. The script keeps, per group of
+  coordinates closer than dx/10, the column that holds data and rounds the grid back to 0.3 deg. Two performance
+  traps found on the way and handled: `xr.concat` on non-dask arrays materialises the whole slab (chunk first, or
+  the 8 GB cap kills the job with no message), and a fancy index over a netCDF dimension makes the backend read
+  element-wise (contiguous index runs instead: 38 min rather than hours).
+- **Scope:** GADM CHN is mainland + Hong Kong + Macau (`ADM_1` rows `CHN.HKG`, `CHN.MAC`) plus, under the default
+  `contended_flag: set_by_country`, the contended polygons Z02/Z03/Z08 (Aksai Chin, Shaksgam, South Tibet) merged
+  into CN. Taiwan is a separate GADM/Geofabrik/GEGIS entity and stays out. GEGIS gives Hong Kong zero demand.
+- **OSM:** `asia/china-latest.osm.pbf` 1.60 GB raw -> 23 MB after the osmium prefilter (154,081 lines, 21,667
+  substations, 1,527 generators at >= 51 kV; the densest of the six regions, US was 44 MB / 61k lines). At the
+  200 kV threshold the base network has **13,549 buses and 21,049 lines** - twice the US - by voltage:
+  220 kV 9,143, 500 kV 2,788, 330 kV 713, 800 kV 379, 750 kV 287, 1000 kV 172, 400 kV 40.
+- **Caveat, UHV line types:** `electricity.voltages` (inherited) is `[132, 220, 300, 380, 500, 750]` and
+  `lines.dc_types` only has 500 kV, so `base_network` snaps the 330 kV lines to the 380 kV type and the 800 /
+  1000 kV ones to 750 kV, understating the capacity of exactly the corridors that move power from the west to the
+  coast. Fixing it needs new entries in `lines.ac_types`/`dc_types`, i.e. a patch, so it is on the list rather
+  than in this screening run.
+- **Run history:** cutout crops 00:05-00:45 (January, 0.4 min of streaming) and 00:45-01:26 (full year, 38.5 min).
+  prestage 01:26-01:41 (15 min: 1.6 GB download, osmium filter). Stage A (`CN-smoke`, January) 01:41-04:11
+  (2 h 30 min), scope peak 9,500 MiB, zero OOM; the long rules were `build_powerplants` 74 min (powerplantmatching
+  over ~4,200 Chinese plants, the longest single rule of any region), `build_renewable_profiles` onwind 26 min /
+  5.4 GB and solar 21 min / 6.2 GB (the availability matrix is 13,549 buses x 26,986 cells, so it is heavier than
+  the US *full-year* run), `build_shapes` 8 min / 4.6 GB (GADM CHN 79 MB + WorldPop CHN 626 MB downloaded),
+  `build_osm_network` 7 min. Stage B (`CN`, full 2013) 04:11-06:49 (2 h 38 min), scope peak **11,643 MiB against
+  the 12 GB cap**, still zero OOM: `build_powerplants` 80 min, solar profiles 22 min / **9.2 GB RSS** (the
+  heaviest rule of all six regions), onwind 26 min / 6.6 GB, `add_electricity` 99 s / 7.1 GB, `build_shapes`
+  3 min / 5.1 GB. Disk 69 GB free afterwards. **Do not run this stage under an 8 GB cap** and do not raise the
+  cluster count without re-checking: the availability matrices scale with base buses x cutout cells, and China is
+  the worst case of the six (2x the US buses, 1.6x the cells).
+
 ## Screening solves (stages `<R>-now`, `<R>-zero`, `dashboard:<R>`; 2026-09-19/20)
 
 First look at how the five prenetworks behave *when solved as the model comes*, before anything is patched:
@@ -425,9 +492,36 @@ region (`results/catalyst/validation_<R>.png`).
   | IN-now | 9 min | 9.5 GB | IN-zero | 22 min | 9.9 GB |
   | NWE-now | 9 min | 10.5 GB | NWE-zero | 26 min | 10.3 GB |
   | US-now | 9 min | 10.2 GB | US-zero | 13 min | 10.4 GB |
+  | CN-now | 19 min | 11.6 GB | CN-zero | 28 min | 11.6 GB |
 
   3-hourly, 50 nodes: 6.3 M rows × 3.1 M columns (BR), 8–9 GB RSS in the solve rule, 9–10.5 GB scope peak, so
-  the 12 GB cap has 1.5 GB of headroom; the four regions take 2.5 h in total.
+  the 12 GB cap has 1.5 GB of headroom; the four regions take 2.5 h in total. China (added 2026-09-21, queue
+  01:26–07:39 including both prenetwork stages) is the tightest: 11.6 GB scope peak in both solves, i.e. 0.4 GB
+  under the cap, because the fleet is large (1,310 GW of coal alone) and the zero run builds 5,211 GW of solar.
+- **Validation data** (dots on the pages; 2026-09-20). One tidy table, `resources/catalyst/validation_points.csv`
+  (columns region, country, scenario, quantity, carrier, value, unit, year, source_short, source, url, note), built by
+  `scripts/build_validation.py` from bulk files and a hand-curated CSV. Rule of thumb applied: per quantity one
+  national statistical source + Ember + one more (EI or IRENA) for `now`, two or three institutional 2050
+  outlooks for `zero`, at most six sources per block so the legend stays one row. No temporal disaggregation:
+  demand and prices are annual numbers only.
+
+  | Region | `now` (actuals) | `zero` (2050 outlooks) |
+  |---|---|---|
+  | all | Ember 2025 (generation, capacity, demand, CO2 by fuel; life-cycle factors, so only coal/gas/oil/total are used), IRENA 2024 capacity, EI 2024 generation + wind/solar capacity | — |
+  | US | EIA Electric Power Annual 2024 (generation, net summer capacity, total end use 4,110 TWh) + MER 11.6 power-sector CO2 by fuel; prices: ERCOT and PJM 2024 real-time load-weighted (SOM reports) | IEA WEO 2025 STEPS 2050, EIA AEO2025 Reference 2050, Princeton Net-Zero America E+ 2050 |
+  | BR | EPE BEN 2025 (2024 generation by source, capacity incl. distributed PV, energy made available 763 TWh; thermal fuel split from Tabela 8.4), CCEE PLD 2024 SE/CO monthly mean, IEA WEO 2024 electricity+heat CO2 2023 | IEA WEO 2024 APS 2050, EPE PNE 2050 (demand: expansion / stagnation; capacity ranges) |
+  | IN | CEA FY2024-25 (LTRAP 2026: capacity 31 Mar 2025, gross generation; energy requirement via CERC market report; CO2 Baseline Database v21 1,234 Mt), IEX day-ahead FY2024-25 average 4.47 INR/kWh | IEA WEO 2024 APS 2050, IEA WEO 2025 STEPS 2050, CEEW net-zero pathway (2050 capacity) |
+  | SG | SingStat/EMA 2024 (generation, consumption), EMC NEMS market report 2024 (registered capacity, USEP 163 SGD/MWh) | EMA Energy 2050 Committee (solar potential 8.6 GWp; the report gives no TWh/GW mix), EMA demand outlook 2034 base/high |
+  | CN | NEA 2024 power-industry statistics + NBS Statistical Communiqué 2024 (capacity and generation by type, 3,348.62 GW / 10,086.88 TWh) + CEC (coal 1,190 GW), NEA consumption 9,852.1 TWh, IEA WEO 2025 electricity+heat CO2 6,688 Mt; prices: Guangdong and Shandong day-ahead 2024 (0.347 / 0.316 CNY/kWh, converted at the ECB 2024 average 7.79 CNY/EUR) | IEA WEO 2024 APS 2050, Tsinghua ICCSD 1.5 °C 2050 (capacity and generation), CETO 2022 carbon-neutrality scenario 1 (capacity, 17,103 TWh consumption) |
+  | NWE | national statistics 2024 = Eurostat nrg_bal_peh / nrg_cb_e (10 countries) + DUKES 2026 (GB) + SFOE (CH), per-country demand + region sums; Ember prices 2023 per country and demand-weighted (no GB) | ENTSO-E TYNDP 2024 Distributed Energy and Global Ambition 2050 (per-country market-model outputs summed; batteries/DSR excluded) |
+
+  Not used, on purpose: IEA WEO EU27 rows for NWE (different region), IRENA generation (lags a year), EIA/IEA
+  2024 actuals as a fourth US source, TYNDP marginal costs (scarcity artefacts), Singapore's grid emission factor
+  (kg/kWh, not an absolute). IEA's free WEO dataset needs a login, so the WEO numbers were transcribed from the
+  Annex A tables of the WEO 2024 / 2025 PDFs (URLs in the CSV). The Energy Institute workbook is behind a
+  Cloudflare challenge (archive link `https://www.energyinst.org/__data/assets/excel_doc/0008/1656215/EI-Stats-Review-ALL-data.xlsx`).
+  Prices in local currency are converted with the ECB annual average of the data year; the US model is CONUS while
+  the statistics are national (AK + HI ≈ 1 %).
 - **What the pages show** (`results/catalyst/validation_<R>.png`, numbers per region; demand is GEGIS 2030):
 
   | region | demand TWh | now: CO2 Mt (g/kWh), price EUR/MWh, cost bn/a, main additions GW | zero: price, cost bn/a, CO2 shadow EUR/t, additions GW, curtailment |
@@ -437,6 +531,7 @@ region (`results/catalyst/validation_<R>.png`).
   | IN | 1,888 | 1,217 (645), 37, 175.8, solar 196 + battery 25 | 47, 187.8, 10,250, solar 1,357 + battery 389 GW / 2,750 GWh, 394 TWh |
   | NWE | 2,206 | 871 (395), 37, 192.4, onwind 14 | 80, 249.1, 39,867, onwind 339 + solar 332 + battery 151 GW / 2,557 GWh, 478 TWh (19 %) |
   | US | 4,649 | 1,877 (404), 47 excl. shedding, 374.6, solar 373 + onwind 50 | 58 excl. shedding, 418.8, 14,936, solar 2,293 + battery 795 GW / 5.5 TWh, 714 TWh (14 %) |
+  | CN | 8,254 | 4,240 (514), 30, 783.1, solar 317 (no wind, no storage) | 46, 872.0, 5,650, solar 4,592 + offwind-dc 75 + onwind 22 + battery 1,924 GW / 11.0 TWh, 2,147 TWh (22 %) |
 
   Observations for the patch list: (1) every zero-carbon run is solar + batteries (+ wind in NWE/US); the H2
   store is built only in IN/US at a few hundred GWh and the model never touches nuclear extension, CCS, biomass
@@ -449,6 +544,15 @@ region (`results/catalyst/validation_<R>.png`).
   re-run of simplify/cluster). (4) NWE `now`: 596 TWh nuclear (2022 fleet incl. the last German reactors),
   lignite 382 TWh, coal 388 TWh, 871 Mt; prices flat at fuel cost with no scarcity hours — the CO2 price of
   the ETS is absent (`co2.emission_price: 0`). (5) Hydro: BR reservoir + ror deliver 252 TWh vs ≈ 430 TWh
-  observed (6 h reservoirs, inflow calibration). (6) Curtailment of 14–19 % in the zero runs and battery
-  fleets of 2.5–5.5 TWh are the model's only flexibility; LDES / firm clean options of the study palette are
-  exactly what is missing here.
+  observed (6 h reservoirs, inflow calibration). (6) Curtailment of 14–22 % in the zero runs and battery
+  fleets of 2.5–11 TWh are the model's only flexibility; LDES / firm clean options of the study palette are
+  exactly what is missing here. (7) China sharpens two of these. Its GEGIS 2030 demand (8,254 TWh) is **16 %
+  below the actual 2024 consumption** (9,852 TWh, NEA), so the demand input is not merely un-calibrated but
+  already historical - the single most important fix before any China result is quoted. And in `CN-zero` the
+  existing nuclear fleet is squeezed from 554 TWh down to **63 TWh**: with 5,211 GW of solar and 11 TWh of
+  batteries the system is over-supplied in most hours, and since curtailing zero-marginal-cost solar is cheaper
+  than curtailing nuclear (uranium at a few EUR/MWh), the optimiser idles the clean firm capacity it already
+  has. Any study conclusion about clean firm technologies has to deal with that mechanism explicitly.
+  (8) China's fleet in the prenetwork is 10-16 % above the statistics (coal + lignite 1,310 GW vs 1,190 GW CEC,
+  nuclear 70.7 GW vs 60.8 GW NEA) while hydro inflow (1,054 TWh/a) is ~26 % below observed hydro generation
+  (1,426 TWh in 2024), the same inflow-calibration problem as Brazil.

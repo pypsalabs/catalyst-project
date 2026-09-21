@@ -5,7 +5,8 @@
 #
 #   retrieve_validation_data   Ember yearly data + European prices, ECB annual FX -> config-pypsa-earth/data/validation/
 #   build_validation_points    Ember, IRENA, EI Statistical Review, ECB, manual_points.csv -> resources/catalyst/validation_points.csv
-#   plot_validation       one 16:9 dashboard per solved network (results/<run>/plots/validation_<stem>.png)
+#   plot_validation       one 16:9 dashboard per solved network (results/<run>/plots/validation_<stem>.png); the run's
+#                         costs_<year>_elec.csv feeds the fuel-price tile
 #   validation_dashboard  one 16:9 page per region, left <R>-now, right <R>-zero (results/catalyst/validation_<R>.png)
 import os
 
@@ -14,7 +15,7 @@ import yaml
 CATALYST_CFG = "../../config-pypsa-earth"   # relative to the fork root (Snakemake's working directory)
 VALDATA = CATALYST_CFG + "/data/validation"
 EMBER_URL = "https://storage.googleapis.com/emb-prod-bkt-publicdata/public-downloads/"
-ECB_URL = "https://data-api.ecb.europa.eu/service/data/EXR/A.USD+GBP+BRL+INR+SGD.EUR.SP00.A?format=csvdata&startPeriod=2015"
+ECB_URL = "https://data-api.ecb.europa.eu/service/data/EXR/A.USD+GBP+BRL+INR+SGD+CNY.EUR.SP00.A?format=csvdata&startPeriod=2015"
 
 
 def _catalyst_yaml(name):
@@ -29,6 +30,12 @@ def _scenario_network(region, scen):
     sc = {**base, **over}
     stem = "elec_s{}_{}_ec_l{}_{}".format(sc["simpl"][0], sc["clusters"][0], sc["ll"][0], sc["opts"][0])
     return f"results/{region}-{scen}/networks/{stem}.nc"
+
+
+def _scenario_costs(region, scen):
+    """Costs file of stage <region>-<scen> (the overlay sets costs.year)."""
+    year = _catalyst_yaml(f"overlay.{scen}.yaml")["costs"]["year"]
+    return f"resources/{region}-{scen}/costs_{year}_elec.csv"
 
 
 rule retrieve_validation_data:
@@ -56,7 +63,7 @@ rule build_validation_points:
         irena="data/IRENA_Statistics_Extract_2025H2.xlsx",
         ei=VALDATA + "/EI-Stats-Review-ALL-data-2025.xlsx",        # browser download, kept in the repo (see README)
         manual=VALDATA + "/manual_points.csv",
-        configs=[CATALYST_CFG + f"/config.{r}.yaml" for r in ("US", "BR", "IN", "SG", "NWE")],
+        configs=[CATALYST_CFG + f"/config.{r}.yaml" for r in ("US", "BR", "IN", "SG", "NWE", "CN")],
     output:
         "resources/catalyst/validation_points.csv",
     log:
@@ -70,6 +77,7 @@ rule build_validation_points:
 rule plot_validation:
     input:
         network="results/" + RDIR + "networks/elec_s{simpl}_{clusters}_ec_l{ll}_{opts}.nc",
+        costs="resources/" + RDIR + f"costs_{config['costs']['year']}_elec.csv",
         points="resources/catalyst/validation_points.csv",
     output:
         "results/" + RDIR + "plots/validation_elec_s{simpl}_{clusters}_ec_l{ll}_{opts}.png",
@@ -86,6 +94,7 @@ rule validation_dashboard:
     input:
         now=lambda w: _scenario_network(w.region, "now"),
         zero=lambda w: _scenario_network(w.region, "zero"),
+        costs=lambda w: [_scenario_costs(w.region, "now"), _scenario_costs(w.region, "zero")],
         points="resources/catalyst/validation_points.csv",
     output:
         "results/catalyst/validation_{region}.png",
