@@ -1,0 +1,28 @@
+# Snapshot of the PyPSA-Earth out-of-the-box validation dashboards (misc-quarter1, WP1 data validation).
+#
+# The dashboards are produced inside the soft fork by ../../config-pypsa-earth/validation.smk
+# (rule validation_dashboard: results/catalyst/validation_<R>.png, one 16:9 page per region, left the
+# current-system solve <R>-now, right the carbon-neutral solve <R>-zero). The fork's results/ is not
+# tracked, so this workflow copies the pages into figures/ to keep them with the project repo.
+#
+# Regenerate a page in the fork (from the repo root, see config-pypsa-earth/README.md):
+#   bash config-pypsa-earth/run.sh <R>-now <R>-zero dashboard:<R>
+# then from this directory:
+#   ../../models/priam-myopic/.pixi/envs/default/bin/snakemake -c1
+
+FORK = "../../models/pypsa-earth"
+REGIONS = ["US", "NWE", "BR", "IN", "SG", "CN"]
+
+
+rule all:
+    input:
+        expand("figures/validation_{region}.png", region=REGIONS),
+
+
+rule copy_dashboard:
+    input:
+        f"{FORK}/results/catalyst/validation_{{region}}.png",
+    output:
+        "figures/validation_{region}.png",
+    shell:
+        "cp -p {input} {output}"
