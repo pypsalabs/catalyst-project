@@ -1,0 +1,61 @@
+# misc-quarter1/fourier: temporal structure of the residual demand (wind vs solar).
+# Data: PyPSA-Earth stage networks of the catalyst fork (weather year 2013, hourly, unsolved),
+# see ../../config-pypsa-earth/README.md. Paths are relative to this directory.
+
+networks_dir: ../../models/pypsa-earth/networks
+regions:                     # order = plotting order; label used in site names; countries = the
+  US:  {file: US/elec_s_50.nc,  label: US,  countries: [US]}   # modelled countries (map extent + shading;
+  NWE: {file: NWE/elec_s_50.nc, label: NWE, countries: [DE, FR, GB, PL, NL, BE, AT, CH, CZ, DK, IE, LU]}   # largest polygon each)
+  BR:  {file: BR/elec_s_50.nc,  label: BR,  countries: [BR]}
+  IN:  {file: IN/elec_s_50.nc,  label: IN,  countries: [IN]}
+
+# Natural Earth shapes already cached by the archetype pipeline (map + site names)
+world_shapes:  ../country-classification/data/ne_50m_admin_0_countries/ne_50m_admin_0_countries.shp
+admin1_shapes: ../country-classification/data/ne_50m_admin_1_states_provinces/ne_50m_admin_1_states_provinces.shp
+
+selection:
+  n_sites: 10
+  max_sites_per_region: 4
+  max_abs_corr: 0.25         # hard limit on pairwise |rho| of the anomaly band (wind and solar)
+  anomaly_window_days: 31    # centred rolling mean removed from daily means before correlating
+  min_mean_cf: {wind: 0.15, solar: 0.10}   # drop buses with a poor resource
+  min_load_twh: 2            # drop tiny buses
+
+overbuild: 1.2               # annual generation = overbuild x annual demand (no storage)
+snippet: {start: "2013-01-14", end: "2013-01-28"}   # two-week hourly window, local time
+spectrum_smoothing:          # mean amplitude spectra: mean over +-bandwidth in frequency, bins above
+  bandwidth: 0.10            # spike_factor x the band median are spectral lines and kept as they are
+  spike_factor: 2.5
+bands:                       # three-way binning of the residual spectrum by period, in hours:
+  edges_hours: [24, 730]     # intra-day <= 24 h (the diurnal line included), multi-day, seasonal >= 730 h (1 month)
+  labels: [intra-day, multi-day, seasonal]
+mixes:                       # figures/residual_bands_mix: countries supplied by a wind/solar superposition,
+                             # PyPSA-Earth country-aggregated profiles (2013); wind_share = energy share of wind
+  GB: {name: Great Britain, region: NWE, countries: [GB], wind_share: 0.75}
+  IN: {name: India, region: IN, countries: [IN], wind_share: 0.25}
+
+colours:                     # validated with the dataviz palette checker (blue/yellow pair, all pairs)
+  wind:   "#2a78d6"
+  solar:  "#eda100"
+  demand: "#555555"
+  mixes: {GB: "#7a2e8f", IN: "#2e8b57"}   # with wind/solar an all-pairs pass of the checker (deutan/protan/tritan)
+  ramps:                     # one hue per technology, lightness encodes the site order in sites.csv
+    wind:   {light: "#86b6ef", dark: "#0d366b"}
+    solar:  {light: "#f3c04a", dark: "#7a4a00"}
+    demand: {light: "#b3b3b3", dark: "#1a1a1a"}
+
+plotting:
+  dpi: 200
+  formats: [png, pdf]
+
+# --- ten weather years at one place (figures/residual_structure_years): hourly ERA5 from the
+# Open-Meteo archive API (free, no key; https://open-meteo.com/en/docs/historical-weather-api),
+# demand = the site's nearest PyPSA-Earth bus (2013 profile, reused for every year).
+years:
+  first: 2014
+  last: 2023
+  site: {key: northern-germany, name: "Northern Germany (52.5°N, 10.0°E)", lat: 52.5, lon: 10.0, region: NWE}
+  wind_turbine:                # ~3 MW class, 100 m hub height; power fraction vs m/s, linear in between
+    speed: [0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 25, 25.01]
+    power: [0, 0, 0.02, 0.06, 0.12, 0.20, 0.32, 0.46, 0.63, 0.80, 0.93, 1.0, 1.0, 0]
+  pv: {tilt_deg: 35, albedo: 0.2, temp_coeff: -0.0035, noct_c: 45, system_efficiency: 0.90}

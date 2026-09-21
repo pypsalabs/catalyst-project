@@ -1,0 +1,122 @@
+# Snakemake workflow: temporal structure of the residual demand when wind or solar alone is
+# scaled to meet it (misc-quarter1/fourier, exploratory, WP3 preparation). Two variants of the
+# same six-row figure:
+#
+#   years  one site, ten ERA5 weather years (Open-Meteo archive, cached in data/openmeteo/)
+#          + the site's PyPSA-Earth demand profile           -> figures/residual_structure_years.{png,pdf}
+#   sites  ten mutually uncorrelated PyPSA-Earth buses, 2013 -> figures/residual_structure_sites.{png,pdf}
+#          + figures/site_correlation.{png,pdf}                  (independence check)
+# Each variant also gets figures/residual_bands_<variant>.{png,pdf}: the residual variability binned
+# into intra-day / multi-day / seasonal as a radar chart (numbers in build/bands_<variant>.csv), and
+# figures/residual_bands_mix.{png,pdf} puts the pure triangles next to two country mixes (GB wind-heavy,
+# India solar-heavy) built from country-aggregated PyPSA-Earth profiles.
+#
+# Inputs: ../../models/pypsa-earth/networks/{US,NWE,BR,IN}/elec_s_50.nc (stage networks, 2013).
+# Run from misc-quarter1/fourier with the priam-myopic pixi env:
+#   ../../models/priam-myopic/.pixi/envs/default/bin/snakemake -c1
+
+configfile: "config.yaml"
+
+FORMATS = config["plotting"]["formats"]
+NETWORKS = {r: f"{config['networks_dir']}/{spec['file']}" for r, spec in config["regions"].items()}
+Y = config["years"]
+YEARS = list(range(Y["first"], Y["last"] + 1))
+SITE = Y["site"]
+
+wildcard_constraints:
+    variant="sites|years",
+    year=r"\d{4}",
+
+
+rule all:
+    input:
+        expand("figures/residual_{fig}_{variant}.{fmt}", fig=["structure", "bands"], variant=["years", "sites"], fmt=FORMATS),
+        expand("figures/site_correlation.{fmt}", fmt=FORMATS),
+        expand("figures/residual_bands_mix.{fmt}", fmt=FORMATS),
+
+
+rule retrieve_weather:
+    output:
+        f"data/openmeteo/{SITE['key']}_{{year}}.csv",
+    params:
+        lat=SITE["lat"], lon=SITE["lon"],
+    resources:
+        mem_mb=500, runtime="10m",
+    script:
+        "retrieve_weather.py"
+
+
+rule build_years:
+    input:
+        weather=expand(f"data/openmeteo/{SITE['key']}_{{year}}.csv", year=YEARS),
+        network=NETWORKS[SITE["region"]],
+        config="config.yaml",
+    output:
+        profiles="build/profiles_years.nc",
+        years="build/years.csv",
+        correlation="build/years_correlation.csv",
+    resources:
+        mem_mb=2000, runtime="5m",
+    script:
+        "build_years.py"
+
+
+rule extract_sites:
+    input:
+        networks=list(NETWORKS.values()),
+        config="config.yaml",
+    output:
+        profiles="build/profiles_sites.nc",
+        sites="build/sites.csv",
+        correlation="build/site_correlation.csv",
+    resources:
+        mem_mb=4000, runtime="10m",
+    script:
+        "extract_profiles.py"
+
+
+rule plot_correlation:
+    input:
+        sites="build/sites.csv",
+        correlation="build/site_correlation.csv",
+        config="config.yaml",
+    output:
+        expand("figures/site_correlation.{fmt}", fmt=FORMATS),
+    resources:
+        mem_mb=1000, runtime="5m",
+    script:
+        "plot_site_correlation.py"
+
+
+rule plot_residual:
+    input:
+        profiles="build/profiles_{variant}.nc",
+        mix=lambda w: "build/bands_mix.csv" if w.variant == "years" else [],   # row h of the years figure
+        config="config.yaml",
+    output:
+        structure=expand("figures/residual_structure_{{variant}}.{fmt}", fmt=FORMATS),
+        bands=expand("figures/residual_bands_{{variant}}.{fmt}", fmt=FORMATS),
+        table="build/bands_{variant}.csv",
+    resources:
+        mem_mb=2000, runtime="5m",
+    script:
+        "plot_residual_structure.py"
+
+
+MIX_REGIONS = sorted({spec["region"] for spec in config["mixes"].values()})
+
+
+rule plot_mix:
+    input:
+        pure="build/profiles_years.nc",
+        networks=[NETWORKS[r] for r in MIX_REGIONS],
+        config="config.yaml",
+    params:
+        regions=MIX_REGIONS,
+    output:
+        figure=expand("figures/residual_bands_mix.{fmt}", fmt=FORMATS),
+        table="build/bands_mix.csv",
+    resources:
+        mem_mb=4000, runtime="10m",
+    script:
+        "plot_mix_radar.py"
