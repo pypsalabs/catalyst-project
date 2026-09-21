@@ -20,6 +20,7 @@ Method
   LCOE(CF) = (annuity(r, n) * capex + FOM) * 1000 / (8760 * CF)
              + VOM + fuel / eta + co2_price * intensity * (1 - capture) / eta
   annuity(r, n) = r / (1 - (1 + r)^-n)
+  (currency conversion and annuity live in common.py)
 
 Run standalone:  python compile_costs.py   (paths relative to this file)
 """
@@ -30,6 +31,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yaml
+
+from common import annuity, make_to_base, split_currency  # noqa: F401
 
 if "snakemake" in globals():
     CFG = snakemake.config
@@ -76,36 +79,7 @@ CANONICAL_UNITS = {
 
 # --- helpers -------------------------------------------------------------------
 
-def annuity(rate, years):
-    return rate / (1 - (1 + rate) ** -years)
-
-
-def to_base(value, currency, year):
-    """Convert `value` in `currency` of price year `year` to BASE_CUR of BASE_YEAR."""
-    notes = []
-    if pd.isna(value):
-        return np.nan, ""
-    if currency is None or (isinstance(currency, float) and np.isnan(currency)) or currency == "":
-        currency = "EUR"
-    if pd.isna(year):
-        year = BASE_YEAR
-        notes.append(f"no currency year stated, assumed {BASE_YEAR}")
-    year = int(year)
-    if currency not in FX:
-        raise ValueError(f"no FX table for currency {currency!r}")
-    if year not in FX[currency] or year not in CPI[BASE_CUR]:
-        raise ValueError(f"no FX/CPI entry for {currency} {year}")
-    base = (value * FX[currency][year] / FX[BASE_CUR][year]
-            * CPI[BASE_CUR][BASE_YEAR] / CPI[BASE_CUR][year])
-    return base, "; ".join(notes)
-
-
-def split_currency(unit):
-    """Return (currency or None, unit without the currency prefix)."""
-    m = re.match(r"^(EUR|USD|GBP|CAD|AUD|CNY)\s*/\s*(.+)$", unit)
-    if m:
-        return m.group(1), m.group(2)
-    return None, unit
+to_base = make_to_base(CFG)
 
 
 def normalise_unit(parameter, value, unit):

@@ -10,6 +10,12 @@
 #     -> figures/{capex_generation,capex_storage,opex,lcoe,dac}.{png,pdf}   report layout
 #     -> figures/slides/<same>.{png,pdf}                                       16:9 layout for the kickoff deck (beamer/2026-09-08)
 #
+#   data/learning/schmidt2018.xlsx (download, cached) -> schmidt2018.csv, schmidt2018_published.csv
+#   data/learning/manual.csv, floors.csv (hand-curated, referenced)
+#     -> build/learning/<tech>.json     points, fits and statistics per component
+#     -> build/learning_rates.csv       one row per (technology, component)
+#     -> figures/learning/<tech>.{png,pdf}, <tech>_sources.tex   experience-curve figures + clickable source line (see README "Learning curves")
+#
 # Run from misc-quarter1/technology-costs with the priam-myopic pixi env:
 #   ../../models/priam-myopic/.pixi/envs/default/bin/snakemake -c1
 
@@ -26,8 +32,12 @@ FORMATS = config["plotting"]["formats"]
 REFERENCES = config["plotting"]["slide_references"]
 SLIDE_FIGURES = expand("figures/slides/{figure}.{fmt}", figure=FIGURES, fmt=FORMATS) if os.path.exists(REFERENCES) else []
 
+LEARNING_TECHS = list(config["learning"]["technologies"])
+LEARNING_FIGS = expand("figures/learning/{tech}.{fmt}", tech=LEARNING_TECHS, fmt=FORMATS)
+
 wildcard_constraints:
     figure="|".join(FIGURES),
+    tech="|".join(LEARNING_TECHS),
 
 
 rule all:
@@ -35,6 +45,8 @@ rule all:
         "build/costs_2025_table.csv",
         expand("figures/{figure}.{fmt}", figure=FIGURES, fmt=FORMATS),
         SLIDE_FIGURES,
+        "build/learning_rates.csv",
+        LEARNING_FIGS,
 
 
 rule retrieve_technology_data:
@@ -98,3 +110,65 @@ rule plot_slide:
         mem_mb=1000, runtime="5m",
     script:
         "plot_costs.py"
+
+
+# --- learning curves -------------------------------------------------------------------
+
+rule retrieve_schmidt:
+    input:
+        config="config.yaml",
+    output:
+        xlsx="data/learning/schmidt2018.xlsx",
+        csv="data/learning/schmidt2018.csv",
+        published="data/learning/schmidt2018_published.csv",
+    params:
+        url=config["learning"]["schmidt"]["url"],
+    resources:
+        mem_mb=500, runtime="5m",
+    script:
+        "retrieve_schmidt.py"
+
+
+rule fit_learning:
+    input:
+        schmidt="data/learning/schmidt2018.csv",
+        manual="data/learning/manual.csv",
+        floors="data/learning/floors.csv",
+        published="data/learning/schmidt2018_published.csv",
+        config="config.yaml",
+    output:
+        "build/learning/{tech}.json",
+    params:
+        tech=lambda w: w.tech,
+        mode="fit",
+    resources:
+        mem_mb=500, runtime="5m",
+    script:
+        "fit_learning.py"
+
+
+rule learning_rates:
+    input:
+        fits=expand("build/learning/{tech}.json", tech=LEARNING_TECHS),
+        config="config.yaml",
+    output:
+        "build/learning_rates.csv",
+    params:
+        mode="summary",
+    resources:
+        mem_mb=500, runtime="5m",
+    script:
+        "fit_learning.py"
+
+
+rule plot_learning:
+    input:
+        fit="build/learning/{tech}.json",
+        config="config.yaml",
+    output:
+        expand("figures/learning/{{tech}}.{fmt}", fmt=FORMATS),
+        "figures/learning/{tech}_sources.tex",     # clickable [n] source line for the slide deck
+    resources:
+        mem_mb=1000, runtime="5m",
+    script:
+        "plot_learning.py"

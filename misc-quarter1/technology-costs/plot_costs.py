@@ -41,6 +41,9 @@ from matplotlib.lines import Line2D  # noqa: E402
 from matplotlib.patches import Patch  # noqa: E402
 from matplotlib.ticker import FuncFormatter, LogLocator, MaxNLocator, NullFormatter  # noqa: E402
 
+from common import footnote, grid  # noqa: E402
+from common import save as _save  # noqa: E402
+
 if "snakemake" in globals():
     CFG = snakemake.config
     TABLE = Path(snakemake.input.table)
@@ -123,14 +126,6 @@ def obs_refs(tech, metric):
 
 
 # --- helpers --------------------------------------------------------------------
-
-def grid(ax, log):
-    ax.set_axisbelow(True)
-    ax.grid(True, axis="x", which="major", color="0.75", linewidth=0.7)
-    if log:
-        ax.grid(True, axis="x", which="minor", color="0.88", linewidth=0.4)
-    ax.spines[["top", "right"]].set_visible(False)
-
 
 def fmt_refs(nums):
     return f" [{','.join(str(n) for n in nums)}]" if nums else ""
@@ -344,19 +339,8 @@ def make_fig(ncols, height, width=9.0, width_ratios=None, sharey=False):
     return fig, axes, axf
 
 
-def footnote(axf, text):
-    import textwrap
-    if axf is None:
-        return
-    axf.text(0, 1, "\n".join(textwrap.wrap(text, axf.wrap_chars)), transform=axf.transAxes,
-             fontsize=7, color="0.35", ha="left", va="top")
-
-
 def save(fig):
-    for out in OUTPUTS:
-        fig.savefig(out, dpi=CFG["plotting"]["dpi"], bbox_inches="tight")
-    plt.close(fig)
-    print("wrote", ", ".join(str(o) for o in OUTPUTS))
+    _save(fig, OUTPUTS, CFG["plotting"]["dpi"])
 
 
 NOTE = (f"All values in {BASE}; every row converted at the ECB annual rate of its stated price year "

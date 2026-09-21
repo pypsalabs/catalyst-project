@@ -1,0 +1,26 @@
+block,series,component,native,A,b,sigma,ER,n,rows_dropped
+"Pumped hydro (Utility, -1±8%)",schmidt2018:pumped-hydro-utility-1,energy,False,243.63243079198978,-0.0211881887159636,0.0587174987090379,-1.5±8%,7,0
+"Pumped hydro (Utility, -1±8%)",schmidt2018:pumped-hydro-utility-1,power,True,3884.232001843845,-0.0211881887159636,0.0587174987090379,-1.5±8%,7,0
+"Lead-acid (Multiple, 4±6%)",schmidt2018:lead-acid-multiple-4,energy,True,256.3534135988172,0.0631488686086146,0.042388679891224516,4.3±6%,21,0
+"Lead-acid (Multiple, 4±6%)",schmidt2018:lead-acid-multiple-4,power,False,1093.9655559008036,0.0631488686086146,0.042388679891224516,4.3±6%,21,0
+"Lead-acid (Residential, 13±5%)",schmidt2018:lead-acid-residential-13,energy,True,1128.4424064515429,0.194032933605689,0.04140718604710815,12.6±5%,4,0
+"Lead-acid (Residential, 13±5%)",schmidt2018:lead-acid-residential-13,power,False,2735.4162111831656,0.194032933605689,0.04140718604710815,12.6±5%,4,0
+"Lithium-ion (Electronics, 30±2%)",schmidt2018:lithium-ion-electronics-30,energy,True,4749.300524777853,0.520984289033628,0.02146277933807804,30.3±2%,22,0
+"Lithium-ion (Electronics, 30±2%)",schmidt2018:lithium-ion-electronics-30,power,False,6619.5390575893825,0.520984289033628,0.02146277933807804,30.3±2%,22,0
+"Lithium-ion (EV, 19±5%)",schmidt2018:lithium-ion-ev-19,energy,True,1051.655060753606,0.306618432701209,0.041618575533220285,19.1±5%,8,0
+"Lithium-ion (EV, 19±5%)",schmidt2018:lithium-ion-ev-19,power,False,402.17587528885315,0.306618432701209,0.041618575533220285,19.1±5%,8,0
+"Lithium-ion (Residential, 15±4%)",schmidt2018:lithium-ion-residential-15,energy,True,1465.2522171805974,0.229431257640991,0.030807861083153382,14.7±4%,5,0
+"Lithium-ion (Residential, 15±4%)",schmidt2018:lithium-ion-residential-15,power,False,3416.3874074398796,0.229431257640991,0.030807861083153382,14.7±4%,5,0
+"Lithium-ion (Utility, 16±5%)",schmidt2018:lithium-ion-utility-16,energy,True,1147.0860797601529,0.255577823676761,0.04174398094694675,16.2±5%,8,0
+"Lithium-ion (Utility, 16±5%)",schmidt2018:lithium-ion-utility-16,power,False,1447.7054589912796,0.255577823676761,0.04174398094694675,16.2±5%,8,0
+"Nickel-metal hydride (HEV, 11±1%)",schmidt2018:nickel-metal-hydride-hev-11,energy,True,640.3896359408981,0.166097982576638,0.0060653099051134795,10.9±1%,18,0
+"Nickel-metal hydride (HEV, 11±1%)",schmidt2018:nickel-metal-hydride-hev-11,power,False,62.11435404258882,0.166097982576638,0.004943882363145493,10.9±1%,18,0
+"Vanadium redox-flow (Utility, 13±3%)",schmidt2018:vanadium-redox-flow-utility-13,energy,True,883.4381662856833,0.200315301657379,0.025039759543653194,13.0±3%,5,0
+"Vanadium redox-flow (Utility, 13±3%)",schmidt2018:vanadium-redox-flow-utility-13,power,False,2608.8501771910583,0.200315301657379,0.025039759543653194,13.0±3%,5,0
+"Electrolysis (Utility, 18±6%)",schmidt2018:electrolysis-utility-18,power,True,3757.3745714376664,0.281267943293668,0.052462897681905526,17.7±6%,6,0
+"Fuel Cells (Residential, 16±2%)",schmidt2018:fuel-cells-residential-16,plant,True,10349.153227944154,0.245245052172785,0.018551249122863506,15.6±2%,12,0
+"Lithium-ion (18650 cell, 19±3%)",schmidt2018:lithium-ion-18650-cell-19,energy,True,1331.8704942923916,0.30038475034076395,0.03108562886066106,18.8±3%,15,0
+"Lithium-ion (Electronics, 21±3%)",schmidt2018:lithium-ion-electronics-21,energy,True,1350.125401649159,0.34510689632348596,0.02392713481898321,21.3±3%,13,0
+"Lithium-ion (EV, 9±1%)",schmidt2018:lithium-ion-ev-9,energy,True,599.6990946484146,0.13899849218307012,0.010437428780906638,9.2±1%,2,2
+"PV Modules (-, 23±2%)",schmidt2018:pv-modules-23,plant,True,5281.653192713947,0.3758350810685365,0.01517648841899949,22.9±2%,40,0
+"PV Inverters (-, 19±1%)",schmidt2018:pv-inverters-19,power,True,878.9657154143604,0.301267849128131,0.01211064149960287,18.8±1%,24,0

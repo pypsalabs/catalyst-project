@@ -235,15 +235,90 @@ plotting:
   # figures are skipped when the file is missing
   slide_references: ../../beamer/2026-09-08/references.yaml
 
+# ---- learning curves (figures/learning) --------------------------------------------
+# Historical unit cost vs cumulative installed capacity per technology, fitted three
+# ways (level Wright's law, first-difference Wright's law after Lafond et al. 2018 /
+# Way et al. 2022, and a time trend); see README "Learning curves".
+learning:
+  min_points: 5                # fewer fit points -> DILIGENCE flag on the dashboard
+  schmidt:
+    url: https://ndownloader.figshare.com/files/12865736      # dataset update 2018, CC BY 4.0
+    doi: 10.1038/nenergy.2017.110
+    citation: "Schmidt et al. (2017), Nat. Energy, 2018 update"
+  # block-title prefix in the Schmidt "Data" sheet -> palette key, scope and, where the
+  # collected series is not the energy/power pair of a storage system, the component it
+  # feeds. `context: true` series are drawn hollow and never fitted (different scope).
+  schmidt_map:
+    "Lithium-ion (Utility":        {technology: battery-liion, scope: system}
+    "Lithium-ion (Residential":    {technology: battery-liion, scope: system, context: true}
+    "Lithium-ion (EV":             {technology: battery-liion, scope: pack, context: true}
+    "Lithium-ion (18650":          {technology: battery-liion, scope: cell, context: true}
+    "Lithium-ion (Electronics":    {technology: battery-liion, scope: cell, context: true}
+    "Vanadium redox-flow":         {technology: vrfb, scope: system}
+    "Electrolysis":                {technology: h2-sofc, scope: system, component: power,
+                                    note: "alkaline electrolyser plant only; the SOFC half of the power component has no series"}
+    "Fuel Cells (Residential":     {technology: sofc, scope: system, component: plant, context: true,
+                                    note: "Staffell & Green 2013 reconstruction of the ENE-FARM programme incl. the 2004-08 demonstration phase; superseded by the official ANRE/ACE series in manual.csv"}
+    "PV Modules":                  {technology: solar-utility, scope: module, component: plant, context: true}
+    "Pumped hydro":                {technology: PHS, scope: system}
+  # Dashboards, in this order. `components` are the panels (energy: USD/kWh vs GWh, power:
+  # USD/kW vs GW, plant: USD/kW vs GW or USD/well vs wells). `fit` restricts the fitted
+  # series per component (default: every non-context, non-derived series). `analogy` is an
+  # assumed rate drawn as a dashed line and labelled as such; it is never fitted.
+  technologies:
+    vrfb:            {components: [energy, power]}
+    h2-sofc:         {components: [energy, power]}
+    iron-air:        {components: [energy],
+                      analogy: {rate: 0.15, label: "DOE LDES Liftoff 2023 projects with 12–18 %/doubling"}}
+    co2-battery:     {components: [energy],
+                      analogy: {rate: 0.05, label: "mechanical storage; pumped hydro shows −1 ± 8 % (Schmidt 2018)"}}
+    smr-nuclear:     {components: [plant],
+                      analogy: {rate: 0.10, label: "scenario value; large-LWR history −ve to 6 % (Rubin 2015)"}}
+    egs:             {components: [drilling], show_reference: true}   # USD/ft vs cumulative wells (Fervo); plant capex has no
+                                                  # series; the floors.csv band (US shale drilling cost) is drawn
+    closed-loop-geo: {components: [plant]}
+    allam-ccs:       {components: [plant],
+                      analogy: {rate: 0.05, label: "CO2 capture units 2–7 % (Rubin 2015); fuel sets the LCOE floor"}}
+    sofc:            {components: [plant], fit: {plant: [enefarm-sofc]}}   # ENE-FARM Type S (SOFC) prices; PEFC series and Schmidt's reconstruction shown as context
+    solar-utility:   {components: [plant]}
+    onwind:          {components: [plant]}
+    battery-liion:   {components: [energy, power], fit: {energy: [bnef-turnkey]}}   # Schmidt utility series shown, not chained (different capacity basis)
+
+  # Series that are drawn as hollow markers but never enter a fit, with the reason that the
+  # legend prints after "excluded:". Anything not listed here that is skipped (a series not
+  # named under `fit`, or a `context: true` series without an entry) gets a generic reason.
+  # Derived series (Schmidt's C-rate conversions of a collected series) are not drawn at all.
+  not_fitted:
+    "schmidt2018:lithium-ion-electronics-21": "consumer cells, not grid systems"
+    "schmidt2018:lithium-ion-electronics-30": "consumer cells, not grid systems"
+    "schmidt2018:lithium-ion-18650-cell-19":  "consumer cells, not grid systems"
+    "schmidt2018:lithium-ion-ev-9":           "EV packs, not grid systems"
+    "schmidt2018:lithium-ion-ev-19":          "EV packs, not grid systems"
+    "schmidt2018:lithium-ion-residential-15": "residential systems, other market"
+    "schmidt2018:lithium-ion-utility-16":     "pre-2016 systems on another capacity basis"
+    "bnef-turnkey-2025":                      "2025 fleet is a BNEF forecast"
+    "schmidt2018:pv-modules-23":              "modules only, not whole plants"
+    "schmidt2018:fuel-cells-residential-16":  "reconstruction incl. 2004-08 demo units"
+    "enefarm-pefc":                           "PEFC units, a different stack"
+    "iea-ghr-2025":                           "operating fleet, not cumulative production"
+    "vrfb-projects":                          "single projects, cumulative GWh only indicative"
+    "form-target":                            "vendor target, nothing deployed yet"
+    "energy-dome":                            "vendor estimate, nothing deployed yet"
+    "net-power":                              "FOAK estimate, nothing deployed yet"
+    "closed-loop-estimates":                  "FOAK estimate / projection, nothing deployed yet"
+    "smr-estimates":                          "FOAK estimates, no deployment series"
+
 # ---- macro tables ------------------------------------------------------------
 # ECB euro foreign exchange reference rates, annual averages
 # (series EXR/A.{USD,GBP,CAD}.EUR.SP00.A), https://data.ecb.europa.eu/data/datasets/EXR
 # accessed 2026-09-06 (AUD added 2026-09-07). eur_per_unit = 1 / (units of currency per 1 EUR).
 fx_eur_per_unit:
-  EUR: {2010: 1, 2011: 1, 2012: 1, 2013: 1, 2014: 1, 2015: 1, 2016: 1, 2017: 1, 2018: 1, 2019: 1, 2020: 1, 2021: 1, 2022: 1, 2023: 1, 2024: 1, 2025: 1}
-  USD: {2010: 0.7543, 2011: 0.7184, 2012: 0.7783, 2013: 0.7529, 2014: 0.7527, 2015: 0.9013, 2016: 0.9034, 2017: 0.8852, 2018: 0.8468, 2019: 0.8933, 2020: 0.8755, 2021: 0.8455, 2022: 0.9496, 2023: 0.9248, 2024: 0.9239, 2025: 0.8850}
+  EUR: {2009: 1, 2010: 1, 2011: 1, 2012: 1, 2013: 1, 2014: 1, 2015: 1, 2016: 1, 2017: 1, 2018: 1, 2019: 1, 2020: 1, 2021: 1, 2022: 1, 2023: 1, 2024: 1, 2025: 1}
+  USD: {2009: 0.7170, 2010: 0.7543, 2011: 0.7184, 2012: 0.7783, 2013: 0.7529, 2014: 0.7527, 2015: 0.9013, 2016: 0.9034, 2017: 0.8852, 2018: 0.8468, 2019: 0.8933, 2020: 0.8755, 2021: 0.8455, 2022: 0.9496, 2023: 0.9248, 2024: 0.9239, 2025: 0.8850}
   GBP: {2010: 1.1657, 2011: 1.1522, 2012: 1.2332, 2013: 1.1775, 2014: 1.2405, 2015: 1.3777, 2016: 1.2203, 2017: 1.1407, 2018: 1.1303, 2019: 1.1392, 2020: 1.1240, 2021: 1.1633, 2022: 1.1727, 2023: 1.1497, 2024: 1.1812, 2025: 1.1671}
   CAD: {2010: 0.7325, 2011: 0.7267, 2012: 0.7787, 2013: 0.7308, 2014: 0.6821, 2015: 0.7049, 2016: 0.6822, 2017: 0.6827, 2018: 0.6539, 2019: 0.6732, 2020: 0.6536, 2021: 0.6745, 2022: 0.7302, 2023: 0.6852, 2024: 0.6747, 2025: 0.6334}
+  # ECB annual average EUR/JPY reference rate (EXR.A.JPY.EUR.SP00.A), inverted; accessed 2026-09-21
+  JPY: {2009: 0.007672, 2010: 0.008603, 2011: 0.009012, 2012: 0.009757, 2013: 0.007712, 2014: 0.007127, 2015: 0.007445, 2016: 0.008320, 2017: 0.007892, 2018: 0.007669, 2019: 0.008196, 2020: 0.008207, 2021: 0.007700, 2022: 0.007245, 2023: 0.006579, 2024: 0.006103, 2025: 0.005916}
   AUD: {2010: 0.6933, 2011: 0.7416, 2012: 0.8060, 2013: 0.7258, 2014: 0.6794, 2015: 0.6767, 2016: 0.6719, 2017: 0.6788, 2018: 0.6330, 2019: 0.6208, 2020: 0.6043, 2021: 0.6349, 2022: 0.6593, 2023: 0.6139, 2024: 0.6099, 2025: 0.5709}
 
 # Consumer price indices, annual averages (only ratios are used, so the base
@@ -254,7 +329,10 @@ cpi:
   EUR: {2010: 93.14, 2011: 95.66, 2012: 98.05, 2013: 99.38, 2014: 99.81, 2015: 100.00, 2016: 100.23, 2017: 101.78, 2018: 103.56, 2019: 104.80, 2020: 105.06, 2021: 107.78, 2022: 116.82, 2023: 123.15, 2024: 126.07, 2025: 128.75}
   # US CPI-U all items, 1982-84=100, BLS series CUUR0000SA0 annual average
   # https://data.bls.gov/timeseries/CUUR0000SA0
-  USD: {2010: 218.056, 2011: 224.939, 2012: 229.594, 2013: 232.957, 2014: 236.736, 2015: 237.017, 2016: 240.007, 2017: 245.120, 2018: 251.107, 2019: 255.657, 2020: 258.811, 2021: 270.970, 2022: 292.655, 2023: 304.702, 2024: 313.689, 2025: 321.943}
+  USD: {2009: 214.537, 2010: 218.056, 2011: 224.939, 2012: 229.594, 2013: 232.957, 2014: 236.736, 2015: 237.017, 2016: 240.007, 2017: 245.120, 2018: 251.107, 2019: 255.657, 2020: 258.811, 2021: 270.970, 2022: 292.655, 2023: 304.702, 2024: 313.689, 2025: 321.943}
+  # Japan CPI all items, 2010=100, World Bank FP.CPI.TOTL (api.worldbank.org, accessed 2026-09-21); used only for
+  # `fx_mode: constant` series (deflate in yen, then convert once at the base-year rate)
+  JPY: {2009: 100.73, 2010: 100.00, 2011: 99.73, 2012: 99.68, 2013: 100.02, 2014: 102.78, 2015: 103.59, 2016: 103.46, 2017: 103.96, 2018: 104.99, 2019: 105.48, 2020: 105.46, 2021: 105.21, 2022: 107.84, 2023: 111.36, 2024: 114.41, 2025: 118.04}
   # UK CPI all items, 2015=100, ONS series D7BT (MM23)
   # https://www.ons.gov.uk/economy/inflationandpriceindices/timeseries/d7bt/mm23
   GBP: {2010: 89.4, 2011: 93.4, 2012: 96.1, 2013: 98.5, 2014: 100.0, 2015: 100.0, 2016: 100.7, 2017: 103.4, 2018: 105.9, 2019: 107.8, 2020: 108.7, 2021: 111.6, 2022: 121.7, 2023: 130.5, 2024: 133.9, 2025: 138.4}
