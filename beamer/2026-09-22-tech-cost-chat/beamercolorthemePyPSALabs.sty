@@ -1,0 +1,65 @@
+%% LaTeX-Beamer colour theme for the PyPSA Labs design
+%%
+%% Brand colours plus the PyPSA accent palette,
+%% mapped onto the beamer colour elements.
+
+\ProvidesPackage{beamercolorthemePyPSALabs}
+
+% BRAND COLOURS
+\definecolor{brandblue}{HTML}{26547C}
+\definecolor{branddark}{HTML}{20242C}
+
+% PYPSA ACCENT COLOURS
+\definecolor{pypsagreen}{HTML}{0A8754}
+\definecolor{pypsared}{HTML}{D10A49}
+
+\mode<presentation>
+
+\setbeamercolor*{normal text}{fg=branddark,bg=white}
+\setbeamercolor*{alerted text}{fg=brandblue}
+\setbeamercolor*{example text}{fg=pypsagreen}
+\setbeamercolor*{structure}{fg=brandblue}
+
+\setbeamercolor{background canvas}{bg=white}
+
+% TITLE PAGE
+\setbeamercolor*{title}{fg=branddark}
+\setbeamercolor*{subtitle}{fg=brandblue}
+\setbeamercolor*{author}{fg=branddark}
+\setbeamercolor*{institute}{fg=branddark!70}
+\setbeamercolor*{date}{fg=branddark!70}
+
+% FURNITURE
+\setbeamercolor{frametitle}{fg=brandblue,bg=}
+\setbeamercolor{framesubtitle}{fg=branddark!60,bg=}
+\setbeamercolor{footline}{fg=branddark!65}
+\setbeamercolor{kicker}{fg=branddark!65}
+\setbeamercolor{framesource}{fg=branddark!65}
+\setbeamercolor*{section}{fg=white,bg=brandblue}
+\setbeamercolor*{statement}{fg=white!80!brandblue,bg=brandblue}
+\setbeamercolor*{statement alerted}{fg=white}
+\setbeamercolor{section in toc}{fg=branddark}
+
+% LISTS
+\setbeamercolor*{item projected}{fg=white,bg=brandblue}
+\setbeamercolor{itemize item}{fg=brandblue}
+\setbeamercolor{itemize subitem}{fg=brandblue!70}
+\setbeamercolor{enumerate item}{fg=brandblue}
+
+% BIBLIOGRAPHY (calm entries, only the DOI/URL stays a link colour)
+\setbeamercolor{bibliography entry author}{fg=branddark}
+\setbeamercolor{bibliography entry title}{fg=branddark}
+\setbeamercolor{bibliography entry location}{fg=branddark!65}
+\setbeamercolor{bibliography entry note}{fg=branddark!65}
+
+% BLOCKS
+\setbeamercolor*{block title}{fg=brandblue,bg=}
+\setbeamercolor*{block body}{fg=branddark,bg=brandblue!8}
+
+\setbeamercolor*{block title example}{fg=pypsagreen,bg=}
+\setbeamercolor*{block body example}{fg=branddark,bg=pypsagreen!8}
+
+\setbeamercolor*{block title alerted}{fg=pypsared,bg=}
+\setbeamercolor*{block body alerted}{fg=branddark,bg=pypsared!8}
+
+\mode<all>

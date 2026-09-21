@@ -1,0 +1,56 @@
+# Technology-cost chat deck (22 Sept 2026): the kickoff title slide, then one experience-curve
+# figure per technology, in decreasing order of importance to the project and quality of fit.
+#
+# The figures are NOT copied: slides.tex includes them straight from
+# ../../misc-quarter1/technology-costs/figures/learning/, and the rule below regenerates them
+# through that workflow whenever its scripts or data change, so `snakemake -c1` here brings the
+# deck up to date with the learning-curve workflow. Run from this directory with the priam-myopic
+# pixi env (snakemake, latexmk and the TeX packages of ../theme/README.md on PATH):
+#   ../../models/priam-myopic/.pixi/envs/default/bin/snakemake -c1
+#
+# The theme files are copies of ../theme (kept self-contained so old decks keep compiling).
+
+import sys
+
+TC = "../../misc-quarter1/technology-costs"
+# slide order = decreasing importance to the project and quality of fit; keep in sync with slides.tex
+# advanced palette only: the mature references (solar, onshore wind, Li-ion) stay in the README
+TECHS = ["vrfb", "sofc", "h2-sofc", "egs", "smr-nuclear", "iron-air", "co2-battery", "allam-ccs", "closed-loop-geo"]
+FIGURES = expand(f"{TC}/figures/learning/{{tech}}.pdf", tech=TECHS)
+SOURCES = expand(f"{TC}/figures/learning/{{tech}}_sources.tex", tech=TECHS)   # clickable [n] lines
+
+
+rule all:
+    input:
+        "slides.pdf",
+
+
+rule slides:
+    input:
+        tex="slides.tex",
+        theme=["beamerthemePyPSALabs.sty", "beamercolorthemePyPSALabs.sty", "logo.png", "google_logo.png"],
+        figures=FIGURES,
+        sources=SOURCES,
+    output:
+        "slides.pdf",
+    resources:
+        mem_mb=1000, runtime="10m",
+    shell:
+        "latexmk -pdf -interaction=nonstopmode -halt-on-error {input.tex} > latexmk.out 2>&1 "
+        "|| (tail -40 latexmk.out; exit 1)"
+
+
+# (re)build the experience-curve figures in the technology-costs workflow. plot_learning is forced
+# because Snakemake does not rerun a rule when only its script changed.
+rule learning_figures:
+    input:
+        scripts=[f"{TC}/{s}" for s in ("plot_learning.py", "fit_learning.py", "common.py", "config.yaml")],
+        data=[f"{TC}/data/learning/{f}" for f in ("manual.csv", "floors.csv", "schmidt2018.csv")],
+    output:
+        FIGURES,
+        SOURCES,
+    resources:
+        mem_mb=1000, runtime="10m",
+    shell:
+        "{sys.executable} -m snakemake --snakefile {TC}/Snakefile --directory {TC} -c1 -R plot_learning "
+        + " ".join(f"figures/learning/{t}.pdf" for t in TECHS)

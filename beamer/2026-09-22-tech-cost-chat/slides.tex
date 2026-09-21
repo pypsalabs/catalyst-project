@@ -1,0 +1,59 @@
+% Technology-cost chat, 22 September 2026: what the historical record supports as learning
+% rates for the advanced palette (SOW WP2). Title slide adapted from the kickoff deck
+% (../2026-09-08); then one experience-curve figure per technology, included directly from
+% ../../misc-quarter1/technology-costs/figures/learning/ (see the Snakefile). All commentary
+% lives in that workflow's README, section "Learning curves", one subsection per technology.
+\documentclass[11pt,aspectratio=169,t]{beamer}
+\usetheme{PyPSALabs}
+
+% LICENCE (also puts the icon on the title page and in the footline)
+\usepackage[type={CC},modifier={by},version={4.0}]{doclicense}
+
+% GRAPHICS: figures straight from the learning-curve workflow, never copied
+\graphicspath{{../../misc-quarter1/technology-costs/figures/learning/}{./}}
+
+% one technology per slide: title, the figure, and the numbered sources of the legend as clickable links
+% (the <tech>_sources.tex line is written by plot_learning.py next to the figure)
+\newcommand{\learningdir}{../../misc-quarter1/technology-costs/figures/learning}
+\newcommand{\techslide}[3]{% frame title, figure name, README section (not shown on the slide)
+  \begin{frame}{#1}
+    \centering
+    \includegraphics[height=5.9cm]{#2}
+    % up to two lines of sources, left of the logo, above the footline
+    \begin{textblock*}{11.0cm}(2.2cm,7.75cm)
+      {\tiny\raggedright\setlength{\parskip}{0pt}\usebeamercolor[fg]{framesource}\input{\learningdir/#2_sources}\par}
+    \end{textblock*}
+  \end{frame}}
+
+% TITLE PAGE
+\title{Catalytic Impact of Early Investments in Advanced Clean Energy Technologies}
+\subtitle{Technology cost}
+
+\author{}
+\institute{PyPSA Labs, Google}
+\titlegraphic{\begin{minipage}{4.2cm}\centering
+  \includegraphics[width=4.2cm]{logo}\\[0.9cm]
+  \includegraphics[width=4.2cm]{google_logo}
+\end{minipage}}
+
+\date{22 September 2026}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+\addtocounter{framenumber}{-1}
+
+% decreasing order of importance to the project and quality of fit (keep in sync with the Snakefile)
+\techslide{Vanadium flow battery: energy capacity cost}{vrfb}{Vanadium flow battery}
+\techslide{Solid oxide fuel cell: ENE-FARM unit price}{sofc}{Solid oxide fuel cell}
+\techslide{(Alkaline) Electrolyser}{h2-sofc}{Hydrogen store: electrolyser}
+\techslide{Enhanced geothermal: Fervo drilling cost per foot}{egs}{Enhanced geothermal (EGS)}
+\techslide{Nuclear SMR: FOAK estimates only}{smr-nuclear}{Nuclear SMR}
+\techslide{Iron-air battery: vendor target only}{iron-air}{Iron-air battery}
+\techslide{CO\textsubscript{2} battery: vendor estimates only}{co2-battery}{CO2 battery}
+\techslide{Allam-cycle gas + CCS: FOAK estimates only}{allam-ccs}{Allam-cycle gas + CCS}
+\techslide{Closed-loop geothermal: FOAK estimate and projection only}{closed-loop-geo}{Closed-loop geothermal}
+
+\end{document}
