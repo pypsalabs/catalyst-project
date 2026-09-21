@@ -7,9 +7,8 @@ The present repo and the `pypsa-earth` softfork should contain all project conte
 
 | Directory | Content |
 |---|---|
-| `config-pypsa-earth/` | How to run the PyPSA-Earth soft fork (`pypsalabs/catalyst-pypsa-earth`, cloned to the gitignored `models/pypsa-earth`) |
+| `config-pypsa-earth/` | How to run the PyPSA-Earth soft fork (`pypsalabs/catalyst-pypsa-earth`, checked out as the git submodule `models/pypsa-earth`; clone with `git clone --recurse-submodules` or run `git submodule update --init` afterwards) |
 | `misc-quarterN/` | Self-contained code/data for complementary experiments and visualisations |
 | `beamer/<date>/` | |
-| `meetings/` | Meeting notes, `YYYY-MM-DD.md`. |
 
 <img src="misc-quarter1/country-classification/screenshots/map_screenshot.png" alt="Grid archetype map" width="100%">

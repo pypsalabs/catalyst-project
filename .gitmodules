@@ -1,0 +1,4 @@
+[submodule "models/pypsa-earth"]
+	path = models/pypsa-earth
+	url = https://github.com/pypsalabs/catalyst-pypsa-earth.git
+	branch = catalyst
