@@ -3,16 +3,17 @@
 Validation dashboard for solved Catalyst pypsa-earth networks.
 
 One 16:9 block per network with ten tiles: generation mix, installed capacity, electricity price
-statistics, demand, CO2 emissions by source, curtailment, the fuel prices the run assumed (from its
-costs_<year>_elec.csv, with published market prices / outlooks as dots), total system cost, summary and a map of
-the clustered network (nodes sized by annual load, AC lines by optimised capacity, HVDC links purple). With two
+statistics, demand, CO2 emissions by source, curtailment, fuel prices assumed by the model (from the run's
+costs_<year>_elec.csv), total system cost, summary and a map of the clustered network (nodes sized by annual
+load, AC lines by optimised capacity, HVDC links purple, extent = the model's country shapes). With two
 networks the page shows them side by side (left = first, right = second), still 16:9.
 
 Snakemake (config-pypsa-earth/validation.smk):
-    rule plot_validation      input.network, input.costs               -> one block
-    rule validation_dashboard input.now, input.zero, input.costs (2)   -> two blocks
-Standalone (inside the fork's pixi env; the costs file defaults to resources/<run>/costs_<year>_elec.csv next to the network):
-    pixi run python ../../config-pypsa-earth/scripts/plot_validation.py NOW.nc [ZERO.nc] -o page.png [--title T] [--costs A.csv B.csv]
+    rule plot_validation      input.network             -> one block
+    rule validation_dashboard input.now, input.zero     -> two blocks
+Standalone (inside the fork's pixi env):
+    pixi run python ../../config-pypsa-earth/scripts/plot_validation.py NOW.nc [ZERO.nc] -o page.png [--title T]
+        [--points validation_points.csv] [--costs costs_2025_elec.csv costs_2050_elec.csv] [--shapes country_shapes.geojson]
 
 All numbers are computed directly from the network (no make_summary): TWh, GW, Mt CO2, bn EUR/a. The
 "existing fleet" annuity (capital_cost x fixed p_nom) is shown for information; it is not part of the
@@ -65,27 +66,29 @@ def carrier_style(n):
     return col, nice
 
 
-def costs_path_for(network_path, meta):
-    """Default costs file of a run: <fork root>/resources/<run>/costs_<year>_elec.csv (results/<run>/networks/<stem>.nc)."""
-    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(network_path))))
-    run = (meta.get("run") or {}).get("name", "")
-    year = (meta.get("costs") or {}).get("year", "")
-    return os.path.join(root, "resources", run, f"costs_{year}_elec.csv")
+FUELS = ["gas", "coal", "lignite", "oil", "uranium", "biomass"]     # rows of the costs file holding a `fuel` price
+FUEL_CARRIER = {"gas": "CCGT", "coal": "coal", "lignite": "lignite", "oil": "oil", "uranium": "nuclear", "biomass": "biomass"}
 
 
-def fuel_prices(costs_csv):
-    """'fuel' column of the run's costs file for the fuels of FUELS (EUR/MWh of fuel); empty Series if missing."""
-    if not costs_csv or not os.path.exists(costs_csv):
-        return pd.Series(dtype=float)
-    c = pd.read_csv(costs_csv, index_col=0)
-    return pd.to_numeric(c["fuel"].reindex(FUELS), errors="coerce").dropna()
+def fuel_prices(n, costs=None):
+    """Fuel prices the model assumes, EUR/MWh_th by fuel: the `fuel` column of costs_<year>_elec.csv, or, without
+    the file, marginal_cost x efficiency of the existing generators (which still includes VOM)."""
+    if costs and os.path.exists(costs):
+        c = pd.read_csv(costs, index_col=0)
+        return c.fuel.reindex(FUELS).dropna().astype(float), False
+    g = n.generators
+    out = {}
+    for f, car in FUEL_CARRIER.items():
+        gg = g[(g.carrier == car) & (g.p_nom > 0)]
+        if len(gg):
+            out[f] = float((gg.marginal_cost * gg.efficiency * gg.p_nom).sum() / gg.p_nom.sum())
+    return pd.Series(out, dtype=float), True
 
 
-def collect(n, costs_csv=None):
+def collect(n, costs=None):
     """Return a dict of tidy tables (pandas) for one solved network, region-wide."""
     w = n.snapshot_weightings.generators
     d = {}
-    d["fuel_prices"] = fuel_prices(costs_csv)
     ac = n.buses.index[n.buses.carrier == "AC"]
     g = n.generators
     gp = n.generators_t.p.reindex(columns=g.index, fill_value=0.0)
@@ -222,6 +225,7 @@ def collect(n, costs_csv=None):
                  "clusters": meta.get("wildcards", {}).get("clusters", ""), "countries": meta.get("countries", d["countries"])}
     d["n_buses"] = len(ac)
     d["hours"] = len(n.snapshots)
+    d["fuel_price"], d["fuel_price_approx"] = fuel_prices(n, costs)
 
     # ---- map: clustered AC buses (annual load), AC lines (s_nom -> s_nom_opt), HVDC links
     bus = n.buses.loc[ac, ["x", "y"]].copy()
@@ -249,9 +253,6 @@ GROUP_NAMES = {"coal": "Coal", "gas": "Gas", "oil": "Oil", "nuclear": "Nuclear",
                SHED: "Load shedding", "total": "Total", "other": "Other"}
 SUB_SHORT = {"coal": "hard", "lignite": "lign", "CCGT": "CCGT", "OCGT": "OCGT", "hydro": "res", "ror": "RoR", "PHS": "PHS",
              "onwind": "on", "offwind-ac": "offAC", "offwind-dc": "offDC", "solar": "PV", "csp": "CSP"}
-FUELS = ["gas", "coal", "lignite", "oil", "uranium", "biomass"]          # rows of the fuel-price tile (costs.csv 'fuel')
-FUEL_NAMES = {"gas": "Gas", "coal": "Coal (hard)", "lignite": "Lignite", "oil": "Oil", "uranium": "Uranium", "biomass": "Biomass"}
-FUEL_CARRIER = {"gas": "CCGT", "uranium": "nuclear"}                     # carrier whose colour the fuel bar takes
 SOURCE_STYLE = [("#111111", "o"), ("#e6194b", "D"), ("#3b6fd6", "s"), ("#f58231", "^"), ("#911eb4", "v"), ("#469990", "P"),
                 ("#9a6324", "X")]
 
@@ -308,14 +309,18 @@ def _dots(ax, rows, y_of, styles, xmax):
 
 
 def _hbars(ax, series, colors, nice, unit, share_of=None, hatch_series=None, hatch_label=None, points=None, styles=None,
-           extra_rows=(), total_row=None):
+           extra_rows=(), total_row=None, group=True):
     """Horizontal bars per validation group (segments = model carriers), value labels, optional validation dots.
 
     series: model values by carrier; hatch_series: 'existing' part by carrier (rest hatched = added).
     points: DataFrame(carrier, value, source_short) for this quantity; rows for carriers absent from the model are
     added with an empty bar so the dot is visible; total_row: model total to show as first row when points have 'total'.
     """
-    tot, segs = to_groups(series)
+    if group:
+        tot, segs = to_groups(series)
+    else:
+        tot = series.astype(float).sort_values(ascending=False)
+        segs = {c: [(c, float(v))] for c, v in tot.items()}
     if hatch_series is not None:
         pre_tot, pre_segs = to_groups(hatch_series.reindex(series.index).fillna(0.0))
     if points is not None and len(points):
@@ -382,20 +387,29 @@ def _pts(points, quantity, country=None):
     return p
 
 
-def draw_map(ax, d, ts):
-    """Clustered network: nodes sized by annual load, AC lines by optimised capacity, HVDC links purple."""
+def draw_map(ax, d, shapes=None):
+    """Clustered network: nodes sized by annual load, AC lines by optimised capacity, HVDC links purple.
+    shapes: GeoDataFrame of the model's country shapes (resources/<run>/shapes/country_shapes.geojson, already clipped
+    to the modelled part, e.g. CONUS) -> drawn and used as the extent; without it the bus extent is used."""
     bus, ln, lk = d["map_buses"], d["map_lines"], d["map_links"]
-    pad = 1.0
-    ext = [bus.x.min() - pad, bus.x.max() + pad, bus.y.min() - pad, bus.y.max() + pad]
+    if shapes is not None and len(shapes):
+        x0, y0, x1, y1 = shapes.total_bounds
+        pad = max(0.4, 0.03 * max(x1 - x0, y1 - y0))
+    else:
+        x0, x1, y0, y1 = bus.x.min(), bus.x.max(), bus.y.min(), bus.y.max()
+        pad = 1.0
+    ext = [x0 - pad, x1 + pad, y0 - pad, y1 + pad]
     if ext[1] - ext[0] < 3:                             # one-node regions (SG): keep a sensible window
-        cx, cy = bus.x.mean(), bus.y.mean()
-        ext = [cx - 2.5, cx + 2.5, cy - 1.6, cy + 1.6]
+        cx, cy = (ext[0] + ext[1]) / 2, (ext[2] + ext[3]) / 2
+        ext = [cx - 1.6, cx + 1.6, cy - 1.0, cy + 1.0]
     kw = {}
     if ccrs:
         ax.set_extent(ext, crs=ccrs.PlateCarree())
-        ax.add_feature(cfeature.LAND.with_scale("50m"), facecolor="0.94", edgecolor="none", zorder=0)
-        ax.add_feature(cfeature.COASTLINE.with_scale("50m"), lw=0.3, edgecolor="0.55", zorder=1)
+        ax.add_feature(cfeature.LAND.with_scale("50m"), facecolor="0.95", edgecolor="none", zorder=0)
+        ax.add_feature(cfeature.COASTLINE.with_scale("50m"), lw=0.3, edgecolor="0.6", zorder=1)
         ax.add_feature(cfeature.BORDERS.with_scale("50m"), lw=0.25, edgecolor="0.65", ls=":", zorder=1)
+        if shapes is not None and len(shapes):
+            ax.add_geometries(shapes.geometry, crs=ccrs.PlateCarree(), facecolor="0.88", edgecolor="0.4", lw=0.35, zorder=1.5)
         ax.spines["geo"].set_linewidth(0.4)
         kw = dict(transform=ccrs.PlateCarree())
     else:
@@ -415,29 +429,29 @@ def draw_map(ax, d, ts):
                                          zorder=3, **kw))
     lmax = max(float(bus.load_twh.max()), 1e-9)
     ax.scatter(bus.x, bus.y, s=2 + 60 * bus.load_twh / lmax, c="#dd2e23", alpha=0.65, lw=0, zorder=4, **kw)
+    if not ccrs and shapes is not None and len(shapes):
+        shapes.plot(ax=ax, facecolor="0.88", edgecolor="0.4", lw=0.35, zorder=0)
     l0, l1 = d["lines_gwkm"]
-    add = f", AC {100 * (l1 / l0 - 1):+.0f} %" if l0 > 0 else ""
-    ax.set_title(f"Map  {len(ln)} lines, {len(lk)} HVDC{add}", **ts)
-    ax.text(0.01, 0.01, "dots ∝ annual load, width ∝ optimised capacity", transform=ax.transAxes, fontsize=5.2,
-            color="0.4", ha="left", va="bottom", zorder=5)
+    add = f"; AC GW·km {100 * (l1 / l0 - 1):+.0f} %" if l0 > 0 else ""
+    ax.text(0.01, 0.01, f"{len(bus)} nodes, {len(ln)} lines, {len(lk)} HVDC{add}\ndots ∝ annual load, width ∝ optimised capacity",
+            transform=ax.transAxes, fontsize=5.0, color="0.35", ha="left", va="bottom", zorder=5, linespacing=1.1)
 
 
-def draw_block(fig, cell, d, colors, nice, title, points=None, styles=None):
+def draw_block(fig, cell, d, colors, nice, title, points=None, styles=None, shapes=None):
     rows = GridSpecFromSubplotSpec(4, 1, subplot_spec=cell, hspace=0.75)
-    axes = []                                             # 0-1 | 2-3 | 4-6 (emissions, curtailment, fuel prices) | 7-9
+    axes = []
     for r in range(2):
         gs = GridSpecFromSubplotSpec(1, 2, subplot_spec=rows[r], wspace=0.55)
         axes += [fig.add_subplot(gs[0, c]) for c in range(2)]
-    gs = GridSpecFromSubplotSpec(1, 3, subplot_spec=rows[2], wspace=0.6, width_ratios=[1.0, 1.0, 0.8])
-    axes += [fig.add_subplot(gs[0, c]) for c in range(3)]
+    gs = GridSpecFromSubplotSpec(1, 3, subplot_spec=rows[2], wspace=0.75)
+    axes += [fig.add_subplot(gs[0, c]) for c in range(3)]                       # 4 CO2, 5 curtailment, 6 fuel prices
     gs = GridSpecFromSubplotSpec(1, 3, subplot_spec=rows[3], wspace=0.28, width_ratios=[0.85, 1.0, 1.15])
-    axes += [fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])]
-    axes.append(fig.add_subplot(gs[0, 2], projection=ccrs.PlateCarree()) if ccrs else fig.add_subplot(gs[0, 2]))
+    axes += [fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])]              # 7 cost, 8 summary
+    axes.append(fig.add_subplot(gs[0, 2], projection=ccrs.PlateCarree()) if ccrs else fig.add_subplot(gs[0, 2]))  # 9 map
     for ax in axes[:9]:
         ax.tick_params(labelsize=6.5)
     ts = dict(fontsize=7.5, fontweight="bold", loc="left", pad=3)
     region_pts = points[points.country == ""] if points is not None and len(points) else None
-    mt = d["meta"]
 
     # 1 generation mix
     ax = axes[0]
@@ -551,8 +565,8 @@ def draw_block(fig, cell, d, colors, nice, title, points=None, styles=None):
         ax.text(0.5, 0.5, "no CO2 emissions", ha="center", va="center", fontsize=8, transform=ax.transAxes)
         ax.set_axis_off()
     lim = d["co2_limit"]
-    cap_txt = f", cap {lim / 1e6:,.1f} Mt" if np.isfinite(lim) else ", no cap"
-    ax.set_title(f"CO2 emissions  {d['emissions_total']:,.1f} Mt/a{cap_txt}  ({1e3 * d['emissions_total'] / d['demand_twh']:.0f} g/kWh)", **ts)
+    cap_txt = f", cap {lim / 1e6:,.0f} Mt" if np.isfinite(lim) else ", no cap"
+    ax.set_title(f"CO2 emissions\n{d['emissions_total']:,.0f} Mt/a{cap_txt}, {1e3 * d['emissions_total'] / d['demand_twh']:.0f} g/kWh", **ts)
 
     # 6 curtailment
     ax = axes[5]
@@ -561,49 +575,32 @@ def draw_block(fig, cell, d, colors, nice, title, points=None, styles=None):
         c_series = cu.curtailed.sort_values(ascending=False)
         tot, av = cu.curtailed.sum(), cu.available.sum()
         _hbars(ax, c_series, colors, nice, f"TWh/a (share of the {av:,.0f} TWh available)", share_of=cu.available)
-        ax.set_title(f"Curtailment  {tot:,.0f} TWh/a  ({100 * tot / av:.0f} % of available)", **ts)
+        ax.set_title(f"Curtailment\n{tot:,.0f} TWh/a, {100 * tot / av:.0f} % of available", **ts)
     elif len(cu):
         ax.text(0.5, 0.5, f"no curtailment\n({cu.available.sum():,.0f} TWh available from variable generators)",
                 ha="center", va="center", fontsize=7, transform=ax.transAxes, color="0.35")
         ax.set_axis_off()
-        ax.set_title("Curtailment  0.0 TWh/a", **ts)
+        ax.set_title("Curtailment\n0.0 TWh/a", **ts)
     else:
         ax.text(0.5, 0.5, "no variable generators", ha="center", va="center", fontsize=8, transform=ax.transAxes)
         ax.set_axis_off()
-        ax.set_title("Curtailment", **ts)
+        ax.set_title("Curtailment\n", **ts)
 
-    # 7 fuel prices assumed by the run, with published market prices (now) / outlooks (zero) as dots
+    # 7 fuel prices assumed by the model (EUR/MWh_th) + published prices / outlook assumptions
     ax = axes[6]
-    fp = d["fuel_prices"]
+    fp = d["fuel_price"]
+    fcol = {f: colors.get(c, GREY) for f, c in FUEL_CARRIER.items()}
+    fnice = {**nice, "gas": "Gas", "coal": "Hard coal", "lignite": "Lignite", "oil": "Oil", "uranium": "Uranium", "biomass": "Biomass"}
     pf = _pts(region_pts, "fuel_price")
-    rows_ = list(fp.index) + [c for c in (sorted(pf.carrier.unique()) if pf is not None else []) if c not in fp.index]
-    if rows_:
-        y_of = {c: len(rows_) - 1 - i for i, c in enumerate(rows_)}
-        for c in rows_:
-            ax.barh(y_of[c], float(fp.get(c, 0.0)), color=colors.get(FUEL_CARRIER.get(c, c), GREY), edgecolor="white", linewidth=0.5)
-        xmax = float(fp.max()) if len(fp) else 1.0
-        if pf is not None and len(pf):
-            pff = pf.assign(_key=pf.carrier)
-            xmax = _dots(ax, pff, y_of, styles, xmax)
-        for c in rows_:
-            v = float(fp.get(c, np.nan))
-            xr = v if np.isfinite(v) else 0.0
-            if pf is not None and len(pf):
-                near = pf[pf.carrier == c]
-                if len(near):
-                    xr = max(xr, float(near.value.max()))
-            ax.text(xr + 0.015 * xmax, y_of[c], f"{v:,.1f}" if np.isfinite(v) else "–", va="center", fontsize=6.5)
-        ax.set_yticks([y_of[c] for c in rows_], [FUEL_NAMES.get(c, nice.get(c, c)) for c in rows_], fontsize=6.5)
-        ax.set_xlim(0, xmax * 1.35)
-        ax.set_ylim(-0.6, len(rows_) - 0.4)
-        ax.set_xlabel("EUR per MWh of fuel", fontsize=7, labelpad=1)
-        ax.spines[["top", "right"]].set_visible(False)
-        ax.text(0.98, 0.02, "gas markers GCV basis; oil dots = crude", transform=ax.transAxes, ha="right", va="bottom",
-                fontsize=5.5, color="0.35")
+    if len(fp) or (pf is not None and len(pf)):
+        _hbars(ax, fp if len(fp) else pd.Series(dtype=float), fcol, fnice, "EUR/MWh thermal", points=pf, styles=styles, group=False)
+        ax.set_title("Fuel prices assumed\n" + ("≈ marginal cost × eff., incl. VOM" if d["fuel_price_approx"]
+                                                else f"technology-data {d['meta']['cost_year']}"), **ts)
+        ax.text(0.98, 0.02, "same in every region", transform=ax.transAxes, ha="right", va="bottom", fontsize=6, color="0.35")
     else:
-        ax.text(0.5, 0.5, "no costs file", ha="center", va="center", fontsize=8, transform=ax.transAxes)
+        ax.text(0.5, 0.5, "no fuel prices", ha="center", va="center", fontsize=8, transform=ax.transAxes)
         ax.set_axis_off()
-    ax.set_title(f"Fuel prices assumed  (costs {mt['cost_year']})", **ts)
+        ax.set_title("Fuel prices assumed\n", **ts)
 
     # 8 system cost
     ax = axes[7]
@@ -625,6 +622,7 @@ def draw_block(fig, cell, d, colors, nice, title, points=None, styles=None):
     # 9 summary
     ax = axes[8]
     ax.set_axis_off()
+    mt = d["meta"]
     lines = [
         f"run {mt['run']}, opts '{mt['opts']}', ll {mt['ll']}",
         f"costs {mt['cost_year']}, {d['n_buses']} AC buses, {d['hours']} snapshots",
@@ -649,7 +647,7 @@ def draw_block(fig, cell, d, colors, nice, title, points=None, styles=None):
     ax.set_title("Summary", **ts)
 
     # 10 map: clustered network
-    draw_map(axes[9], d, ts)
+    draw_map(axes[9], d, shapes)
 
     # block title + source legend
     x0, x1 = cell.get_position(fig).x0, cell.get_position(fig).x1
@@ -676,11 +674,16 @@ def scenario_title(d, label=None):
     return f"{names[scen]}  ({detail})" if scen in names else detail
 
 
-def make_page(networks, out, page_title=None, labels=None, points_csv=None, costs=None):
-    """networks: list of (pypsa.Network, costs csv path or None)."""
+def make_page(networks, out, page_title=None, labels=None, points_csv=None, costs=None, shapes=None):
+    """networks: list of pypsa.Network; costs: list of costs_<year>_elec.csv paths (one per network, optional);
+    shapes: path of the model's country_shapes.geojson (optional)."""
     fig = plt.figure(figsize=(16, 9), dpi=150)
     k = len(networks)
     gs = fig.add_gridspec(1, k, left=0.08, right=0.985, top=0.87, bottom=0.06, wspace=0.3)
+    gdf = None
+    if shapes and os.path.exists(shapes):
+        import geopandas as gpd
+        gdf = gpd.read_file(shapes)
     for i, n in enumerate(networks):
         d = collect(n, costs[i] if costs and i < len(costs) else None)
         colors, nice = carrier_style(n)
@@ -688,7 +691,7 @@ def make_page(networks, out, page_title=None, labels=None, points_csv=None, cost
         reg = d["meta"]["run"].rsplit("-", 1)[0] if d["meta"]["scenario"] else ""
         scen = d["meta"]["scenario"] or ("zero" if "Co2L0" in (d["meta"]["opts"] or "") else "now")
         pts, styles = load_points(points_csv, reg, scen)
-        draw_block(fig, gs[0, i], d, colors, nice, scenario_title(d, lab), points=pts, styles=styles)
+        draw_block(fig, gs[0, i], d, colors, nice, scenario_title(d, lab), points=pts, styles=styles, shapes=gdf)
         if page_title is None:
             reg_t = reg or d["meta"]["run"].rsplit("-", 1)[0] or "+".join(d["countries"])
             ncl = d["meta"]["clusters"] or d["n_buses"]
@@ -700,7 +703,7 @@ def make_page(networks, out, page_title=None, labels=None, points_csv=None, cost
     fig.suptitle(page_title, fontsize=14, fontweight="bold", y=0.975)
     fig.text(0.985, 0.012, "Catalyst screening: pypsa-earth fork, weather 2013, GEGIS SSP2-2.6 2030 demand, "
              "existing fleet ≈2022 + IRENA 2023 wind/solar; 'existing fleet' annuity not part of the objective. "
-             "Dots / dashed levels: published statistics and 2024 market prices (left), 2050 outlooks (right), see legend",
+             "Dots / dashed levels: published statistics (left) and 2050 outlooks (right), see legend",
              ha="right", va="bottom", fontsize=6, color="0.4")
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     fig.savefig(out)
@@ -711,17 +714,17 @@ if __name__ == "__main__":
     if "snakemake" in globals():
         inp = snakemake.input  # noqa: F821
         files = [inp.network] if hasattr(inp, "network") else [inp.now, inp.zero]
-        costs = list(inp.costs) if hasattr(inp, "costs") else [None] * len(files)
+        costs = [inp.costs] if hasattr(inp, "costs") else [inp.costs_now, inp.costs_zero]
         make_page([pypsa.Network(f) for f in files], snakemake.output[0],  # noqa: F821
-                  points_csv=inp.points if hasattr(inp, "points") else None, costs=costs)
+                  points_csv=inp.points if hasattr(inp, "points") else None, costs=costs,
+                  shapes=inp.shapes if hasattr(inp, "shapes") else None)
     else:
         ap = argparse.ArgumentParser()
         ap.add_argument("networks", nargs="+")
         ap.add_argument("-o", "--out", required=True)
         ap.add_argument("--title")
         ap.add_argument("--points", help="validation_points.csv from build_validation.py")
-        ap.add_argument("--costs", nargs="+", help="costs_<year>_elec.csv per network (default: resources/<run>/ next to the network)")
+        ap.add_argument("--costs", nargs="+", help="costs_<year>_elec.csv of each network (fuel-price tile)")
+        ap.add_argument("--shapes", help="country_shapes.geojson of the run (map extent)")
         a = ap.parse_args()
-        nets = [pypsa.Network(f) for f in a.networks]
-        costs = a.costs or [costs_path_for(f, getattr(n, "meta", {}) or {}) for f, n in zip(a.networks, nets)]
-        make_page(nets, a.out, a.title, points_csv=a.points, costs=costs)
+        make_page([pypsa.Network(f) for f in a.networks], a.out, a.title, points_csv=a.points, costs=a.costs, shapes=a.shapes)

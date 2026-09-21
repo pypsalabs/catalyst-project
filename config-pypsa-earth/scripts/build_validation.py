@@ -7,7 +7,7 @@ Sources
   Ember  european_wholesale_electricity_price_data_monthly.csv   monthly day-ahead prices (EUR/MWh), Europe
   IRENA  IRENA_Statistics_Extract_2025H2.xlsx  installed capacity (all technologies) and generation, per country
   EI     EI-Stats-Review-ALL-data-2025.xlsx    Energy Institute Statistical Review 2025: generation by fuel, wind/solar capacity,
-         wholesale fuel prices (gas markers, coal markers, Brent) -> quantity fuel_price per region
+         and the 2024 fuel-price markers (Henry Hub/TTF/LNG, coal FOB/CIF, crude) converted to EUR/MWh_th
          (Cloudflare-gated; archive link in the README, fetched with a browser and kept in the repo)
   ECB    annual average reference exchange rates (EUR base)
   manual_points.csv   hand-curated points with citation (national statistics, prices, 2050 outlooks)
@@ -17,16 +17,17 @@ Output columns: region,country,scenario,quantity,carrier,value,unit,year,source_
   country   ISO2 of a single country, empty for region totals
   scenario  now (actual statistics) | zero (2050 outlooks)
   quantity  generation | capacity | demand | price | emissions | fuel_price
-  carrier   coal gas oil nuclear hydro wind solar biomass geothermal other battery H2 total
-  unit      TWh | GW | MtCO2 | EUR/MWh (electricity prices, and fuel prices per MWh of fuel; converted with the ECB annual
-            average of the data year; manual fuel prices may be given as <CUR>[<FXyear>]/MMBtu, /bbl (5.8 MMBtu) or
-            /t@<kcal>kcal (coal energy content in kcal/kg))
+  carrier   coal gas oil nuclear hydro wind solar biomass geothermal other battery H2 total (+ lignite uranium for fuel_price)
+  unit      TWh | GW | MtCO2 | EUR/MWh (electricity, ECB annual average of the data year) | EUR/MWh_th (fuel, net calorific
+            value; manual rows may be quoted as <CUR>[<fxyear>]/MMBtu (gross CV, x1.108), /bbl (1.615 MWh_NCV/bbl) or
+            /t@<kcal>kcal (kcal/kg NAR x 0.001163 MWh/t) and are converted here)
 
 Snakemake: rule build_validation_points in validation.smk. Standalone (fork pixi env):
     pixi run python ../../config-pypsa-earth/scripts/build_validation.py --out resources/catalyst/validation_points.csv
 """
 import argparse
 import os
+
 import re
 
 import numpy as np
@@ -51,37 +52,20 @@ IRENA_TECH = {"Coal and peat": "coal", "Natural gas": "gas", "Oil": "oil", "Nucl
               "Renewable municipal waste": "biomass", "Solid biofuels": "biomass", "Geothermal energy": "geothermal",
               "Marine energy": "other", "Solar photovoltaic": "solar", "Solar thermal energy": "solar",
               "Offshore wind energy": "wind", "Onshore wind energy": "wind"}
-CARRIERS = ["coal", "gas", "oil", "nuclear", "hydro", "wind", "solar", "biomass", "geothermal", "other", "battery", "H2", "total"]
-MWH_PER_MMBTU = 0.293071                   # 1 million Btu
-MWH_PER_BBL = 5.8 * MWH_PER_MMBTU          # EIA convention: 5.8 MMBtu per barrel of crude oil (1.70 MWh)
-MWH_PER_KCAL_KG = 4.1868e-3 / 3.6          # 1 kcal/kg of coal energy content = 1.163 kWh per tonne
+CARRIERS = ["coal", "gas", "oil", "nuclear", "hydro", "wind", "solar", "biomass", "geothermal", "other", "battery", "H2", "total",
+            "lignite", "uranium"]
+MMBTU_PER_MWH = 3.41214          # 1 MWh = 3.41214 million Btu
+GCV_NCV_GAS = 1.108              # gas markers are quoted per MMBtu gross calorific value; the model's EUR/MWh_th is net (IEA ratio)
+MWH_NCV_PER_BBL = 1.615          # 5.8 MMBtu/bbl (EIA crude convention, gross) x 0.95 NCV/GCV x 0.293071 MWh/MMBtu
+MWH_PER_KCAL_KG = 0.001163       # 1 kcal/kg = 1.163 kWh/t
 
 
-def fx_rate(fx, cur, year):
-    """ECB annual average <cur> per EUR."""
-    if cur == "EUR":
-        return 1.0
-    fy = fx.loc[(fx.CURRENCY == cur) & (fx.TIME_PERIOD == int(year)), "OBS_VALUE"]
-    if fy.empty:
-        raise SystemExit(f"no ECB rate for {cur} {year}")
-    return float(fy.iloc[0])
-
-
-def fuel_unit_to_eur_mwh(value, unit, year, fx):
-    """'<CUR>[<FXyear>]/MMBtu' | '/bbl' | '/t@<kcal>kcal' | '/MWh' | '/kWh' -> (EUR/MWh, note), None if not a fuel unit."""
-    m = re.fullmatch(r"([A-Z]{3})(\d{4})?/(MMBtu|bbl|MWh|kWh|t@(\d+)kcal)", unit.strip())
-    if not m:
-        return None
-    cur, fxy, den, kcal = m.group(1), m.group(2) or year, m.group(3), m.group(4)
-    per_mwh = {"MMBtu": 1 / MWH_PER_MMBTU, "bbl": 1 / MWH_PER_BBL, "MWh": 1.0, "kWh": 1e3}.get(den)
-    if per_mwh is None:
-        per_mwh = 1 / (float(kcal) * MWH_PER_KCAL_KG)
-    v = value * per_mwh / fx_rate(fx, cur, fxy)
-    how = {"MMBtu": "1 MMBtu = 0.2931 MWh", "bbl": "5.8 MMBtu/bbl = 1.70 MWh", "MWh": "", "kWh": ""}.get(den)
-    if how is None:
-        how = f"{kcal} kcal/kg = {float(kcal) * MWH_PER_KCAL_KG:.2f} MWh/t"
-    note = f"converted from {value:g} {unit}" + (f" ({how})" if how else "") + (f" at ECB {fxy} average" if cur != "EUR" else "")
-    return v, note
+def fxrate(fx, cur, year):
+    """ECB annual average <cur> per EUR of `year`."""
+    r = fx.loc[(fx.CURRENCY == cur) & (fx.TIME_PERIOD == int(year)), "OBS_VALUE"]
+    if r.empty:
+        raise SystemExit(f"no ECB rate for {cur} {year} in ecb_fx_annual.csv")
+    return float(r.iloc[0])
 
 
 def regions():
@@ -265,62 +249,60 @@ def ei(path, regs, year=2024):
     return pd.DataFrame(out)
 
 
-# EI wholesale fuel price markers per region: gas marker (USD/MMBtu), (coal marker, energy content kcal/kg) for USD/t
-EI_FUEL = {
-    "NWE": {"gas": "Netherlands TTF", "coal": ("Northwest Europe", 6000)},
-    "US": {"gas": "US Henry Hub", "coal": ("United States", 6900)},          # 2024: NAPP FOB Baltimore 6,900 kcal/kg NAR
-    "CN": {"gas": "China (Mainland)", "coal": ("South China", 5500)},
-    "SG": {"gas": "Japan Korea Marker"},
-    "IN": {"gas": "West India Marker", "coal": ("Indonesia", 5000)},         # FOB Kalimantan 5,000 kcal/kg GAR
-    "BR": {"coal": ("Colombia", 6000)},
-}
+EI_GAS = {"US": ("US Henry Hub", "Henry Hub"), "NWE": ("Netherlands TTF", "TTF"),
+          "CN": ("China (Mainland)", "LNG China (mainland) cif"), "IN": ("West India Marker", "LNG West India Marker (Platts WIM)"),
+          "SG": ("Japan Korea Marker", "LNG Japan Korea Marker (Platts JKM)")}
+EI_COAL = {"US": ("United States", 6900, "NAPP FOB Baltimore 6,900 kcal/kg NAR"), "NWE": ("Northwest Europe", 6000, "CIF ARA 6,000 kcal/kg NAR"),
+           "CN": ("South China", 5500, "CFR South China 5,500 kcal/kg NAR"),
+           "IN": ("South Africa", 5500, "FOB Richards Bay 5,500 kcal/kg NAR, India's import marker (domestic CIL coal is cheaper)")}
+EI_OIL = {"US": "West Texas", "NWE": "Brent", "BR": "Brent", "CN": "Dubai", "IN": "Dubai", "SG": "Dubai"}
 
 
-def _ei_price_row(x, sheet, header_row, year):
-    """Price sheet (markers as columns, years as rows) -> Series header label -> value of `year`."""
+def _ei_price_sheet(x, sheet, year, header_row):
+    """Price sheet (years x markers) -> {marker header (footnote digits stripped): value of `year`}."""
     df = x.parse(sheet, header=None)
-    hdr = df.loc[header_row].astype(str).str.replace("\n", " ").str.strip()
-    r = df.index[df[0].astype(str).str.strip() == str(year)][0]
-    return pd.Series(pd.to_numeric(df.loc[r].values, errors="coerce"), index=hdr.values)
+    hdr = {c: re.sub(r"\d+$", "", str(df.at[header_row, c]).replace("\n", " ")).strip() for c in df.columns[1:]}
+    row = df[df[0].astype(str).str.strip() == str(year)]
+    if row.empty:
+        return {}
+    row = row.iloc[0]
+    return {h: pd.to_numeric(row[c], errors="coerce") for c, h in hdr.items() if h and h != "nan"}
 
 
-def _pick(row, key):
-    hits = [c for c in row.index if key in c]
-    if not hits:
-        raise SystemExit(f"EI price marker '{key}' not found in {list(row.index)}")
-    return float(row[hits[0]]), hits[0]
-
-
-def ei_fuel_prices(path, regs, fx, year=2024):
-    """EI Statistical Review wholesale prices -> fuel_price points (EUR/MWh of fuel): gas markers (USD/MMBtu, GCV basis),
-    coal markers (USD/t, energy content from the sheet footnotes) and Brent (USD/bbl, 5.8 MMBtu/bbl) per region."""
+def ei_fuel(path, regs, fx, year=2024):
+    """Energy Institute fuel-price markers of `year` -> fuel_price rows in EUR/MWh_th (NCV)."""
     if not os.path.exists(path):
         return pd.DataFrame(columns=COLS)
     x = pd.ExcelFile(path)
-    gas = _ei_price_row(x, "Gas Prices ", 3, year)
-    coal = _ei_price_row(x, "Coal & Uranium - Prices", 3, year)
-    crude = _ei_price_row(x, "Spot crude prices", 1, year)
-    src = (f"Energy Institute, Statistical Review of World Energy {year + 1} (EI-Stats-Review-ALL-data.xlsx), "
-           "sheets 'Gas Prices', 'Coal & Uranium - Prices', 'Spot crude prices'")
+    gas = _ei_price_sheet(x, "Gas Prices ", year, 3)
+    coal = _ei_price_sheet(x, "Coal & Uranium - Prices", year, 3)
+    oil = _ei_price_sheet(x, "Spot crude prices", year, 1)
+    usd = fxrate(fx, "USD", year)
+    src = f"Energy Institute, Statistical Review of World Energy {year + 1}, sheets 'Gas Prices', 'Coal & Uranium - Prices', 'Spot crude prices' (S&P Global Commodity Insights)"
     url = "https://www.energyinst.org/statistical-review/resources-and-data-downloads"
+    pick = lambda table, key: next((v for h, v in table.items() if h.startswith(key)), np.nan)
     out = []
     for reg in regs:
-        spec = EI_FUEL.get(reg, {})
-        if "gas" in spec:
-            v, lab = _pick(gas, spec["gas"])
-            eur, how = fuel_unit_to_eur_mwh(v, "USD/MMBtu", year, fx)
-            out += rows(reg, "now", "fuel_price", "EUR/MWh", year, f"EI {year}", src, url,
-                        f"{lab} annual average, gross calorific value basis; {how}", {"gas": eur})
-        if "coal" in spec:
-            key, kcal = spec["coal"]
-            v, lab = _pick(coal, key)
-            eur, how = fuel_unit_to_eur_mwh(v, f"USD/t@{kcal}kcal", year, fx)
-            out += rows(reg, "now", "fuel_price", "EUR/MWh", year, f"EI {year}", src, url,
-                        f"{lab} steam coal marker annual average, {kcal} kcal/kg; {how}", {"coal": eur})
-        v, lab = _pick(crude, "Brent")
-        eur, how = fuel_unit_to_eur_mwh(v, "USD/bbl", year, fx)
-        out += rows(reg, "now", "fuel_price", "EUR/MWh", year, f"EI {year}", src, url,
-                    f"Brent dated crude annual average (not a fuel-oil price); {how}", {"oil": eur})
+        vals, notes = {}, []
+        if reg in EI_GAS:
+            v = pick(gas, EI_GAS[reg][0])
+            if pd.notna(v):
+                vals["gas"] = v * MMBTU_PER_MWH * GCV_NCV_GAS / usd
+                notes.append(f"gas: {EI_GAS[reg][1]} {v:.2f} USD/MMBtu (GCV) x{GCV_NCV_GAS} GCV/NCV")
+        if reg in EI_COAL:
+            key, kcal, desc = EI_COAL[reg]
+            v = pick(coal, key)
+            if pd.notna(v):
+                vals["coal"] = v / (kcal * MWH_PER_KCAL_KG) / usd
+                notes.append(f"coal: {desc} {v:.1f} USD/t = {kcal * MWH_PER_KCAL_KG:.2f} MWh/t")
+        if reg in EI_OIL:
+            v = pick(oil, EI_OIL[reg])
+            if pd.notna(v):
+                vals["oil"] = v / MWH_NCV_PER_BBL / usd
+                notes.append(f"oil: {EI_OIL[reg]} crude {v:.1f} USD/bbl at {MWH_NCV_PER_BBL} MWh_NCV/bbl")
+        if vals:
+            out += rows(reg, "now", "fuel_price", "EUR/MWh_th", year, f"EI {year}", src, url,
+                        "; ".join(notes) + f"; ECB USD {year} average {usd:.3f}", vals)
     return pd.DataFrame(out)
 
 
@@ -338,14 +320,7 @@ def manual(path, fx):
         raise SystemExit(f"manual_points.csv: unknown carriers {sorted(bad)}; allowed: {CARRIERS}")
     for i, r in m.iterrows():
         u = r.unit.strip()
-        if u in ("TWh", "GW", "MtCO2", "EUR/MWh"):
-            continue
-        if r.quantity == "fuel_price":
-            conv = fuel_unit_to_eur_mwh(r.value, u, r.year, fx)
-            if conv is None:
-                raise SystemExit(f"manual_points.csv row {i}: fuel price unit '{u}' not understood")
-            m.at[i, "value"], m.at[i, "unit"] = conv[0], "EUR/MWh"
-            m.at[i, "note"] = (r.note + "; " if r.note else "") + conv[1]
+        if u in ("TWh", "GW", "MtCO2", "EUR/MWh", "EUR/MWh_th"):
             continue
         if u in ("GWp", "GWac", "GWdc"):
             m.at[i, "unit"] = "GW"
@@ -355,16 +330,26 @@ def manual(path, fx):
             m.at[i, "value"], m.at[i, "unit"] = r.value / 1e3, "TWh"
         elif u == "ktCO2":
             m.at[i, "value"], m.at[i, "unit"] = r.value / 1e3, "MtCO2"
-        elif "/" in u and u.split("/")[1] in ("MWh", "kWh"):
-            cur, per = u.split("/")
-            v = r.value * (1e3 if per == "kWh" else 1.0)
+        elif re.match(r"^[A-Z]{3}(\d{4})?/", u):
+            # <CUR>[<currency year>]/<per>: electricity MWh|kWh, or fuel MMBtu (gross CV) | bbl | t@<kcal>kcal (NAR)
+            cur, per = u.split("/", 1)
+            cur, fxy = cur[:3], int(cur[3:]) if len(cur) > 3 else int(r.year)
+            if per in ("MWh", "kWh"):
+                v, unit = r.value * (1e3 if per == "kWh" else 1.0), "EUR/MWh"
+            elif per == "MMBtu":
+                v, unit = r.value * MMBTU_PER_MWH * GCV_NCV_GAS, "EUR/MWh_th"
+            elif per == "bbl":
+                v, unit = r.value / MWH_NCV_PER_BBL, "EUR/MWh_th"
+            elif re.match(r"^t@\d+kcal$", per):
+                v, unit = r.value / (int(per[2:-4]) * MWH_PER_KCAL_KG), "EUR/MWh_th"
+            else:
+                raise SystemExit(f"manual_points.csv row {i}: unit '{u}' not understood")
             if cur != "EUR":
-                fy = fx.loc[(fx.CURRENCY == cur) & (fx.TIME_PERIOD == r.year), "OBS_VALUE"]
-                if fy.empty:
-                    raise SystemExit(f"manual_points.csv row {i}: no ECB rate for {cur} {r.year}")
-                v = v / float(fy.iloc[0])
-                m.at[i, "note"] = (r.note + "; " if r.note else "") + f"converted from {r.value:g} {u} at ECB {r.year} average"
-            m.at[i, "value"], m.at[i, "unit"] = v, "EUR/MWh"
+                v = v / fxrate(fx, cur, fxy)
+            m.at[i, "note"] = (r.note + "; " if r.note else "") + f"converted from {r.value:g} {u}" + (
+                f" at ECB {cur} {fxy} average" if cur != "EUR" else "") + (
+                f" ({GCV_NCV_GAS} GCV/NCV)" if per == "MMBtu" else f" ({MWH_NCV_PER_BBL} MWh_NCV/bbl)" if per == "bbl" else "")
+            m.at[i, "value"], m.at[i, "unit"] = v, unit
         else:
             raise SystemExit(f"manual_points.csv row {i}: unit '{u}' not understood")
     return m
@@ -374,7 +359,7 @@ def main(out, ember_csv, price_csv, irena_xlsx, fx_csv, manual_csv, ei_xlsx):
     regs = regions()
     fx = pd.read_csv(fx_csv)[["CURRENCY", "TIME_PERIOD", "OBS_VALUE"]]
     parts = [ember(ember_csv, regs), ember_prices(price_csv, ember_csv, regs), irena(irena_xlsx, regs), ei(ei_xlsx, regs),
-             ei_fuel_prices(ei_xlsx, regs, fx), manual(manual_csv, fx)]
+             ei_fuel(ei_xlsx, regs, fx), manual(manual_csv, fx)]
     df = pd.concat([p for p in parts if len(p)], ignore_index=True)[COLS]
     df = df[df.region.isin(regs)]
     df = df[(df.value != 0) | (df.carrier == "total")]          # zero rows carry no information as dots

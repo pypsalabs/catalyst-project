@@ -67,12 +67,15 @@ propose to pypsa-meets-earth, `(no relevance 4 upstream)` a fork-only change:
   `custom_rules` config key (path `../../config-pypsa-earth/validation.smk` relative to the fork root, so the fork
   itself is untouched): rule `plot_validation` draws one 16:9 block per solved network
   (`results/<run>/plots/validation_<stem>.png`), rule `validation_dashboard` one 16:9 page per region with the
-  `now` block left and the `zero` block right (`results/catalyst/validation_<R>.png`). Nine tiles per block:
+  `now` block left and the `zero` block right (`results/catalyst/validation_<R>.png`). Ten tiles per block:
   generation mix, installed capacity (hatched = added by the optimiser), price statistics (load-weighted duration
   curve, band across buses, stats box top right, CO2 shadow price), annual demand per country + load shedding,
-  CO2 by carrier, curtailment, and a bottom row with system cost (existing-fleet annuity / new build / transmission /
-  operation; the shedding penalty is listed but not added), summary tile and a map of the clustered network (nodes
-  sized by annual load, AC lines by optimised capacity, HVDC links purple, cartopy 50m coastlines/borders). Generation, capacity and emission bars are grouped into validation
+  a third row with CO2 by carrier, curtailment and the fuel prices the model assumes (the `fuel` column of the run's
+  `costs_<year>_elec.csv`, EUR/MWh thermal, with published 2024 markers / 2050 outlook assumptions as dots), and a
+  bottom row with system cost (existing-fleet annuity / new build / transmission / operation; the shedding penalty is
+  listed but not added), summary tile and an untitled map of the clustered network (nodes sized by annual load, AC
+  lines by optimised capacity, HVDC links purple; extent and grey fill = the run's `country_shapes.geojson`, i.e. the
+  modelled connected part such as CONUS; cartopy 50m coastlines/borders). Generation, capacity and emission bars are grouped into validation
   carriers (gas = CCGT|OCGT, wind = on|offAC|offDC, ...; the segment order is in the tick label) and carry
   **validation dots** (one colour/marker per source, legend under the block title); the price tile shows
   published annual averages as dashed levels. Standalone:
@@ -507,7 +510,7 @@ region (`results/catalyst/validation_<R>.png`).
 
   | Region | `now` (actuals) | `zero` (2050 outlooks) |
   |---|---|---|
-  | all | Ember 2025 (generation, capacity, demand, CO2 by fuel; life-cycle factors, so only coal/gas/oil/total are used), IRENA 2024 capacity, EI 2024 generation + wind/solar capacity | — |
+  | all | Ember 2025 (generation, capacity, demand, CO2 by fuel; life-cycle factors, so only coal/gas/oil/total are used), IRENA 2024 capacity, EI 2024 generation + wind/solar capacity; **fuel prices** EI 2024 markers per region (gas: Henry Hub / TTF / LNG China cif / West India Marker / JKM; coal: NAPP 6,900 / ARA 6,000 / South China 5,500 / Richards Bay 5,500 kcal/kg NAR; crude: WTI / Brent / Dubai) | **fuel prices** IEA WEO 2025 Table 2.3 STEPS and NZE 2050 (US, EU, China rows; Japan LNG as the Singapore proxy) and WEO 2024 APS 2050 for China |
   | US | EIA Electric Power Annual 2024 (generation, net summer capacity, total end use 4,110 TWh) + MER 11.6 power-sector CO2 by fuel; prices: ERCOT and PJM 2024 real-time load-weighted (SOM reports) | IEA WEO 2025 STEPS 2050, EIA AEO2025 Reference 2050, Princeton Net-Zero America E+ 2050 |
   | BR | EPE BEN 2025 (2024 generation by source, capacity incl. distributed PV, energy made available 763 TWh; thermal fuel split from Tabela 8.4), CCEE PLD 2024 SE/CO monthly mean, IEA WEO 2024 electricity+heat CO2 2023 | IEA WEO 2024 APS 2050, EPE PNE 2050 (demand: expansion / stagnation; capacity ranges) |
   | IN | CEA FY2024-25 (LTRAP 2026: capacity 31 Mar 2025, gross generation; energy requirement via CERC market report; CO2 Baseline Database v21 1,234 Mt), IEX day-ahead FY2024-25 average 4.47 INR/kWh | IEA WEO 2024 APS 2050, IEA WEO 2025 STEPS 2050, CEEW net-zero pathway (2050 capacity) |
@@ -521,7 +524,11 @@ region (`results/catalyst/validation_<R>.png`).
   Annex A tables of the WEO 2024 / 2025 PDFs (URLs in the CSV). The Energy Institute workbook is behind a
   Cloudflare challenge (archive link `https://www.energyinst.org/__data/assets/excel_doc/0008/1656215/EI-Stats-Review-ALL-data.xlsx`).
   Prices in local currency are converted with the ECB annual average of the data year; the US model is CONUS while
-  the statistics are national (AK + HI ≈ 1 %).
+  the statistics are national (AK + HI ≈ 1 %). Fuel prices are converted to EUR/MWh net calorific value in the
+  builder: gas markers are per MMBtu gross (×1.108 GCV/NCV), crude at 1.615 MWh_NCV/bbl (5.8 MMBtu × 0.95), coal per
+  tonne at the marker's kcal/kg NAR (× 0.001163 MWh/t); WEO 2050 values are in USD of 2024 (WEO 2025) or 2023
+  (WEO 2024) and use that year's ECB rate (unit strings `USD2024/MMBtu`, `USD2024/t@6000kcal`, `USD2024/bbl` in
+  `manual_points.csv`). Uranium and biomass have no published dot: the model's 3.4 / 7.4 EUR/MWh_th are shown alone.
 - **What the pages show** (`results/catalyst/validation_<R>.png`, numbers per region; demand is GEGIS 2030):
 
   | region | demand TWh | now: CO2 Mt (g/kWh), price EUR/MWh, cost bn/a, main additions GW | zero: price, cost bn/a, CO2 shadow EUR/t, additions GW, curtailment |
@@ -556,3 +563,10 @@ region (`results/catalyst/validation_<R>.png`).
   (8) China's fleet in the prenetwork is 10-16 % above the statistics (coal + lignite 1,310 GW vs 1,190 GW CEC,
   nuclear 70.7 GW vs 60.8 GW NEA) while hydro inflow (1,054 TWh/a) is ~26 % below observed hydro generation
   (1,426 TWh in 2024), the same inflow-calibration problem as Brazil.
+  (9) Fuel prices are one global technology-data set in every region and both cost years (gas 24.6, coal 9.6,
+  lignite 3.3, oil 52.9, uranium 3.4, biomass 7.4 EUR/MWh_th; `costs.country_specific_data` is empty). Against
+  the 2024 markers that is gas 3× too dear for the US (Henry Hub 7.8) and ~35 % too cheap for Europe and Asian
+  LNG importers (TTF 38, JKM 42, China LNG 39), coal roughly right for the US (8.9) and China (14.7 delivered)
+  but 35 % low for ARA (14.8), oil 15 % high (Brent 46). The IEA 2050 assumptions sit below the model for
+  every fuel except US gas (STEPS 16, NZE 7.7). Regional fuel prices are therefore a WP2 input, not a patch:
+  the US `now` gas share (16 %) and Europe's coal-before-gas dispatch both follow directly from this table.
