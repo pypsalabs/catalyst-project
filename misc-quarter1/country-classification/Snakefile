@@ -5,7 +5,7 @@
 # Dry run: snakemake -n     force a rule: snakemake -c1 -R egs_cells
 #
 # The split rules are chained post-processors (each replaces one national row
-# with sub-grid rows) and merge_nwe folds eight North-West European rows into
+# with sub-grid rows) and merge_nwe folds twelve North-West European rows into
 # one grid; the expensive EGS cell grid is computed once by egs_cells and read
 # from build/egs_cells.pkl everywhere else.
 

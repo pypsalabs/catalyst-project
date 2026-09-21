@@ -1,12 +1,12 @@
-"""Merge Iberia, France, Germany, Benelux and the UK into one grid row, NWE.
+"""Merge the twelve countries of config-pypsa-earth/config.NWE.yaml into one grid row, NWE.
 
 The modelled representative of the renewables-constrained, high-density
-archetype is North-West Europe as a whole, not a single country: Spain,
-Portugal, France, Germany, Belgium, the Netherlands, Luxembourg and the UK
-are one synchronous / HVDC-coupled market region (GB and the Iberian
-peninsula are tied to the continent by DC and AC interconnectors) and are
-modelled as one PyPSA network. This script replaces their eight national
-rows of country_features.csv with a single NWE row so that the classifier,
+archetype is North-West Europe as a whole, not a single country:
+Ireland, the UK, France, Benelux, Germany, Denmark, Switzerland, Austria, Czechia and Poland (the `countries` list of config-pypsa-earth/config.NWE.yaml) are one
+synchronous / HVDC-coupled market region (GB and Ireland are tied to the
+continent by DC interconnectors) and are modelled as one PyPSA network. This
+script replaces their twelve national rows of country_features.csv with a
+single NWE row so that the classifier,
 the k-means cross-check and the map treat the region as one grid, in the
 same way the split scripts treat US East / West.
 
@@ -18,7 +18,7 @@ Aggregation:
   derived    per-capita demand, import share, generation shares, realized
              capacity factors and density are recomputed from the sums
   EGS        recomputed from the 0.1 deg cell grid over the union of the
-             eight Natural Earth polygons (clipped to Europe, so the French
+             twelve Natural Earth polygons (clipped to Europe, so the French
              overseas departments drop out)
   borders    land borders with countries outside the group (GeoDataSource)
   means      protected-area share and PV yield are land-area weighted
@@ -52,8 +52,8 @@ else:
     OUT = _HERE / "country_features.csv"
 OUT.parent.mkdir(parents=True, exist_ok=True)
 
-MEMBERS = ["ESP", "PRT", "FRA", "DEU", "BEL", "NLD", "LUX", "GBR"]
-EUROPE_BOX = box(-32, 27, 20, 62)   # keeps the Azores, Madeira and the Canaries; drops overseas France
+MEMBERS = ["IRL", "GBR", "FRA", "BEL", "NLD", "LUX", "DEU", "DNK", "CHE", "AUT", "CZE", "POL"]   # config-pypsa-earth/config.NWE.yaml
+EUROPE_BOX = box(-15, 41, 25, 62)   # Ireland to eastern Poland, Corsica to Shetland; drops overseas France
 META = {"iso3": "NWE", "iso2": "XW", "name": "North-West Europe",
         "capital": "Brussels", "latitude": 48.5, "longitude": 3.0}
 

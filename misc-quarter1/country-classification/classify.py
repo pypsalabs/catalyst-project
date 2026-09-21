@@ -143,7 +143,7 @@ df = pd.read_csv(FEATURES)
 EMBER = (_HERE if "snakemake" not in globals() else FEATURES.parent) / "data" / "yearly_full_release_long_format.csv"
 EMISSIONS_YEAR = 2024
 SPLITS = {"USA": ["USE", "USW"], "AUS": ["AUN", "AUW"], "MYS": ["MYW", "MYE"]}
-MERGES = {"NWE": ["ESP", "PRT", "FRA", "DEU", "BEL", "NLD", "LUX", "GBR"]}   # merge_nwe.py
+MERGES = {"NWE": ["IRL", "GBR", "FRA", "BEL", "NLD", "LUX", "DEU", "DNK", "CHE", "AUT", "CZE", "POL"]}   # merge_nwe.py
 FUEL_COLS = {"Coal": "gen_coal_twh", "Gas": "gen_gas_twh", "Other Fossil": "gen_other_fossil_twh"}
 
 
@@ -475,8 +475,8 @@ layer = {
     "description": (
         "Decision-tree classification from country_features.csv "
         "(misc-quarter1/country-classification/classify.py). The US (East incl. ERCOT / West), Australia "
-        "(NEM / SWIS) and Malaysia (Peninsular / Borneo) are split into their grids; Iberia, France, "
-        "Germany, Benelux and the UK are merged into one North-West Europe grid (merge_nwe.py). "
+        "(NEM / SWIS) and Malaysia (Peninsular / Borneo) are split into their grids; Ireland, the UK, France, Benelux, Germany, Denmark, Switzerland, Austria, Czechia and Poland "
+        "are merged into one North-West Europe grid (merge_nwe.py, as in config.NWE.yaml). "
         + (f"Modelled grids: {modelled_names}." if MODELLED_FIXED else
            f"Modelled countries are a random placeholder draw (seed {MODELLED_SEED}): {modelled_names}.")),
     "archetypes": ARCHETYPE_IDS,

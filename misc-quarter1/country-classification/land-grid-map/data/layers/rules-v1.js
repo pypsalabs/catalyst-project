@@ -3,7 +3,7 @@ window.LAYERS = window.LAYERS || [];
 window.LAYERS.push({
  "id": "rules-v1",
  "name": "Rule-based v1",
- "description": "Decision-tree classification from country_features.csv (misc-quarter1/country-classification/classify.py). The US (East incl. ERCOT / West), Australia (NEM / SWIS) and Malaysia (Peninsular / Borneo) are split into their grids; Iberia, France, Germany, Benelux and the UK are merged into one North-West Europe grid (merge_nwe.py). Modelled grids: North-West Europe (dense), United States (West) (geothermal), Australia (SWIS) (islanded), Brazil (hydro), United States (East) (fossil).",
+ "description": "Decision-tree classification from country_features.csv (misc-quarter1/country-classification/classify.py). The US (East incl. ERCOT / West), Australia (NEM / SWIS) and Malaysia (Peninsular / Borneo) are split into their grids; Ireland, the UK, France, Benelux, Germany, Denmark, Switzerland, Austria, Czechia and Poland are merged into one North-West Europe grid (merge_nwe.py, as in config.NWE.yaml). Modelled grids: North-West Europe (dense), United States (West) (geothermal), Australia (SWIS) (islanded), Brazil (hydro), United States (East) (fossil).",
  "archetypes": [
   "dense",
   "geothermal",
@@ -50,10 +50,6 @@ window.LAYERS.push({
   "032": {
    "archetype": "fossil",
    "proximity": 0.368
-  },
-  "040": {
-   "archetype": "hydro",
-   "proximity": 0.529
   },
   "031": {
    "archetype": "fossil",
@@ -139,10 +135,6 @@ window.LAYERS.push({
    "archetype": "fossil",
    "proximity": 0.782
   },
-  "756": {
-   "archetype": "hydro",
-   "proximity": 0.538
-  },
   "384": {
    "archetype": "fossil",
    "proximity": 0.622
@@ -179,17 +171,9 @@ window.LAYERS.push({
    "archetype": "fossil",
    "proximity": 0.645
   },
-  "203": {
-   "archetype": "dense",
-   "proximity": 0.604
-  },
   "262": {
    "archetype": "geothermal",
    "proximity": 1.0
-  },
-  "208": {
-   "archetype": "dense",
-   "proximity": 0.651
   },
   "212": {
    "archetype": "geothermal",
@@ -218,6 +202,10 @@ window.LAYERS.push({
   "232": {
    "archetype": "geothermal",
    "proximity": 0.475
+  },
+  "724": {
+   "archetype": "islanded",
+   "proximity": 0.383
   },
   "231": {
    "archetype": "hydro",
@@ -298,10 +286,6 @@ window.LAYERS.push({
   "360": {
    "archetype": "geothermal",
    "proximity": 0.766
-  },
-  "372": {
-   "archetype": "fossil",
-   "proximity": 0.236
   },
   "376": {
    "archetype": "fossil",
@@ -543,9 +527,9 @@ window.LAYERS.push({
    "archetype": "islanded",
    "proximity": 0.547
   },
-  "616": {
-   "archetype": "fossil",
-   "proximity": 0.575
+  "620": {
+   "archetype": "islanded",
+   "proximity": 0.466
   },
   "585": {
    "archetype": "islanded",
@@ -773,36 +757,36 @@ window.LAYERS.push({
   },
   "NWE": {
    "archetype": "dense",
-   "proximity": 0.55
+   "proximity": 0.626
   }
  },
  "totals": {
   "population": {
-   "dense": 578433303.0,
+   "dense": 578494116.0,
    "geothermal": 921826583.0491495,
-   "islanded": 352572352.78529626,
-   "hydro": 1222601654.090909,
-   "fossil": 5094092007.405419
+   "islanded": 412732366.78529626,
+   "hydro": 1204301055.090909,
+   "fossil": 5052171779.405419
   },
   "demand_twh": {
-   "dense": 4004.376547309013,
+   "dense": 4021.936547309014,
    "geothermal": 2593.3803260915447,
-   "islanded": 355.297334535,
-   "hydro": 2504.108237605052,
-   "fossil": 21849.909750302166
+   "islanded": 690.907334535,
+   "hydro": 2361.638237605053,
+   "fossil": 21639.20975030217
   },
   "emissions_mt": {
-   "dense": 1203.21,
+   "dense": 1280.8600000000001,
    "geothermal": 1046.5900000000001,
-   "islanded": 103.22999999999999,
-   "hydro": 349.71,
-   "fossil": 11591.28
+   "islanded": 149.54000000000002,
+   "hydro": 338.88000000000005,
+   "fossil": 11478.149999999998
   }
  },
  "modelled_totals": {
-  "population": 867966212.1160706,
-  "demand_twh": 7163.932422038765,
-  "emissions_mt": 2074.46
+  "population": 884923072.1160706,
+  "demand_twh": 7291.502422038765,
+  "emissions_mt": 2186.92
  },
  "totals_meta": {
   "population": {
@@ -823,7 +807,7 @@ window.LAYERS.push({
    "year": "2024",
    "source": "Ember yearly release, 2024 (latest year where missing); sub-national grids apportioned by fossil generation"
   },
-  "coverage": "189 classified grids, 180 with emissions data"
+  "coverage": "185 classified grids, 176 with emissions data"
  },
  "explain": {
   "kind": "rules",
@@ -1619,65 +1603,6 @@ window.LAYERS.push({
      "islanded": 0.436,
      "hydro": 0.0,
      "fossil": 0.368
-    }
-   },
-   {
-    "key": "040",
-    "iso3": "AUT",
-    "name": "Austria",
-    "archetype": "hydro",
-    "rule": "R3",
-    "proximity": 0.529,
-    "demand_twh": 77.4,
-    "v": [
-     0.472,
-     0.0,
-     0.028,
-     0.518,
-     0.0,
-     0.165,
-     0.0,
-     0.177,
-     0.431,
-     0.836,
-     0.253
-    ],
-    "disp": [
-     "111 people/km²",
-     "0 MW",
-     "0.03 share",
-     "52 % of generation",
-     "0 % of generation",
-     "16 % of generation",
-     "8 land borders",
-     "5 % of demand, absolute",
-     "77 TWh",
-     "8,404 kWh/cap",
-     "3.3 kWh/kWp/day"
-    ],
-    "path": [
-     {
-      "rule": "R1",
-      "pass": false,
-      "why": "density 111 < 2,000 /km²"
-     },
-     {
-      "rule": "R2",
-      "pass": false,
-      "why": "geothermal 0 MW < 500; EGS share 0.03 < 0.15"
-     },
-     {
-      "rule": "R3",
-      "pass": true,
-      "why": "hydro 52 ≥ 40 %"
-     }
-    ],
-    "scores": {
-     "dense": 0.663,
-     "geothermal": 0.044,
-     "islanded": 0.503,
-     "hydro": 0.529,
-     "fossil": 0.0
     }
    },
    {
@@ -3030,65 +2955,6 @@ window.LAYERS.push({
     }
    },
    {
-    "key": "756",
-    "iso3": "CHE",
-    "name": "Switzerland",
-    "archetype": "hydro",
-    "rule": "R3",
-    "proximity": 0.538,
-    "demand_twh": 65.1,
-    "v": [
-     0.555,
-     0.0,
-     0.079,
-     0.523,
-     0.299,
-     0.023,
-     0.0,
-     0.003,
-     0.411,
-     0.806,
-     0.287
-    ],
-    "disp": [
-     "225 people/km²",
-     "0 MW",
-     "0.08 share",
-     "52 % of generation",
-     "30 % of generation",
-     "2 % of generation",
-     "5 land borders",
-     "0 % of demand, absolute",
-     "65 TWh",
-     "7,158 kWh/cap",
-     "3.4 kWh/kWp/day"
-    ],
-    "path": [
-     {
-      "rule": "R1",
-      "pass": false,
-      "why": "density 225 < 2,000 /km²"
-     },
-     {
-      "rule": "R2",
-      "pass": false,
-      "why": "geothermal 0 MW < 500; EGS share 0.08 < 0.15"
-     },
-     {
-      "rule": "R3",
-      "pass": true,
-      "why": "hydro 52 ≥ 40 %"
-     }
-    ],
-    "scores": {
-     "dense": 0.691,
-     "geothermal": 0.185,
-     "islanded": 0.627,
-     "hydro": 0.538,
-     "fossil": 0.0
-    }
-   },
-   {
     "key": "384",
     "iso3": "CIV",
     "name": "Ivory Coast",
@@ -3660,80 +3526,6 @@ window.LAYERS.push({
     }
    },
    {
-    "key": "203",
-    "iso3": "CZE",
-    "name": "Czechia",
-    "archetype": "dense",
-    "rule": "R6",
-    "proximity": 0.604,
-    "demand_twh": 68.1,
-    "v": [
-     0.5,
-     0.0,
-     0.0,
-     0.023,
-     0.423,
-     0.408,
-     0.0,
-     0.364,
-     0.416,
-     0.781,
-     0.183
-    ],
-    "disp": [
-     "141 people/km²",
-     "0 MW",
-     "0.00 share",
-     "2 % of generation",
-     "42 % of generation",
-     "41 % of generation",
-     "4 land borders",
-     "11 % of demand, absolute",
-     "68 TWh",
-     "6,252 kWh/cap",
-     "3.0 kWh/kWp/day"
-    ],
-    "path": [
-     {
-      "rule": "R1",
-      "pass": false,
-      "why": "density 141 < 2,000 /km²"
-     },
-     {
-      "rule": "R2",
-      "pass": false,
-      "why": "geothermal 0 MW < 500; EGS share 0.00 < 0.15"
-     },
-     {
-      "rule": "R3",
-      "pass": false,
-      "why": "hydro 2 < 40 %"
-     },
-     {
-      "rule": "R4",
-      "pass": false,
-      "why": "fossil 41 < 70 %"
-     },
-     {
-      "rule": "R5",
-      "pass": false,
-      "why": "4 land borders; |imports| 11 % ≥ 5"
-     },
-     {
-      "rule": "R6",
-      "pass": true,
-      "why": "nuclear 42 % ≥ 40"
-     }
-    ],
-    "scores": {
-     "dense": 0.604,
-     "geothermal": 0.0,
-     "islanded": 0.385,
-     "hydro": 0.0,
-     "fossil": 0.017
-    }
-   },
-   {
     "key": "262",
     "iso3": "DJI",
     "name": "Djibouti",
@@ -3785,90 +3577,6 @@ window.LAYERS.push({
      "islanded": 0.333,
      "hydro": 0.0,
      "fossil": 0.5
-    }
-   },
-   {
-    "key": "208",
-    "iso3": "DNK",
-    "name": "Denmark",
-    "archetype": "dense",
-    "rule": "R8",
-    "proximity": 0.651,
-    "demand_twh": 41.9,
-    "v": [
-     0.507,
-     0.0,
-     0.0,
-     0.001,
-     0.0,
-     0.058,
-     0.5,
-     0.589,
-     0.36,
-     0.801,
-     0.113
-    ],
-    "disp": [
-     "149 people/km²",
-     "0 MW",
-     "0.00 share",
-     "0 % of generation",
-     "0 % of generation",
-     "6 % of generation",
-     "1 land border",
-     "18 % of demand, absolute",
-     "42 TWh",
-     "6,979 kWh/cap",
-     "2.8 kWh/kWp/day"
-    ],
-    "path": [
-     {
-      "rule": "R1",
-      "pass": false,
-      "why": "density 149 < 2,000 /km²"
-     },
-     {
-      "rule": "R2",
-      "pass": false,
-      "why": "geothermal 0 MW < 500; EGS share 0.00 < 0.15"
-     },
-     {
-      "rule": "R3",
-      "pass": false,
-      "why": "hydro 0 < 40 %"
-     },
-     {
-      "rule": "R4",
-      "pass": false,
-      "why": "fossil 6 < 70 %"
-     },
-     {
-      "rule": "R5",
-      "pass": false,
-      "why": "1 land border; |imports| 18 % ≥ 5"
-     },
-     {
-      "rule": "R6",
-      "pass": false,
-      "why": "density 149 < 200; nuclear 0 % < 40"
-     },
-     {
-      "rule": "R7",
-      "pass": false,
-      "why": "fossil 6 < 50 %"
-     },
-     {
-      "rule": "R8",
-      "pass": true,
-      "why": "highest membership score: dense (0.65)"
-     }
-    ],
-    "scores": {
-     "dense": 0.651,
-     "geothermal": 0.0,
-     "islanded": 0.478,
-     "hydro": 0.0,
-     "fossil": 0.0
     }
    },
    {
@@ -4312,6 +4020,90 @@ window.LAYERS.push({
      "islanded": 0.667,
      "hydro": 0.0,
      "fossil": 0.978
+    }
+   },
+   {
+    "key": "724",
+    "iso3": "ESP",
+    "name": "Spain",
+    "archetype": "islanded",
+    "rule": "R8",
+    "proximity": 0.383,
+    "demand_twh": 275.2,
+    "v": [
+     0.457,
+     0.0,
+     0.022,
+     0.114,
+     0.188,
+     0.254,
+     0.0,
+     0.155,
+     0.579,
+     0.759,
+     0.637
+    ],
+    "disp": [
+     "97 people/km²",
+     "0 MW",
+     "0.02 share",
+     "11 % of generation",
+     "19 % of generation",
+     "25 % of generation",
+     "5 land borders",
+     "5 % of demand, absolute",
+     "275 TWh",
+     "5,576 kWh/cap",
+     "4.4 kWh/kWp/day"
+    ],
+    "path": [
+     {
+      "rule": "R1",
+      "pass": false,
+      "why": "density 97 < 2,000 /km²"
+     },
+     {
+      "rule": "R2",
+      "pass": false,
+      "why": "geothermal 0 MW < 500; EGS share 0.02 < 0.15"
+     },
+     {
+      "rule": "R3",
+      "pass": false,
+      "why": "hydro 11 < 40 %"
+     },
+     {
+      "rule": "R4",
+      "pass": false,
+      "why": "fossil 25 < 70 %"
+     },
+     {
+      "rule": "R5",
+      "pass": false,
+      "why": "5 land borders; demand 275 TWh ≥ 250"
+     },
+     {
+      "rule": "R6",
+      "pass": false,
+      "why": "density 97 < 200; solar 4.4 ≥ 4.2; nuclear 19 % < 40"
+     },
+     {
+      "rule": "R7",
+      "pass": false,
+      "why": "fossil 25 < 50 %"
+     },
+     {
+      "rule": "R8",
+      "pass": true,
+      "why": "highest membership score: islanded (0.38)"
+     }
+    ],
+    "scores": {
+     "dense": 0.28,
+     "geothermal": 0.072,
+     "islanded": 0.383,
+     "hydro": 0.0,
+     "fossil": 0.0
     }
    },
    {
@@ -5642,85 +5434,6 @@ window.LAYERS.push({
      "islanded": 0.414,
      "hydro": 0.0,
      "fossil": 0.838
-    }
-   },
-   {
-    "key": "372",
-    "iso3": "IRL",
-    "name": "Ireland",
-    "archetype": "fossil",
-    "rule": "R7",
-    "proximity": 0.236,
-    "demand_twh": 37.1,
-    "v": [
-     0.43,
-     0.0,
-     0.0,
-     0.021,
-     0.0,
-     0.518,
-     0.5,
-     0.551,
-     0.346,
-     0.795,
-     0.003
-    ],
-    "disp": [
-     "77 people/km²",
-     "0 MW",
-     "0.00 share",
-     "2 % of generation",
-     "0 % of generation",
-     "52 % of generation",
-     "1 land border",
-     "17 % of demand, absolute",
-     "37 TWh",
-     "6,761 kWh/cap",
-     "2.5 kWh/kWp/day"
-    ],
-    "path": [
-     {
-      "rule": "R1",
-      "pass": false,
-      "why": "density 77 < 2,000 /km²"
-     },
-     {
-      "rule": "R2",
-      "pass": false,
-      "why": "geothermal 0 MW < 500; EGS share 0.00 < 0.15"
-     },
-     {
-      "rule": "R3",
-      "pass": false,
-      "why": "hydro 2 < 40 %"
-     },
-     {
-      "rule": "R4",
-      "pass": false,
-      "why": "fossil 52 < 70 %"
-     },
-     {
-      "rule": "R5",
-      "pass": false,
-      "why": "1 land border; |imports| 17 % ≥ 5"
-     },
-     {
-      "rule": "R6",
-      "pass": false,
-      "why": "density 77 < 200; nuclear 0 % < 40"
-     },
-     {
-      "rule": "R7",
-      "pass": true,
-      "why": "fossil 52 ≥ 50 %"
-     }
-    ],
-    "scores": {
-     "dense": 0.598,
-     "geothermal": 0.013,
-     "islanded": 0.482,
-     "hydro": 0.0,
-     "fossil": 0.236
     }
    },
    {
@@ -9529,82 +9242,87 @@ window.LAYERS.push({
     }
    },
    {
-    "key": "616",
-    "iso3": "POL",
-    "name": "Poland",
-    "archetype": "fossil",
-    "rule": "R7",
-    "proximity": 0.575,
-    "demand_twh": 173.6,
+    "key": "620",
+    "iso3": "PRT",
+    "name": "Portugal",
+    "archetype": "islanded",
+    "rule": "R8",
+    "proximity": 0.466,
+    "demand_twh": 60.4,
     "v": [
-     0.481,
+     0.477,
+     0.318,
+     0.017,
+     0.297,
      0.0,
-     0.0,
-     0.01,
-     0.0,
-     0.687,
-     0.0,
-     0.02,
-     0.525,
-     0.729,
-     0.16
+     0.191,
+     0.5,
+     0.512,
+     0.402,
+     0.76,
+     0.607
     ],
     "disp": [
-     "120 people/km²",
-     "0 MW",
-     "0.00 share",
-     "1 % of generation",
+     "115 people/km²",
+     "29 MW",
+     "0.02 share",
+     "30 % of generation",
      "0 % of generation",
-     "69 % of generation",
-     "7 land borders",
-     "1 % of demand, absolute",
-     "174 TWh",
-     "4,765 kWh/cap",
-     "3.0 kWh/kWp/day"
+     "19 % of generation",
+     "1 land border",
+     "15 % of demand, absolute",
+     "60 TWh",
+     "5,593 kWh/cap",
+     "4.3 kWh/kWp/day"
     ],
     "path": [
      {
       "rule": "R1",
       "pass": false,
-      "why": "density 120 < 2,000 /km²"
+      "why": "density 115 < 2,000 /km²"
      },
      {
       "rule": "R2",
       "pass": false,
-      "why": "geothermal 0 MW < 500; EGS share 0.00 < 0.15"
+      "why": "geothermal 29 MW < 500; EGS share 0.02 < 0.15"
      },
      {
       "rule": "R3",
       "pass": false,
-      "why": "hydro 1 < 40 %"
+      "why": "hydro 30 < 40 %"
      },
      {
       "rule": "R4",
       "pass": false,
-      "why": "fossil 69 < 70 %"
+      "why": "fossil 19 < 70 %"
      },
      {
       "rule": "R5",
       "pass": false,
-      "why": "7 land borders"
+      "why": "1 land border; |imports| 15 % ≥ 5"
      },
      {
       "rule": "R6",
       "pass": false,
-      "why": "density 120 < 200; nuclear 0 % < 40"
+      "why": "density 115 < 200; solar 4.3 ≥ 4.2; nuclear 0 % < 40"
      },
      {
       "rule": "R7",
+      "pass": false,
+      "why": "fossil 19 < 50 %"
+     },
+     {
+      "rule": "R8",
       "pass": true,
-      "why": "fossil 69 ≥ 50 %"
+      "why": "highest membership score: islanded (0.47)"
      }
     ],
     "scores": {
-     "dense": 0.503,
-     "geothermal": 0.004,
-     "islanded": 0.542,
-     "hydro": 0.0,
-     "fossil": 0.575
+     "dense": 0.312,
+     "geothermal": 0.176,
+     "islanded": 0.466,
+     "hydro": 0.162,
+     "fossil": 0.0
     }
    },
    {
@@ -13252,80 +12970,80 @@ window.LAYERS.push({
     "name": "North-West Europe",
     "archetype": "dense",
     "rule": "R8",
-    "proximity": 0.55,
-    "demand_twh": 1861.6,
+    "proximity": 0.626,
+    "demand_twh": 1989.2,
     "v": [
-     0.526,
-     0.484,
-     0.089,
-     0.07,
-     0.268,
-     0.26,
+     0.53,
+     0.453,
+     0.084,
+     0.08,
+     0.252,
+     0.295,
      0.0,
-     0.078,
-     0.803,
-     0.771,
-     0.338
+     0.049,
+     0.81,
+     0.774,
+     0.183
     ],
     "disp": [
-     "175 people/km²",
-     "123 MW",
-     "0.09 share",
-     "7 % of generation",
-     "27 % of generation",
-     "26 % of generation",
-     "11 land borders",
-     "2 % of demand, absolute",
-     "1,862 TWh",
-     "5,956 kWh/cap",
-     "3.5 kWh/kWp/day"
+     "182 people/km²",
+     "94 MW",
+     "0.08 share",
+     "8 % of generation",
+     "25 % of generation",
+     "29 % of generation",
+     "12 land borders",
+     "1 % of demand, absolute",
+     "1,989 TWh",
+     "6,036 kWh/cap",
+     "3.0 kWh/kWp/day"
     ],
     "path": [
      {
       "rule": "R1",
       "pass": false,
-      "why": "density 175 < 2,000 /km²"
+      "why": "density 182 < 2,000 /km²"
      },
      {
       "rule": "R2",
       "pass": false,
-      "why": "geothermal 123 MW < 500; EGS share 0.09 < 0.15"
+      "why": "geothermal 94 MW < 500; EGS share 0.08 < 0.15"
      },
      {
       "rule": "R3",
       "pass": false,
-      "why": "hydro 7 < 40 %"
+      "why": "hydro 8 < 40 %"
      },
      {
       "rule": "R4",
       "pass": false,
-      "why": "fossil 26 < 70 %"
+      "why": "fossil 29 < 70 %"
      },
      {
       "rule": "R5",
       "pass": false,
-      "why": "11 land borders; demand 1,862 TWh ≥ 250"
+      "why": "12 land borders; demand 1,989 TWh ≥ 250"
      },
      {
       "rule": "R6",
       "pass": false,
-      "why": "density 175 < 200; nuclear 27 % < 40"
+      "why": "density 182 < 200; nuclear 25 % < 40"
      },
      {
       "rule": "R7",
       "pass": false,
-      "why": "fossil 26 < 50 %"
+      "why": "fossil 29 < 50 %"
      },
      {
       "rule": "R8",
       "pass": true,
-      "why": "highest membership score: dense (0.55)"
+      "why": "highest membership score: dense (0.63)"
      }
     ],
     "scores": {
-     "dense": 0.55,
-     "geothermal": 0.394,
-     "islanded": 0.281,
+     "dense": 0.626,
+     "geothermal": 0.364,
+     "islanded": 0.301,
      "hydro": 0.0,
      "fossil": 0.0
     }

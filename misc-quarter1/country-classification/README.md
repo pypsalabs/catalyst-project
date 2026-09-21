@@ -27,7 +27,7 @@ build_features   data/* + cells  → build/features_national.csv (193 countries)
 split_us         + EIA           → build/features_us.csv   (USA → USE/USW)
 split_au         + OpenNEM       → build/features_au.csv   (AUS → AUN/AUW)
 split_my         + handbook      → build/features_my.csv   (MYS → MYW/MYE)
-merge_nwe        + borders       → country_features.csv    (ESP+PRT+FRA+DEU+BEL+NLD+LUX+GBR → NWE, FINAL)
+merge_nwe        + borders       → country_features.csv    (IRL+GBR+FRA+BEL+NLD+LUX+DEU+DNK+CHE+AUT+CZE+POL → NWE, FINAL)
 classify         → country_archetypes.csv + land-grid-map/data/layers/rules-v1.js
 dashboard        → country_atlas.html
 ```
@@ -113,21 +113,21 @@ national.
 
 ## North-West Europe merge
 
-The rows of Spain, Portugal, France, Germany, Belgium, the Netherlands,
-Luxembourg and the UK are replaced by one `NWE` row (`merge_nwe.py`): the
+The rows of Ireland, the UK, France, Benelux, Germany, Denmark, Switzerland, Austria, Czechia and Poland (the `countries` list of
+`config-pypsa-earth/config.NWE.yaml`) are replaced by one `NWE` row (`merge_nwe.py`): the
 region is modelled as a single PyPSA network (the representative of the
 renewables-constrained, high-density archetype), so it is classified,
 clustered and drawn as one grid. Sums: population, demand, 2050 projections,
 generation and capacity by fuel, land area, geothermal capacity and net
 imports (intra-group flows cancel, so the members' net imports add up to
-the group's, −2.4 % of demand). Per-capita demand, import share, generation
+the group's, −1.5 % of demand). Per-capita demand, import share, generation
 shares, realized CFs and density are recomputed from the sums; EGS features
 are recomputed over the union polygon (clipped to Europe, French overseas
-departments dropped); land borders count non-member neighbours (11);
+departments dropped); land borders count non-member neighbours (12);
 protected-area share and PV yield are land-area weighted. In the k-means
 cross-check the clusters are fitted on the national rows
 (`build/features_my.csv`) and the `NWE` row is then folded into its nearest
-cluster (dense, where five of its eight members already sat), so the world
+cluster (dense, where eight of its twelve members already sat), so the world
 clustering does not depend on the modelling-region choice.
 
 ## Feature → source mapping

@@ -6,8 +6,9 @@ Mirrors the splits in misc-quarter1/country-classification/split_us.py, split_au
   AUS -> AUN (NEM + NT + off-grid remainder), AUW (SWIS ~ Western Australia)
   MYS -> MYW (Peninsular), MYE (Borneo: Sabah, Sarawak, Labuan), split at 106°E
 and the merge in merge_nwe.py:
-  ESP + PRT + FRA + DEU + BEL + NLD + LUX + GBR -> NWE (North-West Europe, one region; the French
-         overseas departments are clipped away and the eight parents are not drawn)
+  IRL + GBR + FRA + BEL + NLD + LUX + DEU + DNK + CHE + AUT + CZE + POL -> NWE (North-West Europe,
+         the countries of config-pypsa-earth/config.NWE.yaml, one region; the French overseas
+         departments are clipped away and the twelve parents are not drawn)
 
 Output: window.REGIONS_GEO = GeoJSON FeatureCollection, each feature with properties
 { id, name, replaces } where `replaces` is the M49 id of the country the region belongs to (a list
@@ -28,9 +29,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, 'data')
 OUT = os.path.join(HERE, 'land-grid-map', 'data', 'regions.js')   # the front-end repo
 
-NWE = {'ESP': '724', 'PRT': '620', 'FRA': '250', 'DEU': '276', 'BEL': '056', 'NLD': '528',
-       'LUX': '442', 'GBR': '826'}   # as in merge_nwe.py, with the M49 ids the map keys countries by
-NWE_BOX = box(-32, 27, 20, 62)   # keeps the Azores, Madeira and the Canaries; drops overseas France
+NWE = {'IRL': '372', 'GBR': '826', 'FRA': '250', 'BEL': '056', 'NLD': '528', 'LUX': '442',
+       'DEU': '276', 'DNK': '208', 'CHE': '756', 'AUT': '040', 'CZE': '203',
+       'POL': '616'}   # as in merge_nwe.py, with the M49 ids the map keys countries by
+NWE_BOX = box(-15, 41, 25, 62)   # Ireland to eastern Poland, Corsica to Shetland; drops overseas France
 WEST = {'WA', 'OR', 'CA', 'NV', 'ID', 'UT', 'AZ', 'NM', 'CO', 'WY', 'MT'}
 ISOLATED = {'AK': 'USAK', 'HI': 'USHI'}   # not part of any modelled grid: own region without data
 

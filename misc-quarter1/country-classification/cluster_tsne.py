@@ -60,8 +60,8 @@ def ramp(x, lo, hi):
 # The k-means is fitted on the NATIONAL rows (build/features_my.csv, the pipeline state before
 # merge_nwe.py) so the world's cluster statistics do not depend on which countries are modelled
 # together; the merged North-West Europe row of country_features.csv is folded in afterwards
-# (nearest centroid) and replaces its eight members in everything displayed.
-MERGED = {"NWE": ["ESP", "PRT", "FRA", "DEU", "BEL", "NLD", "LUX", "GBR"]}   # as in merge_nwe.py
+# (nearest centroid) and replaces its twelve members in everything displayed.
+MERGED = {"NWE": ["IRL", "GBR", "FRA", "BEL", "NLD", "LUX", "DEU", "DNK", "CHE", "AUT", "CZE", "POL"]}   # as in merge_nwe.py
 NATIONAL = HERE / "build" / "features_my.csv"
 if not NATIONAL.exists():
     raise SystemExit(f"{NATIONAL} missing - run the pipeline (snakemake -c1) first")
