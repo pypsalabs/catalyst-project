@@ -17,8 +17,8 @@ TC = "../../misc-quarter1/technology-costs"
 # advanced palette only: the mature references (solar, onshore wind, Li-ion) stay in the README
 # the hydrogen store is three slides: charging (h2-sofc = electrolyser), storage (h2-storage, a
 # levels-only figure from plot_h2_storage.py), discharging (sofc)
-TECHS = ["vrfb", "h2-sofc", "h2-storage", "sofc", "egs", "smr-nuclear", "iron-air", "co2-battery", "allam-ccs",
-         "closed-loop-geo"]
+TECHS = ["vrfb", "h2-sofc", "h2-storage", "sofc", "egs", "smr-nuclear", "iron-air", "co2-battery", "allam-ccs"]
+# closed-loop-geo is left out of the deck for now (figure still built by the technology-costs workflow)
 FIGURES = expand(f"{TC}/figures/learning/{{tech}}.pdf", tech=TECHS)
 SOURCES = expand(f"{TC}/figures/learning/{{tech}}_sources.tex", tech=TECHS)   # clickable [n] lines
 

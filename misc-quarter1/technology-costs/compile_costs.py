@@ -175,7 +175,9 @@ long = pd.DataFrame(records)
 
 gap = pd.read_csv(GAP, dtype={"note": str, "url": str, "source": str})
 gap["note"] = gap["note"].fillna("")
-dup = gap.duplicated(["technology", "parameter"], keep=False)
+# one row per (technology, parameter), except that an ADD row may sit on top of an OVERRIDE row
+kind = gap["note"].str.startswith("ADD").map({True: "+", False: ""})
+dup = (gap["technology"] + "/" + gap["parameter"] + kind).duplicated(keep=False)
 assert not dup.any(), f"duplicate gap_fill rows:\n{gap[dup]}"
 unknown = set(gap["technology"]) - {t["key"] for t in techs}
 assert not unknown, f"gap_fill technologies not in config: {unknown}"

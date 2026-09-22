@@ -17,6 +17,7 @@ Run standalone:  python plot_learning.py vrfb
 """
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -26,7 +27,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import yaml  # noqa: E402
-from matplotlib.legend_handler import HandlerTuple  # noqa: E402
+from matplotlib.legend_handler import HandlerTuple
+from matplotlib.transforms import blended_transform_factory  # noqa: E402
 from matplotlib.ticker import FuncFormatter, LogLocator, NullFormatter  # noqa: E402
 
 from common import grid  # noqa: E402
@@ -52,11 +54,20 @@ SOURCE_COLOURS = ["#e08a2e", "#2a9d8f", "#8e6bbf", "#d1495b", "#4c9be8", "#b5a64
 # floors / reference bands / analogy lines are documented in the README and drawn only where the
 # technology sets `show_reference: true` (EGS: the shale drilling cost Fervo converges towards)
 REFERENCE_LINES = bool(CFG["learning"]["technologies"][fit["technology"]].get("show_reference", False))
+MODEL_LINE = bool(CFG["learning"]["technologies"][fit["technology"]].get("show_model", False))
 MARKER = {"system": "o", "pack": "s", "module": "D", "cell": "^", "plant": "o", "well": "o",
           "target": "v", "estimate": "^"}
 Y_LABEL = {"energy": "Energy capacity cost", "power": "Power capacity cost", "plant": "Installed cost",
            "drilling": "Drilling cost"}
 X_LABEL = {"wells": "Cumulative wells drilled", "units": "Cumulative units"}
+
+
+def unit_label(unit, sub):
+    """Attach the carrier subscript to the energy/power part of a unit string:
+    "USD2024/kWh" -> "USD2024/kWh$_{\\mathrm{el}}$", "GW" -> "GW$_{\\mathrm{el}}$"; wells, ft, units are left alone."""
+    if not sub:
+        return unit
+    return re.sub(r"(?<![A-Za-z])([kMG]?Wh?)(?![A-Za-z])", lambda m: f"{m.group(1)}$_{{\\mathrm{{{sub}}}}}$", str(unit))
 plt.rcParams.update({"font.size": 10, "axes.labelsize": 10, "xtick.labelsize": 9, "ytick.labelsize": 9,
                      "legend.fontsize": 8.5})
 
@@ -86,10 +97,10 @@ def rate_text(comp):
     if not lv:
         return "no learning rate derivable"        # the legend says why the points do not qualify
     if lv.get("lr_lo") is None:
-        return f"LR = {pct(lv['lr'])} per doubling\nline through {s['n']} points, no uncertainty"
+        return f"learning rate {pct(lv['lr'])} per doubling\nline through {s['n']} points, no uncertainty"
     span = f"{s['year_min']}–{s['year_max']}" if s["year_min"] else ""
-    return (f"LR = {pct(lv['lr'])} per doubling\n"
-            f"95 % CI {pct(lv['lr_lo'])} to {pct(lv['lr_hi'])}\n"
+    return (f"learning rate {pct(lv['lr'])} per doubling\n"
+            f"95 % confidence interval {pct(lv['lr_lo'])} to {pct(lv['lr_hi'])}\n"
             f"n = {s['n']}, {s['doublings']:.1f} doublings, {span}")
 
 
@@ -134,6 +145,15 @@ def draw_curve(ax, comp):
     elif lv:                                            # two points: line without a band
         g = np.array([z.min() / 1.5, z.max() * 1.5])
         ax.plot(g, np.exp(lv["a"]) * g ** (-lv["b"]), color=COLOUR, linewidth=1.4, zorder=4)
+    for sec in comp.get("secondary") or []:               # own fit of an excluded series: thin line, no band
+        lv2 = sec["level"]
+        g = np.array([sec["z_min"] / 1.3, sec["z_max"] * 1.3])
+        h, = ax.plot(g, np.exp(lv2["a"]) * g ** (-lv2["b"]), color=source_colour(sec["source"]), linewidth=1.2,
+                     linestyle=(0, (5, 2)), zorder=4)
+        ci = (f", {lv2['lr_lo']*100:.0f}–{lv2['lr_hi']*100:.0f} %" if lv2.get("lr_lo") is not None else "")
+        handles.append((h, f"fit of [{sec['source']}] alone: {lv2['lr']*100:.0f} % per doubling{ci}"))
+    if MODEL_LINE and comp.get("model"):            # the line here, its label once the axis limits are set
+        ax.axhline(comp["model"]["c"], color="#c0392b", linestyle=(0, (5, 3)), linewidth=1.2, zorder=6)
     if REFERENCE_LINES and comp["floor"]:
         f = comp["floor"]
         short = f.get("label") or f.get("kind", "floor")
@@ -166,20 +186,76 @@ def draw_curve(ax, comp):
     if len(z):
         ax.set_xlim(z.min() / 2.5, z.max() * 2.5)
         ymin = min(c.min(), comp["floor"]["value"]) if REFERENCE_LINES and comp["floor"] else c.min()
-        ax.set_ylim(ymin / 1.8, c.max() * 1.8)
+        if MODEL_LINE and comp.get("model"):            # room for the rate box below a baseline line
+            ymin = min(ymin, comp["model"]["c"] / (1.5 if comp["model"].get("z") else 2.5))
+        ymax = max(c.max(), comp["model"]["c"]) if MODEL_LINE and comp.get("model") else c.max()
+        ax.set_ylim(ymin / 1.8, ymax * 1.8)
     else:
         ax.text(0.5, 0.5, "no cost-vs-capacity data collected", transform=ax.transAxes, ha="center", va="center",
                 fontsize=9, color="0.4", style="italic")
     label_minor_if_narrow(ax)
-    ax.set_xlabel(f"{X_LABEL.get(comp['capacity_unit'], 'Cumulative installed capacity')} [{comp['capacity_unit']}]")
-    ax.set_ylabel(f"{Y_LABEL.get(comp['component'], 'Unit cost')} [{comp['unit']}]")
-    ax.text(0.975, 0.955, rate_text(comp), transform=ax.transAxes, ha="right", va="top", fontsize=9.5,
-            linespacing=1.4, color="0.15" if lv else "0.35", in_layout=False,
+    if MODEL_LINE and comp.get("model"):
+        # label the line where no point sits near it: one line at the right, the middle or the left, else
+        # two lines just above it. The rate box (lower left) blocks the left when the line runs through it
+        m = comp["model"]
+        where = (f"at {m['z']:,.3g} {comp['capacity_unit']} ({m['year']})" if m.get("z")
+                 else f"(cost baseline {m['year']})")
+        text = f"model start: {m['c']:,.0f} {comp['unit']} {where}"
+        if m.get("add"):                            # fit plus a fixed add-on: three short lines whose rounded
+            fit_r, add_r = round(m["c_fit"]), round(m["add"]["value"])   # parts sum to the printed total
+            text = (f"model start: {fit_r + add_r:,.0f} {comp['unit']}\nfit {fit_r:,.0f} {where}"
+                    f"\n+ {add_r:,.0f} {m['add']['label']}")
+        spec = CFG["learning"]["technologies"][fit["technology"]]
+        loc = spec.get("model_label")               # explicit placement, e.g. "lower left" (per component if a mapping)
+        if isinstance(loc, dict):
+            loc = loc.get(comp["component"])
+        xl, yl = np.log(np.array(ax.get_xlim())), np.log(np.array(ax.get_ylim()))
+        near = [(np.log(p["z"]) - xl[0]) / (xl[1] - xl[0]) for p in pts
+                if p["z"] and abs(np.log(p["c"] / m["c"])) < 0.2]
+        in_box = (np.log(m["c"]) - yl[0]) / (yl[1] - yl[0]) < 0.3
+        def clearance(iv):
+            return min([0.0 if iv[0] <= x <= iv[1] else min(abs(x - iv[0]), abs(x - iv[1])) for x in near] or [1.0])
+        # candidates: (ha, x, occupied interval), one-line label ~0.46 of the axes width, two lines ~0.28
+        one = {"right": ("right", 0.985, (0.525, 0.985)), "mid": ("left", 0.47, (0.47, 0.93))} if in_box else \
+              {"right": ("right", 0.985, (0.525, 0.985)), "center": ("center", 0.5, (0.27, 0.73)),
+               "left": ("left", 0.02, (0.02, 0.48))}
+        two = {"right": ("right", 0.985, (0.705, 0.985)), "mid": ("left", 0.47, (0.47, 0.75))} if in_box else \
+              {"right": ("right", 0.985, (0.705, 0.985)), "center": ("center", 0.5, (0.36, 0.64)),
+               "left": ("left", 0.02, (0.02, 0.30))}
+        best = max(one, key=lambda k: (clearance(one[k][2]), k == "right"))
+        if loc:
+            v, h = loc.split()
+            ha, x, va = h, {"left": 0.02, "center": 0.5, "right": 0.985}[h], {"lower": "top", "upper": "bottom"}[v]
+        elif clearance(one[best][2]) > 0.03 and not m.get("add"):   # a slot counts as free with a small margin
+            ha, x, va = one[best][0], one[best][1], "center"
+        else:
+            if not m.get("add"):
+                text = text.replace(" at ", "\nat ").replace(" (cost", "\n(cost")
+            best = max(two, key=lambda k: (clearance(two[k][2]), k == "right"))
+            ha, x, va = two[best][0], two[best][1], "bottom"
+        ax.text(x, m["c"], text, transform=blended_transform_factory(ax.transAxes, ax.transData),
+                color="#c0392b", fontsize=8, ha=ha, va=va, linespacing=1.3, zorder=7,
+                bbox=dict(facecolor="white", edgecolor="none", pad=1.5))
+    spec = CFG["learning"]["technologies"][fit["technology"]]
+    sub = spec.get("unit_subscript", "el")            # carrier the kW / kWh refer to; per component if a mapping
+    if isinstance(sub, dict):
+        sub = sub.get(comp["component"], "el")
+    ax.set_xlabel(f"{X_LABEL.get(comp['capacity_unit'], 'Cumulative installed capacity')} "
+                  f"[{unit_label(comp['capacity_unit'], sub)}]")
+    ylab = spec.get("ylabel") or Y_LABEL.get(comp["component"], "Unit cost")
+    ax.set_ylabel(f"{ylab} [{unit_label(comp['unit'], sub)}]")
+    # with a model-start line the legend moves to the empty upper right and the rate box to the lower
+    # left below the line, so neither crosses it
+    swap = MODEL_LINE and comp.get("model") is not None
+    ax.text(*((0.025, 0.045) if swap else (0.975, 0.955)), rate_text(comp), transform=ax.transAxes,
+            ha="left" if swap else "right", va="bottom" if swap else "top", fontsize=9.5,
+            linespacing=1.4, color="0.15" if lv else "0.35", in_layout=False, zorder=8,
             bbox=dict(boxstyle="round,pad=0.35", facecolor="white", edgecolor="0.8", linewidth=0.6))
-    if handles:
+    if handles and spec.get("legend", True):      # `legend: false` drops the legend (the slide text explains the points)
         widest = max(len(h) if isinstance(h, tuple) else 1 for h, _ in handles)
-        ax.legend([h for h, _ in handles], [l for _, l in handles], frameon=False,
-                  loc="lower left" if fit_pts else "best", handlelength=1.6 * widest, borderaxespad=0.4,
+        ax.legend([h for h, _ in handles], [l for _, l in handles], frameon=True, framealpha=0.9, edgecolor="none",
+                  loc=spec.get("legend_loc") or ("upper right" if swap else "lower left" if fit_pts else "best"),
+                  handlelength=1.6 * widest, borderaxespad=0.4,
                   handler_map={tuple: HandlerTuple(ndivide=None, pad=0.3)})
 
 

@@ -51,6 +51,7 @@ if "snakemake" in globals():
         IN_OBS = [Path(snakemake.input.schmidt), Path(snakemake.input.manual)]
         IN_FLOORS = Path(snakemake.input.floors)
         IN_PUB = Path(snakemake.input.published)
+        IN_COSTS = Path(snakemake.input.costs)
         OUT = Path(snakemake.output[0])
     else:
         IN_FITS = [Path(p) for p in snakemake.input.fits]
@@ -64,6 +65,7 @@ else:
         IN_OBS = [_HERE / "data" / "learning" / "schmidt2018.csv", _HERE / "data" / "learning" / "manual.csv"]
         IN_FLOORS = _HERE / "data" / "learning" / "floors.csv"
         IN_PUB = _HERE / "data" / "learning" / "schmidt2018_published.csv"
+        IN_COSTS = _HERE / "build" / "costs_2025_compiled.csv"
         OUT = _HERE / "build" / "learning" / f"{TECH}.json"
     else:
         IN_FITS = sorted((_HERE / "build" / "learning").glob("*.json"))
@@ -158,7 +160,7 @@ def _ci(est, se, dof):
     return est - t * se, est + t * se
 
 
-def level_fit(logz, logc):
+def level_fit(logz, logc, extend_to=None):
     """OLS ln c = a - b ln z with t-based uncertainty (dof = n - 2)."""
     n = len(logz)
     if n < 2:
@@ -179,7 +181,9 @@ def level_fit(logz, logc):
     p = 2 * stats.t.sf(abs(b) / se, dof) if dof > 0 and se > 0 else np.nan
     sst = ((y - ym) ** 2).sum()
     r2 = 1 - (resid ** 2).sum() / sst if sst > 0 else np.nan
-    grid = np.linspace(x.min() - 0.15 * (x.max() - x.min() or 1), x.max() + 0.15 * (x.max() - x.min() or 1), 60)
+    span = x.max() - x.min() or 1
+    x_hi = max(x.max(), extend_to) if extend_to is not None else x.max()   # band drawn out to the model-start capacity
+    grid = np.linspace(x.min() - 0.15 * span, x_hi + 0.15 * span, 60)
     band = None
     if dof > 0:
         t = stats.t.ppf(0.975, dof)
@@ -259,7 +263,10 @@ def fit_component(obs, tech, component, floors, published):
         raise ValueError(f"{tech}/{component}: mixed capacity units in the fit "
                          f"{sorted(fit['capacity_unit_base'].unique())}")
     logz, logc = np.log(fit["capacity_base"].to_numpy()), np.log(fit["value_base"].to_numpy())
-    level = level_fit(logz, logc)
+    # `model_capacity` places the model start at an assumed cumulative capacity beyond the series
+    # (e.g. series end plus the fleet installed since); the fit and its band are drawn out to it
+    mc = spec.get("model_capacity") if spec.get("show_model") is True else None
+    level = level_fit(logz, logc, extend_to=np.log(float(mc["value"])) if mc else None)
     fd = first_difference_fit(logz, logc)
     tm = time_fit(fit["year"].to_numpy(), logz, logc) if fit["year"].notna().all() else None
     summary = {
@@ -294,9 +301,50 @@ def fit_component(obs, tech, component, floors, published):
         if len(p):
             pub = [{"block": r["block"], "b": float(r["b"]), "sigma": float(r["sigma"]), "ER": str(r["ER"]),
                     "n": int(r["n"])} for _, r in p.iterrows()]
-    return {"component": component, "unit": unit, "capacity_unit": cap_unit, "points": points,
+    # model start: `show_model: true` = level fit at today's cumulative capacity (top-down);
+    # `show_model: baseline` = the 2025 cost baseline of this workflow (bottom-up, build/costs_2025_compiled.csv)
+    model = None
+    if spec.get("show_model") == "baseline":
+        param = {"plant": "investment", "energy": "investment_kwh", "power": "investment_kw"}[component]
+        costs = pd.read_csv(IN_COSTS)
+        row = costs[(costs["technology"] == tech) & (costs["parameter"] == param)]
+        if len(row):
+            row = row.iloc[0]
+            if str(row["unit"]).split("/")[-1] != str(unit).split("/")[-1]:
+                raise ValueError(f"{tech}/{component}: baseline unit {row['unit']} does not match {unit}")
+            model = {"z": None, "year": int(CFG["base_currency_year"]) + 1, "c": float(row["value"]),
+                     "source": str(row["source"]), "url": str(row["url"]), "origin": str(row["origin"])}
+    elif level and level.get("a") is not None and len(fit):
+        if mc:
+            assert str(mc.get("unit", cap_unit)) == str(cap_unit), f"{tech}/{component}: model_capacity unit"
+            model = {"z": float(mc["value"]), "year": int(mc["year"]), "source": str(mc.get("source", "")),
+                     "url": str(mc.get("url", "")), "note": str(mc.get("note", ""))}
+        else:
+            last = fit.loc[fit["capacity_base"].idxmax()]
+            model = {"z": float(last["capacity_base"]), "year": int(last["year"]) if pd.notna(last["year"]) else None}
+        model["c"] = float(np.exp(level["a"]) * model["z"] ** (-level["b"]))
+        add = spec.get("model_add")                  # fixed cost on top of the fit (e.g. installation)
+        if add:
+            v, _ = to_base(float(add["value"]), str(add["currency"]), int(add["currency_year"]))
+            model["c_fit"] = model["c"]
+            model["add"] = {"value": float(v), "label": str(add.get("label", "")), "source": str(add.get("source", "")),
+                            "note": str(add.get("note", ""))}
+            model["c"] = model["c_fit"] + float(v)
+    # secondary fits: series listed under `secondary` get their own level fit, drawn as a thin line without band
+    secondary = []
+    for ser in (spec.get("secondary") or {}).get(component) or []:
+        sel = rows[(rows["series"] == ser) & ~rows["derived"] & (rows["value_base"] > 0) & (rows["capacity_base"] > 0)]
+        if len(sel) < 2:
+            continue
+        lz2, lc2 = np.log(sel["capacity_base"].to_numpy()), np.log(sel["value_base"].to_numpy())
+        secondary.append({"series": ser, "source": int(src_no[sel["source"].iloc[0]]), "n": int(len(sel)),
+                          "year_min": int(sel["year"].min()), "year_max": int(sel["year"].max()),
+                          "doublings": float(np.log2(sel["capacity_base"].max() / sel["capacity_base"].min())),
+                          "z_min": float(sel["capacity_base"].min()), "z_max": float(sel["capacity_base"].max()),
+                          "level": level_fit(lz2, lc2), "first_difference": first_difference_fit(lz2, lc2)})
+    return {"component": component, "unit": unit, "capacity_unit": cap_unit, "points": points, "secondary": secondary,
             "level": level, "first_difference": fd, "time": tm, "summary": summary, "floor": floor,
-            "analogy": analogy, "published": pub}
+            "analogy": analogy, "published": pub, "model": model}
 
 
 def clean(o):
@@ -331,6 +379,7 @@ def summary_row(fit, comp):
     return {
         "technology": fit["technology"], "label": fit["label"], "component": comp["component"],
         "unit": comp["unit"], "capacity_unit": comp["capacity_unit"], "n": s["n"], "n_context": s["n_context"],
+        "model_start_cost": comp["model"]["c"] if comp.get("model") else None,
         "year_min": s["year_min"], "year_max": s["year_max"], "doublings": s["doublings"],
         "b": lv.get("b"), "se_b": lv.get("se_b"), "b_lo": lv.get("b_lo"), "b_hi": lv.get("b_hi"),
         "p_b": lv.get("p_b"), "r2": lv.get("r2"), "sigma": lv.get("sigma"),

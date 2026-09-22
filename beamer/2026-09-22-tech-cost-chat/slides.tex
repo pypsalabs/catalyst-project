@@ -89,7 +89,7 @@
 
 % TITLE PAGE
 \title{Catalytic Impact of Early Investments in Advanced Clean Energy Technologies}
-\subtitle{Technology cost}
+\subtitle{Technology cost and learning}
 
 \author{}
 \institute{PyPSA Labs, Google}
@@ -98,7 +98,7 @@
   \includegraphics[width=4.2cm]{google_logo}
 \end{minipage}}
 
-\date{22 September 2026}
+\date{28 September 2026}
 
 \begin{document}
 
@@ -161,22 +161,22 @@
   \item \textbf{Caveat.} {\usebeamercolor[fg]{structure}\href{https://doi.org/10.1016/j.joule.2022.08.009}{Way et al.\ (2022)}} find no long-run decline in geothermal plant cost; Fervo's gain is one operator catching up with shale drilling practice, so the 34\,\% suits a breakthrough scenario rather than the reference case.
 }
 
-\techslidebullets{Small modular reactor}{smr-nuclear}{%
-  \item \textbf{Learning.} No cost-versus-deployment series exists. Five first-of-a-kind estimates at 9,000--21,000 USD$_{2024}$/kW: {\usebeamercolor[fg]{structure}\href{https://www.eia.gov/outlooks/aeo/}{EIA Annual Energy Outlook 2025}}, {\usebeamercolor[fg]{structure}\href{https://gain.inl.gov/content/uploads/4/2024/11/DOE-Advanced-Nuclear-Liftoff-Report.pdf}{DOE Liftoff Advanced Nuclear 2024}}, NuScale's Utah project (cancelled 2023), Ontario Power Generation's Darlington BWRX-300, TerraPower Natrium; placed at an indicative cumulative capacity (operating fleet plus the project).
+\techslidebulletsdense{Small modular reactor}{smr-nuclear}{%
+  \item \textbf{Learning.} Not enough data to measure learning. Five first-of-a-kind estimates at 9,000--21,000 USD$_{2024}$/kW: {\usebeamercolor[fg]{structure}\href{https://www.eia.gov/outlooks/aeo/}{EIA Annual Energy Outlook 2025}}, {\usebeamercolor[fg]{structure}\href{https://gain.inl.gov/content/uploads/4/2024/11/DOE-Advanced-Nuclear-Liftoff-Report.pdf}{DOE Liftoff Advanced Nuclear 2024}}, NuScale's Utah project (cancelled 2023), Ontario Power Generation's Darlington BWRX-300, TerraPower Natrium; placed at an indicative cumulative capacity (operating fleet plus the project).
   \item \textbf{Model starting cost assumption.} 8,575 USD$_{2024}$/kW ({\usebeamercolor[fg]{structure}\href{https://oedi-data-lake.s3.amazonaws.com/ATB/electricity/csv/2024/v3.0.0/ATBe.csv}{NREL ATB 2024}}, small nuclear 300 MWe, moderate case), between first- and nth-of-a-kind. Assumed learning rate 10\,\% per doubling as a scenario value: large reactors historically show negative to 6\,\% ({\usebeamercolor[fg]{structure}\href{https://doi.org/10.1016/j.enpol.2015.06.011}{Rubin et al.\ 2015}}).
 }
 \techslidebulletsdense{Iron-air battery}{iron-air}{%
-  \item \textbf{Learning.} No series. The two points are {\usebeamercolor[fg]{structure}\href{https://formenergy.com/}{Form Energy}}’s all-in installed cost target of 15--20 USD/kWh at 100\,h, stated for gigawatt manufacturing scale around 2030, placed at the first commercial projects: Great River Energy 1.5 MW / 150 MWh (2025) and Georgia Power 15 MW / 1,500 MWh (2026). No project price has been disclosed.
+  \item \textbf{Learning.} Not enough data to measure learning. The two points are {\usebeamercolor[fg]{structure}\href{https://formenergy.com/}{Form Energy}}’s all-in installed cost target of 15--20 USD/kWh at 100\,h, stated for gigawatt manufacturing scale around 2030, placed at the first commercial projects: Great River Energy 1.5 MW / 150 MWh (2025) and Georgia Power 15 MW / 1,500 MWh (2026). No project price has been disclosed.
   \item \textbf{Model starting cost assumption.} 35 USD$_{2024}$/kWh ({\usebeamercolor[fg]{structure}\href{https://github.com/PyPSA/technology-data/blob/v0.15.0/outputs/costs_2025.csv}{technology-data v0.15}}): the catalogue takes Form's target as its 2030 value and back-casts 2025 at 1.5 times that, since Form says its first projects cost more. Efficiencies from the same Form table: 70\,\% charging, 59\,\% discharging, 41\,\% round trip. Assumed learning rate 15\,\% per doubling, inside the 12--18\,\% that {\usebeamercolor[fg]{structure}\href{https://liftoff.energy.gov/long-duration-energy-storage/}{DOE's long-duration storage Liftoff report (2023)}} projects.
 }
 \techslidebullets{CO\textsubscript{2} battery}{co2-battery}{%
-  \item \textbf{Learning.} No series. Energy Dome's price for first full-scale plants, 220 EUR/kWh installed with EPC and including its margin (2023, {\usebeamercolor[fg]{structure}\href{https://www.energy-storage.news/energy-dome-turning-a-greenhouse-gas-into-a-cheaper-form-of-energy-storage-than-lithium-ion-batteries/}{Energy-Storage.news}}), placed at the Ottana pilot (2.5 MW / 4 MWh, 2022), and {\usebeamercolor[fg]{structure}\href{https://www.alliantenergy.com/}{Alliant}}'s Columbia Energy Storage project (20 MW / 200 MWh, 300--450 USD/kWh, 2027).
+  \item \textbf{Learning.} Not enough data to measure learning. Energy Dome's price for first full-scale plants, 220 EUR/kWh installed with EPC and including its margin (2023, {\usebeamercolor[fg]{structure}\href{https://www.energy-storage.news/energy-dome-turning-a-greenhouse-gas-into-a-cheaper-form-of-energy-storage-than-lithium-ion-batteries/}{Energy-Storage.news}}), placed at the Ottana pilot (2.5 MW / 4 MWh, 2022), and {\usebeamercolor[fg]{structure}\href{https://www.alliantenergy.com/}{Alliant}}'s Columbia Energy Storage project (20 MW / 200 MWh, 300--450 USD/kWh, 2027).
   \item \textbf{Model starting cost assumption.} 245 USD$_{2024}$/kWh at 10\,h, the Energy Dome figure above. Assumed learning rate 5\,\% per doubling, as for mechanical storage: {\usebeamercolor[fg]{structure}\href{https://doi.org/10.1038/nenergy.2017.110}{Schmidt et al.\ (2017)}}'s pumped-hydro series gives $-1\pm8$\,\%.
 }
-\techslidebullets{Allam-cycle gas with carbon capture}{allam-ccs}{%
-  \item \textbf{Learning.} No series. NET Power's Project Permian, the first utility-scale plant (300 MW): 3,431 USD$_{2024}$/kW in the 2023 estimate and 6,009 USD/kW in the 2025 update (USD 1.7--2.0 bn, start 2029; {\usebeamercolor[fg]{structure}\href{https://ir.netpower.com/resources/press-releases/detail/37/net-power-reports-fourth-quarter-2024-results-and-provides-business-update}{NET Power Q4 2024 results}}). The La Porte demonstration (2018) has no disclosed cost.
-  \item \textbf{Model starting cost assumption.} 6,012 USD$_{2024}$/kW, the updated first-of-a-kind estimate. Assumed learning rate 5\,\% per doubling, following 2--7\,\% for CO$_2$ capture units ({\usebeamercolor[fg]{structure}\href{https://doi.org/10.1016/j.enpol.2015.06.011}{Rubin et al.\ 2015}}); fuel sets the cost floor, so capex learning matters less than for storage.
+\techslidebulletsdense{Allam-cycle gas with carbon capture}{allam-ccs}{%
+  \item \textbf{Learning.} Not enough data to measure learning. NET Power's Project Permian, the first utility-scale plant (300 MW): 3,431 USD$_{2024}$/kW in the 2023 estimate and 6,009 USD/kW in the 2025 update (USD 1.7--2.0 bn, start 2029; {\usebeamercolor[fg]{structure}\href{https://ir.netpower.com/resources/press-releases/detail/37/net-power-reports-fourth-quarter-2024-results-and-provides-business-update}{NET Power Q4 2024 results}}). The La Porte demonstration (2018) has no disclosed cost.
+  \item \textbf{Model starting cost assumption.} 6,012 USD$_{2024}$/kW, the updated first-of-a-kind estimate. Efficiency 59\,\% net on the lower heating value with near-complete capture, the design figure ({\usebeamercolor[fg]{structure}\href{https://doi.org/10.1016/j.egypro.2017.03.1731}{Allam et al.\ 2017}}); no measured value has been published. Assumed learning rate 5\,\% per doubling, following 2--7\,\% for CO$_2$ capture units ({\usebeamercolor[fg]{structure}\href{https://doi.org/10.1016/j.enpol.2015.06.011}{Rubin et al.\ 2015}}); fuel sets the cost floor, so capex learning matters less than for storage.
 }
-\techslide{Closed-loop geothermal: first-of-a-kind estimate and projection only}{closed-loop-geo}{Closed-loop geothermal}
+% closed-loop geothermal slide removed for now (2026-09-22); figure still built in technology-costs
 
 \end{document}

@@ -265,22 +265,41 @@ learning:
   # USD/kW vs GW, plant: USD/kW vs GW or USD/well vs wells). `fit` restricts the fitted
   # series per component (default: every non-context, non-derived series). `analogy` is an
   # assumed rate drawn as a dashed line and labelled as such; it is never fitted.
+  # `model_capacity` (with show_model: true) evaluates the fit at an assumed cumulative capacity
+  # instead of the last fitted point, for series that end well before 2025.
+  # `model_add` adds a fixed cost (value, currency, currency_year, label) on top of the fitted value,
+  # e.g. installation when the fitted series is a manufacturing cost; the line and label show the sum.
+  # `model_label` fixes where the model-start label sits ("lower left", "upper right", ...; a mapping
+  # gives it per component) instead of the automatic free-slot placement.
+  # `legend: false` drops the legend, e.g. where the only entries are two hollow vendor-target points.
+  # `unit_subscript` names the carrier the kW/kWh on the axes refer to (default el; a mapping
+  # gives it per component), e.g. H_2 for a hydrogen store, DC for IRENA's PV series.
   technologies:
-    vrfb:            {components: [energy, power]}
-    h2-sofc:         {components: [energy, power]}
-    iron-air:        {components: [energy],
+    vrfb:            {components: [energy, power], show_model: true}   # show_model: red line = level fit at today's cumulative GWh, the WP3 start cost
+    h2-sofc:         {components: [energy, power], show_model: true, legend_loc: upper right, model_label: {power: lower left},
+                      unit_subscript: {energy: H_2, power: el}}   # the 2024 IEA outside-China point is fitted at 21.8 GW
+                                                  # cumulative (Schmidt series end plus the IEA fleet, see manual.csv)   # tank cost per kWh of hydrogen stored, electrolyser per kW of electricity in
+    iron-air:        {components: [energy], show_model: baseline, legend: false,
                       analogy: {rate: 0.15, label: "DOE LDES Liftoff 2023 projects with 12–18 %/doubling"}}
-    co2-battery:     {components: [energy],
+    co2-battery:     {components: [energy], show_model: baseline,
                       analogy: {rate: 0.05, label: "mechanical storage; pumped hydro shows −1 ± 8 % (Schmidt 2018)"}}
-    smr-nuclear:     {components: [plant],
+    smr-nuclear:     {components: [plant], show_model: baseline,
                       analogy: {rate: 0.10, label: "scenario value; large-LWR history −ve to 6 % (Rubin 2015)"}}
     egs:             {components: [drilling], show_reference: true}   # USD/ft vs cumulative wells (Fervo); plant capex has no
                                                   # series; the floors.csv band (US shale drilling cost) is drawn
     closed-loop-geo: {components: [plant]}
-    allam-ccs:       {components: [plant],
+    allam-ccs:       {components: [plant], show_model: baseline,
                       analogy: {rate: 0.05, label: "CO2 capture units 2–7 % (Rubin 2015); fuel sets the LCOE floor"}}
-    sofc:            {components: [plant], fit: {plant: [enefarm-sofc]}}   # ENE-FARM Type S (SOFC) prices; PEFC series and Schmidt's reconstruction shown as context
-    solar-utility:   {components: [plant]}
+    sofc:            {components: [plant], fit: {plant: [bloom-product-cost]}, secondary: {plant: [enefarm-sofc]},
+                      show_model: true, ylabel: "Product / equipment cost",
+                      model_capacity: {value: 1.4, unit: GW, year: 2024, source: "Bloom Energy Form 10-K for FY2023",
+                                       url: "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1664703&type=10-K",
+                                       note: "1.4 GW of Energy Servers deployed (10-K FY2023)"},
+                      model_add: {value: 394, currency: USD, currency_year: 2023, label: installation,
+                                  source: "Bloom Energy Form 10-K for FY2023, installation cost per kW accepted",
+                                  note: "the 10-K product cost is manufacturing only; installation from the same filing is added, Bloom's margin is not"}}   # Bloom utility-scale product cost is fitted; the ENE-FARM residential
+                                              # series gets its own (secondary) fit line; PEFC and Schmidt's reconstruction are context
+    solar-utility:   {components: [plant], unit_subscript: DC}   # IRENA quotes PV cost and capacity per kW of DC module rating
     onwind:          {components: [plant]}
     battery-liion:   {components: [energy, power], fit: {energy: [bnef-turnkey]}}   # Schmidt utility series shown, not chained (different capacity basis)
 
@@ -292,21 +311,22 @@ learning:
     "schmidt2018:lithium-ion-electronics-21": "consumer cells, not grid systems"
     "schmidt2018:lithium-ion-electronics-30": "consumer cells, not grid systems"
     "schmidt2018:lithium-ion-18650-cell-19":  "consumer cells, not grid systems"
-    "schmidt2018:lithium-ion-ev-9":           "EV packs, not grid systems"
-    "schmidt2018:lithium-ion-ev-19":          "EV packs, not grid systems"
+    "schmidt2018:lithium-ion-ev-9":           "electric-vehicle packs, not grid systems"
+    "schmidt2018:lithium-ion-ev-19":          "electric-vehicle packs, not grid systems"
     "schmidt2018:lithium-ion-residential-15": "residential systems, other market"
     "schmidt2018:lithium-ion-utility-16":     "pre-2016 systems on another capacity basis"
     "bnef-turnkey-2025":                      "2025 fleet is a BNEF forecast"
     "schmidt2018:pv-modules-23":              "modules only, not whole plants"
     "schmidt2018:fuel-cells-residential-16":  "reconstruction incl. 2004-08 demo units"
-    "enefarm-pefc":                           "PEFC units, a different stack"
-    "iea-ghr-2025":                           "operating fleet, not cumulative production"
-    "vrfb-projects":                          "single projects, cumulative GWh only indicative"
+    "enefarm-sofc":                           "residential 0.7 kW units, fitted on their own"
+    "enefarm-pefc":                           "polymer-electrolyte (PEFC) units, a different stack"
+    "iea-ghr-2025-china":                     "China survey midpoint, 600–1,200 USD/kW"
+    "vrfb-row":                               "rest of world, 2 % of deployment"
     "form-target":                            "vendor target, nothing deployed yet"
     "energy-dome":                            "vendor estimate, nothing deployed yet"
-    "net-power":                              "FOAK estimate, nothing deployed yet"
-    "closed-loop-estimates":                  "FOAK estimate / projection, nothing deployed yet"
-    "smr-estimates":                          "FOAK estimates, no deployment series"
+    "net-power":                              "first-of-a-kind estimate, nothing deployed yet"
+    "closed-loop-estimates":                  "first-of-a-kind estimate / projection, nothing deployed yet"
+    "smr-estimates":                          "first-of-a-kind estimates, no deployment series"
 
 # ---- macro tables ------------------------------------------------------------
 # ECB euro foreign exchange reference rates, annual averages

@@ -44,6 +44,7 @@ rule all:
     input:
         "build/costs_2025_table.csv",
         expand("figures/{figure}.{fmt}", figure=FIGURES, fmt=FORMATS),
+        expand("figures/learning/h2-storage.{fmt}", fmt=FORMATS),
         SLIDE_FIGURES,
         "build/learning_rates.csv",
         LEARNING_FIGS,
@@ -135,6 +136,7 @@ rule fit_learning:
         manual="data/learning/manual.csv",
         floors="data/learning/floors.csv",
         published="data/learning/schmidt2018_published.csv",
+        costs="build/costs_2025_compiled.csv",      # `show_model: baseline` draws the 2025 baseline cost
         config="config.yaml",
     output:
         "build/learning/{tech}.json",
@@ -159,6 +161,21 @@ rule learning_rates:
         mem_mb=500, runtime="5m",
     script:
         "fit_learning.py"
+
+
+# hydrogen store, storage step: two cost levels (tank = baseline, salt cavern), no series to fit
+rule plot_h2_storage:
+    input:
+        td=TD_CSV,
+        compiled="build/costs_2025_compiled.csv",
+        config="config.yaml",
+    output:
+        expand("figures/learning/h2-storage.{fmt}", fmt=FORMATS),
+        "figures/learning/h2-storage_sources.tex",
+    resources:
+        mem_mb=1000, runtime="5m",
+    script:
+        "plot_h2_storage.py"
 
 
 rule plot_learning:

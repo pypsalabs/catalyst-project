@@ -10,8 +10,9 @@ The "Data" sheet holds 17 blocks. Each block: a title row in column B
 ("Vanadium redox-flow (Utility, 13±3%)"), a header row (Year | Cum GWh |
 USD2015/kWh | Cum GW | USD2015/kW; some blocks carry only one pair), data rows,
 and a "Data Source" row whose [n] references sit under the pair that was
-actually collected. The other pair is that series divided by a constant
-C-rate (the regression parameters in H:J are identical for both), so it is
+actually collected. The other pair is that series times a constant
+energy-to-power ratio in hours (USD/kW = USD/kWh x h; the regression
+parameters in H:J are identical for both), so it is
 NOT independent data: it is written with `derived = True` and is only ever
 drawn as context, never fitted. The published regression parameters (A, b, σ,
 ER) are written to a second file and used as a cross-check of our own fit.
@@ -194,8 +195,8 @@ for blk in blocks:
     # a constant C-rate between the pairs means the second pair is derived, not measured
     if len(pairs) == 2:
         ratio = np.array([r["F"] / r["D"] for r in blk["obs"] if r.get("D") and r.get("F")])
-        derived_note = (f"derived from the {native} series with a constant C-rate "
-                        f"({np.mean(ratio):.3g} kW per kWh); not independent data")
+        derived_note = (f"derived from the {native} series with a constant energy-to-power ratio "
+                        f"({np.mean(ratio):.3g} h, i.e. USD/kW = USD/kWh x {np.mean(ratio):.3g}); not independent data")
         assert ratio.std() / ratio.mean() < 1e-6, f"{title}: pairs are not a constant multiple"
     for comp, (ccol, vcol, cunit, vunit) in pairs.items():
         is_native = comp == native
