@@ -25,6 +25,68 @@
     \end{textblock*}
   \end{frame}}
 
+% figure on the left, bullets on the right; #1 title, #2 figure name, #3 bullet items
+\newcommand{\techslidebullets}[3]{%
+  \begin{frame}{#1}
+    \begin{columns}[T,onlytextwidth]
+      \begin{column}{7.6cm}
+        \includegraphics[width=7.6cm]{#2}
+      \end{column}
+      \begin{column}{6.2cm}
+        {\scriptsize\setlength{\parskip}{2pt}
+        \begin{itemize}\setlength{\itemsep}{2pt}
+          #3
+        \end{itemize}}
+      \end{column}
+    \end{columns}
+    \begin{textblock*}{7.6cm}(1.0cm,6.3cm)
+      {\tiny\raggedright\setlength{\parskip}{0pt}\usebeamercolor[fg]{framesource}\input{\learningdir/#2_sources}\par}
+    \end{textblock*}
+  \end{frame}}
+
+% as \techslidebullets but with the chain-slide geometry (7.2 cm figure, 6.6 cm text at 7 pt) for slides with three bullets
+\newcommand{\techslidebulletsdense}[3]{%
+  \begin{frame}{#1}
+    \begin{columns}[T,onlytextwidth]
+      \begin{column}{7.2cm}
+        \includegraphics[width=7.2cm]{#2}
+      \end{column}
+      \begin{column}{6.6cm}
+        {\fontsize{7pt}{8.0pt}\selectfont\setlength{\parskip}{2pt}
+        \begin{itemize}\setlength{\itemsep}{2pt}
+          #3
+        \end{itemize}}
+      \end{column}
+    \end{columns}
+    \begin{textblock*}{7.2cm}(1.0cm,6.1cm)
+      {\tiny\raggedright\setlength{\parskip}{0pt}\usebeamercolor[fg]{framesource}\input{\learningdir/#2_sources}\par}
+    \end{textblock*}
+  \end{frame}}
+
+% hydrogen-store chain slides: like \techslidebullets plus the LDES chain icon top right, with the
+% current stage highlighted; #3 = charging | storage | discharging (file ldes-chain-#3.pdf, optional)
+\newcommand{\chainslide}[5]{%   #1 title, #2 subtitle, #3 figure, #4 stage (charging|storage|discharging), #5 bullets
+  \begin{frame}{#1}{#2}
+    \begin{columns}[T,onlytextwidth]
+      \begin{column}{7.2cm}
+        \includegraphics[width=7.2cm]{#3}
+      \end{column}
+      \begin{column}{6.6cm}
+        {\fontsize{7pt}{8.0pt}\selectfont\setlength{\parskip}{2pt}
+        \begin{itemize}\setlength{\itemsep}{2pt}
+          #5
+        \end{itemize}}
+      \end{column}
+    \end{columns}
+    \begin{textblock*}{7.2cm}(1.0cm,6.4cm)
+      {\tiny\raggedright\setlength{\parskip}{0pt}\usebeamercolor[fg]{framesource}\input{\learningdir/#3_sources}\par}
+    \end{textblock*}
+    \IfFileExists{ldes-chain-#4.pdf}{%
+      \begin{textblock*}{5.2cm}(10.3cm,0.12cm)
+        \raggedleft\includegraphics[height=1.45cm]{ldes-chain-#4}
+      \end{textblock*}}{}
+  \end{frame}}
+
 % TITLE PAGE
 \title{Catalytic Impact of Early Investments in Advanced Clean Energy Technologies}
 \subtitle{Technology cost}
@@ -46,14 +108,75 @@
 \addtocounter{framenumber}{-1}
 
 % decreasing order of importance to the project and quality of fit (keep in sync with the Snakefile)
-\techslide{Vanadium flow battery: energy capacity cost}{vrfb}{Vanadium flow battery}
-\techslide{Solid oxide fuel cell: ENE-FARM unit price}{sofc}{Solid oxide fuel cell}
-\techslide{(Alkaline) Electrolyser}{h2-sofc}{Hydrogen store: electrolyser}
-\techslide{Enhanced geothermal: Fervo drilling cost per foot}{egs}{Enhanced geothermal (EGS)}
-\techslide{Nuclear SMR: FOAK estimates only}{smr-nuclear}{Nuclear SMR}
-\techslide{Iron-air battery: vendor target only}{iron-air}{Iron-air battery}
-\techslide{CO\textsubscript{2} battery: vendor estimates only}{co2-battery}{CO2 battery}
-\techslide{Allam-cycle gas + CCS: FOAK estimates only}{allam-ccs}{Allam-cycle gas + CCS}
-\techslide{Closed-loop geothermal: FOAK estimate and projection only}{closed-loop-geo}{Closed-loop geothermal}
+\techslidebullets{Vanadium flow battery (multi-day storage)}{vrfb}{%
+  \item \textbf{Learning.} Wright's law: least-squares fit of log cost on log cumulative GWh, slope $b$;
+    learning rate $=1-2^{-b}$, 95\,\% confidence interval from the $t$-distribution. Cross-check: the
+    {\usebeamercolor[fg]{structure}\href{https://doi.org/10.1016/j.techfore.2017.11.001}{Lafond}\,/\,\href{https://doi.org/10.1016/j.joule.2022.08.009}{Way}}
+    estimator on year-to-year differences (17\,\%, step noise $\hat\sigma_\eta=0.26$).
+  \item \textbf{Model starting cost assumption.} We assume 193 USD$_{2024}$/kW
+    ({\usebeamercolor[fg]{structure}\href{https://github.com/PyPSA/technology-data/blob/v0.15.0/outputs/costs_2025.csv}{technology-data v0.15}, from
+    \href{https://www.pnnl.gov/sites/default/files/media/file/ESGC\%20Cost\%20Performance\%20Report\%202022\%20PNNL-33283.pdf}{PNNL 2022}}) next to
+    398 USD/kWh for the energy part, coinciding with the top-down estimate from the plot. The same
+    learning rate is applied to both parts, consistent with
+    {\usebeamercolor[fg]{structure}\href{https://doi.org/10.1038/nenergy.2017.110}{Schmidt et al.\ (2017)}}.
+}
+
+% hydrogen store = electrolyser (charging) + tank or cavern (storage) + solid oxide fuel cell (discharging)
+\chainslide{Long-Duration Storage: charging}{Alkaline electrolyser}{h2-sofc}{charging}{%
+  \item \textbf{Learning.} The only long cost record for electrolysers is the alkaline series in
+    {\usebeamercolor[fg]{structure}\href{https://doi.org/10.1038/nenergy.2017.110}{Schmidt et al.\ (2017)}}: six plant prices between 1956 and 2014.
+    We add the {\usebeamercolor[fg]{structure}\href{https://iea.blob.core.windows.net/assets/12d92ecc-e960-40f3-aff5-b2de6690ab6b/GlobalHydrogenReview2025.pdf}{IEA Global Hydrogen Review}} 2024 cost outside China (2,300 USD/kW) at the series end plus the 2 GW operating by end-2024, as the IEA counts the fleet, not cumulative production.
+    Seven points over three doublings give 17\,\% per doubling, 95\,\% confidence interval 9 to 24\,\%. The China midpoint (900 USD/kW) is not fitted: one survey number would set the rate on its own.
+  \item \textbf{Model starting cost assumption.} We start the electrolyser at 2,138 USD$_{2024}$/kW, the fitted line
+    at the last point, 21.8 GW. The catalogue value of 2,492 USD/kW ({\usebeamercolor[fg]{structure}\href{https://github.com/PyPSA/technology-data/blob/v0.15.0/outputs/costs_2025.csv}{technology-data v0.15}}) is 17\,\% higher but
+    inside the fit's uncertainty. Efficiency 58.7\,\% on the lower heating value
+    ({\usebeamercolor[fg]{structure}\href{https://ens.dk/en/analyses-and-statistics/technology-data-renewable-fuels}{Danish Energy Agency}}, alkaline 100 MW); the learning rate applies to this cost.
+}
+\chainslide{Long-Duration Storage: storage}{Pressurised tank or salt cavern}{h2-storage}{storage}{%
+  \item \textbf{Learning.} Neither pressurised tanks nor salt caverns have a record of cost against deployment,
+    so no learning is applied to the storage step and its cost stays where the catalogue puts it.
+  \item \textbf{Model starting cost assumption.} Hydrogen can be kept in pressurised steel tanks or in salt caverns. Tanks with
+    their compressor cost 68 EUR$_{2025}$ per kWh of hydrogen ({\usebeamercolor[fg]{structure}\href{https://ens.dk/en/analyses-and-statistics/technology-data-energy-storage}{Danish Energy Agency storage catalogue}},
+    sheet 151a, via {\usebeamercolor[fg]{structure}\href{https://github.com/PyPSA/technology-data/blob/v0.15.0/outputs/costs_2025.csv}{technology-data v0.15}}), which is 127 USD$_{2024}$ per kWh of electricity that later
+    comes out of the fuel cell. Salt caverns cost 3.3 EUR per kWh of hydrogen (sheet 151c) and last a century,
+    so they are about twenty times cheaper, but they need salt formations, which exist in northern Europe,
+    on the US Gulf Coast and in a few other basins.
+    Tanks are the option every archetype can build; caverns are the option for the archetypes that have the geology.
+}
+\chainslide{Long-Duration Storage: discharging}{Solid oxide fuel cell}{sofc}{discharging}{%
+  \item \textbf{Learning.} Bloom Energy's {\usebeamercolor[fg]{structure}\href{https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1664703&type=10-K}{SEC filings}} report the manufacturing cost per kW
+    of the fuel cells delivered each year, 2016 to 2023, as deployment grew from 0.24 to 1.3 GW: a learning
+    rate of 30\,\% per doubling (24 to 36\,\%). The fleet runs on natural gas; Bloom has run the same units on
+    pure hydrogen in a {\usebeamercolor[fg]{structure}\href{https://www.bloomenergy.com/news/bloom-energy-successfully-deploys-its-first-fuel-cells-powered-solely-by-hydrogen/}{100 kW demonstration}}.
+    The dashed line is Japan's residential ENE-FARM programme ({\usebeamercolor[fg]{structure}\href{https://www.ace.or.jp/fc/m/DocFile/Org/20250117130901_29_DocFile1.pdf}{ACE statistics}}) on its own:
+    22\,\% (18 to 25\,\%), a cross-check from a different product.
+  \item \textbf{Model starting cost assumption.} We start at 2,495 USD$_{2024}$/kW: the fitted manufacturing cost
+    read at the 1.4 GW deployed that Bloom reports in its {\usebeamercolor[fg]{structure}\href{https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1664703&type=10-K}{10-K for 2023}}, plus the 394 USD/kW
+    installation cost from the same filing. Bloom's margin is not included; its 2020 price was about 4,100 USD/kW.
+    On hydrogen the unit converts at 59\,\% efficiency ({\usebeamercolor[fg]{structure}\href{https://www.bloomenergy.com/wp-content/uploads/bloom-energy-server-datasheet-feb-2026.pdf}{Bloom, 2024}}).
+}
+\techslidebulletsdense{Enhanced geothermal: drilling cost}{egs}{%
+  \item \textbf{Learning.} Fervo's eight horizontal wells 2022--2024: drilling cost per foot against cumulative wells ({\usebeamercolor[fg]{structure}\href{https://pangea.stanford.edu/ERE/pdf/IGAstandard/SGW/2025/Akindipe.pdf}{Akindipe et al.\ 2025}}): 34\,\% per doubling (22--45\,\%), the 35\,\% Fervo reports. The gain sits in wells 2 to 4; the last three are flat at 350--390 USD$_{2024}$/ft, twice the US shale drilling cost of 2015 (grey band, {\usebeamercolor[fg]{structure}\href{https://www.eia.gov/analysis/studies/drilling/pdf/upstream.pdf}{EIA}}).
+  \item \textbf{Model starting cost assumption.} Plant 14,479 USD$_{2024}$/kW ({\usebeamercolor[fg]{structure}\href{https://oedi-data-lake.s3.amazonaws.com/ATB/electricity/csv/2024/v3.0.0/ATBe.csv}{NREL ATB 2024}}, deep EGS binary, moderate); Fervo's first-of-a-kind about 7,000 USD/kW. Drilling is half of plant cost, so the plant-level rate is still to be set.
+  \item \textbf{Caveat.} {\usebeamercolor[fg]{structure}\href{https://doi.org/10.1016/j.joule.2022.08.009}{Way et al.\ (2022)}} find no long-run decline in geothermal plant cost; Fervo's gain is one operator catching up with shale drilling practice, so the 34\,\% suits a breakthrough scenario rather than the reference case.
+}
+
+\techslidebullets{Small modular reactor}{smr-nuclear}{%
+  \item \textbf{Learning.} No cost-versus-deployment series exists. Five first-of-a-kind estimates at 9,000--21,000 USD$_{2024}$/kW: {\usebeamercolor[fg]{structure}\href{https://www.eia.gov/outlooks/aeo/}{EIA Annual Energy Outlook 2025}}, {\usebeamercolor[fg]{structure}\href{https://gain.inl.gov/content/uploads/4/2024/11/DOE-Advanced-Nuclear-Liftoff-Report.pdf}{DOE Liftoff Advanced Nuclear 2024}}, NuScale's Utah project (cancelled 2023), Ontario Power Generation's Darlington BWRX-300, TerraPower Natrium; placed at an indicative cumulative capacity (operating fleet plus the project).
+  \item \textbf{Model starting cost assumption.} 8,575 USD$_{2024}$/kW ({\usebeamercolor[fg]{structure}\href{https://oedi-data-lake.s3.amazonaws.com/ATB/electricity/csv/2024/v3.0.0/ATBe.csv}{NREL ATB 2024}}, small nuclear 300 MWe, moderate case), between first- and nth-of-a-kind. Assumed learning rate 10\,\% per doubling as a scenario value: large reactors historically show negative to 6\,\% ({\usebeamercolor[fg]{structure}\href{https://doi.org/10.1016/j.enpol.2015.06.011}{Rubin et al.\ 2015}}).
+}
+\techslidebulletsdense{Iron-air battery}{iron-air}{%
+  \item \textbf{Learning.} No series. The two points are {\usebeamercolor[fg]{structure}\href{https://formenergy.com/}{Form Energy}}’s all-in installed cost target of 15--20 USD/kWh at 100\,h, stated for gigawatt manufacturing scale around 2030, placed at the first commercial projects: Great River Energy 1.5 MW / 150 MWh (2025) and Georgia Power 15 MW / 1,500 MWh (2026). No project price has been disclosed.
+  \item \textbf{Model starting cost assumption.} 35 USD$_{2024}$/kWh ({\usebeamercolor[fg]{structure}\href{https://github.com/PyPSA/technology-data/blob/v0.15.0/outputs/costs_2025.csv}{technology-data v0.15}}): the catalogue takes Form's target as its 2030 value and back-casts 2025 at 1.5 times that, since Form says its first projects cost more. Efficiencies from the same Form table: 70\,\% charging, 59\,\% discharging, 41\,\% round trip. Assumed learning rate 15\,\% per doubling, inside the 12--18\,\% that {\usebeamercolor[fg]{structure}\href{https://liftoff.energy.gov/long-duration-energy-storage/}{DOE's long-duration storage Liftoff report (2023)}} projects.
+}
+\techslidebullets{CO\textsubscript{2} battery}{co2-battery}{%
+  \item \textbf{Learning.} No series. Energy Dome's price for first full-scale plants, 220 EUR/kWh installed with EPC and including its margin (2023, {\usebeamercolor[fg]{structure}\href{https://www.energy-storage.news/energy-dome-turning-a-greenhouse-gas-into-a-cheaper-form-of-energy-storage-than-lithium-ion-batteries/}{Energy-Storage.news}}), placed at the Ottana pilot (2.5 MW / 4 MWh, 2022), and {\usebeamercolor[fg]{structure}\href{https://www.alliantenergy.com/}{Alliant}}'s Columbia Energy Storage project (20 MW / 200 MWh, 300--450 USD/kWh, 2027).
+  \item \textbf{Model starting cost assumption.} 245 USD$_{2024}$/kWh at 10\,h, the Energy Dome figure above. Assumed learning rate 5\,\% per doubling, as for mechanical storage: {\usebeamercolor[fg]{structure}\href{https://doi.org/10.1038/nenergy.2017.110}{Schmidt et al.\ (2017)}}'s pumped-hydro series gives $-1\pm8$\,\%.
+}
+\techslidebullets{Allam-cycle gas with carbon capture}{allam-ccs}{%
+  \item \textbf{Learning.} No series. NET Power's Project Permian, the first utility-scale plant (300 MW): 3,431 USD$_{2024}$/kW in the 2023 estimate and 6,009 USD/kW in the 2025 update (USD 1.7--2.0 bn, start 2029; {\usebeamercolor[fg]{structure}\href{https://ir.netpower.com/resources/press-releases/detail/37/net-power-reports-fourth-quarter-2024-results-and-provides-business-update}{NET Power Q4 2024 results}}). The La Porte demonstration (2018) has no disclosed cost.
+  \item \textbf{Model starting cost assumption.} 6,012 USD$_{2024}$/kW, the updated first-of-a-kind estimate. Assumed learning rate 5\,\% per doubling, following 2--7\,\% for CO$_2$ capture units ({\usebeamercolor[fg]{structure}\href{https://doi.org/10.1016/j.enpol.2015.06.011}{Rubin et al.\ 2015}}); fuel sets the cost floor, so capex learning matters less than for storage.
+}
+\techslide{Closed-loop geothermal: first-of-a-kind estimate and projection only}{closed-loop-geo}{Closed-loop geothermal}
 
 \end{document}

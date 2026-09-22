@@ -15,7 +15,10 @@ import sys
 TC = "../../misc-quarter1/technology-costs"
 # slide order = decreasing importance to the project and quality of fit; keep in sync with slides.tex
 # advanced palette only: the mature references (solar, onshore wind, Li-ion) stay in the README
-TECHS = ["vrfb", "sofc", "h2-sofc", "egs", "smr-nuclear", "iron-air", "co2-battery", "allam-ccs", "closed-loop-geo"]
+# the hydrogen store is three slides: charging (h2-sofc = electrolyser), storage (h2-storage, a
+# levels-only figure from plot_h2_storage.py), discharging (sofc)
+TECHS = ["vrfb", "h2-sofc", "h2-storage", "sofc", "egs", "smr-nuclear", "iron-air", "co2-battery", "allam-ccs",
+         "closed-loop-geo"]
 FIGURES = expand(f"{TC}/figures/learning/{{tech}}.pdf", tech=TECHS)
 SOURCES = expand(f"{TC}/figures/learning/{{tech}}_sources.tex", tech=TECHS)   # clickable [n] lines
 
@@ -44,7 +47,8 @@ rule slides:
 # because Snakemake does not rerun a rule when only its script changed.
 rule learning_figures:
     input:
-        scripts=[f"{TC}/{s}" for s in ("plot_learning.py", "fit_learning.py", "common.py", "config.yaml")],
+        scripts=[f"{TC}/{s}" for s in ("plot_learning.py", "plot_h2_storage.py", "fit_learning.py", "common.py",
+                                       "config.yaml")],
         data=[f"{TC}/data/learning/{f}" for f in ("manual.csv", "floors.csv", "schmidt2018.csv")],
     output:
         FIGURES,
@@ -52,5 +56,5 @@ rule learning_figures:
     resources:
         mem_mb=1000, runtime="10m",
     shell:
-        "{sys.executable} -m snakemake --snakefile {TC}/Snakefile --directory {TC} -c1 -R plot_learning "
+        "{sys.executable} -m snakemake --snakefile {TC}/Snakefile --directory {TC} -c1 -R plot_learning plot_h2_storage "
         + " ".join(f"figures/learning/{t}.pdf" for t in TECHS)
