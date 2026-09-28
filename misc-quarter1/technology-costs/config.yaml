@@ -323,6 +323,8 @@ learning:
     "iea-ghr-2025-china":                     "China survey midpoint, 600–1,200 USD/kW"
     "vrfb-row":                               "rest of world, 2 % of deployment"
     "form-target":                            "vendor target, nothing deployed yet"
+    "google-xcel-2026":                       "Google contract, price after buyer tax credits"
+    "google-xcel-2026-pre":                   "same contract, incentives added back (Weaver 2026)"
     "energy-dome":                            "vendor estimate, nothing deployed yet"
     "net-power":                              "first-of-a-kind estimate, nothing deployed yet"
     "closed-loop-estimates":                  "first-of-a-kind estimate / projection, nothing deployed yet"

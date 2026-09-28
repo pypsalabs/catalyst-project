@@ -535,15 +535,33 @@ not openly downloadable and was not transcribed.
 
 <img src="figures/learning/iron-air.png" alt="Iron-air cost target" width="560">
 
-Sources in the legend: [1] [Form Energy (2023), modelling recommendations](https://formenergy.com/) · [2] [Form Energy (2023), vendor target](https://formenergy.com/)
+Sources in the legend: [1] [Form Energy (2023), modelling recommendations](https://formenergy.com/) · [2] [Form Energy (2023), vendor target](https://formenergy.com/) · [3] [The Information via TechCrunch (2026)](https://techcrunch.com/2026/02/26/google-paid-startup-form-energy-1b-for-its-massive-100-hour-battery/) · [4] [Weaver, ESS News (2026)](https://www.ess-news.com/2026/04/28/us-medium-duration-storage-endures-woes-while-forms-long-duration-grows-and-lithium-overflows/)
 
-*Sample.* No series. The two points are the midpoint of Form Energy's stated
-all-in installed cost target, 15–20 USD/kWh at 100 h, which its 2023 modelling
-recommendations (Table 1) give as achievable at gigawatt manufacturing scale
-around 2030, placed at the first commercial projects (Great River Energy
-Cambridge 1.5 MW / 150 MWh, 2025; Georgia Power 15 MW / 1,500 MWh, 2026). Not
-an observed cost; no Form project has a disclosed price, and Form says its
-first projects will cost more than the table. No legend is drawn.
+*Sample.* No series, two kinds of point. The two low points are the midpoint
+of Form Energy's stated all-in installed cost target, 15–20 USD/kWh at 100 h,
+which its 2023 modelling recommendations (Table 1) give as achievable at
+gigawatt manufacturing scale around 2030, placed at the first commercial
+projects (Great River Energy Cambridge 1.5 MW / 150 MWh, 2025; Georgia Power
+15 MW / 1,500 MWh, 2026); not an observed cost, and Form says its first
+projects will cost more. The two high points are the first disclosed price:
+Google pays about 1 bn USD for Form's 300 MW / 30 GWh system at Xcel's Pine
+Island site in Minnesota (The Information via TechCrunch, 26 Feb 2026; not
+confirmed by Form, Google or Xcel), 33 USD/kWh after the 30 % ITC, the 10 %
+domestic-content adder and bonus depreciation, and about 77 USD/kWh
+(2.3 bn USD) before them in Weaver's reconstruction (ESS News, 28 Apr 2026),
+who adds a further ~45 USD/kWh 45X manufacturing credit flowing to Form. Both
+are drawn at 2028, the first delivery year, at 31.65 GWh cumulative (the two
+earlier projects plus this one; the Maine 8.5 GWh and two 1 GWh Xcel projects
+in between are omitted) and in USD2025, the 2026 CPI not being available.
+Not fitted: a forward price for a 60-fold scale-up, from press reporting. Not
+plotted: the California Energy Commission's Mendocino pilot, cut in May 2025
+to 1.5 MW / 150 MWh at 25 m USD CEC funding plus 25 m USD Form match, i.e.
+333 USD/kWh for a demonstration including interconnection and construction
+(72 USD/kWh in the original 5 MW / 500 MWh, 36 m USD budget), and the
+Lincoln, Maine 85 MW / 8.5 GWh project, whose 147 m USD DOE grant
+(17 USD/kWh) is the only disclosed figure. Form's CEC final report
+(CEC-500-2025-045, Nov 2025) marks the measured round-trip efficiency
+proprietary. No legend is drawn.
 
 *Model start (red dashed line).* 35 USD2024/kWh, technology-data v0.15.0. The
 catalogue takes Form's 15–20 USD/kWh as its 2030 value (20 EUR2023/kWh) and
