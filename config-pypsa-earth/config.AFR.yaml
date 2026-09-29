@@ -14,7 +14,7 @@
 #     >= 200 kV substation in OSM; every country needs at least one bus.
 #   - catalyst.extra_opts ATKc (merge_config.py adds it to the overlay opts): prepare_network removes every cross-border
 #     line / link, so no country trades with its neighbours.
-#   - load_options.fallback_source demcast (fork patch): countries without GEGIS load take DemandCast 2013 (ML, UG)
+#   - load_options.fallback_source demcast (fork patch): countries without GEGIS load take DemandCast 2013 (UG)
 #   - renewable.<tech>.excluder_resolution 1000 m (fork patch; default 100 m): atlite rasterises each region's exclusion
 #     mask over its bounding box, which at 100 m does not fit memory for country-sized regions (Argentina: OOM at 12 GB)
 # Cutout: cutout-2013-era5-africa (pypsa-earth prebuilt); clip_bbox [-19.5, -37.5, 67.5, 39.3], so overseas islands outside it are ignored.

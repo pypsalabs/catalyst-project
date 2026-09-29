@@ -111,12 +111,15 @@ def ember_demand():
 
 
 def gegis_demand():
-    """{ISO2: TWh} of pypsa-earth's default load (SSP2-2.6, 2030, weather 2013)."""
+    """{ISO2: TWh} of pypsa-earth's default load (SSP2-2.6, 2030, weather 2013), read from the .nc files as
+    build_demand_profiles does (the .csv twins differ for Africa: they are empty for 19 countries that the .nc fills,
+    some implausibly, e.g. DJ 75 TWh, GQ 158 TWh, ML 19 TWh against 0.8, 1.5, 5.5 TWh in Ember)."""
+    import xarray as xr
+
     tot = {}
-    for f in glob.glob(os.path.join(PE, "data", "ssp2-2.6", "2030", "era5_2013", "*.csv")):
-        g = pd.read_csv(f, sep=";", usecols=["region_code", "Electricity demand"], keep_default_na=False, dtype=str)
-        v = pd.to_numeric(g["Electricity demand"], errors="coerce")
-        tot.update((v.groupby(g.region_code).sum(min_count=1) / 1e6).dropna().to_dict())
+    for f in glob.glob(os.path.join(PE, "data", "ssp2-2.6", "2030", "era5_2013", "*.nc")):
+        with xr.open_dataset(f) as d:
+            tot.update((d["Electricity demand"].sum("time") / 1e6).to_series().to_dict())
     return tot
 
 

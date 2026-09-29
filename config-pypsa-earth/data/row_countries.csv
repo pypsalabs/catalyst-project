@@ -127,7 +127,7 @@ SV,SLV,El Salvador,North America,2024,6.2,modelled,NAM,0.99334,gegis,central-ame
 MD,MDA,Moldova,Europe,2024,6.06,modelled,EUR,0.99354,gegis,europe/moldova,
 CY,CYP,Cyprus,Europe,2024,5.79,modelled,EUR,0.99373,gegis,europe/cyprus,
 BN,BRN,Brunei Darussalam,Asia,2024,5.56,modelled,ASI,0.99391,gegis,asia/malaysia-singapore-brunei,
-ML,MLI,Mali,Africa,2024,5.46,modelled,AFR,0.99408,demcast,africa/mali,
+ML,MLI,Mali,Africa,2024,5.46,modelled,AFR,0.99408,gegis,africa/mali,
 NI,NIC,Nicaragua,North America,2024,5.42,modelled,NAM,0.99426,gegis,central-america/nicaragua,
 CG,COG,Congo (the),Africa,2024,5.38,modelled,AFR,0.99443,gegis,africa/congo-brazzaville,
 UG,UGA,Uganda,Africa,2024,5.37,modelled,AFR,0.99461,demcast,africa/uganda,
