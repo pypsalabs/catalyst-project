@@ -14,7 +14,7 @@ process tree, no Snakemake parallelism (`-c1 -j1`), and a bounded disk footprint
 
 The model code lives in `models/pypsa-earth` (gitignored here): a clone of the soft fork
 `pypsalabs/catalyst-pypsa-earth` (GitHub fork of `pypsa-meets-earth/pypsa-earth`; remote `origin`
-is the fork, `upstream` is pypsa-meets-earth), branch **`catalyst`** = tag v0.9.0 plus nine small
+is the fork, `upstream` is pypsa-meets-earth), branch **`catalyst`** = tag v0.9.0 plus eleven small
 patches (`git log v0.9.0..catalyst`). Commit subjects carry an upstream tag: `(upstream candidate)` marks a bug fix to
 propose to pypsa-meets-earth, `(no relevance 4 upstream)` a fork-only change:
 
@@ -29,6 +29,8 @@ propose to pypsa-meets-earth, `(no relevance 4 upstream)` a fork-only change:
 | `simplify_network`: memory-lean one-port aggregation (`_helpers.aggregateoneport_lean`) | PyPSA's `aggregateoneport` expands each time series to a dense (snapshots × components) frame and copies it ~5 times (selection, weighting, transposed groupby, concat); with 13k per-bus profile columns over 8760 h (1.3 GB network) `simplify_links` peaked above 8 GB. The lean version evaluates the linear strategies as one sparse matrix product on the existing series (peak ≈ network + one result); verified equal to PyPSA to 1e-10 on the smoke network. Candidate for PyPSA itself. |
 | `simplify_network`: absorb the DC buses left after `simplify_links` (`absorb_dc_buses`) | OSM-derived HVDC data leaves DC buses that `simplify_links` cannot fold (converter stations that also carry load or generators, cable stubs ending at a DC bus without a converter, isolated substations tagged DC). Each is its own sub-network and claims a cluster: the first NWE run had 18 DC buses among its 50 "clusters" and only 32 AC nodes. Every remaining DC bus is mapped onto the AC bus of its B2B converter, else onto the nearest AC bus of the same country; the converters become self-loops and are dropped, the DC links connect AC buses directly. |
 | `base_network`: tolerate an empty lines table | a country with no OSM line above `threshold_voltage` (Singapore: the 230 / 400 kV cables are underground and unmapped) imports zero lines; PyPSA then has no `under_construction` / `v_nom` column and the rule raised `KeyError`. Two guards. |
+| `build_renewable_profiles`: drop the all-NaN near-duplicate longitudes of prebuilt cutouts (`drop_nan_duplicate_coords`) | the pypsa-earth 2013 cutouts `asia` and `oceania` hold, east of 128.1 °E, pairs of longitudes 1e-5° apart of which one column is NaN in every variable (41 and 70 pairs); any region reaching into them (JP, KR, eastern ID, AU, NZ) got NaN profiles. The duplicate is dropped on load (no second multi-GB copy on disk, unlike `crop_cutout.py`); no-op for clean cutouts. Rest of world, 2026-09-29. |
+| `build_demand_profiles`: optional `load_options.fallback_source: demcast` | GEGIS SSP2-2.6 has all-zero series for HK, PR, LA, BT, PS, AF, UG, PG, ... (0.6 % of world demand). With the key, countries without load in `source` take the DemandCast series of `weather_year`; default `false`, archetype runs unaffected. Rest of world, 2026-09-29. |
 
 ## Files
 

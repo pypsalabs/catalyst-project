@@ -3,3 +3,4 @@ models/*
 lit/
 CLAUDE.md
 meetings/
+__pycache__/

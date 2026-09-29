@@ -12,6 +12,10 @@
 #   dashboard:<R>     results/catalyst/validation_<R>.png (left <R>-now, right <R>-zero; validation.smk)
 #   prestage[:<CC>]   prestage.sh for that country (OSM pre-filter, bundle); bare "prestage" uses the
 #                     country prefix of the next stage name (BR-smoke -> BR)
+#   world             results/catalyst/validation_world.{png,pdf,csv}: scripts/plot_world.py over every solved
+#                     <R>-now / <R>-zero network (archetypes and rest-of-world groups), run directly (no Snakemake)
+#   Rest-of-world groups (config.<G>.yaml with catalyst.single_node, from scripts/select_countries.py) run as
+#   prestage:<G> <G> <G>-now <G>-zero; their overlay target is the solved network itself.
 # Constraints enforced here: no Snakemake parallelism (-c1 -j1), the whole process tree capped at MEM_MAX
 # RAM with no swap (systemd user scope), a disk watchdog that stops the run below MIN_FREE_GB, retries only
 # for network-type failures, never for OOM. CONTINUE_ON_FAIL=1 goes on with the next stage after a failure
@@ -128,6 +132,17 @@ run_stage() {   # $1 = stage name (see header)
   log "[$run] GAVE UP after 3 attempts"; return 1
 }
 
+run_world() {   # world page over all solved networks, same memory scope as the stages
+  local slog="$LOGDIR/world.log"
+  cd "$PE" || return 1
+  log "[world] plot_world.py -> results/catalyst/validation_world.png (cap ${MEM_MAX})"
+  echo "######## [world] $(date) ########" >> "$slog"
+  systemd-run --user --scope --quiet -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -- \
+    pixi run python "$HERE/scripts/plot_world.py" -o results/catalyst/validation_world.png >> "$slog" 2>&1 \
+    || { log "[world] FAILED, see $slog"; return 1; }
+  log "[world] SUCCESS results/catalyst/validation_world.png"
+}
+
 stages=("$@"); [ ${#stages[@]} -eq 0 ] && stages=(prestage:US US-smoke US)
 log "######## run.sh start: ${stages[*]} (cap ${MEM_MAX}, continue_on_fail=${CONTINUE_ON_FAIL}) ########"
 ma=$(mem_avail_gb); need=$(( ${MEM_MAX%G} + 2 ))
@@ -140,6 +155,8 @@ for i in "${!stages[@]}"; do
       cc="${s#prestage}"; cc="${cc#:}"
       [ -n "$cc" ] || { cc="${stages[$((i+1))]:-US}"; cc="${cc%%-*}"; }
       bash "$HERE/prestage.sh" "$cc" || { log "prestage $cc FAILED -> stop"; exit 1; } ;;
+    world)
+      run_world || { [ "$CONTINUE_ON_FAIL" = 1 ] && failed+=("$s") || exit 1; } ;;
     *)
       [ "$(stage_kind "$s")" != unknown ] || { log "unknown stage $s (no config.$s.yaml, and not <R>-<scen> with config.<R>.yaml + overlay.<scen>.yaml)"; exit 1; }
       if ! run_stage "$s"; then

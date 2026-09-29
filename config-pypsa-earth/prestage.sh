@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Pre-stage the two largest downloads for a pypsa-earth stage so the
 # workflow's own downloaders never handle them:
-#   bash config-pypsa-earth/prestage.sh <CC>        (CC = US | BR | IN | SG | NWE; default US)
+#   bash config-pypsa-earth/prestage.sh <CC>        (CC = US | BR | IN | SG | NWE | CN, or a rest-of-world group
+#                                                    EUR | RU | MEA | AFR | ASI | OCE | NAM | SAM | IS; default US)
 #   1. One Geofabrik <region>-latest.osm.pbf per extract of the stage (US 12 GB, BR 2.1 GB, IN 1.7 GB,
 #      SG 0.25 GB via the MY-SG-BN extract, NWE twelve country extracts = 18.6 GB in total, one after
 #      the other) -> osmium tags-filter to power features -> data/osm/pbf/<region>-latest.osm.pbf
@@ -26,8 +27,12 @@ case "$CC" in   # Geofabrik extracts per stage, space separated (earth-osm names
   SG) GFS=asia/malaysia-singapore-brunei ;;   # Geofabrik bundles SG with MY and BN; clean_osm_data keeps only features inside the SG shape
   NWE) GFS="europe/ireland-and-northern-ireland europe/great-britain europe/france europe/belgium europe/netherlands europe/luxembourg
             europe/germany europe/denmark europe/poland europe/czech-republic europe/austria europe/switzerland" ;;   # NI comes with IE
-  *) echo "prestage.sh: no Geofabrik mapping for '$CC' (add it to the case list)" >&2; exit 1 ;;
+  *) # rest-of-world group (config.<G>.yaml from scripts/select_countries.py): the extracts earth-osm resolves for its countries
+     [ -f "$HERE/config.$CC.yaml" ] || { echo "prestage.sh: no Geofabrik mapping and no config.$CC.yaml for '$CC'" >&2; exit 1; }
+     GFS=$(cd "$PE" && pixi run python "$HERE/scripts/select_countries.py" --geofabrik "$CC" 2>/dev/null | tail -1) \
+       && [ -n "$GFS" ] || { echo "prestage.sh: Geofabrik lookup failed for $CC" >&2; exit 1; } ;;
 esac
+EARTH_CUTOUTS=${EARTH_CUTOUTS:-$HOME/Desktop/earth/pypsa-earth/cutouts}   # prebuilt continental pypsa-earth cutouts
 BUNDLE_URL='https://zenodo.org/records/18033571/files/bundle_data_earth.zip?download=1'
 RAW="$PE/data/osm/raw-pbf"; PBF="$PE/data/osm/pbf"
 WGET="wget -c -q --tries=50 --waitretry=30 --retry-connrefused"
@@ -131,7 +136,16 @@ EOF
 fi
 return 0
 }
+log "Geofabrik extracts: $GFS"
 for GF in $GFS; do prestage_osm "$GF" || exit 1; done
+
+# ---- 1b. cutout ------------------------------------------------------------
+# a stage config whose atlite.default is one of the prebuilt continental cutouts gets it hardlinked (same filesystem,
+# no extra disk); build_renewable_profiles repairs the NaN columns of the Asia / Oceania files on load (fork patch)
+CUT=$(grep -oP '^\s*default:\s*\K\S+' "$HERE/config.$CC.yaml" 2>/dev/null | head -1)
+if [ -n "$CUT" ] && [ ! -e "$PE/cutouts/$CUT.nc" ] && [ -f "$EARTH_CUTOUTS/$CUT.nc" ]; then
+  ln "$EARTH_CUTOUTS/$CUT.nc" "$PE/cutouts/$CUT.nc" && log "cutouts/$CUT.nc hardlinked from $EARTH_CUTOUTS"
+fi
 
 # ---- 2. Zenodo bundle -----------------------------------------------------
 if [ -d "$PE/data/gebco" ] && [ -d "$PE/data/copernicus" ]; then

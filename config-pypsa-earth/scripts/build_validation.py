@@ -69,13 +69,16 @@ def fxrate(fx, cur, year):
 
 
 def regions():
-    """{region: [ISO2, ...]} from config-pypsa-earth/config.<R>.yaml (stage names without '-smoke')."""
+    """{region: [ISO2, ...]} from config-pypsa-earth/config.<R>.yaml (stage names without '-smoke'); the rest-of-world
+    groups (catalyst.single_node) are left out: plot_world.py validates them against Ember directly."""
     out = {}
     for f in sorted(os.listdir(CFG)):
         if f.startswith("config.") and f.endswith(".yaml") and "-smoke" not in f:
             r = f[len("config."):-len(".yaml")]
             with open(os.path.join(CFG, f)) as fh:
-                out[r] = list(yaml.safe_load(fh)["countries"])
+                cfg = yaml.safe_load(fh)
+            if not (cfg.get("catalyst") or {}).get("single_node"):
+                out[r] = list(cfg["countries"])
     return out
 
 
