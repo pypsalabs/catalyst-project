@@ -641,7 +641,8 @@ for all of them, `results/catalyst/validation_world.{png,pdf,csv}` (copied to
   Failures on the way, each fixed by one of the patches above and re-run: SAM (OOM + hang, 100 m excluder), CA
   (Mollweide NaN), RU (backbone deleted), EUR re-run from `simplify_network` for Portugal.
 - **What the world page shows** (`results/catalyst/validation_world.png`; per country three 100 % bars: Ember actual,
-  model now, model zero; the fossil share right of the bars; `validation_world.csv` holds the numbers):
+  model now, model zero; the fossil share and the fossil CO2 in Mt right of the bars; `validation_world.csv` holds the
+  numbers):
   1. Aggregate over the 132 countries (30.8 / 29.9 / 30.1 TWh × 10³ generation): Ember coal 34 gas 22 oil 3
      nuclear 9 hydro 14 wind 8 solar 7 %; model now coal 39 gas 13 nuclear 12 hydro 10 wind 11 solar 15 %; model zero
      wind 33 solar 53 hydro 10 nuclear 2 %, 1.6 % of demand shed.
@@ -658,6 +659,15 @@ for all of them, `results/catalyst/validation_world.{png,pdf,csv}` (copied to
      BN 34, PS 25, TW 23, MK 20, CY 17, KR 14, SV 14, QA 12, PR 10, IT 9, KW 9 — the systems that in reality rely on
      imports or on firm capacity the default palette does not contain. This is the islanded assumption showing, not a
      model error; it marks where the study's advanced-technology / import options matter most.
-  4. In `now` the model sheds only in NP 5 %, PR 5 %, LB 2 %, BT 1 % (DemandCast-scale loads on tiny OSM fleets).
-  5. The per-country "grey line" (Ember demand | model load) makes the demand input the first thing to fix before any
+  4. **Power-sector CO2** (fossil combustion; Ember's "Fossil" aggregate vs the model's direct emissions, Mt next to
+     the Ember and now bars, log-log scatter in the header): **14.1 Gt actual vs 12.8 Gt modelled** over the 132
+     countries (−9 %). Per country the spread is wide — 16 of 126 within ±20 %, 49 within ±50 % — and it follows the
+     dispatch biases of (2): the gas systems come out at a quarter to a half of their emissions (DZ 0.22 ×, AR 0.26,
+     KW 0.29, IQ 0.30, IR 0.32, SA 0.36, EG 0.42; CA 0.55, MX 0.64, RU 0.66), the big coal systems roughly right (CN
+     0.77, IN 0.86, US 1.14, JP 1.04, ID 1.07), the European and other lignite/coal fleets far too high (DE 2.6 ×,
+     PL 2.4, ZA 1.8, IT 1.7, TR 1.6, AU 1.5, KR 1.5) — the ETS/carbon-price-free, single-fuel-price dispatch of the
+     ≈ 2022 fleet. Ember's total power-sector figure is higher still (life-cycle factors for bioenergy, wind, solar,
+     nuclear, hydro), which is why the fossil aggregate is the comparison.
+  5. In `now` the model sheds only in NP 5 %, PR 5 %, LB 2 %, BT 1 % (DemandCast-scale loads on tiny OSM fleets).
+  6. The per-country "grey line" (Ember demand | model load) makes the demand input the first thing to fix before any
      country result is quoted: GEGIS 2030 is a projection with the outliers listed above, DemandCast is the 2013 level.

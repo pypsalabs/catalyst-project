@@ -65,6 +65,6 @@ of world electricity demand** — the six archetype regions split by country plu
 islanded node each (ten group runs, GADM-level clustering, `ATKc`; method, patches and caveats in the
 [rest-of-world section](../../config-pypsa-earth/README.md#rest-of-world-single-node-countries-stages-g-g-now-g-zero-world-2026-09-2930)).
 Per country three 100 % bars: Ember actual generation (latest year ≤ 2024), model `now`, model `zero`, with the
-fossil share and the demand (Ember | model) next to them; the header aggregates all 132 countries and scatters the
+fossil share, the power-sector CO2 from fossil combustion (Ember vs model, Mt) and the demand (Ember | model) next to them; the header aggregates all 132 countries and scatters the
 model's fossil / nuclear / hydro / wind+solar shares against Ember. Not modelled: Hong Kong, Macau (no own GADM
 file) and Kosovo (no load series). Produced by `config-pypsa-earth/scripts/plot_world.py` (run.sh stage `world`).

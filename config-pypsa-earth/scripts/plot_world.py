@@ -9,7 +9,10 @@ select_countries.py) gets three 100 % bars, top to bottom:
     zero    the <R>-zero screening solve (Co2L0, 2050 costs)
 Countries of multi-node regions are split by bus country. The model mix is primary generation: generators plus hydro
 reservoir discharge; pumped hydro, battery and H2 discharge are storage throughput and left out (Ember counts neither);
-load shedding is drawn as its own red segment. Right of the bars: the fossil share (coal + gas + oil) of each bar.
+load shedding is drawn as its own red segment. Right of the bars: the fossil share (coal + gas + oil) of each bar and, for
+the Ember and now bars, the power-sector CO2 from fossil combustion in Mt (Ember "Fossil" aggregate of the same year, i.e.
+coal + gas + other fossil without the life-cycle factors Ember adds for bioenergy, nuclear, wind and solar; the model's
+direct emissions, generation / efficiency x the carrier's co2_emissions).
 Next to the name: Ember demand | model load (TWh; the model load is GEGIS SSP2-2.6 2030, DemandCast 2013 where GEGIS
 is empty). The header holds the aggregate of all modelled countries, four Ember-vs-now scatters (share of generation,
 dot area ~ demand) and the coverage (share of Ember world demand in the model, skipped countries).
@@ -97,6 +100,9 @@ def country_table(n):
     gen = gen.reindex(columns=ORDER, fill_value=0.0).fillna(0.0)
     load = n.loads_t.p_set.reindex(columns=n.loads.index, fill_value=0.0).mul(w, axis=0).sum() / 1e6
     gen["load"] = load.groupby(n.loads.bus.map(bc)).sum().reindex(gen.index).fillna(0.0)
+    eff = g.efficiency.replace(0, np.nan).fillna(1.0)
+    co2 = n.carriers.co2_emissions.reindex(g.carrier).fillna(0.0).values
+    gen["co2"] = (e * 1e6 / eff * co2 / 1e6).groupby(g.bus.map(bc)).sum().reindex(gen.index).fillna(0.0)   # Mt
     return gen
 
 
@@ -113,6 +119,10 @@ def ember_table():
     dem = dem.sort_values("Year").groupby("ISO 3 code").last()
     t["demand"] = dem.Value.reindex(t.index)
     t["year"] = year.reindex(t.index)
+    em = e[(e.Category == "Power sector emissions") & (e.Subcategory == "Aggregate fuel") & (e.Variable == "Fossil")
+           & (e.Unit == "mtCO2")]
+    em = em[em.Year == em["ISO 3 code"].map(year)].set_index("ISO 3 code").Value
+    t["co2"] = em.reindex(t.index)
     t["name"] = e.drop_duplicates("ISO 3 code").set_index("ISO 3 code").Area.reindex(t.index).map(
         lambda a: re.sub(r"\s*\(.*?\)", "", a) if isinstance(a, str) else a)
     return t, float(dem.Value.sum())
@@ -139,7 +149,7 @@ def collect(fork):
         for c in ccs:
             iso3 = pycountry.countries.get(alpha_2=c).alpha_3
             if iso3 in ember.index:
-                rows.append(dict(ember.loc[iso3, ORDER].to_dict(), country=c, region=r, scen="ember"))
+                rows.append(dict(ember.loc[iso3, ORDER + ["co2"]].to_dict(), country=c, region=r, scen="ember"))
     df = pd.DataFrame(rows)
     iso3 = {c: pycountry.countries.get(alpha_2=c).alpha_3 for c in df.country.unique()}
     for k in ("demand", "year", "name"):
@@ -204,6 +214,9 @@ def draw_column(ax, block, col):
             hbar(ax, y, sh, col, 0.78)
             fos = sum(sh[k] for k in FOSSIL)
             txt = f"{100 * fos:.0f} %"
+            co2 = r.iloc[0].get("co2", np.nan)
+            if scen != "zero" and pd.notna(co2):
+                txt += f" · {co2:.1f} Mt" if co2 < 10 else f" · {co2:,.0f} Mt"
             if sh["shed"] > 0.005:
                 txt += f"  shed {100 * sh['shed']:.0f} %"
             ax.text(1.012, y, txt, transform=tr, va="center", fontsize=4.8,
@@ -236,6 +249,30 @@ def draw_scatter(ax, df, groups, title):
     ax.set_title(title, fontsize=7, color=INK, loc="left")
     ax.set_xlabel("Ember %", fontsize=5.5, color=INK2, labelpad=1)
     ax.set_ylabel("model now %", fontsize=5.5, color=INK2, labelpad=1)
+
+
+def draw_co2_scatter(ax, df):
+    e = df[df.scen == "ember"].set_index("country").co2
+    m = df[df.scen == "now"].set_index("country").co2
+    ok = e.notna() & (e > 0.05) & m.reindex(e.index).notna() & (m.reindex(e.index) > 0.05)
+    x, y = e[ok], m.reindex(e.index)[ok]
+    lim = (0.05, max(x.max(), y.max()) * 1.5)
+    ax.plot(lim, lim, color=RULE, lw=1, zorder=0)
+    ax.scatter(x, y, s=4 + 60 * np.sqrt(x / x.max()), color="#3b6fd6", alpha=0.55, edgecolor="white", linewidth=0.5)
+    big = (np.log(y / x).abs() * x).sort_values(ascending=False).index[:4]
+    for c in big:
+        ax.annotate(c, (x[c], y[c]), fontsize=5.5, color=INK2, xytext=(3, 2), textcoords="offset points")
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xlim(lim)
+    ax.set_ylim(lim)
+    ax.tick_params(labelsize=5.5, colors=INK2, length=2, which="both")
+    ax.minorticks_off()
+    for s in ax.spines.values():
+        s.set_color(RULE)
+    ax.set_title("Fossil CO2, Mt", fontsize=7, color=INK, loc="left")
+    ax.set_xlabel("Ember", fontsize=5.5, color=INK2, labelpad=1)
+    ax.set_ylabel("model now", fontsize=5.5, color=INK2, labelpad=1)
 
 
 def page(df, world, missing, col, out):
@@ -274,15 +311,20 @@ def page(df, world, missing, col, out):
     ax.set_xlim(0, 1)
     ax.set_ylim(2.6, -0.6)
     ax.axis("off")
-    ax.set_title("All modelled countries together (% of generation)", fontsize=8, color=INK, loc="left")
+    co2 = df.groupby("scen").co2.sum()
+    ax.set_title("All modelled countries together (% of generation) · fossil CO2: Ember "
+                 f"{co2.get('ember', np.nan) / 1e3:.1f} Gt, model now {co2.get('now', np.nan) / 1e3:.1f} Gt, zero "
+                 f"{co2.get('zero', 0) / 1e3:.1f} Gt", fontsize=7.5, color=INK, loc="left")
     for i, (grps, title) in enumerate([(FOSSIL, "Fossil share"), (["nuclear"], "Nuclear share"), (["hydro"], "Hydro share"),
                                        (["wind", "solar"], "Wind + solar share")]):
-        draw_scatter(fig.add_axes([0.40 + i * 0.085, 0.845, 0.06, 0.085]), df, grps, title)
+        draw_scatter(fig.add_axes([0.375 + i * 0.072, 0.845, 0.052, 0.085]), df, grps, title)
+    draw_co2_scatter(fig.add_axes([0.375 + 4 * 0.072, 0.845, 0.052, 0.085]), df)
     handles = [plt.Rectangle((0, 0), 1, 1, color=col[k]) for k in ORDER]
     fig.legend(handles, [NAMES[k] for k in ORDER], loc="upper left", bbox_to_anchor=(0.745, 0.94), ncol=2, fontsize=7,
                frameon=False, handlelength=1.2, columnspacing=1.0)
     notes = ["Per country, top to bottom: Ember actual · model now (brownfield, 2025 costs, no CO2 cap) · model zero (Co2L0, "
-             "2050 costs). Right of the bars: fossil share. Grey line: code · region run · Ember demand | model load (TWh; GEGIS "
+             "2050 costs). Right of the bars: fossil share and power-sector CO2 from coal, gas and oil in Mt (Ember 'Fossil', "
+             "same year; model: direct emissions). Grey line: code · region run · Ember demand | model load (TWh; GEGIS "
              "SSP2-2.6 2030, DemandCast 2013 where GEGIS is empty)."]
     sk = pd.read_csv(ROW, keep_default_na=False) if os.path.exists(ROW) else pd.DataFrame()
     if len(sk):
