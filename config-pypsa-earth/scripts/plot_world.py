@@ -7,7 +7,8 @@ select_countries.py) gets three 100 % bars, top to bottom:
     Ember   actual generation by fuel, latest year <= 2024 (yearly_full_release_long_format.csv)
     now     the <R>-now screening solve (brownfield, 2025 costs, no CO2 cap)
     zero    the <R>-zero screening solve (Co2L0, 2050 costs)
-Countries of multi-node regions are split by bus country. The model mix is primary generation: generators plus hydro
+Countries of multi-node regions are split by bus country, except the multi-country archetype region NWE, which is
+shown as one row (its 12 countries summed, Ember included). The model mix is primary generation: generators plus hydro
 reservoir discharge; pumped hydro, battery and H2 discharge are storage throughput and left out (Ember counts neither);
 load shedding is drawn as its own red segment. Right of the bars: the fossil share (coal + gas + oil) of each bar and, for
 the Ember and now bars, the power-sector CO2 from fossil combustion in Mt (Ember "Fossil" aggregate of the same year, i.e.
@@ -70,6 +71,7 @@ SHORT = {"KP": "North Korea", "KR": "South Korea", "CD": "DR Congo", "CG": "Cong
          "RU": "Russia", "LA": "Laos", "VE": "Venezuela", "BO": "Bolivia", "TZ": "Tanzania", "SY": "Syria", "MD": "Moldova",
          "VN": "Vietnam", "PS": "Palestine", "BN": "Brunei", "IR": "Iran", "CI": "Côte d'Ivoire", "BA": "Bosnia-Herzeg.",
          "AE": "UAE", "DO": "Dominican Rep.", "TT": "Trinidad & Tobago"}
+REGION_NAMES = {"NWE": "North-West Europe"}
 SCEN = ["ember", "now", "zero"]
 SCEN_LABEL = {"ember": "Ember", "now": "now", "zero": "zero"}
 
@@ -155,6 +157,14 @@ def collect(fork):
     for k in ("demand", "year", "name"):
         df[k] = df.country.map(lambda c: ember[k].get(iso3[c], np.nan))
     df["name"] = df.country.map(SHORT).fillna(df["name"]).fillna(df.country)
+    # multi-country archetype regions are one row: the countries summed per scenario
+    for r, cfg in stage_regions().items():
+        if len(cfg["countries"]) > 1 and not (cfg.get("catalyst") or {}).get("single_node"):
+            sub = df[df.region == r]
+            agg = sub.groupby("scen")[ORDER + ["load", "co2", "demand"]].sum(min_count=1).reset_index()
+            agg["country"], agg["region"], agg["year"] = r, f"{len(cfg['countries'])} countries", sub.year.max()
+            agg["name"] = REGION_NAMES.get(r, r)
+            df = pd.concat([df[df.region != r], agg], ignore_index=True)
     return df, world, missing
 
 
@@ -287,9 +297,11 @@ def page(df, world, missing, col, out):
     covered = df[df.scen == "ember"].drop_duplicates("country").demand.sum()
     fig.text(0.02, 0.975, "Out-of-the-box PyPSA-Earth: current vs carbon-neutral power mix, all modelled countries",
              fontsize=15, color=INK, weight="bold", va="top")
-    fig.text(0.02, 0.953, f"{df.country.nunique()} countries = {100 * covered / world:.2f} % of world electricity demand "
+    n_c = sum(len(cfg["countries"]) for cfg in stage_regions().values())
+    fig.text(0.02, 0.953, f"{n_c} countries in {df.country.nunique()} rows = {100 * covered / world:.2f} % of world electricity demand "
              f"(Ember, latest year ≤ {MAX_YEAR}: {world:,.0f} TWh). Weather year 2013, 3-hourly. "
-             "Archetype regions multi-node, all other countries one node each and islanded (no trade).",
+             "Archetype regions multi-node (NWE = AT BE CH CZ DE DK FR GB IE LU NL PL as one row), all other countries one node "
+             "each and islanded (no trade).",
              fontsize=8, color=INK2, va="top")
     ax = fig.add_axes([0.07, 0.855, 0.25, 0.075])
     agg = df.groupby("scen")[ORDER].sum()
@@ -339,7 +351,7 @@ def page(df, world, missing, col, out):
     for k in range(ncol):
         part = blocks[k * per:(k + 1) * per]
         if part:
-            draw_column(fig.add_axes([0.07 + k * 0.245, 0.015, 0.145, 0.80]), part, col)
+            draw_column(fig.add_axes([0.085 + k * 0.245, 0.015, 0.145, 0.80]), part, col)
     fig.savefig(out, dpi=200)
     fig.savefig(os.path.splitext(out)[0] + ".pdf")
     plt.close(fig)

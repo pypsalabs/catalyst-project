@@ -640,7 +640,7 @@ for all of them, `results/catalyst/validation_world.{png,pdf,csv}` (copied to
 
   Failures on the way, each fixed by one of the patches above and re-run: SAM (OOM + hang, 100 m excluder), CA
   (Mollweide NaN), RU (backbone deleted), EUR re-run from `simplify_network` for Portugal.
-- **What the world page shows** (`results/catalyst/validation_world.png`; per country three 100 % bars: Ember actual,
+- **What the world page shows** (`results/catalyst/validation_world.png`; per country (NWE as one row of 12) three 100 % bars: Ember actual,
   model now, model zero; the fossil share and the fossil CO2 in Mt right of the bars; `validation_world.csv` holds the
   numbers):
   1. Aggregate over the 132 countries (30.8 / 29.9 / 30.1 TWh × 10³ generation): Ember coal 34 gas 22 oil 3

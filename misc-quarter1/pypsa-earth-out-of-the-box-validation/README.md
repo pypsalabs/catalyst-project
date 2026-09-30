@@ -61,7 +61,7 @@ The copy is `cp -p`, so a page's timestamp is the time it was rendered in the fo
 ## World page (2026-09-30)
 
 `figures/validation_world.{png,pdf,csv}`: the same two screening solves for **every country needed to reach 99.5 %
-of world electricity demand** — the six archetype regions split by country plus 115 countries modelled as one
+of world electricity demand** — the six archetype regions (NWE as one row) plus 115 countries modelled as one
 islanded node each (ten group runs, GADM-level clustering, `ATKc`; method, patches and caveats in the
 [rest-of-world section](../../config-pypsa-earth/README.md#rest-of-world-single-node-countries-stages-g-g-now-g-zero-world-2026-09-2930)).
 Per country three 100 % bars: Ember actual generation (latest year ≤ 2024), model `now`, model `zero`, with the
