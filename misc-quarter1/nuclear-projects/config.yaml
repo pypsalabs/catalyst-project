@@ -1,0 +1,110 @@
+# Nuclear project dataset: existing, under-construction and planned reactors
+# (Global Energy Monitor tracker) joined with hand-collected cost estimates.
+
+gem:
+  release: "August 2026"
+  file: data/gem_nuclear_tracker_2026-08.xlsx      # obtained through the GEM download form (CC BY 4.0)
+  citation: "Global Energy Monitor, Global Nuclear Power Tracker, August 2026 release"
+  sheet: Data
+  # the Jan-2023 snapshot mirrored on GitHub (no form) is kept as a fallback
+  mirror_2023: https://raw.githubusercontent.com/pz-max/gem-powerplant-data/main/Global-Nuclear-Power-Tracker-January-2023.csv
+
+# GEM statuses grouped for reporting. "cancelled - inferred 4 y" and
+# "shelved - inferred 2 y" are GEM's own inferences from research inactivity.
+status_groups:
+  operating: [operating]
+  construction: [construction]
+  planned: [pre-construction, announced]
+  paused: [mothballed, shelved, "shelved - inferred 2 y"]
+  ended: [retired, cancelled, "cancelled - inferred 4 y"]
+
+# Reactor family from GEM "Reactor Type" (first match wins), refined by model
+# and size below. Families follow the technology strands of the study:
+# large light-water reactors, light-water SMRs, and the Gen IV coolant classes.
+family_by_type:
+  pressurized water reactor: lwr-large
+  boiling water reactor: lwr-large
+  advanced boiling water reactor: lwr-large
+  small modular reactor: lwr-smr          # refined by model below (KP-FHR, IMSR, MSR-100, ARC-100 are Gen IV)
+  microreactor: microreactor
+  high temperature gas reactor: htgr
+  fast breeder reactor: fast
+  liquid-metal-cooled fast reactor: fast
+  fast neutron reactor: fast
+  molten salt reactor: msr
+  pressurized heavy water reactor: phwr
+  heavy water light water reactor: phwr
+  heavy water gas-cooled reactor: gcr
+  steam-generating heavy water reactor: phwr
+  gas-cooled reactor: gcr
+  light water graphite reactor: lwgr
+  fusion: fusion
+  unknown: unknown
+family_by_model:                      # overrides the type mapping
+  EPR: lwr-large                      # GEM types Sizewell C1-2 as PHWR (data error, Aug 2026 release)
+  KP-FHR: fhr
+  IMSR-400: msr
+  MSR-100: msr
+  SSR-W: msr
+  Thorcon: msr
+  ARC-100: fast
+  Aurora: fast
+  BANR: htgr
+  Aalo-1: microreactor
+  PWR-20: microreactor
+# PWR/BWR units at or below this size count as lwr-smr (CNP-300, ACP-100, RITM, KLT-40S, ...)
+smr_max_mw: 350
+
+# ---- money -------------------------------------------------------------------
+# Same convention as ../technology-costs/config.yaml: convert at the exchange
+# rate of the price year, then inflate with the base currency's CPI.
+base_currency: USD
+base_currency_year: 2024
+
+# ECB reference rates (annual averages of units per EUR) are retrieved into
+# data/ecb_fx_annual.csv by the Snakefile. Entries here fill gaps of that
+# table: the ECB stopped publishing RUB in March 2022, so 2022-2025 are Bank of
+# Russia annual averages of the official EUR/RUB rate (cbr.ru, rounded).
+fx_units_per_eur_override:
+  RUB: {2022: 72.5, 2023: 92.1, 2024: 100.2, 2025: 92.0, 2026: 93.0}   # 2026: Jan-Aug approx.
+  KES: {2026: 150.0}          # Central Bank of Kenya, approx. 2026 average (not an ECB currency)
+# Years without a complete ECB annual average (the current year) are filled
+# with the mean of the monthly averages retrieved into data/ecb_fx_monthly.csv.
+
+# US CPI-U all items, 1982-84=100, BLS series CUUR0000SA0 annual averages
+# (extends the technology-costs table back to 2000 for early cost estimates).
+cpi:
+  USD: {2000: 172.2, 2001: 177.1, 2002: 179.9, 2003: 184.0, 2004: 188.9, 2005: 195.3, 2006: 201.6,
+        2007: 207.342, 2008: 215.303, 2009: 214.537, 2010: 218.056, 2011: 224.939, 2012: 229.594,
+        2013: 232.957, 2014: 236.736, 2015: 237.017, 2016: 240.007, 2017: 245.120, 2018: 251.107,
+        2019: 255.657, 2020: 258.811, 2021: 270.970, 2022: 292.655, 2023: 304.702, 2024: 313.689,
+        2025: 321.943,
+        2026: 330.6}     # PROVISIONAL: 2025 x 1.027, replace with the BLS annual average when published
+
+# ---- figures -------------------------------------------------------------------
+# Regions for the cost strip plot (figures/nuclear_cost_strip.png): where the plant is
+# built, grouped by who builds it. Countries not listed fall into "other"; regions listed
+# under `strip_exclude` are left out of the figure (too few projects to read).
+cost_regions:
+  China / India: [China, India]
+  Russia (domestic): [Russia]
+  South Korea (domestic): [South Korea]
+  Rosatom export: [Türkiye, Egypt, Bangladesh, Iran, Hungary, Uzbekistan, Kazakhstan, Vietnam, Belarus]
+  KHNP / CNNC export: [United Arab Emirates, Pakistan]
+  Europe / N. America / Japan: [United States, Canada, United Kingdom, France, Finland, Slovakia, Czech Republic, Poland,
+                                Romania, Bulgaria, Netherlands, Slovenia, Sweden, Estonia, Japan, Ukraine]
+strip_exclude: ["South Korea (domestic)", "KHNP / CNNC export", "other", "Russia (domestic)", "Rosatom export"]
+# The Western points are split by reactor type into the groups below (large LWR takes the PHWRs);
+# other regions stay whole. A density is drawn for groups with at least `strip_min_density` points.
+strip_split_by_type: ["Europe / N. America / Japan"]
+strip_min_density: 5
+# reference line for the study's first-of-a-kind Gen IV assumption (USD of the base year per kW)
+gen4_assumption_usd_per_kw: 17000
+# Expected drift of an ex-ante figure to the final cost, drawn on the strip plot: per region the
+# median ratio latest-or-final / initial over same-scope pairs in data/project_costs.csv (real
+# USD of the base year, so exchange-rate and inflation effects are taken out). The factor is a
+# latest/initial ratio and is applied to initial-kind figures only (a latest figure is already a
+# revised estimate). Regions with fewer than `drift_min_pairs` pairs use the pooled median.
+drift_min_pairs: 3
+
+archetype_data_dir: ../country-classification/data    # Natural Earth 50m countries for the basemap

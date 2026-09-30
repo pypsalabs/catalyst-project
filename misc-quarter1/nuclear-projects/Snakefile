@@ -1,0 +1,93 @@
+# Nuclear project dataset: existing, under-construction and planned reactors
+# with coordinates, reactor type, capacity and (where published) cost.
+#
+#   snakemake -c1            (../../models/priam-myopic/.pixi/envs/default/bin/snakemake)
+#
+# rules
+#   retrieve_ecb_fx   ECB annual-average reference rates (units per EUR)         -> data/ecb_fx_annual.csv
+#   build_units       GEM tracker xlsx -> harmonised units and sites            -> build/nuclear_units.csv, build/nuclear_sites.csv
+#   build_costs       hand-collected estimates -> USD2024, USD/kW, joined to sites -> build/project_costs.csv, build/nea_benchmarks.csv
+#   plot              world map by status; cost per kW chart; cost strip plot    -> figures/*.png
+#
+# data/gem_nuclear_tracker_2026-08.xlsx is not retrievable by rule: GEM hands
+# out the current release after a registration form (CC BY 4.0). The rule
+# `retrieve_gem_mirror` fetches the January 2023 snapshot from GitHub as a
+# fallback for anyone without the form file.
+
+configfile: "config.yaml"
+
+FX_CURRENCIES = "USD+GBP+CAD+JPY+AUD+CNY+INR+RUB+KRW+PLN+CZK+HUF+BRL+TRY+CHF+SEK+NOK+ZAR+IDR+PHP+THB+MYR+BGN+RON+EGP+ARS+VND+KZT+UZS+BDT+PKR+IRR+NGN+KES+UGX+GHS+SAR+AED"
+
+
+rule all:
+    input:
+        "build/nuclear_units.csv",
+        "build/project_costs.csv",
+        "figures/nuclear_sites_map.png",
+        "figures/nuclear_cost_per_kw.png",
+        "figures/nuclear_cost_strip.png",
+
+
+rule retrieve_ecb_fx:
+    output:
+        annual="data/ecb_fx_annual.csv",
+        monthly="data/ecb_fx_monthly.csv",
+    shell:
+        "curl -sL -o {output.annual} 'https://data-api.ecb.europa.eu/service/data/EXR/A." + FX_CURRENCIES
+        + ".EUR.SP00.A?format=csvdata&startPeriod=2000' && "
+        "curl -sL -o {output.monthly} 'https://data-api.ecb.europa.eu/service/data/EXR/M." + FX_CURRENCIES
+        + ".EUR.SP00.A?format=csvdata&startPeriod=2024'"
+
+
+rule retrieve_gem_mirror:
+    output:
+        "data/gem_nuclear_tracker_2023-01.csv",
+    params:
+        url=config["gem"]["mirror_2023"],
+    shell:
+        "curl -sL -o {output} {params.url}"
+
+
+rule build_units:
+    input:
+        gem=config["gem"]["file"],
+    output:
+        units="build/nuclear_units.csv",
+        sites="build/nuclear_sites.csv",
+    script:
+        "build_units.py"
+
+
+rule build_costs:
+    input:
+        costs="data/project_costs.csv",
+        nea="data/nea_benchmarks.csv",
+        fx="data/ecb_fx_annual.csv",
+        fx_monthly="data/ecb_fx_monthly.csv",
+        sites="build/nuclear_sites.csv",
+        units="build/nuclear_units.csv",
+    output:
+        costs="build/project_costs.csv",
+        nea="build/nea_benchmarks.csv",
+    script:
+        "build_costs.py"
+
+
+rule plot:
+    input:
+        sites="build/nuclear_sites.csv",
+        costs="build/project_costs.csv",
+        nea="build/nea_benchmarks.csv",
+    params:   # config keys the figures depend on, so that editing them triggers a rerun
+        regions=config["cost_regions"],
+        exclude=config["strip_exclude"],
+        drift_min_pairs=config["drift_min_pairs"],
+        split=config["strip_split_by_type"],
+        min_density=config["strip_min_density"],
+        gen4=config["gen4_assumption_usd_per_kw"],
+    output:
+        map="figures/nuclear_sites_map.png",
+        cost="figures/nuclear_cost_per_kw.png",
+        strip="figures/nuclear_cost_strip.png",
+    script:
+        "plot_maps.py"
