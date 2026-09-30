@@ -5,7 +5,10 @@ World power-mix page: the current and the carbon-neutral generation mix of every
 Every country of every stage config (the six archetype regions and the rest-of-world groups written by
 select_countries.py) gets three 100 % bars, top to bottom:
     Ember   actual generation by fuel, latest year <= 2024 (yearly_full_release_long_format.csv)
-    now     the <R>-now screening solve (brownfield, 2025 costs, no CO2 cap)
+    now     the <R>-now solve: since 2026-09-30 a dispatch of the 2024 system calibrated to Ember (fleet, demand, hydro
+            energy, wind/solar capacity factors, 2024 fuel and CO2 prices, must-run / availability envelopes, net
+            imports; overlay.now.yaml + config-pypsa-earth/calibration/), before that the out-of-the-box brownfield
+            expansion at 2025 costs without a CO2 cap
     zero    the <R>-zero screening solve (Co2L0, 2050 costs)
 Countries of multi-node regions are split by bus country, except the multi-country archetype region NWE, which is
 shown as one row (its 12 countries summed, Ember included). The model mix is primary generation: generators plus hydro
@@ -14,8 +17,8 @@ load shedding is drawn as its own red segment. Right of the bars: the fossil sha
 the Ember and now bars, the power-sector CO2 from fossil combustion in Mt (Ember "Fossil" aggregate of the same year, i.e.
 coal + gas + other fossil without the life-cycle factors Ember adds for bioenergy, nuclear, wind and solar; the model's
 direct emissions, generation / efficiency x the carrier's co2_emissions).
-Next to the name: Ember demand | model load (TWh; the model load is GEGIS SSP2-2.6 2030, DemandCast 2013 where GEGIS
-is empty). The header holds the aggregate of all modelled countries, four Ember-vs-now scatters (share of generation,
+Next to the name: Ember demand | model load (TWh; with the calibration the model load equals Ember's demand, before it
+was GEGIS SSP2-2.6 2030 or DemandCast 2013 where GEGIS is empty). The header holds the aggregate of all modelled countries, four Ember-vs-now scatters (share of generation,
 dot area ~ demand) and the coverage (share of Ember world demand in the model, skipped countries).
 
 Standalone (fork env, from models/pypsa-earth); run.sh stage `world` calls it the same way:
@@ -144,7 +147,10 @@ def collect(fork):
                 missing.append(f"{r}-{scen}")
                 continue
             print(f"reading {path}", flush=True)
-            t = country_table(pypsa.Network(path))
+            n = pypsa.Network(path)
+            if not ((n.meta or {}).get("calibration") or {}).get("enable"):
+                missing.append(f"{r}-{scen} (out-of-the-box, not calibrated)")
+            t = country_table(n)
             for c in ccs:
                 row = t.loc[c].to_dict() if c in t.index else {k: np.nan for k in ORDER + ["load"]}
                 rows.append(dict(row, country=c, region=r, scen=scen))
@@ -334,16 +340,19 @@ def page(df, world, missing, col, out):
     handles = [plt.Rectangle((0, 0), 1, 1, color=col[k]) for k in ORDER]
     fig.legend(handles, [NAMES[k] for k in ORDER], loc="upper left", bbox_to_anchor=(0.745, 0.94), ncol=2, fontsize=7,
                frameon=False, handlelength=1.2, columnspacing=1.0)
-    notes = ["Per country, top to bottom: Ember actual · model now (brownfield, 2025 costs, no CO2 cap) · model zero (Co2L0, "
-             "2050 costs). Right of the bars: fossil share and power-sector CO2 from coal, gas and oil in Mt (Ember 'Fossil', "
-             "same year; model: direct emissions). Grey line: code · region run · Ember demand | model load (TWh; GEGIS "
-             "SSP2-2.6 2030, DemandCast 2013 where GEGIS is empty)."]
+    notes = ["Per country, top to bottom: Ember actual · model now (dispatch of the 2024 system: fleet, demand, hydro energy and "
+             "wind/solar capacity factors calibrated to Ember 2024, 2024 fuel and CO2 prices per country, nuclear / biomass / "
+             "geothermal / other fossil flat at their observed capacity factors, three efficiency tranches per thermal plant, "
+             "net imports within 25 % of Ember; US coal with a 0.32 must-run floor) · model zero (Co2L0, 2050 costs, expansion "
+             "on top of the same calibrated system). Right of the bars: fossil share and power-sector CO2 from coal, gas and "
+             "oil in Mt (Ember 'Fossil', same year; model: direct emissions). Grey line: code · region run · Ember demand | "
+             "model load (TWh)."]
     sk = pd.read_csv(ROW, keep_default_na=False) if os.path.exists(ROW) else pd.DataFrame()
     if len(sk):
         s = sk[sk.status == "skipped"]
         notes.append("Not modelled: " + ", ".join(f"{r.iso2 or r.iso3} {r.demand_twh:.0f} TWh ({r.reason})" for r in s.itertuples()))
     if missing:
-        notes.append("Missing solves: " + ", ".join(missing))
+        notes.append("Missing or uncalibrated solves: " + ", ".join(missing))
     notes = "\n".join(textwrap.fill(par, 100) for par in notes)
     fig.text(0.745, 0.865, notes, fontsize=6.3, color=INK2, va="top", linespacing=1.4)
 

@@ -1,4 +1,15 @@
-# PyPSA-Earth out-of-the-box validation (WP1, September 2026)
+# PyPSA-Earth validation pages (WP1, September 2026)
+
+Two generations of pages live here. **`figures/`** holds the current ones (2026-09-30 onwards): the
+`now` solve is a dispatch of the **2024 system calibrated to Ember** (fleet, demand, hydro energy,
+wind/solar capacity factors, 2024 fuel and CO2 prices per country, must-run / availability envelopes,
+annual net-import and coal/gas energy bands; see the
+[calibration section](../../config-pypsa-earth/README.md#calibration-to-2024-stages-r-now--g-now-re-run-as-a-dispatch-of-the-2024-system-2026-09-30)
+of the fork notes). **`figures/out-of-the-box/`** keeps the pages of 2026-09-20/30 described in the
+rest of this file: the six prenetworks solved *as PyPSA-Earth comes*, which is what motivated the
+calibration (coal +11 pp, gas −12 pp, solar +10 pp of generation share on average over the world).
+
+## Out of the box (2026-09-20/30, `figures/out-of-the-box/`)
 
 How do the six catalyst prenetworks behave when solved *as PyPSA-Earth comes*, before any project
 patch touches costs, technologies or constraints? One 16:9 page per region, produced inside the
@@ -33,12 +44,12 @@ the archetype set; its page is kept for reference.
 
 | Region | Page |
 |---|---|
-| United States (CONUS) | [figures/validation_US.png](figures/validation_US.png) |
-| North-West Europe (AT, BE, CH, CZ, DE, DK, FR, GB, IE, LU, NL, PL) | [figures/validation_NWE.png](figures/validation_NWE.png) |
-| Brazil | [figures/validation_BR.png](figures/validation_BR.png) |
-| India | [figures/validation_IN.png](figures/validation_IN.png) |
-| Singapore (one node) | [figures/validation_SG.png](figures/validation_SG.png) |
-| China (reference only) | [figures/validation_CN.png](figures/validation_CN.png) |
+| United States (CONUS) | [figures/out-of-the-box/validation_US.png](figures/out-of-the-box/validation_US.png) |
+| North-West Europe (AT, BE, CH, CZ, DE, DK, FR, GB, IE, LU, NL, PL) | [figures/out-of-the-box/validation_NWE.png](figures/out-of-the-box/validation_NWE.png) |
+| Brazil | [figures/out-of-the-box/validation_BR.png](figures/out-of-the-box/validation_BR.png) |
+| India | [figures/out-of-the-box/validation_IN.png](figures/out-of-the-box/validation_IN.png) |
+| Singapore (one node) | [figures/out-of-the-box/validation_SG.png](figures/out-of-the-box/validation_SG.png) |
+| China (reference only) | [figures/out-of-the-box/validation_CN.png](figures/out-of-the-box/validation_CN.png) |
 
 <img src="figures/validation_NWE.png" alt="North-West Europe: current system (left) and carbon-neutral (right) screening solves against published statistics" width="100%">
 
@@ -60,7 +71,7 @@ The copy is `cp -p`, so a page's timestamp is the time it was rendered in the fo
 
 ## World page (2026-09-30)
 
-`figures/validation_world.{png,pdf,csv}`: the same two screening solves for **every country needed to reach 99.5 %
+`figures/out-of-the-box/validation_world.{png,pdf,csv}`: the same two screening solves for **every country needed to reach 99.5 %
 of world electricity demand** — the six archetype regions (NWE as one row) plus 115 countries modelled as one
 islanded node each (ten group runs, GADM-level clustering, `ATKc`; method, patches and caveats in the
 [rest-of-world section](../../config-pypsa-earth/README.md#rest-of-world-single-node-countries-stages-g-g-now-g-zero-world-2026-09-2930)).
@@ -68,3 +79,10 @@ Per country three 100 % bars: Ember actual generation (latest year ≤ 2024), mo
 fossil share, the power-sector CO2 from fossil combustion (Ember vs model, Mt) and the demand (Ember | model) next to them; the header aggregates all 132 countries and scatters the
 model's fossil / nuclear / hydro / wind+solar shares against Ember. Not modelled: Hong Kong, Macau (no own GADM
 file) and Kosovo (no load series). Produced by `config-pypsa-earth/scripts/plot_world.py` (run.sh stage `world`).
+
+## Calibrated pages (2026-09-30, `figures/`)
+
+The same six regional dashboards and the world page after the calibration of the `now` solve to the 2024
+system (the `zero` solves are re-run on top of the calibrated system as well). `figures/validation_world.csv`
+carries the per-country numbers. Residuals against Ember 2024, per country and fuel, come from
+`python config-pypsa-earth/scripts/build_calibration.py --check <solved network>`.

@@ -1,19 +1,42 @@
 # SPDX-License-Identifier: CC0-1.0
 #
-# Catalyst screening scenario "now" = current system: the existing fleet (powerplantmatching ≈2022 + IRENA
-# 2023 wind/solar) plus the model's default brownfield expansion (solar, wind, battery, H2 store, lines
-# via ll=copt) at 2025 costs and WITHOUT any CO2 cap. Applied by config-pypsa-earth/run.sh on top of
-# config.<R>.yaml for a stage named <R>-now (run.sh sets run.name = <R>-now and symlinks
-# resources/<R>-now -> resources/<R>, so only add_electricity and everything downstream are rebuilt).
+# Catalyst screening scenario "now" = the 2024 power system, dispatched: the fleet, demand and hydro energy of
+# every country are calibrated to Ember 2024 (config-pypsa-earth/calibration/2024/, built by
+# scripts/build_calibration.py), fuel and CO2 prices are 2024 values per country, nuclear / biomass / geothermal
+# run flat at their observed capacity factors, thermal plant has an availability cap, and nothing is extendable
+# (calibration.brownfield_only: generators and stores are frozen; lines may be reinforced, ll=copt).
+# Applied by config-pypsa-earth/run.sh on top of config.<R>.yaml for a stage named <R>-now (run.sh sets run.name =
+# <R>-now and symlinks resources/<R>-now -> resources/<R>, so only add_electricity and everything downstream are
+# rebuilt). Before 2026-09-30 this overlay was the fork's default brownfield expansion at 2025 costs without a CO2
+# cap; see config-pypsa-earth/README.md "Calibration to 2024".
 scenario:
   simpl: [""]
-  ll: [copt]
+  ll: [copt]            # lines may be reinforced at cost: the OSM ratings x s_max_pu 0.7 leave some clusters short of their
+                        # load (a US cluster with 30 GW load, 21 GW plant and 3 GW of lines shed 2 % under v1.0)
   opts: [3h]            # no Co2L -> no CO2 constraint (prepare_network adds one only for a Co2L* opt); 3h = 3-hourly
                         # averaging (pypsa-earth default resolution): the hourly 50-node LP (BR: 19.0 M rows x 9.3 M
                         # columns) needs more than the 12 GB this laptop can give Gurobi (OOM in presolve, 2026-09-19)
 
 costs:
-  year: 2025            # technology-data v0.13.2 costs_2025.csv: today's investment costs and fuel prices
+  year: 2025            # technology-data v0.13.2 costs_2025.csv: VOM, efficiencies, CO2 intensities (fuel prices are
+                        # replaced per country by the calibration table)
+
+calibration:            # fork patch: scripts/calibrate_network.py, applied in prepare_network (paths relative to the fork root)
+  enable: true
+  brownfield_only: true
+  efficiency_spread: 0.15   # 3 tranches per fuel-burning generator: x0.85, x1.0, x1.15 of the fleet efficiency
+  tranches: 3
+  net_import_tolerance: 0.25
+  energy_bands: {coal: [0.9, 1.1], gas: [0.9, 1.1]}   # annual coal and gas generation within +-10 % of Ember (no floor for exporters)
+  tables:
+    demand: ../../config-pypsa-earth/calibration/2024/demand.csv
+    capacity: ../../config-pypsa-earth/calibration/2024/capacity.csv
+    hydro: ../../config-pypsa-earth/calibration/2024/hydro.csv
+    generation: ../../config-pypsa-earth/calibration/2024/generation.csv
+    fuel_prices: ../../config-pypsa-earth/calibration/2024/fuel_prices.csv
+    co2_prices: ../../config-pypsa-earth/calibration/2024/co2_prices.csv
+    envelope: ../../config-pypsa-earth/calibration/2024/envelope.csv
+    net_imports: ../../config-pypsa-earth/calibration/2024/net_imports.csv
 
 enable:
   build_cutout: false   # the base stage's cutout exists; never rebuild

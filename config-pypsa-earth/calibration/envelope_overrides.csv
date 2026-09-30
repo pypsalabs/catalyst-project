@@ -1,0 +1,4 @@
+# Pass-B rows: hand-set envelopes where the price-based dispatch still misses the observed generation. Replace the
+# generated rows of the same (country, carrier) in <year>/envelope.csv. Empty since the annual energy bands
+# (calibration.energy_bands on coal and gas) took over the role of the US coal must-run floor (2026-09-30).
+country,carrier,p_min_pu,p_max_pu,efficiency,source

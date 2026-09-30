@@ -1,0 +1,47 @@
+# Effective marginal CO2 price on power-sector emissions in 2024, EUR/tCO2 (World Bank State and Trends of Carbon Pricing 2025;
+# ICAP Status Report 2025; exchange rates 2024 ECB averages). Countries not listed: 0. Read by calibrate_network.py as
+# calibration.tables.co2_prices; not to be combined with the Ep option.
+country,price,source
+DE,65,EU ETS 2024 average EUA ~65 EUR/t
+FR,65,EU ETS
+PL,65,EU ETS
+NL,65,EU ETS
+BE,65,EU ETS
+AT,65,EU ETS
+CZ,65,EU ETS
+DK,65,EU ETS
+IE,65,EU ETS
+LU,65,EU ETS
+IT,65,EU ETS
+ES,65,EU ETS
+PT,65,EU ETS
+SE,65,EU ETS (national CO2 tax exempts ETS installations)
+FI,65,EU ETS
+GR,65,EU ETS
+RO,65,EU ETS
+HU,65,EU ETS
+BG,65,EU ETS
+SK,65,EU ETS
+HR,65,EU ETS
+SI,65,EU ETS
+LT,65,EU ETS
+LV,65,EU ETS
+EE,65,EU ETS
+CY,65,EU ETS
+NO,65,EU ETS (EEA)
+IS,65,EU ETS (EEA)
+CH,65,Swiss ETS linked to the EU ETS
+GB,64,UK ETS 2024 average ~37 GBP/t plus Carbon Price Support 18 GBP/t
+CA,54,federal benchmark 80 CAD/t; output-based pricing charges the full price on emissions above the benchmark so the coal-to-gas margin sees it in full
+NZ,31,NZ ETS 2024 average ~55 NZD/t
+KR,6,K-ETS KAU24 ~9000 KRW/t
+SG,17,carbon tax 25 SGD/t (gas-only system; no dispatch effect)
+JP,2,Global Warming Countermeasure Tax 289 JPY/t (GX-ETS voluntary in 2024)
+MX,3,federal carbon tax on fossil fuels ~ 3 EUR/t (natural gas exempt); pilot ETS without price
+CL,5,green tax 5 USD/t on thermal plants > 50 MW
+CO,5,carbon tax ~ 25000 COP/t on fuels (natural gas for power exempt)
+KZ,1,KAZ ETS ~ 500 KZT/t
+UA,1,CO2 tax 30 UAH/t
+ZA,0,carbon tax 190 ZAR/t but Eskom exempt until 2026 and 60-95 % allowances
+CN,0,national ETS is intensity-based with free allocation at fleet benchmarks: no marginal price on coal-to-gas switching in dispatch
+US,0,no federal price; RGGI (~15 USD) and California (~35 USD) cover ~20 % of load and are omitted at CONUS level

@@ -1,0 +1,50 @@
+# Fuel prices for power generation, 2024 annual averages, EUR/MWh_th (USD converted at the 2024 ECB average 1.082 USD/EUR;
+# 1 MMBtu = 0.2931 MWh; steam coal 6000 kcal/kg = 6.98 MWh/t; crude 1.70 MWh/bbl). `default` rows apply to every country
+# without a region entry in fuel_price_regions.csv. Read by scripts/build_calibration.py.
+region,fuel,price,source
+default,gas,34,TTF 2024 average 10.9 USD/MMBtu (World Bank Pink Sheet); European hub price as world default
+default,coal,15,API2 (ARA) 2024 average ~115 USD/t (World Bank Pink Sheet); delivered European price as world default
+default,lignite,3.3,technology-data v0.13.2 costs_2025 (mine-mouth)
+default,oil,45,Brent 2024 average 80.8 USD/bbl (World Bank Pink Sheet) -> 47 USD/MWh; HFO trades ~10 % below crude
+default,uranium,3.4,technology-data v0.13.2 costs_2025
+default,biomass,7.4,technology-data v0.13.2 costs_2025 (solid biomass for power; dispatch is set by the envelope not the price)
+north_america,gas,7,Henry Hub 2024 average 2.19 USD/MMBtu (EIA); Canadian AECO lower; Mexico imports US pipeline gas (+1-2)
+north_america,coal,7.5,EIA average delivered cost of coal to US electric power 2024 ~2.4 USD/MMBtu
+north_america,oil,45,as default (petroleum liquids are peaking fuel in the US)
+europe,gas,34,TTF 2024 average 10.9 USD/MMBtu (World Bank Pink Sheet); NBP within 1 USD/MMBtu
+europe,coal,15,API2 (ARA) 2024 average ~115 USD/t (World Bank Pink Sheet)
+europe,lignite,3.3,technology-data mine-mouth lignite
+europe,oil,45,as default
+asia_lng,gas,40,Japan LNG import price 2024 ~12.5 USD/MMBtu (World Bank Pink Sheet; JKM 11-13); JP KR TW SG PH
+asia_lng,coal,17,Newcastle 6000 kcal 2024 average 135 USD/t (World Bank Pink Sheet)
+asia_lng,oil,45,as default
+china,gas,30,mix of pipeline imports (Power of Siberia / Central Asia) and LNG below JKM plus regulated domestic city-gate (IEA Gas Market Report 2024)
+china,coal,17,Qinhuangdao 5500 kcal 2024 average ~860 CNY/t (CEC/Sxcoal) -> 120 USD/t at 6.4 MWh/t
+china,oil,45,as default
+india,gas,25,blend of APM domestic gas 6.5 USD/MMBtu (PPAC 2024) and spot LNG ~12 USD/MMBtu; most CCGTs idle
+india,coal,6,Coal India notified prices for G9-G11 grades ~1500-2000 INR/t at 4-4.5 MWh/t (Coal India / CEA); imported blend raises the average by ~1
+india,oil,45,as default
+sea_domestic,gas,15,"regulated domestic gas for power: Indonesia 6 USD/MMBtu cap (ESDM), Malaysia Petronas regulated ~6-7 USD/MMBtu, Thailand pool gas ~10 USD/MMBtu, Viet Nam Nam Con Son ~8, Bangladesh/Pakistan domestic 3-6 plus spot LNG"
+sea_domestic,coal,10,Indonesian DMO 70 USD/t cap (ESDM) for domestic power; Malaysia/Thailand import at Newcastle ~17
+sea_domestic,oil,45,as default
+russia_cis,gas,5,Russia regulated wholesale gas (FAS) ~ 60-70 USD/1000 m3 -> 1.9 USD/MMBtu; KZ/UZ/TM/AZ domestic similar or lower; Belarus imports Russian gas at ~130 USD/1000 m3
+russia_cis,coal,5,"Russian/Kazakh domestic steam coal for power ~ 40 USD/t (Ekibastuz, Kuzbass)"
+russia_cis,oil,30,domestic fuel oil (mazut) well below Brent
+producer_regulated,gas,4,"regulated domestic gas in producer states: Saudi Aramco 1.25 USD/MMBtu, Qatar ~1, Iran ~1-2, Algeria ~1, Kuwait/Bahrain/Oman 2-3, UAE ~ 3 plus LNG for peak, Nigeria 2.4 (NGFCP), Libya ~1, Egypt 4.5-6 (imports LNG in summer), Turkmenistan <1"
+producer_regulated,coal,15,as default
+producer_regulated,oil,20,crude burn and HFO at domestic prices (Saudi Arabia ~6 USD/bbl to utilities per Aramco; Iraq/Kuwait heavy fuel oil subsidised)
+latam,gas,18,Argentina Vaca Muerta ~3.5 USD/MMBtu (ENARGAS) and Bolivian pipeline gas; Colombia ~5-6; Peru Camisea ~2-3 for power; Trinidad domestic; Venezuela regulated
+latam,coal,15,as default (Colombia domestic ~ 90 USD/t)
+latam,oil,45,as default
+latam_lng,gas,35,Brazil / Chile / Uruguay / Central America: LNG imports plus Bolivian gas; Brazil gas for thermal plants ~ 12 USD/MMBtu (EPE)
+latam_lng,coal,15,as default
+latam_lng,oil,45,as default
+oceania,gas,27,Australia east-coast domestic ~ 12 AUD/GJ (AER 2024) ; New Zealand ~ 10 NZD/GJ
+oceania,coal,7,"Australian domestic power coal (NSW/QLD contracts, Victorian brown coal) far below Newcastle export parity"
+oceania,oil,45,as default
+africa_south,gas,34,as default (little gas in ZA / ZW / ZM power)
+africa_south,coal,5,Eskom mine-mouth coal ~ 500-600 ZAR/t (Eskom 2024 integrated report); ZW / BW similar domestic coal
+africa_south,oil,45,as default
+levant,gas,14,Israel Tamar/Leviathan ~ 4.5 USD/MMBtu (Israel Electricity Authority); Jordan imports Israeli gas ~ 6; Lebanon/Syria/Palestine mainly oil
+levant,coal,17,as asia_lng (imported)
+levant,oil,45,as default

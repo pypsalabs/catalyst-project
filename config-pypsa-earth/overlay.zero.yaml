@@ -4,6 +4,8 @@
 # existing fleet stays in the model (fossil units cannot run under the zero cap, nuclear / hydro / existing
 # wind and solar keep operating), the default extendables (solar, wind, battery, H2 store, lines via
 # ll=copt) are built at 2050 costs, and the opts wildcard Co2L0 sets the CO2 limit to 0 (co2.base * 0).
+# Since 2026-09-30 the starting point is the same calibrated 2024 system as in overlay.now.yaml (demand,
+# fleet, hydro energy, fuel prices, envelopes), but nothing is frozen: expansion is allowed on top of it.
 # Applied by config-pypsa-earth/run.sh on top of config.<R>.yaml for a stage named <R>-zero.
 scenario:
   simpl: [""]
@@ -12,6 +14,21 @@ scenario:
 
 costs:
   year: 2050            # technology-data v0.13.2 costs_2050.csv
+
+calibration:            # fork patch: scripts/calibrate_network.py; same tables as overlay.now.yaml, expansion allowed
+  enable: true
+  brownfield_only: false
+  efficiency_spread: 0.15   # 3 tranches per fuel-burning generator: x0.85, x1.0, x1.15 of the fleet efficiency
+  tranches: 3
+  net_import_tolerance: 0.25
+  tables:
+    demand: ../../config-pypsa-earth/calibration/2024/demand.csv
+    capacity: ../../config-pypsa-earth/calibration/2024/capacity.csv
+    hydro: ../../config-pypsa-earth/calibration/2024/hydro.csv
+    generation: ../../config-pypsa-earth/calibration/2024/generation.csv
+    fuel_prices: ../../config-pypsa-earth/calibration/2024/fuel_prices.csv
+    envelope: ../../config-pypsa-earth/calibration/2024/envelope.csv
+    net_imports: ../../config-pypsa-earth/calibration/2024/net_imports.csv
 
 enable:
   build_cutout: false
