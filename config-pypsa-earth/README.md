@@ -1,4 +1,4 @@
-# `config-pypsa-earth/` — how the PyPSA-Earth soft fork is run (CONUS, Brazil, India, Singapore and North-West/Central Europe prenetworks + screening solves, WP1 pipeline test)
+# `config-pypsa-earth/` — how the PyPSA-Earth soft fork is run (CONUS, Brazil, India, Singapore, North-West/Central Europe and China prenetworks + screening solves, WP1 pipeline test; plus 115 single-node rest-of-world countries, 99.5 % of world demand)
 
 Builds **power-only PyPSA-Earth models up to the `prepare_network` output** ("prenetwork",
 not solved), one country (or country group) per stage, as the end-to-end exercise of the global data pipeline the
@@ -14,7 +14,7 @@ process tree, no Snakemake parallelism (`-c1 -j1`), and a bounded disk footprint
 
 The model code lives in `models/pypsa-earth` (gitignored here): a clone of the soft fork
 `pypsalabs/catalyst-pypsa-earth` (GitHub fork of `pypsa-meets-earth/pypsa-earth`; remote `origin`
-is the fork, `upstream` is pypsa-meets-earth), branch **`catalyst`** = tag v0.9.0 plus eleven small
+is the fork, `upstream` is pypsa-meets-earth), branch **`catalyst`** = tag v0.9.0 plus sixteen small
 patches (`git log v0.9.0..catalyst`). Commit subjects carry an upstream tag: `(upstream candidate)` marks a bug fix to
 propose to pypsa-meets-earth, `(no relevance 4 upstream)` a fork-only change:
 
@@ -572,3 +572,92 @@ region (`results/catalyst/validation_<R>.png`).
   but 35 % low for ARA (14.8), oil 15 % high (Brent 46). The IEA 2050 assumptions sit below the model for
   every fuel except US gas (STEPS 16, NZE 7.7). Regional fuel prices are therefore a WP2 input, not a patch:
   the US `now` gas share (16 %) and Europe's coal-before-gas dispatch both follow directly from this table.
+
+## Rest of world: single-node countries (stages `<G>`, `<G>-now`, `<G>-zero`, `world`; 2026-09-29/30)
+
+Every country that is needed, on top of the six archetype regions, to pass **99.5 % of world electricity demand**,
+modelled out of the box as **one islanded node**: no internal grid, no trade, the mix now and carbon-neutral. One page
+for all of them, `results/catalyst/validation_world.{png,pdf,csv}` (copied to
+`misc-quarter1/pypsa-earth-out-of-the-box-validation/figures/`), instead of a dashboard per region.
+
+- **Selection** (`scripts/select_countries.py`, output `data/row_countries.csv`): Ember demand, latest year ≤ 2024
+  (2025 covers only 91 countries), world = 30,919 TWh; the 17 archetype countries are 62.4 %; the rest is added by
+  descending demand until 99.5 % — **115 countries, down to Jamaica (4.9 TWh), 99.51 %**. Skipped and replaced by the
+  next in line: HK (49 TWh) and MO (6) have no GADM 4.1 file of their own (they are provinces of `gadm41_CHN`, i.e.
+  inside the CN run, where GEGIS gives them zero load), XK (7) has no load series in GEGIS nor DemandCast. Alaska and
+  Hawaii (the US run is CONUS) are the only other gap, ≈ 0.05 %.
+- **Groups**: one pypsa-earth run per prebuilt cutout, the countries of a run sharing weather data and the OSM, GADM,
+  WorldPop and demand pipeline: `EUR` (23, PyPSA-Eur cutout), `MEA` (18, `westasia`), `AFR` (23, `africa`), `ASI`
+  (25, `asia`), `NAM` (12, `northamerica`), `SAM` (9, `southamerica`), `OCE` (AU + NZ, `oceania`), `RU`
+  (`northeurasia`), `CA` (`northamerica`), `IS` (CDS build, 44 × 16 cells: no prebuilt cutout reaches Iceland). The
+  continental cutouts are hardlinked from `~/Desktop/earth/pypsa-earth/cutouts/` by `prestage.sh`, which now also
+  resolves the Geofabrik extracts of any group through earth-osm (multi-country extracts such as `gcc-states`,
+  `haiti-and-domrep`, `central-america` for TT included). `config.<G>.yaml` is generated, do not edit by hand.
+- **One node per country, native levers**: `clustering.alternative_clustering: true` + `gadm_layer_id: 0`.
+  `build_bus_regions` then keeps one onshore region per GADM country shape (offshore regions stay per substation), so
+  the renewable profiles, plants and the national load are computed per country, and `cluster_network` maps every
+  AC bus of a country onto one (`busmap gadm_0_AC`) — islands and unmapped OSM fragments are lumped into it.
+  `threshold_voltage` 100 kV (archetypes 200 kV) so that 110–150 kV systems (JM, CY, TT, …) have a bus at all; it
+  costs nothing because the grid is collapsed. **Islanded**: `catalyst.extra_opts: ATKc` in the group config,
+  prepended to the overlay opts by `merge_config.py` (`ATKc-3h`, `ATKc-Co2L0-3h`); `prepare_network` removes every
+  cross-border line and link, the solved networks have zero lines. The overlay target of a single-node group is the
+  solved network itself (no per-network validation page).
+- **Russia and Canada** are the exception: atlite reads the 100 m Copernicus land-cover raster over each region's
+  bounding box at native resolution (RU 160° × 37°, CA 90° × 32° → 3–6 × 10⁹ pixels), which no excluder resolution
+  fixes. They use the archetype recipe instead — Voronoi regions per base bus at 200 kV, every isolated sub-network
+  fetched into the backbone (`s_threshold_fetch_isolated: 1.0`), `clusters: [1]` (like SG) — plus
+  `crs.area_crs: EPSG:6933` (cylindrical equal-area) because with Mollweide the padded bounding-box corner of 4 wide
+  northern Voronoi cells of CA falls outside the projection's ellipse (`pad_extent` → NaN transform).
+- **Demand**: GEGIS SSP2-2.6 2030 like the archetypes; where GEGIS is empty (PR, LA, BT, AF, UG, PS) the new
+  `load_options.fallback_source: demcast` takes the DemandCast 2013 series (historical level, so LA 4 TWh vs 16 in
+  Ember, BT 2 vs 12). Caveat found on the way: the GEGIS `Africa.nc` (what the fork reads) holds series for 19
+  countries that its `.csv` twin leaves empty, some implausible — DJ 75 TWh, GQ 158, SZ 73, ML 19 against 0.8, 1.5,
+  1.6, 5.5 in Ember; Mali is the only one in the modelled set. GEGIS is also far off for LB (5.0 × Ember), VE (1.8 ×),
+  CM, LY, ZA, UA, YE, TT, SV (1.4–1.7 ×) and CG, KH (0.5 ×); demand-weighted over all 132 countries the model load is
+  0.97 × Ember 2024 (median per country 1.05).
+- **Fork patches added for this** (all `(upstream candidate)`, see the table at the top): NaN-column repair of the
+  Asia/Oceania cutouts (JP, KR, AU, NZ had NaN profiles otherwise), DemandCast fallback, `excluder_resolution`
+  (the group configs use 1000 m; at 100 m Argentina's whole-country mask alone OOM-killed the rule at 12 GB — and the
+  one-worker `multiprocessing.Pool` then hung for 50 min, hence the in-process patch), the backbone exclusion in
+  `merge_into_network` (with `s_threshold_fetch_isolated: 1.0` the backbone's own lines were deleted: RU came out of
+  `simplify_network` as 1,946 one-bus sub-networks), and no bus merging across countries through transformers
+  (Aldeadávila: PT's representative 220 kV bus was mapped onto the ES 400 kV bus and Portugal's 56 TWh landed in
+  Spain, Portugal with no load at all). Eleven patches → sixteen.
+- **Run** (2026-09-29 15:34 → 09-30 05:06, `CONTINUE_ON_FAIL=1 MEM_MAX=12G`, one 16-core laptop): prestage of all
+  groups in parallel with the SAM pilot (≈ 40 GB of Geofabrik downloads, filtered to 60 MB), then
+  `<G> <G>-now <G>-zero` per group and `world`. Prenetwork time is `build_renewable_profiles` reading the whole
+  continental cutout per technology (5 passes); the solves are 1–5 min each (one node per country, 3-hourly).
+  `memory.peak` reaches the 12 GB cap in the SAM/AFR/OCE/ASI prenetworks without an OOM kill: page cache of the
+  18–28 GB cutout files counts against the scope, reclaimable (`max` events, no `oom`).
+
+  | group | prenetwork | now | zero | group | prenetwork | now | zero |
+  |---|---|---|---|---|---|---|---|
+  | SAM | 66 min / 12.0 GB | 2 min / 2.2 GB | 1 min / 2.1 GB | OCE | 118 min / 12.0 GB | 1 min / 1.2 GB | 1 min / 1.1 GB |
+  | MEA | 41 min / 9.1 GB | 2 min / 3.2 GB | 2 min / 3.4 GB | ASI | 162 min / 12.0 GB | 3 min / 4.5 GB | 3 min / 4.6 GB |
+  | EUR | 91 min / 8.9 GB | 4 min / 4.5 GB | 4 min / 5.1 GB | RU | ≈ 55 min / 12.0 GB | 2 min / 3.8 GB | 2 min / 4.3 GB |
+  | AFR | 44 min / 12.0 GB | 2 min / 3.7 GB | 2 min / 3.7 GB | CA | ≈ 45 min / 11.4 GB | 5 min / 2.0 GB | 5 min / 2.5 GB |
+  | NAM | 24 min / 10.6 GB | 2 min / 2.5 GB | 2 min / 2.4 GB | IS | 165 min (CDS queue) / 2.0 GB | 1 min / 0.8 GB | 1 min / 0.8 GB |
+
+  Failures on the way, each fixed by one of the patches above and re-run: SAM (OOM + hang, 100 m excluder), CA
+  (Mollweide NaN), RU (backbone deleted), EUR re-run from `simplify_network` for Portugal.
+- **What the world page shows** (`results/catalyst/validation_world.png`; per country three 100 % bars: Ember actual,
+  model now, model zero; the fossil share right of the bars; `validation_world.csv` holds the numbers):
+  1. Aggregate over the 132 countries (30.8 / 29.9 / 30.1 TWh × 10³ generation): Ember coal 34 gas 22 oil 3
+     nuclear 9 hydro 14 wind 8 solar 7 %; model now coal 39 gas 13 nuclear 12 hydro 10 wind 11 solar 15 %; model zero
+     wind 33 solar 53 hydro 10 nuclear 2 %, 1.6 % of demand shed.
+  2. **Fossil share** now vs Ember: 46 of 132 countries within 10 pp, 79 within 20 pp; demand-weighted mean absolute
+     deviation 12 pp, mean signed deviation −8.5 pp — the model is *cleaner* than reality because `now` builds solar
+     and wind at 2025 costs with no CO2 cap (as in the archetype runs; see observation (2) above) and because gas is
+     under-dispatched (13 % vs 22 %) at the single global fuel price. Largest misses among countries above 100 TWh:
+     TW −48 pp, AR −42, IR −38, SA −37, IQ −36, EG −31, BD −26 (gas systems replaced by solar); ES +29, AU +25, DE +24,
+     TR +21, PL +20, IT +20 (coal fleets of ≈ 2022 still dispatched, hydro/wind under-represented). Nuclear is right
+     almost everywhere (123 within 10 pp, 2022 fleet incl. Germany's last reactors); hydro is low by 5.5 pp on average
+     (VE −45, CR −40, CM −38, NP −38, SD −33, KG/TJ −31/−33: 6 h reservoirs + inflow calibration, as noted for BR).
+  3. **Zero-carbon runs** are solar + wind + batteries everywhere (H2 stores only where land is scarce). 473 TWh
+     (1.6 %) of demand is shed, concentrated in **islanded, land-constrained systems**: SG 96 %, BH 39, LB 37, IL 34,
+     BN 34, PS 25, TW 23, MK 20, CY 17, KR 14, SV 14, QA 12, PR 10, IT 9, KW 9 — the systems that in reality rely on
+     imports or on firm capacity the default palette does not contain. This is the islanded assumption showing, not a
+     model error; it marks where the study's advanced-technology / import options matter most.
+  4. In `now` the model sheds only in NP 5 %, PR 5 %, LB 2 %, BT 1 % (DemandCast-scale loads on tiny OSM fleets).
+  5. The per-country "grey line" (Ember demand | model load) makes the demand input the first thing to fix before any
+     country result is quoted: GEGIS 2030 is a projection with the outliers listed above, DemandCast is the 2013 level.

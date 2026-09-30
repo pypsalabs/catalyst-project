@@ -7,6 +7,8 @@
 #
 # Regenerate a page in the fork (from the repo root, see config-pypsa-earth/README.md):
 #   bash config-pypsa-earth/run.sh <R>-now <R>-zero dashboard:<R>
+# The world page (every modelled country, archetypes and single-node rest of world, Ember vs now vs zero) comes from
+# config-pypsa-earth/scripts/plot_world.py via the run.sh stage `world` (results/catalyst/validation_world.{png,pdf,csv}).
 # then from this directory:
 #   ../../models/priam-myopic/.pixi/envs/default/bin/snakemake -c1
 
@@ -17,12 +19,22 @@ REGIONS = ["US", "NWE", "BR", "IN", "SG", "CN"]
 rule all:
     input:
         expand("figures/validation_{region}.png", region=REGIONS),
+        expand("figures/validation_world.{ext}", ext=["png", "pdf", "csv"]),
+
+
+rule copy_world:
+    input:
+        f"{FORK}/results/catalyst/validation_world.{{ext}}",
+    output:
+        "figures/validation_world.{ext,png|pdf|csv}",
+    shell:
+        "cp -p {input} {output}"
 
 
 rule copy_dashboard:
     input:
         f"{FORK}/results/catalyst/validation_{{region}}.png",
     output:
-        "figures/validation_{region}.png",
+        "figures/validation_{region,[A-Z]+}.png",
     shell:
         "cp -p {input} {output}"

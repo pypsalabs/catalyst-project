@@ -8,6 +8,9 @@
 #     box at native resolution: 3-6e9 pixels), so the archetype recipe: Voronoi regions per base bus at 200 kV, every
 #     isolated sub-network fetched into the backbone (s_threshold_fetch_isolated 1.0: below 100 % of the national load),
 #     then clusters 1 (like SG).
+#   - crs.area_crs EPSG:6933 (cylindrical equal area; default Mollweide ESRI:54009): atlite pads each region's exclusion
+#     raster from its bounding-box corner, and for wide high-latitude Voronoi cells that corner lies outside the Mollweide
+#     ellipse -> NaN transform (CA: 4 of 1145 regions, build_renewable_profiles failed).
 #   - catalyst.extra_opts ATKc (merge_config.py adds it to the overlay opts): prepare_network removes every cross-border
 #     line / link, so no country trades with its neighbours.
 #   - load_options.fallback_source demcast (fork patch): countries without GEGIS load take DemandCast 2013 (none in this group)
@@ -26,6 +29,9 @@ scenario:
   clusters: [1]
   ll: [copt]
   opts: [Co2L]
+
+crs:
+  area_crs: EPSG:6933
 
 snapshots:
   start: "2013-01-01"

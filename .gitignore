@@ -4,3 +4,4 @@ lit/
 CLAUDE.md
 meetings/
 __pycache__/
+.snakemake/

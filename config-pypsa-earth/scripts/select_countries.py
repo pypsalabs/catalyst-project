@@ -235,7 +235,10 @@ MODE_NOTES = {
 #   - one country too large for a whole-country region (atlite reads the 100 m land-cover raster over the region's bounding
 #     box at native resolution: 3-6e9 pixels), so the archetype recipe: Voronoi regions per base bus at 200 kV, every
 #     isolated sub-network fetched into the backbone (s_threshold_fetch_isolated 1.0: below 100 % of the national load),
-#     then clusters 1 (like SG).""",
+#     then clusters 1 (like SG).
+#   - crs.area_crs EPSG:6933 (cylindrical equal area; default Mollweide ESRI:54009): atlite pads each region's exclusion
+#     raster from its bounding-box corner, and for wide high-latitude Voronoi cells that corner lies outside the Mollweide
+#     ellipse -> NaN transform (CA: 4 of 1145 regions, build_renewable_profiles failed).""",
 }
 
 
@@ -260,6 +263,7 @@ def write_config(g, sel, world):
                          mode_notes=MODE_NOTES[mode], fallback=f" ({', '.join(demcast)})" if demcast else " (none in this group)",
                          cutout=spec["cutout"], src=spec["src"], clip=clip)
     if mode == "gadm":
+        crs = ""
         clusters = f"[{len(ccs)}]          # one per country (the GADM busmap ignores the number; it only names the files)"
         threshold = 100000
         shape_extra = "  gadm_layer_id: 0\n"
@@ -269,6 +273,7 @@ def write_config(g, sel, world):
     p_threshold_drop_isolated: false   # default 20 MW would drop unpopulated buses together with their plants
 """
     else:
+        crs = "crs:\n  area_crs: EPSG:6933\n\n"
         clusters = "[1]"
         threshold = 200000
         shape_extra = ""
@@ -291,7 +296,7 @@ scenario:
   ll: [copt]
   opts: [Co2L]
 
-snapshots:
+{crs}snapshots:
   start: "2013-01-01"
   end: "2014-01-01"
   inclusive: left

@@ -57,3 +57,14 @@ bash config-pypsa-earth/run.sh <R>-now <R>-zero dashboard:<R>
 
 The copy is `cp -p`, so a page's timestamp is the time it was rendered in the fork
 (all six: 2026-09-21).
+
+## World page (2026-09-30)
+
+`figures/validation_world.{png,pdf,csv}`: the same two screening solves for **every country needed to reach 99.5 %
+of world electricity demand** — the six archetype regions split by country plus 115 countries modelled as one
+islanded node each (ten group runs, GADM-level clustering, `ATKc`; method, patches and caveats in the
+[rest-of-world section](../../config-pypsa-earth/README.md#rest-of-world-single-node-countries-stages-g-g-now-g-zero-world-2026-09-2930)).
+Per country three 100 % bars: Ember actual generation (latest year ≤ 2024), model `now`, model `zero`, with the
+fossil share and the demand (Ember | model) next to them; the header aggregates all 132 countries and scatters the
+model's fossil / nuclear / hydro / wind+solar shares against Ember. Not modelled: Hong Kong, Macau (no own GADM
+file) and Kosovo (no load series). Produced by `config-pypsa-earth/scripts/plot_world.py` (run.sh stage `world`).
