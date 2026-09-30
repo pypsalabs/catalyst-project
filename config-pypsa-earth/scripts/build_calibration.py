@@ -16,6 +16,7 @@ writes config-pypsa-earth/calibration/<year>/
                                                             fleet-average efficiencies (FLEET); plus the hand-maintained
                                                             rows of envelope_overrides.csv
     net_imports.csv  country, net_imports_twh               Ember net imports
+    envelope_nofloor.csv                                    envelope.csv without floors on emitting carriers (for Co2L runs)
 and copies the hand-curated price tables next to them:
     fuel_prices.csv  country, fuel, price   from fuel_prices_<year>.csv + fuel_price_regions.csv (EUR/MWh_th)
     co2_prices.csv   country, price         from co2_prices_<year>.csv (EUR/tCO2)
@@ -202,6 +203,11 @@ def main(year):
         env = pd.concat([env[~env.set_index(["country", "carrier"]).index.isin(
             o.set_index(["country", "carrier"]).index)], o])
     env.to_csv(os.path.join(out, "envelope.csv"), index=False)
+    # variant for runs with a CO2 cap: no must-run floor on carriers that emit (oil; geothermal carries a 0.12 t/MWh_th
+    # intensity in technology-data), which would be infeasible under Co2L0
+    nofloor = env.copy()
+    nofloor.loc[nofloor.carrier.isin(["oil", "geothermal", "coal", "lignite", "CCGT", "OCGT"]), "p_min_pu"] = np.nan
+    nofloor.to_csv(os.path.join(out, "envelope_nofloor.csv"), index=False)
 
     prices(year, out)
     print(f"{out}: {len(dem)} countries, Ember years {latest.min()}-{latest.max()}; "

@@ -27,7 +27,7 @@ calibration:            # fork patch: scripts/calibrate_network.py; same tables 
     hydro: ../../config-pypsa-earth/calibration/2024/hydro.csv
     generation: ../../config-pypsa-earth/calibration/2024/generation.csv
     fuel_prices: ../../config-pypsa-earth/calibration/2024/fuel_prices.csv
-    envelope: ../../config-pypsa-earth/calibration/2024/envelope.csv
+    envelope: ../../config-pypsa-earth/calibration/2024/envelope_nofloor.csv   # no must-run on emitting carriers under Co2L0
     net_imports: ../../config-pypsa-earth/calibration/2024/net_imports.csv
 
 enable:
