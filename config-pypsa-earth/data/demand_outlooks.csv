@@ -1,0 +1,13 @@
+# World electricity demand outlooks behind the demand pathway (scripts/build_demand_pathway.py).
+# One row per publisher's reference-type scenario; figures checked against the publisher's own document on 2026-10-04.
+# The script turns each row into an annual growth rate over base_year -> end_year and averages the rows with include = 1.
+#   growth: demand at end_year / demand at base_year (from TWh where the publisher gives them, else from the stated percentage)
+#   growth_2035: the same to 2035, where stated (reference only)
+publisher,outlook,scenario,base_year,end_year,growth,growth_2035,include,source,url,note
+IEA,World Energy Outlook 2025,Stated Policies,2024,2050,1.8196,1.3839,1,"Annex A, Table A.16, p. 436: 27,290 -> 37,766 (2035) -> 49,657 TWh (2050)",https://iea.blob.core.windows.net/assets/0a7a40a4-5dcb-4d6e-a7ad-76a1c90ec8eb/WorldEnergyOutlook2025.pdf,"Current Policies: 50,667 TWh in 2050 (x1.857); demand excludes own use and T&D losses"
+BloombergNEF,New Energy Outlook 2026,Economic Transition,2025,2050,1.69,1.29,1,"Executive summary (19 May 2026), p. 6: 'demand rises a further 29% by 2035 and 69% by 2050'",https://assets.bbhub.io/professional/sites/44/BNEF_20260515_NEO26-Exec-Sum.pdf,"NEO 2025 had +75% by 2050"
+bp,Energy Outlook 2025,Current Trajectory,2023,2050,1.9333,1.4,1,"Summary data table, p. 90: Power 30 -> 58 thousand TWh, 2.5% p.a.; p. 52: 'over 40,000TWh by 2035, more than 40% above the level in 2023'",https://www.bp.com/api/files/6cqieuqhq4no/master/7l87OSav7R0jHuVkT06Zj5/8a914ca3361df9d09627f7a60d11f0dc/bp-energy-outlook-2025.pdf,"power generation, rounded to thousand TWh; Below 2 degrees: 70 thousand TWh"
+ExxonMobil,Global Outlook 2026,single case,2024,2050,1.65,,1,"'Global electricity demand is expected to grow 65% by 2050' (web edition, 17 Sep 2026)",https://corporate.exxonmobil.com/publications/global-outlook/all-energy-types-are-needed,"base year not stated on the page; 2024 ASSUMED"
+DNV,Energy Transition Outlook 2025,single forecast,2024,2060,2.2,,1,"'electricity will expand 120% from today to 2060'",https://www.dnv.com/energy-transition-outlook/2025/,"horizon 2060: only its annual rate enters, applied to 2050; 'today' taken as 2024"
+EIA,International Energy Outlook 2023,Reference,2022,2050,1.4979,,0,"net generation 28,239 -> 42,298 billion kWh (cases: +30% to +76%)",https://www.eia.gov/outlooks/ieo/,"excluded: published 2023, before the data-centre revisions; figure from the release summary, not re-checked"
+McKinsey,Global Energy Perspective 2025,Continued Momentum,,,,,0,no world electricity demand figure found in the public summary,https://www.mckinsey.com/industries/energy-and-materials/our-insights/blog/global-energy-perspective-2025,excluded: not verified

@@ -1,0 +1,59 @@
+# Fitted electricity demand projection 2024 -> 2050 (feasibility study, no-go; see README.md).
+# The demand tables the model uses come from config-pypsa-earth/scripts/build_demand_pathway.py.
+
+base_year: 2024               # Ember year the projection starts from (latest year <= base_year per country)
+years: [2030, 2035, 2040, 2050]
+
+baseline:
+  fit_years: [2000, 2024]
+  min_population: 1000000      # countries below this are projected but not used in the fit
+  min_observations: 15
+  # candidate specifications of ln(kWh/cap) = a_i + f(ln GDP/cap) [+ trend]; country fixed effects a_i
+  specifications: [constant, declining, declining_trend]
+  # (fit until, predict) windows of the backtest; the specification with the lowest mean
+  # demand-weighted absolute error over the windows is used
+  backtest_windows: [[2014, 2024], [2009, 2019]]
+
+electrification:
+  unsd_year: 2022             # last year with mostly reported (not estimated) UN energy statistics
+  # net calorific values, TWh per thousand tonnes (UNSD energy balance defaults); natural gas is reported in TJ
+  ncv_twh_per_kt:
+    motor gasoline: 0.01231
+    gas oil/ diesel oil: 0.01194
+    liquefied petroleum gas: 0.01314
+    fuel oil: 0.01122
+    hard coal: 0.00717
+    brown coal: 0.00331
+  # India books ~69 Mt of retail diesel as "consumption not elsewhere specified (other)" and 1.7 Mt as road
+  road_from_unspecified: {IND: [gas oil/ diesel oil]}
+  # final-to-final efficiency gain: units of fossil final energy replaced by one unit of electricity
+  # ASSUMPTION, round values: battery vehicle vs combustion engine ~3.3, heat pump (COP ~3) vs boiler ~3,
+  # industry a mix of heat pumps for low-temperature heat and resistive / arc heating at ~1
+  efficiency_gain: {road: 3.3, buildings: 3.0, industry: 1.3}
+  # share of the sector's fossil final energy (scaled with the baseline index) that is electrified by the year.
+  # ASSUMPTION, set before looking at the comparison and not tuned to it; one global trajectory.
+  shares:
+    central:                  # stated-policies level
+      road:      {2024: 0.0, 2030: 0.08, 2035: 0.16, 2040: 0.25, 2050: 0.40}
+      buildings: {2024: 0.0, 2030: 0.05, 2035: 0.09, 2040: 0.13, 2050: 0.20}
+      industry:  {2024: 0.0, 2030: 0.03, 2035: 0.05, 2040: 0.08, 2050: 0.12}
+    high:                     # deep electrification, drawn as a band only
+      road:      {2024: 0.0, 2030: 0.15, 2035: 0.35, 2040: 0.55, 2050: 0.85}
+      buildings: {2024: 0.0, 2030: 0.10, 2035: 0.20, 2040: 0.35, 2050: 0.60}
+      industry:  {2024: 0.0, 2030: 0.06, 2035: 0.12, 2040: 0.20, 2050: 0.40}
+
+# go / no-go thresholds, fixed in the plan before any result existed
+criteria:
+  backtest_weighted_abs_error: 0.10
+  backtest_archetype_country_error: 0.20
+  outlook_2050_region_error: 0.15
+  outlook_2050_world_error: 0.10
+
+paths:
+  ember: ../../config-pypsa-earth/data/validation/yearly_full_release_long_format.csv
+  countries: ../../config-pypsa-earth/data/row_countries.csv
+  weo: ../../config-pypsa-earth/data/weo25_table_a16.csv
+  manual_points: ../../config-pypsa-earth/data/validation/manual_points.csv
+  iso: ../country-classification/data/iso3166.csv
+  old_heuristic: ../country-classification/build/features_national.csv
+  unsd: ~/Desktop/earth/pypsa-earth/data/demand/unsd/data   # raw UNdata exports fetched by pypsa-earth's build_base_energy_totals

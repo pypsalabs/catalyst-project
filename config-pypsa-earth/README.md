@@ -817,3 +817,85 @@ factor is capped), SE wind −11 (2013 weather year), AM gas −11.
 Not touched: the `-zero` scenario now starts from the same calibrated 2024 system (demand, fleet, hydro, prices,
 envelopes; expansion allowed, no CO2 price) but its runs had not been repeated when this was written — see the
 world page's notes box for the state of the `zero` bars.
+
+## Demand pathway (future model years; 2026-10-04)
+
+Out of the box the fork has no demand growth in the electricity-only workflow: the load is one GEGIS file chosen by
+`load_options.prediction_year`, and since the calibration both `-now` and `-zero` rescaled it to Ember 2024. The
+calibration step has no notion of a year; the year lives only in the table path. So future demand is one table per
+model year, `calibration/<year>/demand.csv` for 2025, 2030, 2035, 2040, 2045 and 2050, written by
+`scripts/build_demand_pathway.py` (plain pandas, any env):
+
+    demand(country, y) = demand(country, 2024) × IEA multiple(WEO region of the country, y) ^ α
+
+- **World level, a consensus of outlooks.** `data/demand_outlooks.csv` holds the reference-type scenario of each
+  publisher, each figure checked against the publisher's own document. Every row becomes an annual growth rate over
+  its own horizon; the consensus is the equal-weight mean.
+
+  | Publisher | Outlook, scenario | Stated growth | p.a. | 2024 → 2050 |
+  |---|---|---|---|---|
+  | IEA | WEO 2025, Stated Policies | 27,290 → 49,657 TWh (2024–2050) | 2.33 % | ×1.82 |
+  | BloombergNEF | NEO 2026, Economic Transition | +69 % (2025–2050) | 2.12 % | ×1.73 |
+  | bp | Energy Outlook 2025, Current Trajectory | 30 → 58 thousand TWh (2023–2050) | 2.47 % | ×1.89 |
+  | ExxonMobil | Global Outlook 2026 | +65 % by 2050 (base year assumed 2024) | 1.94 % | ×1.65 |
+  | DNV | ETO 2025 | +120 % to 2060 (rate applied to 2050) | 2.21 % | ×1.77 |
+  | **Consensus** | | | **2.22 %** | **×1.77** |
+
+  Listed but excluded: EIA IEO 2023 (×1.50, pre-dates the data-centre revisions) and McKinsey GEP 2025 (no public
+  world figure found). The spread of the five is ×1.65–1.89, about ±7 % around the consensus.
+- **Regional pattern, IEA.** Only the IEA publishes a free regional table (WEO 2025, Table A.16,
+  `data/weo25_table_a16.csv`), so regions keep the Stated Policies shape. Countries map to WEO regions after WEO
+  Annex C; the table names the US, Brazil, the EU, Russia, China, India, Japan, Southeast Asia and Africa, every
+  other country takes the remainder of its region (Europe less EU, North America less US, Eurasia less Russia, Asia
+  Pacific less the four named, Central and South America less Brazil). The table has 2035 and 2050; other years are
+  interpolated at a constant growth rate within 2024–2035 and 2035–2050.
+- **α = 0.944** scales the regional growth so that the 2050 total over all countries equals the consensus. 2024
+  stays fixed and the regional ordering is preserved.
+
+World demand: 30,914 TWh (2024) → 31,775 (2025) → 36,512 (2030) → 42,078 (2035) → 45,828 (2040) → 50,003 (2045)
+→ 54,661 (2050). Multiples per region and year are in `calibration/demand_pathway.csv`, e.g. 2050: US ×1.35,
+China ×1.72, India ×2.75, Brazil ×1.63, EU ×1.66, Southeast Asia ×2.31, Africa ×2.75.
+
+**Wiring.** `overlay.zero.yaml` reads `calibration/2050/demand.csv` (it already uses 2050 costs); `overlay.now.yaml`
+stays on 2024. `calibrate_demand` in the fork rescales each country's load to `demand_twh` and ignores the other
+columns, so only `prepare_network` and `solve_network` re-run. `run.sh` skips a stage whose target exists: delete
+`results/<R>-zero/` (and `networks/<R>-zero/elec_s*_ec_l*.nc`) to re-solve with the new demand.
+
+**Caveats.**
+- One multiple per WEO region: Singapore grows like Southeast Asia (×2.31; EMA's own outlook to 2034 is ×1.2–1.6
+  against ×1.56 here), every African country like the continent.
+- Uniform scaling: the hourly shape and the split over buses stay those of the 2013 profile; electric vehicles,
+  heat pumps and data centres would change the shape.
+- Stated Policies includes announced policies, which the SOW's "no forward-looking national policies" rule would
+  exclude; the IEA's Current Policies world total differs by 2 %.
+- Only growth is taken from the outlooks, because demand definitions differ (the IEA excludes own use and losses,
+  bp reports generation, Ember includes losses).
+- Licences: the WEO table is CC BY-NC-SA 4.0 (a cited excerpt of ten rows); re-check before the public release.
+- A fitted alternative (income elasticity + electrification layer) was tested first and rejected:
+  `misc-quarter1/demand-projection/`.
+
+### Pathway design: how demand, the myopic loop and learning fit together (planned, not implemented)
+
+The shared interface is the year directory. Demand is in place; the other two are design only.
+
+| Part | What a model year reads | Status |
+|---|---|---|
+| Demand | `calibration/<year>/demand.csv` | implemented |
+| Myopic | the solved network of the previous year + the per-year tables | planned |
+| Learning | a per-year cost file written by a market step between years | planned |
+
+- **Myopic, electricity-only.** The fork's myopic rules exist for sector runs only (they need heat inputs and
+  sector file names), so the plan is a `pathway.smk` included through `custom_rules` with a `{year}` wildcard and
+  three rules per year: prepare (existing `prepare_network.py` with the year's demand table) → brownfield (fix the
+  previous year's `p_nom_opt`, retire assets with `build_year + lifetime <= year`, which nothing does today, keep
+  `n.meta["calibration"]`) → solve. Stage names like `<R>-y2030` already work in `run.sh` (a scenario name must
+  not contain a hyphen). `foresight: myopic` is needed so `cluster_network` keeps plant vintages, and the
+  land-use constraint in `solve_network.py` assumes sector naming; both need fork patches. Capacity, generation
+  and energy-band tables apply to the base year only; CO2 and fuel prices become further per-year tables.
+- **Learning.** A market step between years across all archetypes, as in `models/priam-myopic/scripts/
+  solve_market.py`: cumulative capacity += new builds, `cost = reference cost × (cumulative / reference) ^
+  log2(1 − learning rate)`. Inputs are already in `technology-assumptions/technology_assumptions.csv`
+  (`learning_rate`, `learning_on`, `existing_gw`, `pipeline_gw`, `lead_time_yr`). Output: a per-year cost file
+  with priam's column names, written outside the fork's `costs_{year}_{scope}.csv` pattern and applied to
+  extendable components only. Because archetypes are cleared jointly it is a `run.sh` stage between years (like
+  `world`), not a rule inside one region's run.

@@ -1,0 +1,44 @@
+# Snakemake workflow: electricity demand projection 2024 -> 2050 per country (feasibility study, see README.md).
+#
+#   data/wdi_*.json, data/ssp2_basic_drivers.csv   cached downloads (scripts/download_inputs.py)
+#   ../../config-pypsa-earth/data/weo25_table_a16.csv   IEA benchmark (hand-typed)
+#     -> build/panel.csv, drivers.csv              history panel, SSP2 driver indices
+#     -> build/fit.json, backtest.csv, baseline.csv   income-driven baseline
+#     -> build/fossil_final_energy.csv, electrification.csv
+#     -> build/projection.csv, comparison.csv, verdict.md, figures/*.png
+#
+# Run from misc-quarter1/demand-projection with the priam-myopic pixi env:
+#   ../../models/priam-myopic/.pixi/envs/default/bin/snakemake -c1
+
+configfile: "config.yaml"
+
+WDI = expand("data/wdi_{ind}.json", ind=["NY.GDP.PCAP.PP.KD", "SP.POP.TOTL"])
+FIGS = expand("figures/{f}.png", f=["growth_vs_weo", "projection_regions", "backtest"])
+
+rule all:
+    input: "build/verdict.md", FIGS
+
+rule download_wdi:
+    output: WDI
+    shell: "python scripts/download_inputs.py wdi"
+
+rule prepare_panel:
+    input: WDI, "data/ssp2_basic_drivers.csv", "config.yaml", "scripts/prepare_panel.py", "scripts/common.py"
+    output: "build/panel.csv", "build/drivers.csv"
+    shell: "python scripts/prepare_panel.py"
+
+rule fit_baseline:
+    input: "build/panel.csv", "build/drivers.csv", "config.yaml", "scripts/fit_baseline.py"
+    output: "build/fit.json", "build/backtest.csv", "build/baseline.csv"
+    shell: "python scripts/fit_baseline.py"
+
+rule electrification:
+    input: "build/baseline.csv", "config.yaml", "scripts/electrification.py"
+    output: "build/electrification.csv"
+    shell: "python scripts/electrification.py"
+
+rule compare:
+    input: "build/baseline.csv", "build/electrification.csv", "build/backtest.csv", "build/fit.json",
+           "../../config-pypsa-earth/data/weo25_table_a16.csv", "config.yaml", "scripts/compare.py"
+    output: "build/projection.csv", "build/comparison.csv", "build/verdict.md", FIGS
+    shell: "python scripts/compare.py"

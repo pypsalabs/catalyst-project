@@ -1,0 +1,23 @@
+# IEA, World Energy Outlook 2025, Annex A, Table A.16 "Electricity demand (TWh)", p. 436 (IEA, CC BY-NC-SA 4.0).
+# https://iea.blob.core.windows.net/assets/0a7a40a4-5dcb-4d6e-a7ad-76a1c90ec8eb/WorldEnergyOutlook2025.pdf
+# IEA definition: gross generation less own use, plus net trade, less T&D losses (so levels sit below Ember demand;
+# compare growth multiples, not levels). CPS = Current Policies, STEPS = Stated Policies.
+# `members`: how the region is rebuilt from countries in misc-quarter1/demand-projection/scripts/compare.py (iso3, an
+# Ember flag / continent, or `-`); scripts/build_demand_pathway.py has its own country mapping after WEO Annex C.
+region,members,y2010,y2023,y2024,cps2035,cps2050,steps2035,steps2050
+World,world,18494,26179,27290,37819,50667,37766,49657
+United States,USA,3880,4007,4102,4854,5472,4887,5647
+Brazil,BRA,451,603,637,835,1170,797,1066
+European Union,flag:EU,2571,2398,2437,3209,4235,3230,4178
+Africa,continent:Africa,565,731,753,1196,2195,1202,2197
+Russia,RUS,828,945,969,1093,1225,1078,1176
+China,CHN,3659,8535,9102,13416,16871,13276,16131
+India,IND,715,1549,1644,2941,4990,2959,4803
+Japan,JPN,1071,898,913,991,1027,978,1015
+Southeast Asia,flag:ASEAN,614,1233,1317,2105,3275,2110,3197
+North America,-,4632,4883,4998,5910,6841,5937,6990
+Central and South America,-,924,1178,1221,1645,2404,1612,2320
+Europe,-,3559,3419,3487,4560,5950,4595,5907
+Middle East,-,693,1174,1205,1775,2789,1762,2726
+Eurasia,-,985,1195,1230,1438,1708,1430,1679
+Asia Pacific,-,7136,13600,14395,21294,28772,21222,27819

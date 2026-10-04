@@ -17,8 +17,9 @@ load shedding is drawn as its own red segment. Right of the bars: the fossil sha
 the Ember and now bars, the power-sector CO2 from fossil combustion in Mt (Ember "Fossil" aggregate of the same year, i.e.
 coal + gas + other fossil without the life-cycle factors Ember adds for bioenergy, nuclear, wind and solar; the model's
 direct emissions, generation / efficiency x the carrier's co2_emissions).
-Next to the name: Ember demand | model load (TWh; with the calibration the model load equals Ember's demand, before it
-was GEGIS SSP2-2.6 2030 or DemandCast 2013 where GEGIS is empty). The header holds the aggregate of all modelled countries, four Ember-vs-now scatters (share of generation,
+Next to the name: Ember demand | model load (TWh; with the calibration the `now` load equals Ember's demand, before it
+was GEGIS SSP2-2.6 2030 or DemandCast 2013 where GEGIS is empty; since 2026-10-04 `zero` serves the 2050 demand of
+calibration/2050/demand.csv). The header holds the aggregate of all modelled countries, four Ember-vs-now scatters (share of generation,
 dot area ~ demand) and the coverage (share of Ember world demand in the model, skipped countries).
 
 Standalone (fork env, from models/pypsa-earth); run.sh stage `world` calls it the same way:

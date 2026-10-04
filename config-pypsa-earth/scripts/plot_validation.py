@@ -701,8 +701,9 @@ def make_page(networks, out, page_title=None, labels=None, points_csv=None, cost
     if k == 2:
         fig.add_artist(plt.Line2D([0.515, 0.515], [0.04, 0.91], color="0.75", lw=0.8, transform=fig.transFigure))
     fig.suptitle(page_title, fontsize=14, fontweight="bold", y=0.975)
-    fig.text(0.985, 0.012, "Catalyst screening: pypsa-earth fork, weather 2013, GEGIS SSP2-2.6 2030 demand, "
-             "existing fleet ≈2022 + IRENA 2023 wind/solar; 'existing fleet' annuity not part of the objective. "
+    fig.text(0.985, 0.012, "Catalyst screening: pypsa-earth fork, weather 2013; demand: Ember 2024 (now), "
+             "2050 outlook consensus (zero, calibration/2050/demand.csv); fleet calibrated to Ember 2024; "
+             "'existing fleet' annuity not part of the objective. "
              "Dots / dashed levels: published statistics (left) and 2050 outlooks (right), see legend",
              ha="right", va="bottom", fontsize=6, color="0.4")
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
