@@ -874,28 +874,47 @@ columns, so only `prepare_network` and `solve_network` re-run. `run.sh` skips a 
 - A fitted alternative (income elasticity + electrification layer) was tested first and rejected:
   `misc-quarter1/demand-projection/`.
 
-### Pathway design: how demand, the myopic loop and learning fit together (planned, not implemented)
+### Pathway design: how demand, the myopic loop and learning fit together (learning not implemented)
 
-The shared interface is the year directory. Demand is in place; the other two are design only.
+The shared interface is the year. Demand and the myopic loop are in place; learning is design only.
 
 | Part | What a model year reads | Status |
 |---|---|---|
 | Demand | `calibration/<year>/demand.csv` | implemented |
-| Myopic | the solved network of the previous year + the per-year tables | planned |
+| Myopic | the solved network of the previous year + the per-year tables | implemented (2026-10-04) |
 | Learning | a per-year cost file written by a market step between years | planned |
 
-- **Myopic, electricity-only.** The fork's myopic rules exist for sector runs only (they need heat inputs and
-  sector file names), so the plan is a `pathway.smk` included through `custom_rules` with a `{year}` wildcard and
-  three rules per year: prepare (existing `prepare_network.py` with the year's demand table) → brownfield (fix the
-  previous year's `p_nom_opt`, retire assets with `build_year + lifetime <= year`, which nothing does today, keep
-  `n.meta["calibration"]`) → solve. Stage names like `<R>-y2030` already work in `run.sh` (a scenario name must
-  not contain a hyphen). `foresight: myopic` is needed so `cluster_network` keeps plant vintages, and the
-  land-use constraint in `solve_network.py` assumes sector naming; both need fork patches. Capacity, generation
-  and energy-band tables apply to the base year only; CO2 and fuel prices become further per-year tables.
+- **Myopic, electricity-only (2026-10-04).** Stage `<R>-myopic` = `config.<R>.yaml` + `overlay.myopic.yaml`
+  (`foresight: myopic`, `planning_horizons: [2025, 2030, ..., 2050]`, no CO2 cap, 2024 CO2 prices). The fork got
+  three patches: the land-use constraint without sector naming, the electricity-only myopic rules
+  (`add_brownfield_elec`, `solve_network_myopic_elec`, target `solve_all_networks_myopic`; both upstream
+  candidates) and `calibration.horizon_tables`. The chain up to `prepare_network` runs once and is calibrated to
+  2024 as in `now` (expansion allowed); per horizon `add_brownfield_elec` then
+  1. scales demand to `calibration/<year>/demand.csv` (`horizon_tables.demand`; fuel and CO2 price tables per
+     year can be added the same way, none exist yet);
+  2. moves extendable assets to the technology costs of the horizon (difference of the technology-data cost
+     tables of the horizon and of `costs.year` = 2025);
+  3. retires existing plants at build year + lifetime and carries over what earlier horizons built, with fixed
+     capacity; the land-use constraint takes that capacity off the remaining potential.
+
+  `run.sh` targets the solved network of the last horizon (`results/<R>-myopic/networks/<stem>_2050.nc`);
+  the earlier ones are solved on the way and sit next to it. There is no dashboard for these stages yet.
+  Caveats:
+  - Retirement uses powerplantmatching's `DateOut`, which `add_electricity` fills with build year + technical
+    lifetime when it is not reported. The SOW asks for firm dated retirements only, so this over-retires
+    (`existing_capacities.retire_existing: false` switches retirement off altogether).
+  - Existing wind and solar have no vintages: they are one block per bus, built in the first horizon.
+  - Plants that the capacity calibration adds without a build year never retire.
+  - The capacity, generation and net-import tables stay at 2024; the net-import band is therefore a 2024 volume
+    in every horizon.
+  - The extendable palette is still pypsa-earth's default (wind, solar, battery, H2, and OCGT only where one
+    exists). Check on Singapore (single node): all six horizons solve in four minutes, demand rises
+    62 → 138 TWh, 4.7 GW of CCGT retire before 2045, the wind and solar potential is exhausted by 2035, and
+    3 TWh (2035) to 85 TWh (2050) of demand are unserved because nothing firm can be built.
 - **Learning.** A market step between years across all archetypes, as in `models/priam-myopic/scripts/
   solve_market.py`: cumulative capacity += new builds, `cost = reference cost × (cumulative / reference) ^
   log2(1 − learning rate)`. Inputs are already in `technology-assumptions/technology_assumptions.csv`
   (`learning_rate`, `learning_on`, `existing_gw`, `pipeline_gw`, `lead_time_yr`). Output: a per-year cost file
-  with priam's column names, written outside the fork's `costs_{year}_{scope}.csv` pattern and applied to
-  extendable components only. Because archetypes are cleared jointly it is a `run.sh` stage between years (like
+  with priam's column names, written outside the fork's `costs_{year}_{scope}.csv` pattern. The hook exists:
+  the cost input of `add_brownfield_elec` is a function (`costs_planning_horizon_elec` in the fork's Snakefile). Because archetypes are cleared jointly it is a `run.sh` stage between years (like
   `world`), not a rule inside one region's run.

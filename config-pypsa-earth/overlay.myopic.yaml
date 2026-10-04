@@ -1,0 +1,46 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Catalyst pathway scenario "myopic" = electricity-only myopic capacity expansion in five-year steps (fork rules
+# add_brownfield_elec / solve_network_myopic_elec, `foresight: myopic`): every horizon is solved on its own and
+# inherits what the previous one built; existing plants retire at build year + lifetime; new assets are built at
+# the technology costs of the horizon. The starting point is the calibrated 2024 system of overlay.now.yaml
+# (fleet, hydro energy, fuel and CO2 prices, capacity-factor envelopes), with expansion allowed and no CO2 cap.
+# Demand of each horizon comes from the demand pathway (calibration/<year>/demand.csv, scripts/build_demand_pathway.py).
+# Applied by config-pypsa-earth/run.sh on top of config.<R>.yaml for a stage named <R>-myopic; the stage target is
+# the solved network of the last horizon, Snakemake solves the earlier ones on the way.
+foresight: myopic
+
+scenario:
+  simpl: [""]
+  ll: [copt]
+  opts: [3h]            # no CO2 cap; 3h: see overlay.now.yaml
+  planning_horizons: [2025, 2030, 2035, 2040, 2045, 2050]
+
+costs:
+  year: 2025            # costs the network is built with; add_brownfield_elec moves new assets to the horizon's costs
+
+calibration:            # fork patch: scripts/calibrate_network.py; 2024 tables in prepare_network, horizon tables per year
+  enable: true
+  brownfield_only: false
+  efficiency_spread: 0.15
+  tranches: 3
+  net_import_tolerance: 0.25
+  tables:
+    demand: ../../config-pypsa-earth/calibration/2024/demand.csv
+    capacity: ../../config-pypsa-earth/calibration/2024/capacity.csv
+    hydro: ../../config-pypsa-earth/calibration/2024/hydro.csv
+    generation: ../../config-pypsa-earth/calibration/2024/generation.csv
+    fuel_prices: ../../config-pypsa-earth/calibration/2024/fuel_prices.csv
+    co2_prices: ../../config-pypsa-earth/calibration/2024/co2_prices.csv
+    envelope: ../../config-pypsa-earth/calibration/2024/envelope_nofloor.csv   # no must-run on emitting carriers in future years
+    net_imports: ../../config-pypsa-earth/calibration/2024/net_imports.csv
+  horizon_tables:
+    demand: ../../config-pypsa-earth/calibration/{planning_horizons}/demand.csv
+
+enable:
+  build_cutout: false
+
+solving:
+  solver_options:
+    gurobi-default:
+      threads: 8
