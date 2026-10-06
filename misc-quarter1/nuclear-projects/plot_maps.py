@@ -12,6 +12,7 @@ from pathlib import Path
 
 import geopandas as gpd
 import matplotlib
+import matplotlib.patheffects
 import matplotlib.ticker
 
 matplotlib.use("Agg")
@@ -20,6 +21,7 @@ import numpy as np
 import pandas as pd
 import yaml
 from matplotlib.lines import Line2D
+from matplotlib.transforms import blended_transform_factory
 
 HERE = Path(__file__).parent
 if "snakemake" in globals():
@@ -166,12 +168,13 @@ def plot_costs(costs, nea):
     fig.savefig(OUT_COST, dpi=170)
 
 
-REGION_COLOR = {"China / India": "#c44e52", "Russia (domestic)": "#8172b3", "South Korea (domestic)": "#55a868",
-                "Rosatom export": "#64b5cd", "KHNP / CNNC export": "#937860", "other": "#aaaaaa",
-                "Europe / N. America / Japan": "#444444",
-                "Europe / N. America / Japan: large LWR": "#444444",
-                "Europe / N. America / Japan: light-water SMR": "#4c72b0",
-                "Europe / N. America / Japan: Gen IV": "#8172b3"}
+# Okabe-Ito based (colour-blind safe); no red, which is reserved for the model-input lines
+REGION_COLOR = {"China / India": "#E69F00", "Russia (domestic)": "#CC79A7", "South Korea (domestic)": "#009E73",
+                "Rosatom export": "#56B4E9", "KHNP / CNNC export": "#C9A66B", "other": "#B5B5B5",
+                "Europe / N. America / Japan": "#3B4B5C",
+                "Europe / N. America / Japan: large LWR": "#3B4B5C",
+                "Europe / N. America / Japan: light-water SMR": "#0072B2",
+                "Europe / N. America / Japan: Gen IV": "#7B61A8"}
 REGION_LABEL = {"Europe / N. America / Japan": "West", "Europe / N. America / Japan: large LWR": "West, large LWR (+ PHWR)",
                 "Europe / N. America / Japan: light-water SMR": "West, light-water SMR",
                 "Europe / N. America / Japan: Gen IV": "West, Gen IV"}
@@ -213,7 +216,7 @@ def plot_strip(costs):
         else:
             n = int(stats.loc[r, "count"]) if r in stats.index else 0
             drift[r] = pooled
-            drift_note[r] = f"×{pooled:.2f} (pooled)"
+            drift_note[r] = f"×{pooled:.2f}, pooled"
     # the marker sits at the expected final cost: the drift factor is latest / initial, so it is
     # applied to initial-kind figures only; a latest figure is a revised ex-ante number and stays
     d["exante"] = d[col].where(d.estimate_kind.eq("initial"))
@@ -222,13 +225,17 @@ def plot_strip(costs):
     # 100-300 MW units keep a readable shape
     d["size"] = (d["capacity_mw_covered"].clip(upper=5000) / 5000 * 26 ** 2).clip(lower=4.5 ** 2)
 
-    fig, (ax, kx) = plt.subplots(1, 2, figsize=(13.5, 9), sharey=True, gridspec_kw={"width_ratios": [1.0, 0.42], "wspace": 0.04})
+    plt.rcParams.update({"font.size": 13, "axes.labelsize": 14, "ytick.labelsize": 13, "legend.fontsize": 12.5,
+                         "legend.title_fontsize": 13})
+    # one panel; the legends sit side by side in a band above it, the model-input labels in a margin to its right
+    fig = plt.figure(figsize=(12.5, 8.6))
+    ax = fig.add_axes([0.085, 0.035, 0.71, 0.745])
     for t, (marker, _) in TYPE_MARK.items():
         for r, c in REGION_COLOR.items():
             p = d[d.type.eq(t) & d.group.eq(r)]
             if len(p):
                 ax.scatter(p.x, p.y, s=p["size"], marker=marker, facecolor=c, edgecolor="white",
-                           linewidth=0.6, alpha=0.85, zorder=3)
+                           linewidth=0.8, alpha=0.9, zorder=3)
                 q = p[p.exante.notna() & (p.exante != p.y)]
                 ax.vlines(q.x, q.exante, q.y, color=c, linewidth=0.9, alpha=0.7, zorder=2)
                 ax.scatter(q.x, q.exante, marker="_", s=30, color=c, linewidth=0.9, alpha=0.7, zorder=2)
@@ -242,81 +249,45 @@ def plot_strip(costs):
     for _, r in d.iterrows():
         key = r["project"].replace(" nuclear power plant", "").replace(" nuclear power station", "")
         if key in names:
-            ax.annotate(names[key], (r.x, r.y), xytext=(6 if r.x < 0.55 else -6, 0), textcoords="offset points",
-                        fontsize=7, ha="left" if r.x < 0.55 else "right", va="center", color="0.25")
+            off = 4 + np.sqrt(r["size"]) / 2                 # clear of the marker, whatever its size
+            right = {"Vogtle 3-4": True, "Kudankulam 3-6": False}.get(names[key], r.x < 0.55)   # crowded spots by hand
+            ax.annotate(names[key], (r.x, r.y), xytext=(off if right else -off, 0), textcoords="offset points",
+                        fontsize=11, ha="left" if right else "right", va="center", color="0.3", zorder=6,
+                        path_effects=[matplotlib.patheffects.withStroke(linewidth=2.5, foreground="white")])
     ax.set_yscale("log")
     ax.set_ylim(1200, 40000)
     ax.set_yticks([1500, 2000, 3000, 5000, 10000, 20000, 30000])
     ax.set_yticklabels(["1,500", "2,000", "3,000", "5,000", "10,000", "20,000", "30,000"])
     ax.yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
-    ax.set_ylabel(f"{col.replace('_per_kw', '').upper()} per kW: final cost, or ex-ante figure × regional drift")
+    ax.set_ylabel(f"Expected final cost [{col.replace('_per_kw', '').upper()}/kW]")
     ax.set_xlim(-1.2, 1.2)
     ax.set_xticks([])
-    ax.grid(True, axis="y", which="major", color="0.85", linewidth=0.6)
+    ax.grid(True, axis="y", which="major", color="0.9", linewidth=0.7)
     ax.spines[["top", "right", "bottom"]].set_visible(False)
-    # right panel: one-sided kernel densities of the expected final cost per region (log space),
-    # all rising from the same baseline, mean marked and labelled
-    from scipy.stats import gaussian_kde
-    grid_y = np.linspace(np.log10(1200), np.log10(40000), 400)
-    means = {}
-    for r, c in REGION_COLOR.items():
-        v = d[d.group.eq(r)]["y"]
-        if len(v) < CFG.get("strip_min_density", 5):
-            continue
-        dens = gaussian_kde(np.log10(v), bw_method=0.35)(grid_y)
-        dens = dens / dens.max()
-        kx.fill_betweenx(10 ** grid_y, 0, dens, color=c, alpha=0.22, linewidth=0)
-        kx.plot(dens, 10 ** grid_y, color=c, linewidth=1.2, alpha=0.9)
-        means[r] = (v.mean(), v.median(), len(v), c)
-    # mean lines with labels inside the panel, nudged apart where they would overlap (log spacing)
-    order = sorted(means.items(), key=lambda kv: kv[1][0])
-    last = 0
-    for r, (mean, med, n, c) in order:
-        kx.hlines(mean, 0, 1.0, color=c, linewidth=2.0, zorder=4)
-        ytext = max(mean * 1.02, last * 1.10) if last else mean * 1.02
-        short = REGION_LABEL.get(r, {"Russia (domestic)": "Russia", "South Korea (domestic)": "Korea"}.get(r, r))
-        kx.text(0.03, ytext, f"{short}: {mean:,.0f} (med. {med:,.0f}, n={n})",
-                fontsize=7.5, color=c, va="bottom", ha="left", fontweight="bold", zorder=5)
-        last = ytext
-    gen4 = CFG.get("gen4_assumption_usd_per_kw")
-    if gen4:
-        for a in (ax, kx):
-            a.axhline(gen4, color="#8172b3", linestyle="--", linewidth=1.1)
-        kx.text(0.03, gen4 * 1.02, f"initial Gen IV assumption: {gen4:,}", fontsize=7.5, color="#8172b3",
-                va="bottom", ha="left", fontweight="bold")
-    kx.set_xlim(0, 1.05)
-    kx.set_xticks([])
-    kx.grid(True, axis="y", which="major", color="0.85", linewidth=0.6)
-    kx.spines[["top", "right", "bottom"]].set_visible(False)
-    kx.spines["left"].set_color("0.3")
-    kx.tick_params(axis="y", which="both", length=0)
-    kx.set_title("density by region, scaled to peak;\nline = mean = suggested model input", fontsize=9, loc="left")
+    ax.spines["left"].set_color("0.5")
+    ax.tick_params(axis="y", colors="0.25")
+    # the model's CAPEX per nuclear bin (technology_assumptions.csv): a dashed line in the colour of the group it
+    # stands for, labelled over several lines in the right margin
+    mi = CFG.get("model_inputs")
+    if mi:
+        ta = pd.read_csv((HERE / mi["csv"]).resolve(), dtype=str, keep_default_na=False).set_index("technology")
+        for key, row in mi["rows"].items():
+            v = float(ta.at[key, "capex_power_usd_kw"])
+            c = REGION_COLOR[row["group"]]
+            ax.axhline(v, color=c, linestyle=(0, (6, 3)), linewidth=2.0, zorder=2.5)
+            ax.text(1.015, v, f"Model input\n{row['label']}:\n{v:,.0f}", transform=blended_transform_factory(ax.transAxes, ax.transData),
+                    color=c, fontsize=13, fontweight="bold", va="center", ha="left", linespacing=1.25, clip_on=False)
     counts = d.group.value_counts()
-    h_reg = [Line2D([], [], marker="o", linestyle="", color=c, markersize=8,
-                    label=f"{REGION_LABEL.get(r, r)} (n = {counts.get(r, 0)}, drift {drift_note[r.split(':')[0]]})")
+    h_reg = [Line2D([], [], marker="o", linestyle="", color=c, markersize=12, label=f"{REGION_LABEL.get(r, r)} ({counts.get(r, 0)})")
              for r, c in REGION_COLOR.items() if counts.get(r, 0)]
-    h_typ = [Line2D([], [], marker=m, linestyle="", color="0.35", markersize=8, label=lab)
+    h_typ = [Line2D([], [], marker=m, linestyle="", color="0.45", markersize=12, label=lab)
              for t, (m, lab) in TYPE_MARK.items() if t in set(d.type)]
     h_size = [Line2D([], [], marker="o", linestyle="", color="0.6", markersize=max(np.sqrt(mw / 5000) * 26, 4.5),
-                     label=f"{mw:,} MW covered" + (" (floor)" if np.sqrt(mw / 5000) * 26 < 4.5 else ""))
-              for mw in (300, 1200, 2400, 4800)]
-    leg1 = kx.legend(handles=h_reg, loc="upper left", bbox_to_anchor=(1.02, 1.0), fontsize=8, frameon=False,
-                     title="group (colour); drift = regional median latest / initial", title_fontsize=8)
-    kx.add_artist(leg1)
-    leg2 = kx.legend(handles=h_typ, loc="upper left", bbox_to_anchor=(1.02, 0.56), fontsize=8, frameon=False,
-                     title="reactor type (shape)", title_fontsize=8)
-    kx.add_artist(leg2)
-    h_size.append(Line2D([], [], marker="_", linestyle="-", color="0.4", markersize=6,
-                         label="(assumed) project cost drift\nduring construction"))
-    if gen4:
-        h_size.append(Line2D([], [], linestyle="--", color="#8172b3", label="initial assumption for Gen IV"))
-    kx.legend(handles=h_size, loc="upper left", bbox_to_anchor=(1.02, 0.38), fontsize=8, frameon=False,
-              title="capacity (area)", title_fontsize=8, labelspacing=1.3)
-    ax.set_title("one point per project (n = %d)" % len(d), fontsize=9, loc="left")
-    fig.suptitle("Expected final cost of nuclear new build: final cost where built, latest revised estimate where one exists, "
-                 "else the initial figure scaled\nby the region's observed initial → latest drift "
-                 "(overnight, total, contract or budget basis as reported)", fontsize=10, x=0.06, y=0.985, ha="left")
-    fig.subplots_adjust(left=0.065, right=0.71, top=0.90, bottom=0.03)
+                     label=f"{mw:,} MW") for mw in (300, 1200, 2400, 4800)]
+    h_typ.append(Line2D([], [], marker="_", linestyle="-", color="0.4", markersize=8, label="initial estimate →\nexpected final cost"))
+    kw = dict(loc="upper left", frameon=False, alignment="left", borderaxespad=0.0, handletextpad=0.5)
+    for handles, title, x in ((h_reg, "Region (projects)", 0.085), (h_typ, "Reactor type", 0.44), (h_size, "Capacity covered", 0.69)):
+        fig.add_artist(fig.legend(handles=handles, title=title, bbox_to_anchor=(x, 0.985), labelspacing=0.55, **kw))
     fig.savefig(OUT_STRIP, dpi=170)
 
 

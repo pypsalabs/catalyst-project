@@ -78,13 +78,14 @@ rule plot:
         sites="build/nuclear_sites.csv",
         costs="build/project_costs.csv",
         nea="build/nea_benchmarks.csv",
+        model_inputs=config["model_inputs"]["csv"],   # model CAPEX lines on the strip
     params:   # config keys the figures depend on, so that editing them triggers a rerun
         regions=config["cost_regions"],
         exclude=config["strip_exclude"],
         drift_min_pairs=config["drift_min_pairs"],
         split=config["strip_split_by_type"],
         min_density=config["strip_min_density"],
-        gen4=config["gen4_assumption_usd_per_kw"],
+        model_rows=config["model_inputs"]["rows"],
     output:
         map="figures/nuclear_sites_map.png",
         cost="figures/nuclear_cost_per_kw.png",

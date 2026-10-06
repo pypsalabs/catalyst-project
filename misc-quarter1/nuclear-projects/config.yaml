@@ -98,8 +98,15 @@ strip_exclude: ["South Korea (domestic)", "KHNP / CNNC export", "other", "Russia
 # other regions stay whole. A density is drawn for groups with at least `strip_min_density` points.
 strip_split_by_type: ["Europe / N. America / Japan"]
 strip_min_density: 5
-# reference line for the study's first-of-a-kind Gen IV assumption (USD of the base year per kW)
-gen4_assumption_usd_per_kw: 17000
+# reference lines on the strip: the CAPEX the model uses per nuclear bin (USD2024/kW), read from the
+# technology-assumptions CSV (path relative to this file), so the figure shows the document's values
+model_inputs:
+  csv: ../../config-pypsa-earth/technology-assumptions/technology_assumptions.csv
+  # label on the strip, and the point group whose colour the line takes
+  rows:
+    nuclear-lwr-cnin: {label: "China / India LWR", group: "China / India"}
+    nuclear-lwr-row: {label: "rest-of-world LWR", group: "Europe / N. America / Japan: large LWR"}
+    nuclear-gen4: {label: "Gen IV", group: "Europe / N. America / Japan: Gen IV"}
 # Expected drift of an ex-ante figure to the final cost, drawn on the strip plot: per region the
 # median ratio latest-or-final / initial over same-scope pairs in data/project_costs.csv (real
 # USD of the base year, so exchange-rate and inflation effects are taken out). The factor is a
