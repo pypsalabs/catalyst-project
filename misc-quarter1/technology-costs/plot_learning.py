@@ -24,7 +24,8 @@ from pathlib import Path
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
+import matplotlib.pyplot as plt
+from matplotlib.ticker import FixedLocator  # noqa: E402
 import numpy as np  # noqa: E402
 import yaml  # noqa: E402
 from matplotlib.legend_handler import HandlerTuple
@@ -50,6 +51,7 @@ fit = json.loads(FIT.read_text())
 COLOUR = fit["colour"]
 GREY = "0.45"
 # marker colour by numbered source: [1] is the fitted series (technology colour), the rest a fixed list
+CAPEX_COLOUR = "#2c5d8f"   # second axis (`capex_axis`): whole-plant CAPEX
 SOURCE_COLOURS = ["#e08a2e", "#2a9d8f", "#8e6bbf", "#d1495b", "#4c9be8", "#b5a642", "#7f7f7f"]
 # floors / reference bands / analogy lines are documented in the README and drawn only where the
 # technology sets `show_reference: true` (EGS: the shale drilling cost Fervo converges towards)
@@ -168,6 +170,12 @@ def draw_curve(ax, comp):
         p0 = max(pts, key=lambda p: (p["year"] or 0, p["z"]))
         g = np.array([p0["z"], p0["z"] * 32])
         ax.plot(g, p0["c"] * (g / p0["z"]) ** (-an["b"]), color="0.35", linestyle=(0, (4, 3)), linewidth=1.0, zorder=3)
+    for mpt in comp.get("model_points") or []:      # bottom-up cost model at a real site (config `model_point`)
+        h = ax.scatter([mpt["z"]], [mpt["c"]], marker="D", s=30, zorder=6, linewidths=1.0, edgecolors="#c0392b",
+                       facecolors="none" if mpt["model_depth"] else "#c0392b")
+        where = "model depth" if mpt["model_depth"] else "Cape-length well"
+        handles.append((h, f"cost model, {where} ({mpt['depth_km']:g} km, {mpt['length_ft']:,} ft): "
+                           f"{mpt['c']:,.0f} {comp['unit']}"))
     # year labels: first and last fitted point (or all points when nothing is fitted) and, if it is
     # newer, the most recent excluded point, so the time span of the sample is visible
     lab = fit_pts or pts
@@ -189,7 +197,9 @@ def draw_curve(ax, comp):
         if MODEL_LINE and comp.get("model"):            # room for the rate box below a baseline line
             ymin = min(ymin, comp["model"]["c"] / (1.5 if comp["model"].get("z") else 2.5))
         ymax = max(c.max(), comp["model"]["c"]) if MODEL_LINE and comp.get("model") else c.max()
-        ax.set_ylim(ymin / 1.8, ymax * 1.8)
+        mps = [m["c"] for m in comp.get("model_points") or []]
+        ymin, ymax = min([ymin] + mps), max([ymax] + mps)
+        ax.set_ylim(*(CFG["learning"]["technologies"][fit["technology"]].get("ylim") or (ymin / 1.8, ymax * 1.8)))   # `ylim` in the config overrides
     else:
         ax.text(0.5, 0.5, "no cost-vs-capacity data collected", transform=ax.transAxes, ha="center", va="center",
                 fontsize=9, color="0.4", style="italic")
@@ -201,6 +211,8 @@ def draw_curve(ax, comp):
         where = (f"at {m['z']:,.3g} {comp['capacity_unit']} ({m['year']})" if m.get("z")
                  else f"(cost baseline {m['year']})")
         text = f"model start: {m['c']:,.0f} {comp['unit']} {where}"
+        if m.get("kind") == "assumptions":          # the value of technology_assumptions.csv
+            text = f"model input: {m['c']:,.0f} {comp['unit']}"
         if m.get("add"):                            # fit plus a fixed add-on: three short lines whose rounded
             fit_r, add_r = round(m["c_fit"]), round(m["add"]["value"])   # parts sum to the printed total
             text = (f"model start: {fit_r + add_r:,.0f} {comp['unit']}\nfit {fit_r:,.0f} {where}"
@@ -251,6 +263,31 @@ def draw_curve(ax, comp):
             ha="left" if swap else "right", va="bottom" if swap else "top", fontsize=9.5,
             linespacing=1.4, color="0.15" if lv else "0.35", in_layout=False, zorder=8,
             bbox=dict(boxstyle="round,pad=0.35", facecolor="white", edgecolor="0.8", linewidth=0.6))
+    if spec.get("site_label"):                       # the one site the whole figure refers to (red = the map's site ring)
+        ax.set_title(spec["site_label"], loc="left", fontsize=10.5, fontweight="bold", color="#d62728", pad=6)
+    ca = comp.get("capex_axis")
+    if ca and ca["points"]:                         # whole-plant CAPEX on a second (right) y axis, config `capex_axis`
+        ax2 = ax.twinx()
+        ax2.set_yscale("log")
+        vals = [p["c"] for p in ca["points"]]
+        mid = float(np.exp(np.mean(np.log(vals))))
+        ax2.set_ylim(mid / 20 ** 0.45, mid * 20 ** 0.55)   # the points just below mid-height, clear of the boxes
+        lo, hi = ax2.get_ylim()
+        ax2.yaxis.set_major_locator(FixedLocator([t for t in (1000, 2000, 5000, 10000, 20000, 50000) if lo <= t <= hi]))
+        ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f"{v:,.0f}"))
+        ax2.yaxis.set_minor_formatter(plt.NullFormatter())
+        n = len(ca["points"])
+        for i, p in enumerate(ca["points"]):              # side by side around z, as the values are often close
+            model = p["kind"] == "assumptions"
+            h = ax2.scatter([ca["z"] * 1.12 ** (i - (n - 1) / 2)], [p["c"]], marker="s", s=40, zorder=6, linewidths=1.2,
+                            color="#c0392b" if model else CAPEX_COLOUR, edgecolors="white" if not model else "#c0392b",
+                            facecolors="none" if model else CAPEX_COLOUR)
+            handles.append((h, f"plant CAPEX, {p['label']} (right axis): {p['c']:,.0f} {ca['unit']}"))
+        ax2.set_ylabel(f"Plant CAPEX [{unit_label(ca['unit'], sub)}]", color=CAPEX_COLOUR)
+        ax2.tick_params(axis="y", colors=CAPEX_COLOUR, which="both")
+        ax2.spines["right"].set_color(CAPEX_COLOUR)
+        ax.set_zorder(ax2.get_zorder() + 1)          # legend and rate box of ax above the right-axis points
+        ax.patch.set_visible(False)
     if handles and spec.get("legend", True):      # `legend: false` drops the legend (the slide text explains the points)
         widest = max(len(h) if isinstance(h, tuple) else 1 for h, _ in handles)
         ax.legend([h for h, _ in handles], [l for _, l in handles], frameon=True, framealpha=0.9, edgecolor="none",

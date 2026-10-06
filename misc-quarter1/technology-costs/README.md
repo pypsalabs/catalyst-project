@@ -88,6 +88,11 @@ Scripts also run standalone (`python compile_costs.py`, `python plot_costs.py lc
   financing where the source does; storage projects are total cost divided by
   energy or power capacity.
 
+This workflow *derives* candidate values; the values the model *uses* are decided in
+`config-pypsa-earth/technology-assumptions/technology_assumptions.csv` (one row per
+technology, with the justification document built next to it). Where the two differ
+(nuclear bins, iron-air, EGS, SOFC after the 2026-09-30 meeting) the assumptions file wins.
+
 ## Gap-fill choices (central values; ranges and alternatives in `data/gap_fill.csv`)
 
 | Technology | Value used | Source |
@@ -282,11 +287,23 @@ USD2024/ft (EIA, *Trends in U.S. Oil and Natural Gas Upstream Costs*, March
 2016, Figure 4, IHS study; values read from the chart). Fervo's plateau of
 350–390 USD/ft over wells 6 to 8 sits about twice above it; the gap is
 hard-rock penetration rate and bit wear, the only part of the drilling cost
-where EGS-specific learning is still possible.
+where EGS-specific learning is still possible. (The band is no longer drawn on the figure since 2026-10-05: `show_reference: false`.)
 
 *Model start.* Not drawn: the figure is in USD per foot, the baseline is a plant
 cost of 14,479 USD2024/kW (NREL ATB 2024, deep EGS binary, moderate case;
 Fervo's Cape Station first-of-a-kind about 7,000 USD/kW).
+
+*Cost model at the site (red diamonds).* `model_point` in `learning.technologies.egs` reads
+`../geothermal/build/site_check.csv` (rule `site_check` there; the input exists only for technologies
+with `model_point`): the Ricks & Jenkins well-cost fit at the Cape Station cell, 435 USD2024/ft for a
+Cape-length well (2.5 km + 2,286 m lateral, filled) and 738 USD2024/ft at the cell's LCOE-optimal depth
+of 5.5 km (hollow), both drawn at x = 8 wells (x has no meaning for them). The model's drilling cost
+sits between Fervo's first Cape well and its plateau, i.e. it assumes no cheaper drilling than demonstrated.
+
+*Plant CAPEX (right axis, squares).* `capex_axis` in `learning.technologies.egs` adds a second y axis with
+whole-plant CAPEX: Fervo's Cape Station phase 1 estimate (~7,000 USD2025/kW, Form S-1, from
+`data/observed_projects.csv`, 6,821 USD2024) and the model input of the technology-assumptions CSV (6,700, the cost
+model at the Cape Station cell), side by side at x = 14 wells (x has no meaning for them).
 
 *Why this does not contradict Way et al.* Way et al. (2022) see no long-run
 decline in geothermal *plant* costs. This series is an intra-firm ramp-up of
@@ -340,9 +357,10 @@ cumulative capacity, 6.5 GWh (2025): 398 USD2024/kWh (95 % prediction interval
 number is not the technology-data store alone (398 USD/kWh, a coincidence) but
 store plus bicharger over the duration: 446 USD/kWh at 4 h, 417 at 10 h, both
 PNNL 2022 bottom-up estimates carried through technology-data, and equal to
-PNNL's own 385 USD2021/kWh whole-system figure in USD2024. `show_model: true` in
-`learning.technologies.vrfb` draws it; `build/learning_rates.csv` carries it as
-`model_start_cost`.
+PNNL's own 385 USD2021/kWh whole-system figure in USD2024. Since 2026-10-06 the
+figure draws the energy CAPEX of the technology-assumptions CSV instead
+(`show_model: assumptions`, the same 398 USD/kWh), as the assumptions document now
+includes it.
 
 *Floor (not drawn).* 67 USD2024/kWh of vanadium electrolyte: 5.6 kg V2O5 per
 kWh (theoretical, Vanitec) at the USGS 2025 average Chinese V2O5 price for 2024

@@ -137,6 +137,10 @@ rule fit_learning:
         floors="data/learning/floors.csv",
         published="data/learning/schmidt2018_published.csv",
         costs="build/costs_2025_compiled.csv",      # `show_model: baseline` draws the 2025 baseline cost
+        assumptions=config["learning"]["assumptions_csv"],   # `show_model: assumptions` draws the model's CAPEX
+        projects="data/observed_projects.csv",       # `capex_axis`: observed plant CAPEX on a second axis
+        site_check=lambda w: ([config["learning"]["site_check_csv"]]   # `model_point`: cost model at a real site
+                              if config["learning"]["technologies"][w.tech].get("model_point") else []),
         config="config.yaml",
     output:
         "build/learning/{tech}.json",

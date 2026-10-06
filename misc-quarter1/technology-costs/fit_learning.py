@@ -52,6 +52,9 @@ if "snakemake" in globals():
         IN_FLOORS = Path(snakemake.input.floors)
         IN_PUB = Path(snakemake.input.published)
         IN_COSTS = Path(snakemake.input.costs)
+        IN_ASSUMPTIONS = Path(snakemake.input.assumptions)
+        IN_PROJECTS = Path(snakemake.input.projects)
+        IN_SITES = Path(snakemake.input.site_check[0]) if snakemake.input.site_check else None
         OUT = Path(snakemake.output[0])
     else:
         IN_FITS = [Path(p) for p in snakemake.input.fits]
@@ -66,6 +69,9 @@ else:
         IN_FLOORS = _HERE / "data" / "learning" / "floors.csv"
         IN_PUB = _HERE / "data" / "learning" / "schmidt2018_published.csv"
         IN_COSTS = _HERE / "build" / "costs_2025_compiled.csv"
+        IN_ASSUMPTIONS = (_HERE / CFG["learning"]["assumptions_csv"]).resolve()
+        IN_PROJECTS = _HERE / "data" / "observed_projects.csv"
+        IN_SITES = (_HERE / CFG["learning"]["site_check_csv"]).resolve()
         OUT = _HERE / "build" / "learning" / f"{TECH}.json"
     else:
         IN_FITS = sorted((_HERE / "build" / "learning").glob("*.json"))
@@ -302,9 +308,19 @@ def fit_component(obs, tech, component, floors, published):
             pub = [{"block": r["block"], "b": float(r["b"]), "sigma": float(r["sigma"]), "ER": str(r["ER"]),
                     "n": int(r["n"])} for _, r in p.iterrows()]
     # model start: `show_model: true` = level fit at today's cumulative capacity (top-down);
-    # `show_model: baseline` = the 2025 cost baseline of this workflow (bottom-up, build/costs_2025_compiled.csv)
+    # `show_model: baseline` = the 2025 cost baseline of this workflow (bottom-up, build/costs_2025_compiled.csv);
+    # `show_model: assumptions` = the CAPEX the model actually uses, from the technology-assumptions CSV
+    # (config learning.assumptions_csv), so the figure shows the value the assumptions document argues for
     model = None
-    if spec.get("show_model") == "baseline":
+    if spec.get("show_model") == "assumptions":
+        col = {"plant": "capex_power_usd_kw", "power": "capex_power_usd_kw", "energy": "capex_energy_usd_kwh"}.get(component)
+        ta = pd.read_csv(IN_ASSUMPTIONS, dtype=str, keep_default_na=False).set_index("technology")
+        if col and tech in ta.index and ta.at[tech, col].strip():
+            if ("kWh" in str(unit)) != (component == "energy"):
+                raise ValueError(f"{tech}/{component}: assumptions column {col} does not match unit {unit}")
+            model = {"z": None, "year": int(ta.at[tech, "currency_year"]), "c": float(ta.at[tech, col]),
+                     "kind": "assumptions", "source": "config-pypsa-earth/technology-assumptions/technology_assumptions.csv"}
+    elif spec.get("show_model") == "baseline":
         param = {"plant": "investment", "energy": "investment_kwh", "power": "investment_kw"}[component]
         costs = pd.read_csv(IN_COSTS)
         row = costs[(costs["technology"] == tech) & (costs["parameter"] == param)]
@@ -330,6 +346,40 @@ def fit_component(obs, tech, component, floors, published):
             model["add"] = {"value": float(v), "label": str(add.get("label", "")), "source": str(add.get("source", "")),
                             "note": str(add.get("note", ""))}
             model["c"] = model["c_fit"] + float(v)
+    # `model_point`: the bottom-up cost model at a real site (../geothermal/build/site_check.csv), one point per
+    # listed depth ("model" = the cell's LCOE-optimal depth), drawn at capacity z
+    points_model = []
+    mp = spec.get("model_point")
+    if mp:
+        sc = pd.read_csv(IN_SITES)
+        sc = sc[sc["site"] == mp["site"]]
+        for d in mp.get("depths", ["model"]):
+            r = sc[sc["model_depth"]] if d == "model" else sc[np.isclose(sc["depth_km"], float(d))]
+            if r.empty:
+                raise ValueError(f"{tech}: no site_check row for {mp['site']} at depth {d}")
+            r = r.iloc[0]
+            points_model.append({"z": float(mp["z"]), "c": float(r["drilling_usd_per_ft"]), "depth_km": float(r["depth_km"]),
+                                 "model_depth": bool(r["model_depth"]), "length_ft": int(r["well_length_ft"]),
+                                 "name": str(r["name"])})
+    # `capex_axis`: whole-plant CAPEX on a second y axis, observed project estimates (observed_projects.csv,
+    # converted to the base currency) and the model input (technology-assumptions CSV), all drawn at capacity z
+    capex_axis = None
+    ca = spec.get("capex_axis")
+    if ca:
+        cpts = []
+        obs = pd.read_csv(IN_PROJECTS)
+        for name in ca.get("observed", []):
+            r = obs[(obs["technology"] == tech) & (obs["project"] == name) & (obs["metric"] == "capex_per_kw")]
+            if r.empty:
+                raise ValueError(f"{tech}: no capex_per_kw row '{name}' in {IN_PROJECTS.name}")
+            r = r.iloc[0]
+            v, _ = to_base(float(r["value"]), str(r["currency"]), int(r["currency_year"]))
+            cpts.append({"c": float(v), "label": name, "kind": "observed", "source": str(r["source"]), "url": str(r["url"])})
+        if ca.get("assumptions"):
+            ta = pd.read_csv(IN_ASSUMPTIONS, dtype=str, keep_default_na=False).set_index("technology")
+            cpts.append({"c": float(ta.at[tech, "capex_power_usd_kw"]), "label": "model input", "kind": "assumptions",
+                         "source": "config-pypsa-earth/technology-assumptions/technology_assumptions.csv"})
+        capex_axis = {"z": float(ca["z"]), "unit": f"{CFG['base_currency']}{CFG['base_currency_year']}/kW", "points": cpts}
     # secondary fits: series listed under `secondary` get their own level fit, drawn as a thin line without band
     secondary = []
     for ser in (spec.get("secondary") or {}).get(component) or []:
@@ -344,7 +394,8 @@ def fit_component(obs, tech, component, floors, published):
                           "level": level_fit(lz2, lc2), "first_difference": first_difference_fit(lz2, lc2)})
     return {"component": component, "unit": unit, "capacity_unit": cap_unit, "points": points, "secondary": secondary,
             "level": level, "first_difference": fd, "time": tm, "summary": summary, "floor": floor,
-            "analogy": analogy, "published": pub, "model": model}
+            "analogy": analogy, "published": pub, "model": model, "model_points": points_model,
+            "capex_axis": capex_axis}
 
 
 def clean(o):

@@ -240,6 +240,11 @@ plotting:
 # ways (level Wright's law, first-difference Wright's law after Lafond et al. 2018 /
 # Way et al. 2022, and a time trend); see README "Learning curves".
 learning:
+  # `show_model: assumptions` draws the CAPEX the model uses, read from this CSV (relative to this file)
+  assumptions_csv: ../../config-pypsa-earth/technology-assumptions/technology_assumptions.csv
+  # `model_point` draws the cost of a bottom-up cost model at a real site, read from this CSV (built by the
+  # site_check rule of ../geothermal; only technologies with `model_point` need it)
+  site_check_csv: ../geothermal/build/site_check.csv
   min_points: 5                # fewer fit points -> DILIGENCE flag on the dashboard
   schmidt:
     url: https://ndownloader.figshare.com/files/12865736      # dataset update 2018, CC BY 4.0
@@ -275,23 +280,31 @@ learning:
   # `unit_subscript` names the carrier the kW/kWh on the axes refer to (default el; a mapping
   # gives it per component), e.g. H_2 for a hydrogen store, DC for IRENA's PV series.
   technologies:
-    vrfb:            {components: [energy, power], show_model: true}   # show_model: red line = level fit at today's cumulative GWh, the WP3 start cost
+    vrfb:            {components: [energy, power], show_model: assumptions}   # red line = the technology-assumptions CSV (was the level fit at today's GWh)
     h2-sofc:         {components: [energy, power], show_model: true, legend_loc: upper right, model_label: {power: lower left},
                       unit_subscript: {energy: H_2, power: el}}   # the 2024 IEA outside-China point is fitted at 21.8 GW
                                                   # cumulative (Schmidt series end plus the IEA fleet, see manual.csv)   # tank cost per kWh of hydrogen stored, electrolyser per kW of electricity in
-    iron-air:        {components: [energy], show_model: baseline, legend: false,
+    iron-air:        {components: [energy], show_model: assumptions, legend: false,
                       analogy: {rate: 0.15, label: "DOE LDES Liftoff 2023 projects with 12–18 %/doubling"}}
     co2-battery:     {components: [energy], show_model: baseline,
                       analogy: {rate: 0.05, label: "mechanical storage; pumped hydro shows −1 ± 8 % (Schmidt 2018)"}}
     smr-nuclear:     {components: [plant], show_model: baseline,
                       analogy: {rate: 0.10, label: "scenario value; large-LWR history −ve to 6 % (Rubin 2015)"}}
-    egs:             {components: [drilling], show_reference: true}   # USD/ft vs cumulative wells (Fervo); plant capex has no
-                                                  # series; the floors.csv band (US shale drilling cost) is drawn
+    egs:             {components: [drilling], show_reference: false,   # shale band (floors.csv) no longer drawn (2026-10-05)
+                      # the Ricks & Jenkins cost model at the Cape Station cell: a well of Cape's length (2.5 km + lateral)
+                      # and a well at the cell's LCOE-optimal depth, drawn at Fervo's 8th well (x has no meaning for them)
+                      model_point: {site: cape_station, z: 8, depths: [2.5, model]},
+                      # right axis: whole-plant CAPEX, Fervo's own Cape Station estimate (observed_projects.csv) and the
+                      # model input (technology_assumptions.csv = the cost model at the Cape Station cell), drawn at z
+                      capex_axis: {z: 14, observed: ["Fervo Cape Station phase 1 (FOAK)"], assumptions: true},
+                      ylim: [70, 2600]}   # room below the points for the legend; USD/ft vs cumulative wells (Fervo),
+                                          # plant capex has no series; `site_label: "..."` would add a red heading
     closed-loop-geo: {components: [plant]}
     allam-ccs:       {components: [plant], show_model: baseline,
                       analogy: {rate: 0.05, label: "CO2 capture units 2–7 % (Rubin 2015); fuel sets the LCOE floor"}}
     sofc:            {components: [plant], fit: {plant: [bloom-product-cost]}, secondary: {plant: [enefarm-sofc]},
-                      show_model: true, ylabel: "Product / equipment cost",
+                      show_model: assumptions, ylabel: "Product / equipment cost",   # 4,100 = Bloom billed price (meeting 2026-09-30);
+                      # with show_model: true the level fit at 1.4 GW + installation gives 2,495 (gap_fill.csv)
                       model_capacity: {value: 1.4, unit: GW, year: 2024, source: "Bloom Energy Form 10-K for FY2023",
                                        url: "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1664703&type=10-K",
                                        note: "1.4 GW of Energy Servers deployed (10-K FY2023)"},
@@ -299,9 +312,11 @@ learning:
                                   source: "Bloom Energy Form 10-K for FY2023, installation cost per kW accepted",
                                   note: "the 10-K product cost is manufacturing only; installation from the same filing is added, Bloom's margin is not"}}   # Bloom utility-scale product cost is fitted; the ENE-FARM residential
                                               # series gets its own (secondary) fit line; PEFC and Schmidt's reconstruction are context
-    solar-utility:   {components: [plant], unit_subscript: DC}   # IRENA quotes PV cost and capacity per kW of DC module rating
-    onwind:          {components: [plant]}
-    battery-liion:   {components: [energy, power], fit: {energy: [bnef-turnkey]}}   # Schmidt utility series shown, not chained (different capacity basis)
+    solar-utility:   {components: [plant], unit_subscript: DC, show_model: assumptions,
+                      model_label: upper center, ylim: [60, 170000]}   # label above the line in the empty middle; ylim lifts the line clear of the rate box;
+                      # IRENA quotes PV cost and capacity per kW of DC module rating
+    onwind:          {components: [plant], show_model: assumptions}
+    battery-liion:   {components: [energy, power], fit: {energy: [bnef-turnkey]}, show_model: assumptions}   # Schmidt utility series shown, not chained (different capacity basis)
 
   # Series that are drawn as hollow markers but never enter a fit, with the reason that the
   # legend prints after "excluded:". Anything not listed here that is skipped (a series not
