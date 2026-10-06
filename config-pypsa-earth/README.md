@@ -97,6 +97,18 @@ propose to pypsa-meets-earth, `(no relevance 4 upstream)` a fork-only change:
   Statistical Review 2025 workbook (Cloudflare-gated, fetched once with a browser and kept in the repo), ECB annual FX,
   and `data/validation/manual_points.csv` with cited national statistics, prices and 2050 outlooks. See
   "Validation data" below.
+- `technology-assumptions/` — the model's techno-economic inputs in one place: `technology_assumptions.csv`
+  (one row per technology: CAPEX, O&M, efficiency, lifetime, existing / pipeline GW, lead time, build limit,
+  learning rate + basis, USD2024) and the justification document `build/technology_assumptions.pdf`, whose
+  page-1 tables are generated from the CSV (`assumptions.smk`, rules `assumptions_table` / `assumptions_doc`)
+  while each technology's subsection title carries a hand-typed CAPEX so that text and table drift visibly.
+  `merge_config.py` puts `assumptions.smk` into `custom_rules` of every stage; `run.sh assumptions` builds
+  the PDF (also standalone: `snakemake -s assumptions.smk -c1` in that directory). See its README.
+- `scripts/check_bus_regions.py [<run> ...] [-v]` — verifies that `resources/<run>/bus_regions/` describes
+  `networks/<run>/` (busmap index = simplified buses, busmap values = region names = clustered buses, clustered x/y =
+  mean of the members, later networks contain the clustered buses; bus tables only, seconds per run); `run.sh` runs
+  it after every prenetwork / scenario stage and logs a `WARNING` line on mismatch. Exit code 1 on mismatch. See
+  "Caveats: bus_regions of the base runs".
 - `check_network.py <run>` — sanity table + map for a finished stage
   (`cd models/pypsa-earth && pixi run python ../../config-pypsa-earth/check_network.py BR`);
   writes `results/catalyst/<run>_map.png`.
@@ -190,6 +202,41 @@ CONTINUE_ON_FAIL=1 MEM_MAX=12G STAGE_TIMEOUT=4h setsid nohup systemd-inhibit --w
   `~/gurobi.lic` (scip in the env is the fallback).
 - The full-US-including-Alaska model is not attempted; if it is needed later, `clip_bbox` can be
   dropped, but `build_renewable_profiles` then needs far more than 8 GB.
+
+### Caveats: bus_regions of the base runs `US`, `BR`, `IN` are not those of their networks (2026-09-20)
+
+`resources/<R>/bus_regions/{busmap_elec_s.csv, regions_*_elec_s.geojson, busmap_elec_s_50.csv, linemap_elec_s_50.csv,
+regions_*_elec_s_50.geojson}` of the three base runs **do not describe `networks/<R>/elec_s.nc` / `elec_s_50.nc`**
+(nor the `_ec` / prepared networks derived from them). Symptom: polygon `US0 28` of `regions_onshore_elec_s_50.geojson`
+is Pennsylvania, bus `US0 28` of `networks/US/elec_s_50.nc` is Idaho; `busmap_elec_s_50.csv` has 4738 rows and clusters
+`US0 0`–`US0 41`, `US1 0`–`US8 0`, the network has 4740 simplified buses behind clusters `US0 0`–`US0 39`,
+`US1 0`–`US10 0`. It is **not a renaming**: the files were written for a different simplified network.
+
+Cause (driver, not model code: `cluster_network.py` is unpatched and writes network, busmap and regions from one
+`Clustering` object; pypsa 0.30.3 `get_clustering_from_busmap` keeps the busmap labels as bus names). On 2026-09-19/20
+the first screening solves ran with `resources/<R>-now` / `<R>-zero` as a *directory symlink* to `resources/<R>`
+(`status.log`: "[US-now] resources/US-now -> resources/US (symlink)"). Their `simplify_network` and `cluster_network`
+therefore wrote into `resources/<R>/bus_regions/`. By then the fork had the DC-bus absorption patch of 2026-09-19 (the
+two other `simplify_network` patches date from 2026-09-30, after these runs), so the scenario runs' simplified networks
+differ from the base runs' of 2026-09-16/17/18: US 4738 vs 4740 buses (buses 2408/2410 DC and 2409 AC near 44.3 °N
+71.9 °W and the DC bus 6259 on Long Island gone, AC buses 6258/6262 new there), BR 596 vs 603 (7 DC buses), IN 2253 vs
+2258 (5 DC buses). Fewer single-bus sub-networks → a different
+cluster count per `country+sub_network` → k-means labels that have nothing to do with the base run's. The base
+`networks/<R>/elec_s_50*.nc` and the `_50` files were then `touch`ed at 02:20–02:21 (identical mtimes, contents
+unchanged), which hid the mismatch from Snakemake's mtime trigger. `run.sh` gives every scenario run its own
+`bus_regions/` since 2026-09-20 (`link_resources`), so `<R>-now` / `<R>-zero`, NWE (base run after the patch), CN, the
+rest-of-world runs and every later run are self-consistent — `scripts/check_bus_regions.py` verifies all of them.
+
+Consequences: anything that joins the base runs' `regions_onshore_elec_s_50.geojson` or `busmap_elec_s_50.csv` to
+`networks/<R>/elec_s_50*.nc` by bus name assigns the wrong polygon / members for US, BR and IN (e.g. per-region
+supply curves such as the planned geothermal ones, region choropleths of base-run results, the fourier site stencils of
+`misc-quarter1/fourier`, which avoided the polygons after noticing the symptom). Not affected: the validation
+dashboard (`plot_validation.py` reads the solved network and `country_shapes.geojson`, no regions), `check_network.py`
+maps, the calibration (tables per country), and every scenario-run result. Rule: **use the regions / busmap of the same
+run as the network** (`resources/US-now/bus_regions/` with `networks/US-now/` or `results/US-now/networks/`), and run
+`check_bus_regions.py <run>` first. To repair the base runs rebuild them with the current `simplify_network`
+(`rm networks/<R>/elec_s*.nc && bash config-pypsa-earth/run.sh <R>`; simplify + cluster + prepare ≈ 5–10 min per
+region, the heavy stages are untouched) — the result then matches the scenario runs' bus set as well.
 
 ## Brazil (stages `BR-smoke`, `BR`)
 

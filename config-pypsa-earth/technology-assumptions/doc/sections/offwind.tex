@@ -1,0 +1,30 @@
+\subsection{Offshore wind (2,449~\$/kW)}\label{sec:offwind}
+Offshore wind turbines reach higher capacity factors, because winds at sea are stronger and steadier.
+They cost more to build, but produce more per kW and avoid land-use conflicts.
+
+The CAPEX of 2,449~\$/kW is the 2025 value of the DEA catalogue \citep{dea} as carried by technology-data \citep{technologydata}.
+
+We apply an exogenous cost path from the DEA projections \citep{dea}.
+
+O\&M and the 30-year lifetime come from technology-data \citep{technologydata}; the existing capacity of about 83~GW at the end of 2024 from the Global Wind Energy Council \citep{gwec2025}.
+The lead time is 4~years.
+
+Like wind on land, the offshore resource varies strongly (Figure~\ref{fig:offwind-maps}).
+The best shallow seas, the North Sea, the Taiwan Strait and the shelf off Patagonia, reach capacity factors around 0.6 and a levelised cost below 50~\$/MWh; the Baltic and the Bass Strait follow closely, while the tropical shelves of South-East Asia have little wind.
+These capacity factors are an upper bound: they come from an onshore turbine model and leave out the wake losses within large offshore farms, so they lie above the 0.45 of Table~\ref{tab:costs}.
+
+\begin{figure}[htbp]\centering
+\begin{subfigure}[t]{\textwidth}\centering
+\includegraphics[width=\linewidth]{../build/figures/offwind_cf.pdf}
+\caption{Annual mean capacity factor}
+\end{subfigure}
+
+\medskip
+\begin{subfigure}[t]{\textwidth}\centering
+\includegraphics[width=\linewidth]{../build/figures/offwind_lcoe.pdf}
+\caption{Levelised cost of electricity}
+\end{subfigure}
+\caption{Offshore wind on shallow sea, 0.5$^\circ$ cells with at least a quarter of their area 0--50~m deep (the model's depth limit; bathymetry of \citealp{gebco2025}), south of the Arctic circle; cells are drawn enlarged, about 2.5 times their width, so the narrow coastal strips stay visible.
+Top: annual mean capacity factor from ERA5 weather of 2011 \citep{hersbach2020}, as converted by \href{https://model.energy}{model.energy} \citep{modelenergy} with its onshore turbine, as a proxy.
+Bottom: the resulting levelised cost with the costs of Table~\ref{tab:costs} at a 7\,\% real discount rate; colour scale logarithmic.}\label{fig:offwind-maps}
+\end{figure}

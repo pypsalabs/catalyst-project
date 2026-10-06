@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="CO2 battery: gas dome, liquid CO2 vessels and turbomachinery">
+<title>CO2 battery: gas dome, liquid CO2 vessels and turbomachinery</title>
+<g stroke="#1f2a36" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+<rect x="12" y="176" width="176" height="8" rx="2" fill="#c9d3dc"/>
+<path d="M12 176 A36 80 0 0 1 48 96 H116 A36 80 0 0 1 152 176 Z" fill="#f7f9fb"/>
+<line x1="30" y1="108.2" x2="30" y2="176" stroke="#c9d3dc" stroke-width="1.4"/>
+<line x1="48" y1="97.5" x2="48" y2="176" stroke="#c9d3dc" stroke-width="1.4"/>
+<line x1="66" y1="97.5" x2="66" y2="176" stroke="#c9d3dc" stroke-width="1.4"/>
+<line x1="82" y1="97.5" x2="82" y2="176" stroke="#c9d3dc" stroke-width="1.4"/>
+<line x1="98" y1="97.5" x2="98" y2="176" stroke="#c9d3dc" stroke-width="1.4"/>
+<line x1="116" y1="97.5" x2="116" y2="176" stroke="#c9d3dc" stroke-width="1.4"/>
+<line x1="134" y1="108.2" x2="134" y2="176" stroke="#c9d3dc" stroke-width="1.4"/>
+<line x1="19.9" y1="126" x2="144.1" y2="126" stroke="#c9d3dc" stroke-width="1.4"/>
+<line x1="13.7" y1="152" x2="150.3" y2="152" stroke="#c9d3dc" stroke-width="1.4"/>
+<path d="M12 176 A36 80 0 0 1 48 96 H116 A36 80 0 0 1 152 176" fill="none"/>
+<path d="M22 140 Q26 112 44 102" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.9"/>
+<rect x="158" y="122" width="34" height="18" rx="9" fill="#c9d3dc"/>
+<line x1="166" y1="122" x2="166" y2="140" stroke-width="1.2"/><line x1="184" y1="122" x2="184" y2="140" stroke-width="1.2"/>
+<rect x="168" y="132" width="14" height="5" rx="2" fill="#4a8fc9" stroke="none"/>
+<rect x="158" y="146" width="34" height="18" rx="9" fill="#c9d3dc"/>
+<line x1="166" y1="146" x2="166" y2="164" stroke-width="1.2"/><line x1="184" y1="146" x2="184" y2="164" stroke-width="1.2"/>
+<rect x="168" y="156" width="14" height="5" rx="2" fill="#4a8fc9" stroke="none"/>
+<path d="M166 164 V176 M184 164 V176" stroke-width="2"/>
+<rect x="150" y="84" width="44" height="26" rx="3" fill="#e8edf1"/>
+<path d="M156 90 L166 94 V100 L156 104 Z" fill="#9aa9b7" stroke-width="1.4"/>
+<circle cx="182" cy="97" r="8" fill="#c9d3dc" stroke-width="1.4"/>
+<path d="M178 97 l3 -4 l3 8 l3 -4" fill="none" stroke="#c0392b" stroke-width="1.4"/>
+<line x1="166" y1="97" x2="174" y2="97" stroke-width="2"/>
+<path d="M150 104 H130" fill="none" stroke="#4a8fc9" stroke-width="3.5"/>
+<path d="M172 110 V122" fill="none" stroke="#4a8fc9" stroke-width="3.5"/>
+</g>
+</svg>

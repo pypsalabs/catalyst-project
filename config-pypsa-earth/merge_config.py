@@ -8,9 +8,15 @@ kind = prenetwork : config.<stage>.yaml copied as is; target networks/<stage>/el
 kind = overlay    : stage <R>-<scen> = config.<R>.yaml deep-merged with overlay.<scen>.yaml, run.name = stage,
                     catalyst.base_run = R; target results/<stage>/plots/validation_elec_s..._{opts}.png
 kind = dashboard  : stage <R> = config.<R>.yaml + the validation custom rule; target results/catalyst/validation_<R>.png
+kind = assumptions: no network; the technology-assumptions custom rules only; target the assumptions PDF
+                    ../../config-pypsa-earth/technology-assumptions/build/technology_assumptions.pdf
+Every merged config carries technology-assumptions/assumptions.smk in custom_rules, so the assumptions
+document (and, later, the rules that feed technology_assumptions.csv into the cost table) are part of every stage.
 Rest-of-world groups (catalyst.single_node in config.<G>.yaml, written by scripts/select_countries.py): catalyst.extra_opts
 (ATKc) is prepended to every overlay opt (3h -> ATKc-3h, Co2L0-3h -> ATKc-Co2L0-3h), and the overlay target is the solved
 network results/<stage>/networks/<stem>.nc (no per-network validation page; plot_world.py draws all countries at once).
+Myopic overlays (foresight: myopic, e.g. overlay.myopic.yaml): the target is the solved network of the last planning
+horizon, results/<stage>/networks/<stem>_<year>.nc; Snakemake solves the earlier horizons on the way.
 The first element of every scenario list is used for the target (run.sh runs one scenario per stage).
 """
 import os
@@ -20,6 +26,9 @@ import yaml
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SMK = "../../config-pypsa-earth/validation.smk"  # relative to the fork root, see custom_rules in the overlays
+ASSUMPTIONS = "../../config-pypsa-earth/technology-assumptions"
+ASSUMPTIONS_SMK = ASSUMPTIONS + "/assumptions.smk"
+ASSUMPTIONS_PDF = ASSUMPTIONS + "/build/technology_assumptions.pdf"
 
 
 def deep_merge(base, over):
@@ -46,10 +55,13 @@ def stage_config(kind, stage):
         cat.update(base_run=base_run, scenario=scen)
         if cat.get("extra_opts"):
             cfg["scenario"]["opts"] = [f"{cat['extra_opts']}-{o}" for o in cfg["scenario"]["opts"]]
+    elif kind == "assumptions":
+        cfg = {"run": {"name": "assumptions"}, "custom_rules": [SMK]}
     else:
         cfg = load(f"config.{stage}.yaml")
         if kind == "dashboard":
             cfg["custom_rules"] = sorted(set(cfg.get("custom_rules", []) or []) | {SMK})
+    cfg["custom_rules"] = sorted(set(cfg.get("custom_rules", []) or []) | {ASSUMPTIONS_SMK})
     return cfg
 
 
@@ -66,9 +78,13 @@ def solved_network(region, scen):
 
 
 def target_of(kind, stage, cfg):
+    if kind == "assumptions":
+        return ASSUMPTIONS_PDF
     stem = network_stem(cfg)
     if kind == "prenetwork":
         return f"networks/{stage}/{stem}.nc"
+    if kind == "overlay" and cfg.get("foresight") == "myopic":
+        return f"results/{stage}/networks/{stem}_{cfg['scenario']['planning_horizons'][-1]}.nc"
     if kind == "overlay" and cfg["catalyst"].get("single_node"):
         return f"results/{stage}/networks/{stem}.nc"
     if kind == "overlay":

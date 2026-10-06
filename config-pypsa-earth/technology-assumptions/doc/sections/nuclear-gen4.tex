@@ -1,0 +1,30 @@
+\needspace{15\baselineskip}% room for the wrapped icon (it cannot break across pages)
+\subsection{Nuclear Gen IV (17,000~\$/kW)}\label{sec:nuclear-gen4}
+\techicon{gen4}{A pool-type sodium-cooled fast reactor: core, control rods, heat exchanger and pump in liquid sodium.}
+Gen IV reactors (Figure~\ref{fig:icon-gen4}) are cooled by sodium, lead, molten salt or helium (China's HTR-PM) instead of water.
+They are not yet commercially deployed, but hold some promise of technology learning, in contrast to water-cooled reactors.
+
+
+The CAPEX of 17,000~\$/kW is the project's first-of-a-kind assumption.
+It lies above the first-of-a-kind range of the DOE Liftoff report \citep{doe2024nuclear}, reflecting the broad uncertainty about cost.
+
+The learning rate is 10\,\% per doubling, with no regional distinction.
+It is the only nuclear technology with endogenous learning, because new designs have the most room to get cheaper.
+
+O\&M and the lifetime are those of the light-water reactors (Section~\ref{sec:nuclear-lwr-cnin}); the lead time is 8~years.
+Gen IV reactors run hotter with higher efficiency.
+We use 0.40, close to the values for TerraPower's Natrium (345~MWe from 840~MW of heat) and China's HTR-PM.
+
+The fuel of Gen IV reactors costs more, because high-assay low-enriched uranium (HALEU) needs higher enrichment of 5--20\,\%.
+HALEU costs about 23,700~\$ per kg of uranium under the baseline assumptions of \citet{nia2023}, several times enriched light-water fuel;
+this results in roughly 7--10~\$/MWh\textsubscript{th}.
+We use the middle of this range, 8~\$/MWh\textsubscript{th}.
+That is four times the price of light-water uranium, or about three times as much per MWh of electricity.
+HALEU supply is scarce today \citep{doe2024nuclear}, and its geopolitical and supply implications might need representation in the model.
+
+The waste heat of up to $\sim$500\,\textdegree C could become a revenue stream when sited near industry.
+For the moment, we omit this.
+
+We limit additions to 1~GW/yr, about the rate at which today's pipeline (1.2~GW under construction and a further 2.9~GW in preparation) would be delivered.
+Only 0.3~GW of Gen IV construction started worldwide in the last decade.
+An acceleration could be possible, but model constraints might be needed to ensure realistic pace of deployment in the model.

@@ -14,6 +14,8 @@
 #                     country prefix of the next stage name (BR-smoke -> BR)
 #   world             results/catalyst/validation_world.{png,pdf,csv}: scripts/plot_world.py over every solved
 #                     <R>-now / <R>-zero network (archetypes and rest-of-world groups), run directly (no Snakemake)
+#   assumptions       technology-assumptions/build/technology_assumptions.pdf from technology_assumptions.csv and
+#                     technology-assumptions/doc (assumptions.smk; no network, always re-checked, never skipped)
 #   Rest-of-world groups (config.<G>.yaml with catalyst.single_node, from scripts/select_countries.py) run as
 #   prestage:<G> <G> <G>-now <G>-zero; their overlay target is the solved network itself.
 # Constraints enforced here: no Snakemake parallelism (-c1 -j1), the whole process tree capped at MEM_MAX
@@ -43,6 +45,7 @@ mem_avail_gb() { awk '/MemAvailable/ {printf "%d", $2/1048576}' /proc/meminfo; }
 stage_kind() {   # $1 = stage name -> prenetwork | overlay | dashboard | unknown
   case "$1" in
     dashboard:*) echo dashboard ;;
+    assumptions) echo assumptions ;;
     *) if [ -f "$HERE/config.$1.yaml" ]; then echo prenetwork
        elif [[ "$1" == *-* ]] && [ -f "$HERE/config.${1%-*}.yaml" ] && [ -f "$HERE/overlay.${1##*-}.yaml" ]; then echo overlay
        else echo unknown; fi ;;
@@ -83,7 +86,7 @@ run_stage() {   # $1 = stage name (see header)
   # build config.yaml for this stage and derive its target (merge_config.py prints the target)
   target=$(pixi run python "$HERE/merge_config.py" "$kind" "$run" "$PE/config.yaml" 2>>"$slog") || { log "[$run] merge_config.py failed, see $slog"; return 1; }
   cp "$PE/config.yaml" "$LOGDIR/config.$tag.yaml"
-  if [ -f "$target" ]; then log "[$run] $target exists, skip"; return 0; fi
+  if [ -f "$target" ] && [ "$kind" != assumptions ]; then log "[$run] $target exists, skip"; return 0; fi   # a document is re-edited: let Snakemake decide
   if [ "$kind" = overlay ]; then link_resources "${run%-*}" "$run"; fi
   for attempt in 1 2 3; do
     # pypsa-earth aborts at DAG construction if build_cutout is enabled while the
@@ -118,7 +121,20 @@ run_stage() {   # $1 = stage name (see header)
     rc=$?
     kill "$wd" 2>/dev/null; wait "$wd" 2>/dev/null
     log "[$run] attempt $attempt finished rc=$rc; $(grep -o 'SCOPE memory.peak=.*' "$slog" | tail -1)"
-    [ -f "$target" ] && { log "[$run] SUCCESS $target ($(du -h "$target" | cut -f1)); free $(free_gb) GB"; return 0; }
+    if [ -f "$target" ]; then
+      log "[$run] SUCCESS $target ($(du -h "$target" | cut -f1)); free $(free_gb) GB"
+      # resources/<run>/bus_regions/ must describe networks/<run>/ (busmap index/values, region names, clustered x/y =
+      # member mean). 2026-09-20: the scenario runs shared resources/<R> through a directory symlink and rewrote the
+      # base runs' busmaps and regions with those of another simplified network (US, BR, IN; README "Caveats").
+      if [ "$kind" = prenetwork ] || [ "$kind" = overlay ]; then
+        if pixi run python "$HERE/scripts/check_bus_regions.py" "$run" >> "$slog" 2>&1; then
+          log "[$run] bus_regions/ consistent with networks/$run"
+        else
+          log "[$run] WARNING resources/$run/bus_regions/ does not describe networks/$run (check_bus_regions.py, see $slog)"
+        fi
+      fi
+      return 0
+    fi
     if [ "$rc" -eq 137 ] || attempt_log | grep -qE "SCOPE .*oom_kill [1-9]|MemoryError"; then
       log "[$run] OOM under the ${MEM_MAX} cap -> no retry, needs reconfiguration"; return 3; fi
     [ "$rc" -eq 124 ] && { log "[$run] stage timed out after $STAGE_TIMEOUT -> no retry"; return 4; }

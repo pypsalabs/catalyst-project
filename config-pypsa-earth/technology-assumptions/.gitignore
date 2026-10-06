@@ -1,0 +1,6 @@
+build/
+__pycache__/
+.snakemake/
+# by-products of compiling doc/main.tex in place (editors); the Snakemake build writes to build/
+doc/main.*
+!doc/main.tex

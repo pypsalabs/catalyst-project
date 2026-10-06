@@ -1,0 +1,121 @@
+% Technology assumptions of the Catalyst model: justification document.
+%
+% Pages 1 and 2 hold the two tables generated from ../technology_assumptions.csv (build/table.tex,
+% rule assumptions_table); every technology name in them is a hyperlink (\techlink below) to
+% \label{sec:<technology>} in that technology's subsection, where the sources and derivations
+% of the row (the CSV's comment and source columns) are argued in prose. Each subsection title
+% carries the CAPEX typed by hand -- deliberately not wired from the CSV, so that text and
+% table drift apart visibly when one is changed without the other (build_table.py warns, also
+% for a missing label).
+% Add text, figures (doc/figures/) and references (references.bib) in doc/sections/*.tex.
+%
+% Build: snakemake -s ../assumptions.smk -c1 (from ..), or bash config-pypsa-earth/run.sh assumptions.
+% Style after Way, Mealy & Farmer, INET Oxford WP 2021-01 (kpfonts, single column, booktabs, author-year).
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{kpfonts}
+\usepackage{microtype}
+\usepackage[a4paper,margin=25mm,top=20mm,bottom=20mm]{geometry}
+\usepackage{booktabs,array}
+\usepackage{siunitx}
+\sisetup{group-separator={,},group-minimum-digits=4,group-digits=integer,round-mode=none,detect-all}
+\usepackage{enumitem}
+\usepackage{caption}
+% figures float only within their own subsection: a \FloatBarrier before every \subsection
+\usepackage{placeins}
+\AddToHook{cmd/subsection/before}{\FloatBarrier}
+\usepackage{subcaption}
+\captionsetup{font=small,labelsep=colon,skip=4pt}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{needspace}
+\usepackage[table]{xcolor}
+\definecolor{offmix}{gray}{0.90}   % rows of technologies not in the default mix (in_default_mix = no)
+\usepackage{amsmath}
+\usepackage{csquotes}
+\usepackage[style=authoryear,backend=biber,maxcitenames=2,maxbibnames=99,giveninits=true,uniquename=false,natbib=true]{biblatex}
+\addbibresource{references.bib}
+% the whole citation (author and year, inside the brackets) is one link, not only the year
+% (biblatex authoryear links the year alone by default)
+\DeclareFieldFormat{citehyperref}{\DeclareFieldAlias{bibhyperref}{noformat}\bibhyperref{#1}}
+\DeclareFieldFormat{textcitehyperref}{\DeclareFieldAlias{bibhyperref}{noformat}%
+  \bibhyperref{#1\ifbool{cbx:parens}{\bibcloseparen\global\boolfalse{cbx:parens}}{}}}
+\savebibmacro{cite}
+\savebibmacro{textcite}
+\renewbibmacro*{cite}{\printtext[citehyperref]{\restorebibmacro{cite}\usebibmacro{cite}}}
+\renewbibmacro*{textcite}{%
+  \ifboolexpr{(not test {\iffieldundef{prenote}} and test {\ifnumequal{\value{citecount}}{1}})
+    or (not test {\iffieldundef{postnote}} and test {\ifnumequal{\value{citecount}}{\value{citetotal}}})}
+    {\DeclareFieldAlias{textcitehyperref}{noformat}}{}%
+  \printtext[textcitehyperref]{\restorebibmacro{textcite}\usebibmacro{textcite}}}
+% links: citations, figure / section references and URLs in a subtle dark red; the table's technology names
+% (\techlink{<technology key>}{<label>}, jumps to \label{sec:<key>}) in blue, their \textcolor wins over linkcolor
+\definecolor{reflink}{RGB}{140,25,25}
+\usepackage[colorlinks=true,linkcolor=reflink,citecolor=reflink,urlcolor=reflink]{hyperref}
+\definecolor{techlink}{RGB}{0,70,140}
+\newcommand{\techlink}[2]{\hyperref[sec:#1]{\textcolor{techlink}{#2}}}
+% the icon of an advanced technology, beside the first paragraphs of its section: \techicon{key}{caption};
+% icons/<key>.svg drawn for this document (schematic, own work), icons/<key>.pdf converted from it with headless Chrome
+\newcommand{\techicon}[2]{\begin{wrapfigure}{r}{0.27\textwidth}\vspace{-0.8\baselineskip}\centering
+  \includegraphics[width=0.23\textwidth]{icons/#1.pdf}\captionsetup{font=footnotesize}\caption{#2}\label{fig:icon-#1}\vspace{-1.2\baselineskip}\end{wrapfigure}}
+\pagestyle{plain}
+
+\begin{document}
+% compact title above Table 1
+\begin{center}
+{\LARGE Technology assumptions of the Catalyst model\par}\vspace{4pt}
+{PyPSA Labs\par}
+\end{center}
+\vspace{-3mm}
+
+% ---- pages 1 and 2: one table each, the numbers exactly as in technology_assumptions.csv; names link to the sections ----
+{\scriptsize\setlength{\tabcolsep}{2pt}\renewcommand{\arraystretch}{1.55}
+\input{../build/table.tex}
+}
+
+\clearpage
+
+% ---- from page 3: one subsection per technology (\label{sec:<key>}); the CAPEX in each title is typed by hand ----
+% Each section has up to five paragraphs, separated by a 1.5-line pitch (\parskip below):
+%   1. what the technology is and what gap it fills; 2. CAPEX: value, how it was chosen, qualifiers;
+%   3. learning rate, in the same way; 4. where the remaining parameters come from; 5. other useful context.
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5\baselineskip plus 1pt}
+
+\section{Advanced technologies}
+These technologies only feature in the (near-)carbon-neutral part of the system that is subject to catalytic investment.
+For each, we give the reasoning behind the techno-economic assumptions and the expected technology learning.
+
+\input{sections/nuclear-gen4}
+\input{sections/iron-air}
+\input{sections/egs}
+\input{sections/sofc}
+\input{sections/vrfb}
+\input{sections/co2-battery}
+
+\section{Mature technologies}
+We apply no endogenous technology learning to these technologies; instead, their costs follow the fixed path projected by the Danish Energy Agency (DEA) catalogue \citep{dea}.
+Unless stated otherwise, their 2025 costs come from PyPSA/technology-data v0.15.0 \citep{technologydata}, which carries the DEA figures, converted to USD\textsubscript{2024}.
+Existing capacities are Ember's 2024 figures \citep{ember2025} unless stated otherwise.
+The water-cooled nuclear reactors are the exception: their costs come from our own project data and stay constant.
+
+\input{sections/solar-utility}
+\input{sections/onwind}
+\input{sections/offwind}
+\input{sections/hydro}
+\input{sections/ror}
+\input{sections/geothermal}
+\input{sections/biomass}
+\input{sections/nuclear-lwr-cnin}
+\input{sections/nuclear-lwr-row}
+\input{sections/CCGT}
+\input{sections/OCGT}
+\input{sections/battery-liion}
+\input{sections/PHS}
+
+\input{sections/dropped}
+
+\printbibliography
+\end{document}
