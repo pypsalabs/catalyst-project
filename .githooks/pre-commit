@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Refuse to commit any staged file above a size limit, so a stray build
+# output or data download cannot slip into history (GitHub warns at 50 MB and
+# rejects at 100 MB; rewriting history to remove a blob later is painful).
+#
+# Activated once per clone with:   git config core.hooksPath .githooks
+# Override for one deliberate commit:   ALLOW_LARGE=1 git commit ...
+set -euo pipefail
+
+limit_mb=${LARGE_FILE_LIMIT_MB:-20}
+limit=$((limit_mb * 1024 * 1024))
+
+[ "${ALLOW_LARGE:-}" = "1" ] && exit 0
+
+bad=0
+while IFS= read -r -d '' path; do
+    # size of the staged blob (not the working-tree file)
+    size=$(git cat-file -s ":$path" 2>/dev/null || echo 0)
+    if [ "$size" -gt "$limit" ]; then
+        printf 'pre-commit: %s is %d MB (limit %d MB)\n' "$path" $((size / 1024 / 1024)) "$limit_mb" >&2
+        bad=1
+    fi
+done < <(git diff --cached --name-only --diff-filter=AM -z)
+
+if [ "$bad" = 1 ]; then
+    cat >&2 <<EOF
+pre-commit: refusing to commit files above ${limit_mb} MB.
+  unstage:   git restore --staged <path>   (then add the path to a .gitignore)
+  override:  ALLOW_LARGE=1 git commit ...
+EOF
+    exit 1
+fi
