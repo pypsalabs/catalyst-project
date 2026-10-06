@@ -1,0 +1,33 @@
+scope,region,iso3,metric,value,unit,source,note
+country,Iceland,ISL,identified_hydrothermal_potential,5800,MWe,"Stefansson 2005 (WGC), Table 1, citing Palmason et al. 1985",volumetric assessment of identified resources
+country,USA,USA,identified_hydrothermal_potential,23000,MWe,"Stefansson 2005 (WGC), Table 1, citing Muffler 1978","superseded by USGS 2008 (Williams et al.): identified 9,057 MWe mean; undiscovered 30,033 MWe mean"
+country,USA,USA,identified_hydrothermal_potential_usgs2008,9057,MWe,"USGS Fact Sheet 2008-3082 (Williams et al. 2008), Assessment of moderate- and high-temperature geothermal resources of the United States","identified systems, mean; 95 % range 3,675 - 16,457 MWe; undiscovered mean 30,033 MWe (7,917 - 73,286); EGS 517,800 MWe"
+country,Indonesia,IDN,identified_hydrothermal_potential,16000,MWe,"Stefansson 2005 (WGC), Table 1, citing WEC 1998","Indonesian government figure 2020: 23,900 MWe resources (Badan Geologi)"
+country,Philippines,PHL,identified_hydrothermal_potential,6000,MWe,"Stefansson 2005 (WGC), Table 1, citing Wright 1999",
+country,Japan,JPN,identified_hydrothermal_potential,20000,MWe,"Stefansson 2005 (WGC), Table 1, citing Takashima 1980",
+country,Mexico,MEX,identified_hydrothermal_potential,6000,MWe,"Stefansson 2005 (WGC), Table 1, citing Mulas de Pozo et al. 1985",
+country,New Zealand,NZL,identified_hydrothermal_potential,3650,MWe,"Stefansson 2005 (WGC), Table 1, citing Lawless 2002",
+country,Tuscany (Italy),ITA,identified_hydrothermal_potential,700,MWe,"Stefansson 2005 (WGC), Table 1, citing Muffler and Cataldi 1978",Tuscany only
+world,World,,identified_hydrothermal_potential,209000,MWe,"Stefansson 2005 (WGC), Table 2","most likely value; 1,322 accessible active volcanoes x 158 MWe per volcano (statistical error +-27 GWe); lower limit 50 GWe (simulation vs volumetric), upper limit 1-2 TWe incl. hidden resources"
+world,World,,accessible_active_volcanoes,1322,count,"Stefansson 2005 (WGC)","1,511 Holocene volcanoes (Simkin & Siebert 1994) minus 189 on the sea floor or in arctic regions"
+gea_region,United States of America,USA,hydrothermal_resources_2050,110,GW,"Bertani 2003 as reproduced in Bertani 2009 (GeoFund Turkey), Table 5","'resources' expected in 2050 with present + improved conventional technology; 2050 capacity forecast 60 GW"
+gea_region,Canada,CAN,hydrothermal_resources_2050,2,GW,"Bertani 2003 / 2009, Table 5",
+gea_region,Western Europe incl. Turkey,,hydrothermal_resources_2050,20,GW,"Bertani 2003 / 2009, Table 5",
+gea_region,Central and Eastern Europe,,hydrothermal_resources_2050,6,GW,"Bertani 2003 / 2009, Table 5",
+gea_region,Former Soviet Union,,hydrothermal_resources_2050,17,GW,"Bertani 2003 / 2009, Table 5",
+gea_region,Eastern Africa,,hydrothermal_resources_2050,6,GW,"Bertani 2003 / 2009, Table 5",Kenya and Ethiopia now assess > 10 GW and > 10 GW respectively (national figures)
+gea_region,Middle East,,hydrothermal_resources_2050,12,GW,"Bertani 2003 / 2009, Table 5",
+gea_region,China,CHN,hydrothermal_resources_2050,20,GW,"Bertani 2003 / 2009, Table 5",
+gea_region,India,IND,hydrothermal_resources_2050,29,GW,"Bertani 2003 / 2009, Table 5",
+gea_region,Japan,JPN,hydrothermal_resources_2050,4,GW,"Bertani 2003 / 2009, Table 5",
+gea_region,Other Pacific Asia,,hydrothermal_resources_2050,26,GW,"Bertani 2003 / 2009, Table 5","Indonesia, Philippines, PNG etc."
+gea_region,"Australia, New Zealand, other Oceania",,hydrothermal_resources_2050,5,GW,"Bertani 2003 / 2009, Table 5",
+gea_region,Latin America and the Caribbean,,hydrothermal_resources_2050,23,GW,"Bertani 2003 / 2009, Table 5",
+gea_region,World,,hydrothermal_resources_2050,280,GW,"Bertani 2003 / 2009, Table 5","2050 capacity forecast 140 GW; Bertani's realistic range with today's technology 70-140 GW"
+world,World,,installed_capacity_2024,15400,MW,"IRENA, Renewable Power Generation Costs in 2024, ch. 7","320 MW commissioned in 2024"
+world,World,,capex_weighted_average_2024,4015,USD2024/kW,"IRENA 2024, ch. 7","eight plants; 2023: 4,699; 2010-2024 range of projects 1,217 - 6,724 USD/kW"
+world,World,,capex_min_2010_2024,1217,USD2024/kW,"IRENA 2024, ch. 7",
+world,World,,capex_max_2010_2024,6724,USD2024/kW,"IRENA 2024, ch. 7",
+world,World,,fom_2024,125,USD2024/kW/yr,"IRENA 2024, ch. 7","110 USD/kW-yr for 2010-2023 projects"
+world,World,,capacity_factor_2024,0.88,fraction,"IRENA 2024, ch. 7","flash 87 %, single flash/binary 96 %; project range 50-96 %"
+world,World,,lcoe_weighted_average_2024,60,USD2024/MWh,"IRENA 2024, ch. 7","range 33-90 USD/MWh in 2024"

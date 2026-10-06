@@ -1,0 +1,254 @@
+# Snakemake workflow: global EGS potential with CAPEX / OPEX / lifetime, plus a hydropower cost
+# companion (misc-quarter1/geothermal). See README.md.
+#
+#   temperature_grid  Lucazeau heat flow + WorldClim -> T at 2.5..6.5 km on a 0.25 deg land grid
+#                     (Stanford thermal model over CONUS)                      -> build/temperature_grid.nc
+#   land_availability onshore-wind land exclusions of PyPSA-Earth per cell     -> build/land_availability.nc
+#   egs_potential     Ricks & Jenkins (2025) cost model per cell and depth, cheapest feasible depth
+#                                                                              -> build/egs_grid.nc, build/egs_potential.csv
+#   aggregate         supply curves and summary per country / archetype region -> build/egs_supply_curves.csv, build/egs_region_summary.csv
+#   validate_conus    conduction model vs the Stanford CONUS temperatures       -> build/validation_conus.csv, figures/validation_conus.*
+#   cost_model_test   the vectorised port reproduces the source script          -> build/cost_model_regression.txt
+#   plots                                                                      -> figures/egs_maps.*, figures/egs_supply_curves.*
+#   hydrothermal      GEM plants + USGS systems + volcanoes + ATB/IRENA costs   -> build/hydrothermal_*.csv, figures/hydrothermal_sites.*
+#   hydro             IRENA / technology-data / ANU PHES / GloHydroRes tables  -> build/hydro_*.csv, build/phes_potential_by_region.csv
+#
+# Run from misc-quarter1/geothermal with the priam-myopic pixi env:
+#   ../../models/priam-myopic/.pixi/envs/default/bin/snakemake -c1
+
+import os
+import sys
+from pathlib import Path
+
+# GDAL/pyogrio has a compiled-in PROJ search path that misses the pixi env
+os.environ.setdefault("PROJ_DATA", str(Path(sys.executable).parent.parent / "share" / "proj"))
+
+configfile: "config.yaml"
+
+FMT = config["plotting"]["formats"]
+PYTHON = sys.executable
+RICKS = "data/ricks2025/Costing_and_Supply_Curves"
+
+
+rule all:
+    input:
+        "build/egs_potential.csv",
+        "build/egs_region_summary.csv",
+        "build/validation_conus.csv",
+        "build/cost_model_regression.txt",
+        expand("figures/egs_maps.{fmt}", fmt=FMT),
+        expand("figures/egs_supply_curves.{fmt}", fmt=FMT),
+        "figures/egs_doc_gradient.pdf",
+        "figures/egs_doc_capex.pdf",
+        "build/site_check.csv",
+        "build/hydro_costs.csv",
+        "build/hydrothermal_country.csv",
+
+
+rule retrieve_ricks:
+    # Ricks & Jenkins 2025 supplementary data, Costing_and_Supply_Curves (CC-BY-4.0). Zenodo rate-limits
+    # curl; wget with a browser user agent works.
+    output:
+        zip="data/ricks2025_costing_and_supply_curves.zip",
+        script=f"{RICKS}/EGS_Costs.py",
+        conus=f"{RICKS}/geothermal_lcoe_conus_15_zone_geothermal_Stanford.csv",
+    shell:
+        """
+        wget -q --tries=3 -U "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0" \
+          -O {output.zip} "https://zenodo.org/records/15485307/files/Costing_and_Supply_Curves.zip?download=1"
+        unzip -q -o {output.zip} -d data/ricks2025
+        """
+
+
+rule cost_model_test:
+    input:
+        script=f"{RICKS}/EGS_Costs.py",
+        conus=f"{RICKS}/geothermal_lcoe_conus_15_zone_geothermal_Stanford.csv",
+    output:
+        "build/cost_model_regression.txt",
+    shell:
+        "{PYTHON} egs_cost_model.py > {output}"
+
+
+rule temperature_grid:
+    input:
+        hf=f"{config['archetype_data_dir']}/lucazeau2019_heat_flux_0p5deg.nc",
+        tavg=f"{config['archetype_data_dir']}/worldclim21_tavg_annual_10m.nc",
+        countries=f"{config['archetype_data_dir']}/ne_50m_admin_0_countries/ne_50m_admin_0_countries.shp",
+        states=f"{config['archetype_data_dir']}/ne_50m_admin_1_states_provinces/ne_50m_admin_1_states_provinces.shp",
+        conus=f"{RICKS}/geothermal_lcoe_conus_15_zone_geothermal_Stanford.csv",
+    output:
+        "build/temperature_grid.nc",
+    script:
+        "build_temperature_grid.py"
+
+
+rule land_availability:
+    # the onshore-wind exclusions of PyPSA-Earth (Copernicus land cover, urban buffer, protected areas) on the 0.25 deg
+    # grid; runs in an env with rasterio (config land_availability.rasterio_python), ~10 min on 4 cores
+    input:
+        script="build_land_availability.py",
+        fork_config=config["land_availability"]["pypsa_earth_config"],
+        copernicus=config["land_availability"]["copernicus"],
+        natura=config["land_availability"]["natura"],
+    output:
+        "build/land_availability.nc",
+    params:
+        python=os.path.expanduser(config["land_availability"]["rasterio_python"]),
+    threads: 4
+    resources:
+        mem_mb=4000,
+    shell:
+        "{params.python} {input.script} --config config.yaml -o {output} -j {threads}"
+
+
+rule egs_potential:
+    input:
+        grid="build/temperature_grid.nc",
+        availability="build/land_availability.nc",
+        model="egs_cost_model.py",
+        cpi=config["tech_costs_config"],
+    output:
+        nc="build/egs_grid.nc",
+        csv="build/egs_potential.csv",
+    script:
+        "build_egs_potential.py"
+
+
+rule aggregate:
+    input:
+        "build/egs_potential.csv",
+    output:
+        curves="build/egs_supply_curves.csv",
+        summary="build/egs_region_summary.csv",
+    script:
+        "aggregate_regions.py"
+
+
+rule validate_conus:
+    input:
+        grid="build/temperature_grid.nc",
+        ref=f"{RICKS}/geothermal_lcoe_conus_15_zone_geothermal_Stanford.csv",
+    output:
+        csv="build/validation_conus.csv",
+        figs=expand("figures/validation_conus.{fmt}", fmt=FMT),
+    script:
+        "validate_conus.py"
+
+
+rule plots:
+    input:
+        grid="build/egs_grid.nc",
+        potential="build/egs_potential.csv",
+        curves="build/egs_supply_curves.csv",
+        regions="aggregate_regions.py",
+    output:
+        maps=expand("figures/egs_maps.{fmt}", fmt=FMT),
+        curves=expand("figures/egs_supply_curves.{fmt}", fmt=FMT),
+    script:
+        "plot_maps.py"
+
+
+rule site_check:
+    # the cost model at real project sites (Fervo Cape Station): cell CAPEX and drilling cost per foot, read by
+    # ../technology-costs for the Fervo drilling figure
+    input:
+        potential="build/egs_potential.csv",
+        model="egs_cost_model.py",
+        cpi=config["tech_costs_config"],
+    output:
+        "build/site_check.csv",
+    script:
+        "site_check.py"
+
+
+rule doc_maps:
+    # two half-width maps (mean gradient to 4.5 km, EGS CAPEX) for the technology-assumptions document
+    input:
+        grid="build/egs_grid.nc",
+        potential="build/egs_potential.csv",
+    output:
+        gradient="figures/egs_doc_gradient.pdf",
+        capex="figures/egs_doc_capex.pdf",
+    resources:
+        mem_mb=3000,
+    script:
+        "plot_doc_maps.py"
+
+
+rule retrieve_volcanoes:
+    # NOAA NCEI mirror of the Smithsonian Global Volcanism Program locations (1,609 volcanoes, public domain);
+    # volcano.si.edu itself blocks scripted access
+    output:
+        "data/noaa_volcano_locations.csv",
+    run:
+        import csv, json, urllib.request
+        rows, page = [], 1
+        while True:
+            req = urllib.request.Request(f"https://www.ngdc.noaa.gov/hazel/hazard-service/api/v1/volcanolocs?itemsPerPage=200&page={page}",
+                                         headers={"User-Agent": "Mozilla/5.0"})
+            d = json.load(urllib.request.urlopen(req, timeout=60))
+            rows += d["items"]
+            if page >= d["totalPages"]:
+                break
+            page += 1
+        keys = sorted({k for r in rows for k in r})
+        with open(output[0], "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=keys)
+            w.writeheader()
+            w.writerows(rows)
+
+
+rule retrieve_gem:
+    # Global Energy Monitor geothermal tracker, January 2023 snapshot mirrored on GitHub (CC-BY-4.0);
+    # newer releases need the form on globalenergymonitor.org
+    output:
+        "data/gem_geothermal_tracker_2023-01.csv",
+    shell:
+        "curl -sL -o {output} https://raw.githubusercontent.com/pz-max/gem-powerplant-data/main/Global-Geothermal-Power-Tracker-January-2023.csv"
+
+
+rule hydrothermal:
+    input:
+        gem="data/gem_geothermal_tracker_2023-01.csv",
+        usgs=f"{RICKS}/NearField/GeothermalSites_ExclusionTable.csv",
+        volcanoes="data/noaa_volcano_locations.csv",
+        atb="data/atb2024_geothermal.csv",
+        regional="data/hydrothermal_regional_potential.csv",
+        installed=f"{config['archetype_data_dir']}/installed-geothermal-capacity.csv",
+        grid="build/temperature_grid.nc",
+        potential="build/egs_potential.csv",
+        cpi=config["tech_costs_config"],
+    output:
+        sites="build/hydrothermal_sites.csv",
+        country="build/hydrothermal_country.csv",
+        cells="build/hydrothermal_cells.csv",
+        costs="build/hydrothermal_costs.csv",
+        figs=expand("figures/hydrothermal_sites.{fmt}", fmt=FMT),
+    script:
+        "build_hydrothermal.py"
+
+
+rule retrieve_glohydrores:
+    output:
+        "data/glohydrores_v1.csv",
+    shell:
+        """
+        wget -q --tries=3 -U "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0" \
+          -O {output} "https://zenodo.org/records/14526360/files/GloHydroRes_vs1.csv?download=1"
+        """
+
+
+rule hydro:
+    input:
+        irena="data/irena_hydro_costs_2024.csv",
+        anu_summary="data/anu_phes_global_summary.xlsx",          # dropbox link on re100.eng.anu.edu.au/pumped_hydro_atlas
+        anu_calc="data/anu_phes_simplified_calculator_2406.xlsx",  # re100.eng.anu.edu.au/pumped_hydro_cost_model
+        glohydrores="data/glohydrores_v1.csv",
+        techdata="../technology-costs/build/costs_2025_compiled.csv",
+    output:
+        costs="build/hydro_costs.csv",
+        phes="build/phes_potential_by_region.csv",
+        existing="build/hydro_existing_by_country.csv",
+    script:
+        "build_hydro.py"

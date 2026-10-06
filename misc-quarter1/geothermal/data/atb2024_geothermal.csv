@@ -1,0 +1,67 @@
+techdetail,resource_class,representative_plant,scenario,year,occ_usd_per_kw,fom_usd_per_kw_yr,capacity_factor,lcoe_usd_per_mwh
+HydroFlash,hydrothermal flash (>= 200 C),"225 C at 2.5 km, 80 kg/s per well, 40 MWe dual flash",Advanced,2022,4759.2,121.1,0.90,71.3
+HydroFlash,hydrothermal flash (>= 200 C),"225 C at 2.5 km, 80 kg/s per well, 40 MWe dual flash",Advanced,2025,4467.1,118.9,0.90,66.6
+HydroFlash,hydrothermal flash (>= 200 C),"225 C at 2.5 km, 80 kg/s per well, 40 MWe dual flash",Advanced,2030,4079.3,115.2,0.90,60.1
+HydroFlash,hydrothermal flash (>= 200 C),"225 C at 2.5 km, 80 kg/s per well, 40 MWe dual flash",Advanced,2035,3776.3,111.5,0.90,54.8
+HydroFlash,hydrothermal flash (>= 200 C),"225 C at 2.5 km, 80 kg/s per well, 40 MWe dual flash",Advanced,2040,3682.9,111.5,0.90,53.8
+HydroFlash,hydrothermal flash (>= 200 C),"225 C at 2.5 km, 80 kg/s per well, 40 MWe dual flash",Moderate,2022,4759.2,121.1,0.90,71.3
+HydroFlash,hydrothermal flash (>= 200 C),"225 C at 2.5 km, 80 kg/s per well, 40 MWe dual flash",Moderate,2025,4559.1,119.1,0.90,68.5
+HydroFlash,hydrothermal flash (>= 200 C),"225 C at 2.5 km, 80 kg/s per well, 40 MWe dual flash",Moderate,2030,4311.2,115.7,0.90,64.9
+HydroFlash,hydrothermal flash (>= 200 C),"225 C at 2.5 km, 80 kg/s per well, 40 MWe dual flash",Moderate,2035,4127.0,112.3,0.90,62.1
+HydroFlash,hydrothermal flash (>= 200 C),"225 C at 2.5 km, 80 kg/s per well, 40 MWe dual flash",Moderate,2040,4024.8,112.3,0.90,60.9
+HydroFlash,hydrothermal flash (>= 200 C),"225 C at 2.5 km, 80 kg/s per well, 40 MWe dual flash",Conservative,2022,4759.2,121.1,0.90,71.3
+HydroFlash,hydrothermal flash (>= 200 C),"225 C at 2.5 km, 80 kg/s per well, 40 MWe dual flash",Conservative,2025,4688.1,121.1,0.90,70.5
+HydroFlash,hydrothermal flash (>= 200 C),"225 C at 2.5 km, 80 kg/s per well, 40 MWe dual flash",Conservative,2030,4572.1,121.1,0.90,69.1
+HydroFlash,hydrothermal flash (>= 200 C),"225 C at 2.5 km, 80 kg/s per well, 40 MWe dual flash",Conservative,2035,4458.9,121.1,0.90,67.8
+HydroFlash,hydrothermal flash (>= 200 C),"225 C at 2.5 km, 80 kg/s per well, 40 MWe dual flash",Conservative,2040,4348.6,121.1,0.90,66.6
+HydroBinary,hydrothermal binary (110-200 C),"lower-temperature hydrothermal, binary (ORC) plant",Advanced,2022,6348.6,161.2,0.80,106.5
+HydroBinary,hydrothermal binary (110-200 C),"lower-temperature hydrothermal, binary (ORC) plant",Advanced,2025,5817.2,153.0,0.80,96.9
+HydroBinary,hydrothermal binary (110-200 C),"lower-temperature hydrothermal, binary (ORC) plant",Advanced,2030,5164.1,139.3,0.80,84.3
+HydroBinary,hydrothermal binary (110-200 C),"lower-temperature hydrothermal, binary (ORC) plant",Advanced,2035,4688.4,125.6,0.80,74.4
+HydroBinary,hydrothermal binary (110-200 C),"lower-temperature hydrothermal, binary (ORC) plant",Advanced,2040,4572.4,125.6,0.80,73.0
+HydroBinary,hydrothermal binary (110-200 C),"lower-temperature hydrothermal, binary (ORC) plant",Moderate,2022,6348.6,161.2,0.80,106.5
+HydroBinary,hydrothermal binary (110-200 C),"lower-temperature hydrothermal, binary (ORC) plant",Moderate,2025,5990.0,154.7,0.80,100.6
+HydroBinary,hydrothermal binary (110-200 C),"lower-temperature hydrothermal, binary (ORC) plant",Moderate,2030,5583.5,144.1,0.80,93.4
+HydroBinary,hydrothermal binary (110-200 C),"lower-temperature hydrothermal, binary (ORC) plant",Moderate,2035,5300.7,133.4,0.80,87.8
+HydroBinary,hydrothermal binary (110-200 C),"lower-temperature hydrothermal, binary (ORC) plant",Moderate,2040,5169.5,133.4,0.80,86.1
+HydroBinary,hydrothermal binary (110-200 C),"lower-temperature hydrothermal, binary (ORC) plant",Conservative,2022,6348.6,161.2,0.80,106.5
+HydroBinary,hydrothermal binary (110-200 C),"lower-temperature hydrothermal, binary (ORC) plant",Conservative,2025,6253.8,161.2,0.80,105.3
+HydroBinary,hydrothermal binary (110-200 C),"lower-temperature hydrothermal, binary (ORC) plant",Conservative,2030,6099.0,161.2,0.80,103.3
+HydroBinary,hydrothermal binary (110-200 C),"lower-temperature hydrothermal, binary (ORC) plant",Conservative,2035,5948.1,161.2,0.80,101.3
+HydroBinary,hydrothermal binary (110-200 C),"lower-temperature hydrothermal, binary (ORC) plant",Conservative,2040,5800.8,161.2,0.80,99.4
+NFEGSFlash,near-field EGS flash,"EGS on the margins of a hydrothermal field, >= 200 C",Moderate,2022,6535.3,154.3,0.90,94.2
+NFEGSFlash,near-field EGS flash,"EGS on the margins of a hydrothermal field, >= 200 C",Moderate,2025,6107.7,150.9,0.90,88.2
+NFEGSFlash,near-field EGS flash,"EGS on the margins of a hydrothermal field, >= 200 C",Moderate,2030,5603.9,145.3,0.90,80.6
+NFEGSFlash,near-field EGS flash,"EGS on the margins of a hydrothermal field, >= 200 C",Moderate,2035,5245.5,139.6,0.90,74.7
+NFEGSFlash,near-field EGS flash,"EGS on the margins of a hydrothermal field, >= 200 C",Moderate,2040,5115.6,139.6,0.90,73.4
+NFEGSFlash,near-field EGS flash,"EGS on the margins of a hydrothermal field, >= 200 C",Advanced,2025,5221.3,144.5,0.90,77.1
+NFEGSFlash,near-field EGS flash,"EGS on the margins of a hydrothermal field, >= 200 C",Advanced,2030,4049.4,128.3,0.90,60.6
+NFEGSFlash,near-field EGS flash,"EGS on the margins of a hydrothermal field, >= 200 C",Advanced,2035,3382.8,112.1,0.90,50.2
+NFEGSFlash,near-field EGS flash,"EGS on the margins of a hydrothermal field, >= 200 C",Advanced,2040,3299.1,112.1,0.90,49.4
+NFEGSBinary,near-field EGS binary,"EGS on the margins of a hydrothermal field, < 200 C",Moderate,2022,9139.9,200.0,0.80,145.5
+NFEGSBinary,near-field EGS binary,"EGS on the margins of a hydrothermal field, < 200 C",Moderate,2025,8255.9,191.1,0.80,131.8
+NFEGSBinary,near-field EGS binary,"EGS on the margins of a hydrothermal field, < 200 C",Moderate,2030,7353.3,176.4,0.80,116.5
+NFEGSBinary,near-field EGS binary,"EGS on the margins of a hydrothermal field, < 200 C",Moderate,2035,6773.0,161.7,0.80,105.6
+NFEGSBinary,near-field EGS binary,"EGS on the margins of a hydrothermal field, < 200 C",Moderate,2040,6605.4,161.7,0.80,103.6
+NFEGSBinary,near-field EGS binary,"EGS on the margins of a hydrothermal field, < 200 C",Advanced,2025,7151.9,181.7,0.80,116.0
+NFEGSBinary,near-field EGS binary,"EGS on the margins of a hydrothermal field, < 200 C",Advanced,2030,5461.0,151.2,0.80,88.5
+NFEGSBinary,near-field EGS binary,"EGS on the margins of a hydrothermal field, < 200 C",Advanced,2035,4527.4,120.8,0.80,71.1
+NFEGSBinary,near-field EGS binary,"EGS on the margins of a hydrothermal field, < 200 C",Advanced,2040,4415.4,120.8,0.80,69.8
+DeepEGSFlash,deep EGS flash,"deep EGS, >= 200 C, 40 MWe",Moderate,2022,7630.0,147.0,0.90,105.6
+DeepEGSFlash,deep EGS flash,"deep EGS, >= 200 C, 40 MWe",Moderate,2025,6461.7,142.1,0.90,91.0
+DeepEGSFlash,deep EGS flash,"deep EGS, >= 200 C, 40 MWe",Moderate,2030,5519.6,134.1,0.90,78.2
+DeepEGSFlash,deep EGS flash,"deep EGS, >= 200 C, 40 MWe",Moderate,2035,4989.0,126.0,0.90,70.3
+DeepEGSFlash,deep EGS flash,"deep EGS, >= 200 C, 40 MWe",Moderate,2040,4865.5,126.0,0.90,69.0
+DeepEGSFlash,deep EGS flash,"deep EGS, >= 200 C, 40 MWe",Advanced,2025,5265.5,135.9,0.90,76.5
+DeepEGSFlash,deep EGS flash,"deep EGS, >= 200 C, 40 MWe",Advanced,2030,3719.9,117.5,0.90,55.7
+DeepEGSFlash,deep EGS flash,"deep EGS, >= 200 C, 40 MWe",Advanced,2035,2980.7,99.0,0.90,44.4
+DeepEGSFlash,deep EGS flash,"deep EGS, >= 200 C, 40 MWe",Advanced,2040,2907.0,99.0,0.90,43.7
+DeepEGSBinary,deep EGS binary,"175 C at 3 km, 40 MWe binary",Moderate,2022,13508.5,226.3,0.80,204.6
+DeepEGSBinary,deep EGS binary,"175 C at 3 km, 40 MWe binary",Moderate,2025,10777.5,212.3,0.80,166.4
+DeepEGSBinary,deep EGS binary,"175 C at 3 km, 40 MWe binary",Moderate,2030,8955.6,188.8,0.80,137.9
+DeepEGSBinary,deep EGS binary,"175 C at 3 km, 40 MWe binary",Moderate,2035,8010.6,165.4,0.80,121.0
+DeepEGSBinary,deep EGS binary,"175 C at 3 km, 40 MWe binary",Moderate,2040,7812.3,165.4,0.80,118.6
+DeepEGSBinary,deep EGS binary,"175 C at 3 km, 40 MWe binary",Advanced,2025,8827.8,201.6,0.80,139.7
+DeepEGSBinary,deep EGS binary,"175 C at 3 km, 40 MWe binary",Advanced,2030,6071.8,160.4,0.80,97.1
+DeepEGSBinary,deep EGS binary,"175 C at 3 km, 40 MWe binary",Advanced,2035,4814.9,119.2,0.80,74.2
+DeepEGSBinary,deep EGS binary,"175 C at 3 km, 40 MWe binary",Advanced,2040,4695.7,119.2,0.80,72.8

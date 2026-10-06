@@ -1,0 +1,106 @@
+# misc-quarter1/geothermal: global EGS potential with CAPEX / OPEX / lifetime
+# (+ a hydropower cost companion). See README.md for sources and caveats.
+
+# Inputs shared with the archetype pipeline (heat flow, surface temperature,
+# Natural Earth polygons); nothing is copied.
+archetype_data_dir: ../country-classification/data
+tech_costs_config: ../technology-costs/config.yaml   # FX / CPI tables (currency convention of the repo)
+
+base_currency_year: 2024      # all monetary outputs in USD of this year
+
+grid:
+  exclude_iso3: [ATA]         # Antarctica: no grid to serve
+  step_deg: 0.25              # cell size; the Lucazeau heat-flow map is 0.5 deg, so finer only sharpens coastlines
+  depths_km: [2.5, 3.5, 4.5, 5.5, 6.5]   # the depths the Ricks & Jenkins cost model is fitted for
+
+# Steady-state 1-D conduction, as in ../country-classification/geothermal_egs.py:
+#   T(z) = T_surface + q0 z / k - A z^2 / (2 k)
+thermal:
+  conductivity_w_mk: 2.25     # bulk crustal conductivity; 2.5 in the archetype pipeline, 2.25 is the one-parameter fit of this
+                              # model to the Stanford CONUS temperature-at-depth data (validate_conus.py: bias -21 C -> -6 C)
+  heat_production_w_m3: 1.0e-6  # upper-crust radiogenic heat production
+  # Replace the conduction estimate by the Stanford thermal model (Aljubran & Horne 2024, as shipped with the
+  # Ricks & Jenkins data) where it exists: CONUS. Flagged in the `t_source` column.
+  conus_override: true
+  conus_reference: data/ricks2025/Costing_and_Supply_Curves/geothermal_lcoe_conus_15_zone_geothermal_Stanford.csv
+
+# EGS cost model: Ricks & Jenkins, Joule 2025 (Zenodo 10.5281/zenodo.15485307,
+# Costing_and_Supply_Curves/EGS_Costs.py, CC-BY-4.0); GETEM-derived, 2021 USD.
+# Central "deep EGS" case of the paper unless noted.
+egs:
+  cost_model_currency_year: 2021
+  producers_per_injector: 1.5
+  stimulate_producers: true
+  lateral_length_m: 2286      # 7,500 ft
+  flow_derating: 0.77         # 160 kg/s design flow x 0.925 x this = realised flow per injector (~114 kg/s)
+  resource_derating: 0.2      # NOT USED since 2026-10-05: the land share comes from `land_availability` below (Ricks & Jenkins'
+                              # flat central value, kept for reference; Franzmann et al. 2025 find ~25 % globally)
+  drill_cost_multiplier: 1.0
+  plant_size_mw: 50
+  t_min_c: 150                # binary-cycle minimum reservoir temperature (Aghahosseini & Breyer 2020; ATB binary class 110-200 C)
+  t_max_c: 350                # ASSUMPTION: cap; the plant fits are linear extrapolations above 200 C and superhot rock is out of scope
+  lifetime_years: 30          # NREL ATB 2024 geothermal (plant and reservoir)
+  capacity_factor: 0.85       # ASSUMPTION: availability; ATB 2024 uses 0.90 flash / 0.80 binary (0.90 until 2026-10-05)
+  parasitic_fraction: 0.15    # ASSUMPTION: wellfield pumping as a share of gross output; the cost model's power is
+                              # 'excluding wellfield pumping' (EGS_Costs.py), so CAPEX, FOM per kW and capacity are
+                              # converted to net output: per-kW costs / (1 - f), MW x (1 - f)
+  wacc: 0.07                  # LCOE convention of ../technology-costs (7 % real); the source model used CRF 0.06881 (~5.5 %, 30 y)
+  # LCOE bins for the supply curves (USD2024/MWh, upper edges)
+  lcoe_bins: [50, 75, 100, 125, 150, 200, 250, 300, 400, 600, 1000]
+
+# Aggregation regions beyond ISO3 countries. Sub-national splits follow
+# ../country-classification (split_us.py, split_au.py); NWE follows
+# config-pypsa-earth/config.NWE.yaml.
+regions:
+  USW: {name: "United States (West)", iso3: USA,
+        admin1_codes: [WA, OR, CA, NV, ID, UT, AZ, NM, CO, WY, MT]}
+  USE: {name: "United States (East)", iso3: USA, admin1_complement_of: USW}
+  AUW: {name: "Australia (SWIS, Western Australia)", iso3: AUS, admin1_codes: [WA]}
+  AUN: {name: "Australia (NEM and NT)", iso3: AUS, admin1_complement_of: AUW}
+  NWE: {name: "North-West Europe", members: [IRL, GBR, FRA, BEL, NLD, LUX, DEU, DNK, CHE, AUT, CZE, POL]}
+  # IEA "Future of Geothermal" (2024) comparison groups
+  ASEAN: {name: "ASEAN", members: [IDN, PHL, VNM, THA, MYS, MMR, KHM, LAO, SGP, BRN]}
+  EUROPE: {name: "Europe (NE continent field)", continent: Europe}
+  AFRICA: {name: "Africa", continent: Africa}
+  CSAMERICA: {name: "Central and South America", continent: South America}
+
+# The six PyPSA-Earth stage regions of config-pypsa-earth, as keys of the tables above
+modelled_regions: [USW, USE, NWE, BRA, IND, CHN, AUW, SGP]
+
+# Land available for EGS per cell (build_land_availability.py): the exclusions PyPSA-Earth applies to onshore wind,
+# read from the fork's config and data, replace the flat `resource_derating` of the cost model in the capacity
+land_availability:
+  pypsa_earth_config: ../../models/pypsa-earth/config.default.yaml   # renewable.<technology>.copernicus / natura
+  technology: onwind
+  copernicus: ../../models/pypsa-earth/data/copernicus/PROBAV_LC100_global_v3.0.1_2019-nrt_Discrete-Classification-map_EPSG-4326.tif
+  natura: ../../models/pypsa-earth/data/natura/natura.tiff
+  rasterio_python: ~/micromamba/envs/pypsa-demand/bin/python     # the priam-myopic env has no rasterio
+
+# Validation sites (site_check.py): the model's cell containing a real EGS project, its depth, CAPEX and the drilling
+# cost per foot of one well (cased, with the configured lateral), to compare with reported well costs
+site_checks:
+  cape_station:
+    name: Fervo Cape Station
+    lon: -112.90              # approximate: Beaver County, Utah, next to Utah FORGE (38.50 N, 112.89 W)
+    lat: 38.51
+
+# Conventional hydrothermal (build_hydrothermal.py)
+hydrothermal:
+  atb_year: 2025              # ATB Moderate case year used for the 2025 baseline costs
+  atb_currency_year: 2022
+  flash_min_c: 200            # ATB: flash >= 200 C, binary 110-200 C
+  gem_statuses: [operating, construction, pre-construction, announced, mothballed]
+  hidden_resource_multiplier: 5   # Stefansson 2005: hidden resources 5-10x identified; lower end
+  volcano_radius_km: 50       # ASSUMPTION: prospective radius around a Holocene volcano (Stefansson: fields cluster at volcanoes)
+  site_radius_km: 25          # ASSUMPTION: prospective radius around a known plant / identified system
+
+hydro:
+  # technology-data v0.15.0 (via ../technology-costs/build/costs_2025_compiled.csv) lifetimes
+  lifetime_years: {hydro: 80, ror: 80, PHS: 60}
+  # ANU pumped-hydro cost model (2406-PHES-simplified-calculator.xlsx, 2024 USD): standard atlas site
+  anu_default_site: {power_mw: 1000, head_m: 600, separation_m: 6000, energy_gwh: 100, water_rock_ratio: 10}
+  anu_class_ladder: {AAA: 0.33, AA: 0.67, A: 1.0, B: 1.25, C: 1.5, D: 1.75, E: 2.0}   # cost / (class A-B benchmark) upper bounds
+
+plotting:
+  formats: [png, pdf]
+  dpi: 160

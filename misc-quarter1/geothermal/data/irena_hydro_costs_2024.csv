@@ -1,0 +1,77 @@
+technology,region,period,size_class,metric,value,unit,currency,currency_year,source,note
+hydro,Global,2024,all,capex_weighted_average,2267,USD/kW,USD,2024,"IRENA, Renewable Power Generation Costs in 2024 (Jul 2025), Table S1",global weighted average of projects commissioned in 2024
+hydro,Global,2024,all,lcoe_weighted_average,57,USD/MWh,USD,2024,"IRENA 2024, Table S1",
+hydro,Global,2024,all,capacity_factor_weighted_average,0.48,fraction,,,"IRENA 2024, ch. 6","44 % in 2010, peak 53 % in 2023; 5th-95th percentile 23-80 %"
+hydro,Global,2010-2024,0-50 MW,capex_weighted_average,2067,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 1011 / 4407"
+hydro,Global,2010-2024,51-100 MW,capex_weighted_average,2261,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 1038 / 4998"
+hydro,Global,2010-2024,101-150 MW,capex_weighted_average,2117,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 1097 / 4276"
+hydro,Global,2010-2024,151-200 MW,capex_weighted_average,2089,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 1049 / 3616"
+hydro,Global,2010-2024,201-250 MW,capex_weighted_average,2376,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 1161 / 4130"
+hydro,Global,2010-2024,251-300 MW,capex_weighted_average,2478,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 1050 / 4457"
+hydro,Global,2010-2024,301-350 MW,capex_weighted_average,2318,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 1056 / 5100"
+hydro,Global,2010-2024,351-400 MW,capex_weighted_average,1804,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 782 / 3083"
+hydro,Global,2010-2024,401-450 MW,capex_weighted_average,2288,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 1361 / 3459"
+hydro,Global,2010-2024,451-500 MW,capex_weighted_average,1773,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 1166 / 2804"
+hydro,Global,2010-2024,501-550 MW,capex_weighted_average,3036,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 1294 / 5138"
+hydro,Global,2010-2024,551-600 MW,capex_weighted_average,2084,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 1540 / 2945"
+hydro,Global,2010-2024,601-650 MW,capex_weighted_average,1686,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 1203 / 3885"
+hydro,Global,2010-2024,651-700 MW,capex_weighted_average,2577,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 2265 / 2710"
+hydro,Global,2010-2024,701-750 MW,capex_weighted_average,1792,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 1103 / 2454"
+hydro,Global,2010-2024,751-800 MW,capex_weighted_average,1789,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 1217 / 2523"
+hydro,Global,2010-2024,801-850 MW,capex_weighted_average,3801,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 992 / 12048"
+hydro,Global,2010-2024,851-900 MW,capex_weighted_average,1947,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 1373 / 2198"
+hydro,Global,2010-2024,901-950 MW,capex_weighted_average,1295,USD/kW,USD,2024,"IRENA 2024, Table 6.2","5th / 95th percentile 810 / 1521"
+hydro,Global,2010-2024,951-1000 MW,capex_weighted_average,2533,USD/kW,USD,2024,"IRENA 2024, Table 6.2",single project
+hydro,Africa,2010-2017,large (>10 MW),capex_weighted_average,2330,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Africa,2018-2024,large (>10 MW),capex_weighted_average,2515,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Africa,2010-2017,small (<=10 MW),capex_weighted_average,3795,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Africa,2018-2024,small (<=10 MW),capex_weighted_average,4084,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Central America,2010-2017,large (>10 MW),capex_weighted_average,3652,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Central America,2018-2024,large (>10 MW),capex_weighted_average,3058,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Central America,2010-2017,small (<=10 MW),capex_weighted_average,3444,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Eurasia,2010-2017,large (>10 MW),capex_weighted_average,1884,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Eurasia,2018-2024,large (>10 MW),capex_weighted_average,2369,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Eurasia,2010-2017,small (<=10 MW),capex_weighted_average,5386,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Eurasia,2018-2024,small (<=10 MW),capex_weighted_average,2228,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Europe,2010-2017,large (>10 MW),capex_weighted_average,2815,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Europe,2018-2024,large (>10 MW),capex_weighted_average,2282,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Europe,2010-2017,small (<=10 MW),capex_weighted_average,5080,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Europe,2018-2024,small (<=10 MW),capex_weighted_average,3677,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Middle East,2010-2017,large (>10 MW),capex_weighted_average,1385,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Middle East,2018-2024,large (>10 MW),capex_weighted_average,2092,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,North America,2010-2017,large (>10 MW),capex_weighted_average,3097,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,North America,2018-2024,large (>10 MW),capex_weighted_average,11658,USD/kW,USD,2024,"IRENA 2024, Table 6.3","driven by a few projects with substantial cost overruns (IRENA)"
+hydro,Oceania,2010-2017,large (>10 MW),capex_weighted_average,4551,USD/kW,USD,2024,"IRENA 2024, Table 6.3",sparse data
+hydro,Oceania,2010-2017,small (<=10 MW),capex_weighted_average,3959,USD/kW,USD,2024,"IRENA 2024, Table 6.3",sparse data
+hydro,Other Asia,2010-2017,large (>10 MW),capex_weighted_average,1934,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Other Asia,2018-2024,large (>10 MW),capex_weighted_average,1914,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Other Asia,2010-2017,small (<=10 MW),capex_weighted_average,2175,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Other Asia,2018-2024,small (<=10 MW),capex_weighted_average,2414,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Other South America,2010-2017,large (>10 MW),capex_weighted_average,2519,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Other South America,2018-2024,large (>10 MW),capex_weighted_average,2913,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Other South America,2010-2017,small (<=10 MW),capex_weighted_average,3307,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Brazil,2010-2017,large (>10 MW),capex_weighted_average,2188,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Brazil,2018-2024,large (>10 MW),capex_weighted_average,1405,USD/kW,USD,2024,"IRENA 2024, Table 6.3",lowest regional value 2018-2024
+hydro,Brazil,2010-2017,small (<=10 MW),capex_weighted_average,2698,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Brazil,2018-2024,small (<=10 MW),capex_weighted_average,2534,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,China,2010-2017,large (>10 MW),capex_weighted_average,1301,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,China,2018-2024,large (>10 MW),capex_weighted_average,2216,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,China,2010-2017,small (<=10 MW),capex_weighted_average,1378,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,China,2018-2024,small (<=10 MW),capex_weighted_average,1873,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,India,2010-2017,large (>10 MW),capex_weighted_average,1700,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,India,2018-2024,large (>10 MW),capex_weighted_average,1991,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,India,2010-2017,small (<=10 MW),capex_weighted_average,2042,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,India,2018-2024,small (<=10 MW),capex_weighted_average,2963,USD/kW,USD,2024,"IRENA 2024, Table 6.3",
+hydro,Africa,2018-2024,large (>10 MW),capacity_factor_weighted_average,0.48,fraction,,,"IRENA 2024, Table 6.4","5th / 95th percentile 0.33 / 0.81"
+hydro,Central America,2018-2024,large (>10 MW),capacity_factor_weighted_average,0.46,fraction,,,"IRENA 2024, Table 6.4","5th / 95th percentile 0.37 / 0.53"
+hydro,Eurasia,2018-2024,large (>10 MW),capacity_factor_weighted_average,0.41,fraction,,,"IRENA 2024, Table 6.4","5th / 95th percentile 0.29 / 0.68"
+hydro,Europe,2018-2024,large (>10 MW),capacity_factor_weighted_average,0.38,fraction,,,"IRENA 2024, Table 6.4","5th / 95th percentile 0.23 / 0.66"
+hydro,North America,2018-2024,large (>10 MW),capacity_factor_weighted_average,0.64,fraction,,,"IRENA 2024, Table 6.4","5th / 95th percentile 0.39 / 0.73"
+hydro,Other Asia,2018-2024,large (>10 MW),capacity_factor_weighted_average,0.48,fraction,,,"IRENA 2024, Table 6.4","5th / 95th percentile 0.37 / 0.69"
+hydro,Other South America,2018-2024,large (>10 MW),capacity_factor_weighted_average,0.60,fraction,,,"IRENA 2024, Table 6.4","5th / 95th percentile 0.45 / 0.70"
+hydro,Brazil,2018-2024,large (>10 MW),capacity_factor_weighted_average,0.41,fraction,,,"IRENA 2024, Table 6.4","5th / 95th percentile 0.39 / 0.61"
+hydro,China,2018-2024,large (>10 MW),capacity_factor_weighted_average,0.47,fraction,,,"IRENA 2024, Table 6.4","5th / 95th percentile 0.37 / 0.63"
+hydro,India,2018-2024,large (>10 MW),capacity_factor_weighted_average,0.50,fraction,,,"IRENA 2024, Table 6.4","5th / 95th percentile 0.29 / 0.63"
+hydro,Global,,large (>10 MW),fom_share_of_capex,0.022,fraction/year,,,"IEA 2010 as cited in IRENA 2024, ch. 6","2.2 % for large, 2.2-3 % for smaller plants, global average ~2.5 %; IPCC 2011 norm 2-2.5 % for large projects"
+hydro,Global,,100 MW conventional,fom_share_of_capex,0.006,fraction/year,,,"EIA 2020 as cited in IRENA 2024, ch. 6","plus 3 USD/MWh variable O&M"
+hydro,Global,,100 MW conventional,vom,3,USD/MWh,USD,2020,"EIA 2020 as cited in IRENA 2024, ch. 6",
