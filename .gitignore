@@ -1,7 +1,49 @@
+# --- not public ---------------------------------------------------------
+# gitignored clones of other repos (priam-myopic, octants, 247-cfe, ...);
+# the soft fork models/pypsa-earth is a submodule (pointer only)
 models/*
 !models/pypsa-earth
+# copyrighted PDFs
 lit/
 CLAUDE.md
 meetings/
+
+# --- Claude Code local state --------------------------------------------
+.claude/worktrees/
+.claude/settings.local.json
+
+# --- safety net for every topic directory -------------------------------
+# Each misc-quarterN/<topic>/ carries its own .gitignore; these catch a new
+# topic directory that has none yet. Already tracked files are unaffected.
+build/
+# curated dataset, committed on purpose
+!misc-quarter1/nuclear-projects/build/
+logs/
 __pycache__/
+*.pyc
 .snakemake/
+.ipynb_checkpoints/
+.pixi/
+.DS_Store
+
+# --- bulky binary formats that are never source -------------------------
+# Raw downloads and model outputs. Re-include a small file explicitly
+# (`!path/to/file`) in the topic's own .gitignore if a workflow needs it.
+*.pkl
+*.h5
+*.hdf5
+*.parquet
+*.feather
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.pbf
+*.tif
+*.tiff
+*.shp
+*.dbf
+*.shx
+*.grib
+*.grib2
