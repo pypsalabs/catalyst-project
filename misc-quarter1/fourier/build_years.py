@@ -1,5 +1,5 @@
 """Ten weather years at one place: hourly wind and solar capacity factors from ERA5 point weather
-(Open-Meteo cache, see retrieve_weather.py) plus the site's PyPSA-Earth demand profile
+(Open-Meteo cache, see retrieve_weather.py; conversion functions in convert.py) plus the site's PyPSA-Earth demand profile
 (misc-quarter1/fourier).
 
   wind   100 m wind speed through the configured power curve (single turbine, no fleet smoothing)
@@ -27,6 +27,8 @@ import pandas as pd
 import xarray as xr
 import yaml
 
+from convert import NOMINAL, anomaly, drop_leap, solar_cf, wind_cf
+
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 log = logging.getLogger("years")
 
@@ -53,76 +55,15 @@ Y = CFG["years"]
 SITE = Y["site"]
 LAT, LON = SITE["lat"], SITE["lon"]
 UTC_OFFSET = int(round(LON / 15))
-NOMINAL = pd.date_range("2013-01-01", periods=8760, freq="h")     # non-leap calendar for the common axis
-
-
-# ---------------------------------------------------------------- conversion models
-def wind_cf(ws: np.ndarray) -> np.ndarray:
-    t = Y["wind_turbine"]
-    return np.interp(ws, t["speed"], t["power"], left=0.0, right=0.0)
-
-
-def solar_position(times: pd.DatetimeIndex, lat: float, lon: float):
-    """Solar zenith and azimuth (deg) for UTC times; NOAA spreadsheet formulas (approx. 0.1 deg)."""
-    jd = times.to_julian_date().values
-    jc = (jd - 2451545.0) / 36525.0
-    l0 = (280.46646 + jc * (36000.76983 + jc * 0.0003032)) % 360
-    m = 357.52911 + jc * (35999.05029 - 0.0001537 * jc)
-    e = 0.016708634 - jc * (0.000042037 + 0.0000001267 * jc)
-    mr = np.radians(m)
-    c = np.sin(mr) * (1.914602 - jc * (0.004817 + 0.000014 * jc)) + np.sin(2 * mr) * (0.019993 - 0.000101 * jc) + np.sin(3 * mr) * 0.000289
-    true_long = l0 + c
-    app_long = true_long - 0.00569 - 0.00478 * np.sin(np.radians(125.04 - 1934.136 * jc))
-    obliq = 23 + (26 + (21.448 - jc * (46.815 + jc * (0.00059 - jc * 0.001813))) / 60) / 60
-    obliq_corr = obliq + 0.00256 * np.cos(np.radians(125.04 - 1934.136 * jc))
-    decl = np.degrees(np.arcsin(np.sin(np.radians(obliq_corr)) * np.sin(np.radians(app_long))))
-    y = np.tan(np.radians(obliq_corr / 2)) ** 2
-    eot = 4 * np.degrees(
-        y * np.sin(2 * np.radians(l0)) - 2 * e * np.sin(mr) + 4 * e * y * np.sin(mr) * np.cos(2 * np.radians(l0))
-        - 0.5 * y * y * np.sin(4 * np.radians(l0)) - 1.25 * e * e * np.sin(2 * mr)
-    )  # minutes
-    minutes = (times.hour * 60 + times.minute + times.second / 60).values
-    tst = (minutes + eot + 4 * lon) % 1440
-    ha = np.where(tst / 4 < 0, tst / 4 + 180, tst / 4 - 180)
-    latr, declr, har = np.radians(lat), np.radians(decl), np.radians(ha)
-    cos_zen = np.sin(latr) * np.sin(declr) + np.cos(latr) * np.cos(declr) * np.cos(har)
-    zen = np.degrees(np.arccos(np.clip(cos_zen, -1, 1)))
-    az = np.degrees(np.arccos(np.clip(((np.sin(latr) * np.cos(np.radians(zen))) - np.sin(declr))
-                                      / (np.cos(latr) * np.sin(np.radians(zen)) + 1e-12), -1, 1)))
-    az = np.where(ha > 0, (az + 180) % 360, (540 - az) % 360)
-    return zen, az
-
-
-def solar_cf(w: pd.DataFrame) -> np.ndarray:
-    """Fixed-tilt PV capacity factor from GHI/DNI/DHI (W/m2, preceding-hour means) and T2m."""
-    p = Y["pv"]
-    zen, az = solar_position(w.index - pd.Timedelta(minutes=30), LAT, LON)   # hour-centred sun position
-    tilt = np.radians(p["tilt_deg"])
-    surf_az = np.radians(180.0 if LAT >= 0 else 0.0)                          # equator-facing
-    zr, azr = np.radians(zen), np.radians(az)
-    cos_aoi = np.cos(zr) * np.cos(tilt) + np.sin(zr) * np.sin(tilt) * np.cos(azr - surf_az)
-    cos_aoi = np.clip(cos_aoi, 0, None) * (zen < 90)
-    poa = w.dni.values * cos_aoi + w.dhi.values * (1 + np.cos(tilt)) / 2 + w.ghi.values * p["albedo"] * (1 - np.cos(tilt)) / 2
-    t_cell = w.t2m.values + poa * (p["noct_c"] - 20) / 800
-    cf = poa / 1000 * (1 + p["temp_coeff"] * (t_cell - 25)) * p["system_efficiency"]
-    return np.clip(cf, 0, 1)
-
-
-def anomaly(df: pd.DataFrame, window_days: int) -> pd.DataFrame:
-    daily = df.resample("1D").mean()
-    trend = daily.rolling(window_days, center=True, min_periods=window_days // 2).mean()
-    return (daily - trend).dropna()
 
 
 # ---------------------------------------------------------------- weather years -> capacity factors
 cf_w, cf_s = {}, {}
 for path in WEATHER:
-    w = pd.read_csv(path, index_col=0, parse_dates=True)
-    w = w[~((w.index.month == 2) & (w.index.day == 29))]
+    w = drop_leap(pd.read_csv(path, index_col=0, parse_dates=True))
     year = w.index[0].year
-    assert len(w) == 8760, (path, len(w))
-    cf_w[year] = np.roll(wind_cf(w.ws100.values), UTC_OFFSET)
-    cf_s[year] = np.roll(solar_cf(w), UTC_OFFSET)
+    cf_w[year] = np.roll(wind_cf(w.ws100.values, Y["wind_turbine"]), UTC_OFFSET)
+    cf_s[year] = np.roll(solar_cf(w, LAT, LON, Y["pv"]), UTC_OFFSET)
     log.info("%s  mean cf wind %.3f  solar %.3f  (ws100 mean %.1f m/s, GHI mean %.0f W/m2)",
              year, cf_w[year].mean(), cf_s[year].mean(), w.ws100.mean(), w.ghi.mean())
 cf_w = pd.DataFrame(cf_w, index=NOMINAL)

@@ -59,3 +59,20 @@ years:
     speed: [0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 25, 25.01]
     power: [0, 0, 0.02, 0.06, 0.12, 0.20, 0.32, 0.46, 0.63, 0.80, 0.93, 1.0, 1.0, 0]
   pv: {tilt_deg: 35, albedo: 0.2, temp_coeff: -0.0035, noct_c: 45, system_efficiency: 0.90}
+
+# --- ten sites x ten weather years (build/profiles_siteyears.nc): ERA5 at a 3 x 3 lattice of 0.25-degree
+# cells around each site's bus coordinate (Open-Meteo archive, `cell_selection: land` moves a sea cell to
+# the nearest land cell), converted with the years' power curve and PV model, averaged over the points,
+# and calibrated on `calibration_year` to the bus-aggregated profiles of profiles_sites.nc (wind: one 100 m
+# wind-speed factor per site; solar: one capacity-factor factor). Demand = the site's 2013 profile in every
+# year. The PyPSA-Earth cluster polygons are not used: their bus names are permuted against the network for
+# US, BR and IN (see README).
+siteyears:
+  first: 2014
+  last: 2023
+  calibration_year: 2013
+  stencil: {n: 3, spacing_deg: 1.0}   # n x n lattice, spacing in degrees (snapped to ERA5 cell centres):
+                                      # 10 sites x 9 points x 11 years = 990 point-years = 12,870 Open-Meteo
+                                      # call weights, i.e. two calendar days at the 10,000/day free quota
+  cell_selection: land
+  calibration: {wind: speed, solar: cf}

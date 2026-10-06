@@ -11,6 +11,10 @@ independent samples of a year of weather. Two variants of the same six-row figur
   project's [PyPSA-Earth stage network](../../config-pypsa-earth/README.md) (2013) in every year.
 * **sites**: ten mutually uncorrelated buses of the PyPSA-Earth stage networks (US,
   North-West Europe, Brazil, India), each with its own 2013 weather and demand.
+* **siteyears** (data only, no residual figure): the ten sites × ten ERA5 weather years
+  2014–2023 = 100 series, from Open-Meteo at a 3 × 3 stencil of ERA5 cells around each bus,
+  calibrated to the site's 2013 bus profile (`build/profiles_siteyears.nc`, check figure
+  `figures/siteyears_validation.png`). Built for the multi-year runs of [`../pareto`](../pareto/README.md).
 
 It is a first look at the temporal structure that firm capacity and storage would have to
 cover, ahead of the WP3 investment loop.
@@ -49,6 +53,14 @@ Open-Meteo archive API (ERA5, hourly, point)
                                     build/bands_{years,sites}.csv                        per series, technology, band
   └─ plot_mix_radar.py ─►  figures/residual_bands_mix.{png,pdf}   pure triangles + GB and IN mixes; build/bands_mix.csv
      (build/profiles_years.nc + NWE and IN networks, country-aggregated)
+build/sites.csv
+  └─ sample_points.py (checkpoint) ─►  build/siteyears_points.csv   3 × 3 ERA5 cells per site (0.25° grid, 1° spacing)
+       └─ retrieve_weather.py ─►  data/openmeteo/pt_<lat>_<lon>_<year>.csv   one file per cell and year 2013–2023 (990, gitignored)
+            └─ build_siteyears.py ─►  build/profiles_siteyears.nc   time × series("<site> · <year>"): cf_wind, cf_solar, demand_mw
+               + build/profiles_sites.nc    build/siteyears.csv           per series: site, year, bus, mean CFs, load, factors
+                                            build/siteyears_calibration.csv   per site: factors + 2013 agreement with the bus (raw, calibrated)
+                                            build/siteyears_2013.nc       2013: bus vs stencil mean, raw and calibrated
+                 └─ plot_siteyears_validation.py ─►  figures/siteyears_validation.{png,pdf}   duration curves per site
 ```
 
 Run from this directory with the priam-myopic pixi env (pypsa 1.2.4 reads the v0.30.3
@@ -57,8 +69,14 @@ networks with a version warning):
 ```bash
 S=../../models/priam-myopic/.pixi/envs/default/bin/snakemake
 $S -n        # dry run
-$S -c1       # build everything (~1 min)
+$S -c1       # build everything (~1 min without the site-years; their 990 downloads take ~20 min of
+             # wall time but two calendar days of Open-Meteo free-tier quota, see below)
 ```
+
+The site-years downloads run serially (`resources: openmeteo=1`). Open-Meteo's free tier allows
+10,000 call-weights per day (600/min, 5,000/h) and a point-year of five hourly variables weighs
+13, so the 990 point-years need two days: the run stops with a "daily quota" message, and
+`$S -c1` the next day continues from the cached files. Hourly / minutely limits are waited out.
 
 Every script also runs standalone (`python build_years.py`, `python plot_residual_structure.py years`)
 and reads `config.yaml` next to it. Weather downloads are cached; delete `data/openmeteo/` to refetch.
@@ -92,6 +110,28 @@ selection is data-driven; the result and its worst pair are printed and drawn in
 `figures/site_correlation.png`. With a single weather year this is what "independent
 samples" can mean: sites far enough apart that their weather is unrelated (synoptic wind
 correlation decays to ≈0 beyond ~1500 km).
+
+**Site-years (siteyears dataset).** The same Open-Meteo weather, power curve and PV model as the
+years variant, at nine ERA5 cells per site: a 3 × 3 lattice centred on the bus coordinate with 1°
+spacing, snapped to the 0.25° ERA5 grid (`sample_points.py`; `cell_selection=land` moves a sea
+cell to the nearest land cell, which matters for Sergipe and northern France). Capacity factors
+are computed per cell and averaged, which gives part of the fleet smoothing of the bus-aggregated
+PyPSA-Earth profiles. The remaining bias is removed on the overlap year 2013 against
+`build/profiles_sites.nc`: for wind one factor `s` per site on the 100 m wind speed, found by
+bisection so that the 2013 stencil-mean CF equals the bus mean (ERA5 100 m speed vs atlite's
+hub-height extrapolation and V112 curve; a speed factor keeps the calm spells and the shape of
+the duration curve, a CF factor would clip at 1); for solar one factor `k` on the capacity factor
+(close to 1). The factors are applied unchanged to 2014–2023; 2013 itself is not stored as a
+weather year. `build/siteyears_calibration.csv` and `figures/siteyears_validation.png` report
+the 2013 agreement (hourly and daily correlation, RMSE, standard-deviation ratio, share of calm
+hours), raw and calibrated: the correlation is below 1 by construction (nine cells against a
+potential-weighted aggregate of the whole cluster region, a different power curve), the mean is
+matched exactly. Demand is the site's own 2013 profile in every year, as in the years variant.
+The PyPSA-Earth cluster polygons (`resources/<R>/bus_regions/regions_onshore_elec_s_50.geojson`)
+were not used for the stencil: for US, BR and IN their bus names are permuted against the
+clustered network (polygon "US0 28" is Pennsylvania, network bus `US0 28` is Idaho; NWE is
+consistent), so a lattice around the bus coordinate, which is consistent with the profiles
+(the solar peak sits at local noon under it), is the robust choice.
 
 **Local time.** All sources are in UTC; each series is shifted by round(lon/15) hours
 (circularly over the year) so the diurnal peaks line up in the hourly panels. Spectra are
@@ -143,6 +183,19 @@ ten categorical hues cannot be told apart reliably.
   capacities are large; the shape of the triangles is what matters. Shares are illustrative.
 - Sites variant: one weather year (2013) and the PyPSA-Earth bus-aggregated,
   potential-weighted capacity factors, which are smoother than a single plant.
+- Site-years: nine cells on a fixed 2° × 2° lattice stand in for cluster regions that are
+  3–10° wide (Idaho, Pennsylvania), so the hourly correlation with the bus profile in 2013
+  is well below 1 and the stencil mean is spikier than the bus aggregate; one calibration
+  year; the wind-speed factor also absorbs the power-curve and hub-height differences; the
+  2013 Open-Meteo ERA5 and the 2013 cutout are the same reanalysis, so 2013 is a shape
+  check, not an independent validation.
+- Site-years, Tennessee: the bus `US10 0` is a one-bus sub-network and its PyPSA-Earth wind
+  profile does not match the weather at its coordinate (2013 hourly correlation of the stencil
+  mean ≈ 0.2 against ≥ 0.8 at every other site, daily solar correlation 0.3), while its mean wind
+  CF of 0.30 is the highest of the pool, implausible for Tennessee. Its profile most likely belongs
+  to another place (the bus-name permutation above); treat the Tennessee results of `../pareto`
+  with that in mind. Idaho is the other weak match (raw stencil wind CF 0.03 in the mountain
+  valleys, speed factor ≈ 1.8, correlation ≈ 0.5): the cluster region is far larger than the stencil.
 - Demand is the synthetic GEGIS SSP2-2.6 2030 profile that PyPSA-Earth distributes over
   buses by GDP and population: buses of one country share a demand shape, the weekly
   pattern is stylised, and the German profile has visible step changes in April and

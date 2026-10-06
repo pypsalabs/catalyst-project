@@ -6,6 +6,9 @@
 #          + the site's PyPSA-Earth demand profile           -> figures/residual_structure_years.{png,pdf}
 #   sites  ten mutually uncorrelated PyPSA-Earth buses, 2013 -> figures/residual_structure_sites.{png,pdf}
 #          + figures/site_correlation.{png,pdf}                  (independence check)
+#   siteyears  the ten sites x ten ERA5 weather years 2014-2023 (Open-Meteo, 3 x 3 cell stencil per site,
+#          calibrated to the 2013 bus profiles)                 -> build/profiles_siteyears.nc (100 series)
+#          + figures/siteyears_validation.{png,pdf}              (2013: bus vs point-average, raw and calibrated)
 # Each variant also gets figures/residual_bands_<variant>.{png,pdf}: the residual variability binned
 # into intra-day / multi-day / seasonal as a radar chart (numbers in build/bands_<variant>.csv), and
 # figures/residual_bands_mix.{png,pdf} puts the pure triangles next to two country mixes (GB wind-heavy,
@@ -22,10 +25,14 @@ NETWORKS = {r: f"{config['networks_dir']}/{spec['file']}" for r, spec in config[
 Y = config["years"]
 YEARS = list(range(Y["first"], Y["last"] + 1))
 SITE = Y["site"]
+SY = config["siteyears"]
+SY_YEARS = list(range(min(SY["first"], SY["calibration_year"]), SY["last"] + 1))   # calibration year included
 
 wildcard_constraints:
     variant="sites|years",
     year=r"\d{4}",
+    lat=r"-?\d+\.\d\d",
+    lon=r"-?\d+\.\d\d",
 
 
 rule all:
@@ -33,6 +40,7 @@ rule all:
         expand("figures/residual_{fig}_{variant}.{fmt}", fig=["structure", "bands"], variant=["years", "sites"], fmt=FORMATS),
         expand("figures/site_correlation.{fmt}", fmt=FORMATS),
         expand("figures/residual_bands_mix.{fmt}", fmt=FORMATS),
+        expand("figures/siteyears_validation.{fmt}", fmt=FORMATS),
 
 
 rule retrieve_weather:
@@ -120,3 +128,65 @@ rule plot_mix:
         mem_mb=4000, runtime="10m",
     script:
         "plot_mix_radar.py"
+
+
+# ---------------------------------------------------------------- ten sites x ten weather years
+checkpoint sample_points:
+    input:
+        sites="build/sites.csv",
+        config="config.yaml",
+    output:
+        "build/siteyears_points.csv",
+    resources:
+        mem_mb=500, runtime="1m",
+    script:
+        "sample_points.py"
+
+
+rule retrieve_point_weather:
+    output:
+        "data/openmeteo/pt_{lat}_{lon}_{year}.csv",
+    params:
+        lat=lambda w: float(w.lat), lon=lambda w: float(w.lon), cell_selection=SY["cell_selection"],
+    resources:
+        mem_mb=500, runtime="10m", openmeteo=1,     # serial downloads (free-tier quota; -c1 or --resources openmeteo=1)
+    script:
+        "retrieve_weather.py"
+
+
+def point_weather(wildcards):
+    import pandas as pd
+    pts = pd.read_csv(checkpoints.sample_points.get().output[0])
+    cells = pts[["lat", "lon"]].drop_duplicates()
+    return [f"data/openmeteo/pt_{lat:.2f}_{lon:.2f}_{year}.csv" for lat, lon in cells.itertuples(index=False) for year in SY_YEARS]
+
+
+rule build_siteyears:
+    input:
+        weather=point_weather,
+        points="build/siteyears_points.csv",
+        sites="build/sites.csv",
+        profiles="build/profiles_sites.nc",
+        config="config.yaml",
+    output:
+        profiles="build/profiles_siteyears.nc",
+        table="build/siteyears.csv",
+        calibration="build/siteyears_calibration.csv",
+        validation="build/siteyears_2013.nc",
+    resources:
+        mem_mb=3000, runtime="10m",
+    script:
+        "build_siteyears.py"
+
+
+rule plot_siteyears_validation:
+    input:
+        validation="build/siteyears_2013.nc",
+        calibration="build/siteyears_calibration.csv",
+        config="config.yaml",
+    output:
+        expand("figures/siteyears_validation.{fmt}", fmt=FORMATS),
+    resources:
+        mem_mb=1500, runtime="5m",
+    script:
+        "plot_siteyears_validation.py"
