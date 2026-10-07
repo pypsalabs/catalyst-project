@@ -1,0 +1,88 @@
+# misc-quarter1/weather-years: hourly wind / solar capacity factors and demand for a set of hand-picked
+# PyPSA-Earth sites over ten ERA5 weather years (Open-Meteo archive), plus one place over ten years.
+# Paths are relative to this directory. Consumers: ../toymodel-clean-procurement, ../pareto, ../fourier.
+
+networks_dir: ../../models/pypsa-earth/networks
+runs:                         # stage networks of the catalyst fork (weather year 2013, hourly, unsolved):
+  US:  US/elec_s_50.nc        # the 2013 bus profiles give the demand shape and calibrate the weather years
+  NWE: NWE/elec_s_50.nc
+  BR:  BR/elec_s_50.nc
+  IN:  IN/elec_s_50.nc
+  CN:  CN/elec_s_50.nc
+  SG:  SG/elec_s_1.nc         # one node = the country
+  AFR: AFR/elec_s_23.nc       # one node per country
+
+# The sites (decided 2026-10-07): bus = clustered bus of the run whose load profile (2013) is the demand; `point`
+# overrides the bus coordinate as the site location (Kenya: the Olkaria / Naivasha geothermal field, 60 km from the
+# national node; it also centres the geothermal supply-curve radius of the toy model).
+# `wind` / `solar` (2026-10-07, "procurable" resources): where the site's wind and solar come from = the best bus of
+# the site's own grid by 2013 capacity factor (build/resource_ranking.csv from rank_resource_buses.py; US split into
+# ERCOT / Eastern / Western, tiny coastal buses with < 1 GW potential skipped), or a hand-placed point for the one-node
+# countries (with a documented fleet capacity factor as the wind calibration target). The ERA5 stencil and the 2013
+# calibration apply per resource location; absent = the site bus itself. Order = plotting order.
+sites:
+  us-idaho:        {site: "US · Idaho",        region: US,  country: US, run: US,  bus: "US0 28",
+                    wind: {run: US, bus: "US0 7", name: "Colorado Front Range"}, solar: {run: US, bus: "US0 38", name: "Nevada"}}
+  us-texas:        {site: "US · Texas",        region: US,  country: US, run: US,  bus: "US0 33",
+                    wind: {run: US, bus: "US0 13", name: "West Texas"}, solar: {run: US, bus: "US0 13", name: "West Texas"}}
+  us-pennsylvania: {site: "US · Pennsylvania", region: US,  country: US, run: US,  bus: "US0 29",
+                    wind: {run: US, bus: "US0 11", name: "Iowa"}, solar: {run: US, bus: "US0 2", name: "Oklahoma"}}
+  fr-south:        {site: "NWE · France (S)",  region: NWE, country: FR, run: NWE, bus: "FR0 7",
+                    wind: {run: NWE, bus: "FR0 0", name: "Brittany"}}
+  ma:              {site: "MA · Morocco",      region: MA,  country: MA, run: AFR, bus: "MA._AC",
+                    wind: {point: {lon: -12.93, lat: 27.93}, name: "Tarfaya", target_cf: 0.38},   # Tarfaya 301 MW, ~1 TWh/a
+                    solar: {point: {lon: -6.90, lat: 30.90}, name: "Ouarzazate"}}
+  ke-naivasha:     {site: "KE · Naivasha",     region: KE,  country: KE, run: AFR, bus: "KE._AC", point: {lon: 36.30, lat: -0.90},
+                    wind: {point: {lon: 36.80, lat: 2.58}, name: "Lake Turkana", target_cf: 0.55},   # LTWP 310 MW, ~1.5 TWh/a
+                    solar: {point: {lon: 39.65, lat: -0.45}, name: "Garissa"}}
+  br-sergipe:      {site: "BR · Sergipe",      region: BR,  country: BR, run: BR,  bus: "BR0 29",
+                    wind: {run: BR, bus: "BR0 18", name: "Rio Grande do Norte"}, solar: {run: BR, bus: "BR0 18", name: "Rio Grande do Norte"}}
+  in-karnataka:    {site: "IN · Karnataka",    region: IN,  country: IN, run: IN,  bus: "IN0 34",
+                    wind: {run: IN, bus: "IN0 13", name: "Gujarat"}, solar: {run: IN, bus: "IN0 10", name: "Punjab"}}
+  cn-hebei:        {site: "CN · Hebei",        region: CN,  country: CN, run: CN,  bus: "CN0 24",
+                    wind: {run: CN, bus: "CN0 40", name: "Hebei north"}, solar: {run: CN, bus: "CN0 8", name: "Qinghai"}}
+  sg:              {site: "SG · Singapore",    region: SG,  country: SG, run: SG,  bus: "0"}
+
+# Natural Earth shapes cached by the archetype pipeline (sites map)
+world_shapes: ../country-classification/data/ne_50m_admin_0_countries/ne_50m_admin_0_countries.shp
+admin1_shapes: ../country-classification/data/ne_50m_admin_1_states_provinces/ne_50m_admin_1_states_provinces.shp
+
+# --- ten weather years at one place (build/profiles_years.nc): hourly ERA5 from the Open-Meteo archive
+# API (free, no key; https://open-meteo.com/en/docs/historical-weather-api), demand = the nearest
+# PyPSA-Earth bus of the run (2013 profile, reused for every year).
+years:
+  first: 2014
+  last: 2023
+  site: {key: northern-germany, name: "Northern Germany (52.5°N, 10.0°E)", lat: 52.5, lon: 10.0, run: NWE}
+  anomaly_window_days: 31      # centred rolling mean removed from daily means for the cross-year correlation table
+  wind_turbine:                # ~3 MW class, 100 m hub height; power fraction vs m/s, linear in between
+    speed: [0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 25, 25.01]
+    power: [0, 0, 0.02, 0.06, 0.12, 0.20, 0.32, 0.46, 0.63, 0.80, 0.93, 1.0, 1.0, 0]
+  pv: {tilt_deg: 35, albedo: 0.2, temp_coeff: -0.0035, noct_c: 45, system_efficiency: 0.90}
+
+# --- the sites x ten weather years (build/profiles_siteyears.nc): ERA5 at a 3 x 3 lattice of 0.25-degree
+# cells around each resource location (Open-Meteo archive, `cell_selection: land` moves a sea cell to
+# the nearest land cell), converted with the years' power curve and PV model, averaged over the points,
+# and calibrated on `calibration_year` to the resource bus's 2013 profile of build/profiles_sites.nc (wind:
+# one 100 m wind-speed factor per location within `speed_factor_range`; solar: one capacity-factor factor);
+# a hand-placed point calibrates wind to its `target_cf` (solar stays raw). Demand = the site bus's 2013
+# profile in every year. PyPSA-Earth cluster polygons are not used (bus names permuted against the
+# network for US, BR and IN, see ../../config-pypsa-earth/README.md).
+siteyears:
+  first: 2014
+  last: 2023
+  calibration_year: 2013
+  stencil: {n: 3, spacing_deg: 1.0}   # n x n lattice, spacing in degrees (snapped to ERA5 cell centres):
+                                      # 10 sites x 9 points x 11 years = 990 point-years = 12,870 Open-Meteo
+                                      # call weights (13 per point-year) at the 10,000/day free quota
+  cell_selection: land
+  calibration: {wind: speed, solar: cf, speed_factor_range: [0.5, 2.5]}   # bracket of the wind-speed factor (Idaho ~1.9, Naivasha ~2.2)
+
+colours:                     # validation figure (as in ../fourier)
+  wind:   "#2a78d6"
+  solar:  "#eda100"
+  demand: "#555555"
+
+plotting:
+  dpi: 200
+  formats: [png, pdf]

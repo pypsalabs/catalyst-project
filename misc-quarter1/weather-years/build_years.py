@@ -1,6 +1,6 @@
 """Ten weather years at one place: hourly wind and solar capacity factors from ERA5 point weather
 (Open-Meteo cache, see retrieve_weather.py; conversion functions in convert.py) plus the site's PyPSA-Earth demand profile
-(misc-quarter1/fourier).
+(misc-quarter1/weather-years).
 
   wind   100 m wind speed through the configured power curve (single turbine, no fleet smoothing)
   solar  fixed-tilt, equator-facing plane-of-array irradiance from GHI / DNI / DHI with a compact
@@ -45,7 +45,7 @@ else:
     CFG = yaml.safe_load((_HERE / "config.yaml").read_text())
     Y = CFG["years"]
     WEATHER = [_HERE / "data" / "openmeteo" / f"{Y['site']['key']}_{y}.csv" for y in range(Y["first"], Y["last"] + 1)]
-    NETWORK = (_HERE / CFG["networks_dir"] / CFG["regions"][Y["site"]["region"]]["file"]).resolve()
+    NETWORK = (_HERE / CFG["networks_dir"] / CFG["runs"][Y["site"]["run"]]).resolve()
     OUT_PROFILES = _HERE / "build" / "profiles_years.nc"
     OUT_YEARS = _HERE / "build" / "years.csv"
     OUT_CORR = _HERE / "build" / "years_correlation.csv"
@@ -82,7 +82,7 @@ log.info("demand from bus %s at (%.2f, %.2f), %.1f TWh/a", bus, ac.at[bus, "x"],
 demand = pd.DataFrame({y: dem_bus for y in cf_w.columns}, index=NOMINAL)
 
 # ---------------------------------------------------------------- cross-year independence (for the record)
-win = CFG["selection"]["anomaly_window_days"]
+win = Y["anomaly_window_days"]
 rho_w, rho_s = anomaly(cf_w, win).corr(), anomaly(cf_s, win).corr()
 worst = np.maximum(rho_w.abs(), rho_s.abs()).values.copy()
 np.fill_diagonal(worst, 0)

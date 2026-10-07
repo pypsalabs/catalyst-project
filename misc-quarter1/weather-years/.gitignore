@@ -1,0 +1,5 @@
+build/
+__pycache__/
+.snakemake/
+logs/
+data/openmeteo/pt_*

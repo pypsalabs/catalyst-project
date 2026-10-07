@@ -1,5 +1,5 @@
 """Shared weather -> capacity-factor conversion for the Open-Meteo based datasets of
-misc-quarter1/fourier (build_years.py, build_siteyears.py). Pure functions, no I/O.
+misc-quarter1/weather-years (build_years.py, build_siteyears.py). Pure functions, no I/O.
 
   wind_cf          100 m wind speed through a piecewise-linear power curve (single turbine)
   solar_position   solar zenith / azimuth for UTC times (NOAA spreadsheet formulas, ~0.1 deg)

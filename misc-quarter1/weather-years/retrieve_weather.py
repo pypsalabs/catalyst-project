@@ -1,5 +1,5 @@
 """Download one year of hourly ERA5 point weather from the Open-Meteo archive API
-(misc-quarter1/fourier). Cached as data/openmeteo/<key>_<year>.csv, UTC:
+(misc-quarter1/weather-years). Cached as data/openmeteo/<key>_<year>.csv, UTC:
 
   time, ws100 (m/s at 100 m), ghi, dni, dhi (W/m2, mean of the preceding hour), t2m (degC)
 
@@ -42,9 +42,20 @@ params = dict(
     models="era5", timezone="UTC", wind_speed_unit="ms", cell_selection=CELL,
 )
 for attempt in range(8):
-    r = requests.get(URL, params=params, timeout=120)
+    try:
+        r = requests.get(URL, params=params, timeout=120)
+    except requests.RequestException as e:                  # connection reset, timeout: retry
+        print(f"attempt {attempt + 1}: {e}")
+        time.sleep(10 * (attempt + 1))
+        continue
     if r.ok:
-        break
+        try:
+            js = r.json()                                   # a 200 with an empty / HTML body happens under load: retry
+            break
+        except ValueError:
+            print(f"attempt {attempt + 1}: HTTP 200 without JSON ({r.text[:60]!r})")
+            time.sleep(10 * (attempt + 1))
+            continue
     try:
         reason = r.json().get("reason", "")
     except ValueError:
@@ -62,7 +73,6 @@ for attempt in range(8):
 else:
     raise SystemExit(f"Open-Meteo request failed for ({LAT}, {LON}) {YEAR}")
 
-js = r.json()
 if CELL == "nearest":
     assert abs(js["latitude"] - LAT) < 0.01 and abs(js["longitude"] - LON) < 0.01, (js["latitude"], js["longitude"], LAT, LON)
 h = js["hourly"]
