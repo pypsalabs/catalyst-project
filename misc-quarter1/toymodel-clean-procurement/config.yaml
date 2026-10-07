@@ -1,0 +1,66 @@
+# misc-quarter1/toymodel-clean-procurement: greenfield 100 % clean one-node capacity expansion per site and
+# weather year, every number from THE techno-economic input of the project (technology_assumptions.csv).
+# Paths are relative to this directory.
+
+assumptions: ../../config-pypsa-earth/technology-assumptions/technology_assumptions.csv
+profiles: ../weather-years/build/profiles_siteyears.nc      # "<site> · <year>" series: cf_wind, cf_solar, demand_mw
+series_table: ../weather-years/build/siteyears.csv          # per series: key, site, year, load_twh, ...
+sites: ../weather-years/build/sites.csv                     # per site: key, site, country, point_x, point_y, load_twh
+weather_years_config: ../weather-years/config.yaml          # site keys and the weather years (Snakefile wildcards)
+
+discount_rate: 0.07          # real; the LCOE convention of the assumptions document (7 %) and of ../pareto
+demand:                      # the load to be supplied 100 % clean (decided 2026-10-07: a constant 10 MW, 87.6 GWh/a, the
+  kind: flat                 # 24/7 buyer's flat profile; `kind: bus` instead uses the site bus's 2013 load shape scaled to `mw` mean)
+  mw: 10
+
+# How every row of technology_assumptions.csv enters the model. `palette` keys are model technologies, `rows` the CSV
+# rows they draw on (one row by default = the key itself); `excluded` lists every other CSV row with the reason.
+# techs.py refuses to run if a CSV row is in neither list, so a new row in the CSV has to be placed here on purpose.
+palette:
+  solar-utility: {model: profile, profile: cf_solar}                     # the site's weather year
+  onwind:        {model: profile, profile: cf_wind}
+  egs:           {model: tranches, source: egs}                           # supply curve of the cells within radius_km (CSV row = the
+                                                                          # reference site; CAPEX, FOM, CF, lifetime per tranche from
+                                                                          # ../geothermal/build/egs_potential.csv)
+  geothermal:    {model: tranches, source: hydrothermal}                  # identified hydrothermal systems within radius_km (capped)
+  # firm technologies dispatch freely between `min_load` (p_min_pu, default 0) and the CSV capacity factor (p_max_pu):
+  # they are not forced to run as baseload; set e.g. min_load: 0.9 to make a technology must-run at its availability
+  nuclear-lwr:   {model: firm, min_load: 0.5, rows: {CN: nuclear-lwr-cnin, IN: nuclear-lwr-cnin, default: nuclear-lwr-row}}   # bin by site country;
+                                                                          # min_load 0.5 = minimum stable output (decided 2026-10-07: France runs 30-100 %, experience 50-100 %)
+  nuclear-gen4:  {model: firm, min_load: 0.5}
+  sofc-cc:       {model: firm}                                            # gas with capture counts as clean here (decided 2026-10-07)
+  battery-liion: {model: storage}                                         # power and energy sized freely
+  vrfb:          {model: storage, efficiency_per_direction: true}         # CSV efficiency 0.806 is per direction (README caveat)
+  iron-air:      {model: storage, fixed_duration: true}                   # energy = duration_h x power (100 h product)
+excluded:
+  offwind:     no site profile; the document's offshore convention (onshore CF over shallow sea) would only clone onwind at a higher cost
+  hydro:       existing fleet only in the study; nothing to build in a greenfield system
+  ror:         existing fleet only
+  PHS:         existing fleet only, site-bound
+  biomass:     no site-level feedstock potential; unlimited biomass would be a cheap firm resource everywhere (decided 2026-10-07)
+  CCGT:        unabated fossil
+  OCGT:        unabated fossil
+  sofc:        unabated fossil (the capture variant sofc-cc is in)
+  co2-battery: in_default_mix = no
+
+geothermal:                      # as ../pareto (its egs_tranches is reused), plus the country cost table for plants without a cost class
+  egs_potential: ../geothermal/build/egs_potential.csv
+  hydrothermal_sites: ../geothermal/build/hydrothermal_sites.csv
+  hydrothermal_country: ../geothermal/build/hydrothermal_country.csv
+  radius_km: 250
+  capex_bins_usd_kw: [0, 6000, 8000, 10000, 12000, 15000, 20000]   # cells above the last edge are dropped
+
+solver:
+  name: gurobi
+  options: {Method: 2, Crossover: 0, Threads: 2, OutputFlag: 0, BarConvTol: 1.0e-7, FeasibilityTol: 1.0e-7}
+
+plotting:
+  dpi: 200
+  formats: [png, pdf]
+  # PyPSA-Eur default tech_colors (config/plotting.default.yaml, 2026-09): solar, onwind, nuclear, li-ion, iron-air,
+  # vanadium verbatim; EGS = its "geothermal heat pump" plum, hydrothermal = "geothermal heat direct utilisation",
+  # sofc-cc = "allam" (gas with capture), Gen IV = nuclear darkened (no PyPSA-Eur carrier)
+  colours: {solar-utility: "#f9d002", onwind: "#235ebc", nuclear-lwr: "#ff8c00", nuclear-gen4: "#b35f00",
+            egs: "#4f2144", geothermal: "#ba91b1", sofc-cc: "#B98F76", battery-liion: "#ace37f", vrfb: "#9B111E", iron-air: "#edba1c"}
+  short: {solar-utility: Solar, onwind: Wind, nuclear-lwr: LWR, nuclear-gen4: Gen IV, sofc-cc: SOFC-CC, egs: EGS,
+          geothermal: Hydroth., battery-liion: Li-ion, vrfb: VRFB, iron-air: Iron-air}

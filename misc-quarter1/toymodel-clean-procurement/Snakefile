@@ -1,0 +1,76 @@
+# Snakemake workflow: greenfield 100 % clean one-node capacity expansion per site and weather year
+# (misc-quarter1/toymodel-clean-procurement), every number from technology_assumptions.csv.
+#
+#   run      one site x one weather year        -> build/runs/<site>/<year>.csv
+#   collect  all runs                            -> build/results.csv
+#   plot     map + violins per site              -> figures/overview.{png,pdf}
+#
+# Inputs: ../weather-years/build/profiles_siteyears.nc (+ sites.csv), ../geothermal/build/*.csv,
+# ../../config-pypsa-earth/technology-assumptions/technology_assumptions.csv (a change there reruns everything).
+# Run from this directory with the priam-myopic pixi env (Gurobi licence at ~/gurobi.lic):
+#   ../../models/priam-myopic/.pixi/envs/default/bin/snakemake -c8      (2 solver threads per job)
+
+import yaml
+
+configfile: "config.yaml"
+
+WY = yaml.safe_load(open(config["weather_years_config"]))
+SITES = list(WY["sites"])
+import os, csv
+if os.path.exists(config["series_table"]):        # the weather years actually in the dataset (breadth-first downloads: fewer at first)
+    with open(config["series_table"]) as f:
+        YEARS = sorted({int(r["year"]) for r in csv.DictReader(f)})
+else:
+    YEARS = list(range(WY["siteyears"]["first"], WY["siteyears"]["last"] + 1))
+FORMATS = config["plotting"]["formats"]
+GEO = [config["geothermal"][k] for k in ("egs_potential", "hydrothermal_sites", "hydrothermal_country")]
+
+wildcard_constraints:
+    site="|".join(SITES),
+    year=r"\d{4}",
+
+
+rule all:
+    input:
+        expand("figures/overview.{fmt}", fmt=FORMATS),
+
+
+rule run:
+    input:
+        profiles=config["profiles"],
+        sites=config["sites"],
+        assumptions=config["assumptions"],
+        geothermal=GEO,
+        config="config.yaml",
+    output:
+        "build/runs/{site}/{year}.csv",
+    threads: 2
+    resources:
+        mem_mb=3000, runtime="10m",
+    script:
+        "run_site_year.py"
+
+
+rule collect:
+    input:
+        expand("build/runs/{site}/{year}.csv", site=SITES, year=YEARS),
+    output:
+        "build/results.csv",
+    run:
+        import pandas as pd
+        pd.concat([pd.read_csv(f) for f in input], ignore_index=True).to_csv(output[0], index=False)
+
+
+rule plot:
+    input:
+        results="build/results.csv",
+        sites=config["sites"],
+        assumptions=config["assumptions"],
+        config="config.yaml",
+    output:
+        figure=expand("figures/overview.{fmt}", fmt=FORMATS),
+        table="build/summary.csv",
+    resources:
+        mem_mb=2000, runtime="5m",
+    script:
+        "plot_overview.py"
