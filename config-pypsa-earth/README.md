@@ -941,23 +941,43 @@ The shared interface is the year. Demand and the myopic loop are in place; learn
      year can be added the same way, none exist yet);
   2. moves extendable assets to the technology costs of the horizon (difference of the technology-data cost
      tables of the horizon and of `costs.year` = 2025);
-  3. retires existing plants at build year + lifetime and carries over what earlier horizons built, with fixed
-     capacity; the land-use constraint takes that capacity off the remaining potential.
+  3. retires existing plants whose reported retirement year has passed and carries over what earlier horizons
+     built, with fixed capacity; the land-use constraint takes that capacity off the remaining potential;
+  4. solves 2025 without expansion (`existing_capacities.dispatch_only_horizons: [2025]`, fork patch
+     2026-10-09): every extendable capacity is fixed at its lower bound, so 2025 is the dispatch of the
+     calibrated 2024 fleet with 2025 demand (SOW: "a 2025 validation run, then capacity expansion"), and the
+     first build decision is 2030.
 
   `run.sh` targets the solved network of the last horizon (`results/<R>-myopic/networks/<stem>_2050.nc`);
   the earlier ones are solved on the way and sit next to it. There is no dashboard for these stages yet.
+  Retirement rule (2026-10-09, SOW: "keep existing power generation capacity, announced retirements where
+  they are firm and dated"): only a retirement year reported by the power plant data retires a plant. Such
+  years come mostly from GEM's trackers ("Retired year" / "Planned retire"), a few from GEO, none from GPD. By
+  default pypsa-earth invents one for every other plant (powerplantmatching's
+  `fill_missing_decommissioning_years`, commissioning year + 45 years for coal, 50 nuclear, 100 hydro, 15
+  geothermal ..., then `add_electricity` with the costs lifetime), so before the fix 100 % of plants carried
+  a date and e.g. Canada's Darlington and Bruce reactors retired in the 2040s and Indian coal lost 101 GW by
+  2050 (13 GW announced). Fork patch `existing_capacities.fill_missing_dateout: false` (upstream candidate)
+  stops both fillings; undated plants get an infinite lifetime, and dated plants are grouped by their
+  retirement year as well (`<bus> <carrier>-<grouping year>-<retirement year>`), so announced closures apply
+  to them alone and survive clustering (a dated and an undated group of one vintage would otherwise merge into
+  one undated generator at the cluster node). Capacity that the calibration adds from statistics is undated and never
+  retires either. Still true: existing wind and solar have no vintages (one block per bus, carried from
+  2025 with a 25-year lifetime, i.e. present through 2050); a reported year is taken as firm without a
+  per-plant check, which lets stale dates through: GEO's duplicate "Bruce Canada 3-8" entries retire 2027-2036
+  (2.6 GW of Canadian nuclear after calibration) although Bruce is being refurbished to 2064. Effect on the
+  three small regions (fixed fleet in 2050, before -> after): Oceania coal 0.1 -> 5.2 GW, CCGT 4.0 -> 17.6 GW,
+  geothermal 0 -> 1.1 GW (only Wairakei retires, 2031); Canada nuclear 0 -> 10.1 GW, CCGT 6.4 -> 26.0 GW;
+  Singapore CCGT 6.2 -> 10.9 GW (no dated plant at all). With 2025 dispatch-only, the expansion held back in
+  2025 lands in 2030 (Canada +113 GW, mostly solar and wind).
   Caveats:
-  - Retirement uses powerplantmatching's `DateOut`, which `add_electricity` fills with build year + technical
-    lifetime when it is not reported. The SOW asks for firm dated retirements only, so this over-retires
-    (`existing_capacities.retire_existing: false` switches retirement off altogether).
-  - Existing wind and solar have no vintages: they are one block per bus, built in the first horizon.
-  - Plants that the capacity calibration adds without a build year never retire.
   - The capacity, generation and net-import tables stay at 2024; the net-import band is therefore a 2024 volume
     in every horizon.
   - The extendable palette is still pypsa-earth's default (wind, solar, battery, H2, and OCGT only where one
     exists). Check on Singapore (single node): all six horizons solve in four minutes, demand rises
-    62 → 138 TWh, 4.7 GW of CCGT retire before 2045, the wind and solar potential is exhausted by 2035, and
-    3 TWh (2035) to 85 TWh (2050) of demand are unserved because nothing firm can be built.
+    62 → 138 TWh, no plant retires (none has a reported date), the wind and solar potential is exhausted by
+    2035, and 0.4 TWh (2035) to 45 TWh (2050) of demand are unserved because nothing firm can be built
+    (85 TWh in 2050 before the retirement rule, 2026-10-09).
 - **Learning.** A market step between years across all archetypes, as in `models/priam-myopic/scripts/
   solve_market.py`: cumulative capacity += new builds, `cost = reference cost × (cumulative / reference) ^
   log2(1 − learning rate)`. Inputs are already in `technology-assumptions/technology_assumptions.csv`

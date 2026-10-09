@@ -2,8 +2,9 @@
 #
 # Catalyst pathway scenario "myopic" = electricity-only myopic capacity expansion in five-year steps (fork rules
 # add_brownfield_elec / solve_network_myopic_elec, `foresight: myopic`): every horizon is solved on its own and
-# inherits what the previous one built; existing plants retire at build year + lifetime; new assets are built at
-# the technology costs of the horizon. The starting point is the calibrated 2024 system of overlay.now.yaml
+# inherits what the previous one built; existing plants retire only at a retirement year reported by the power plant
+# data (SOW: keep existing capacity, firm dated retirements), 2025 is a dispatch of the calibrated system (SOW: 2025
+# validation run, expansion from 2030); new assets are built at the technology costs of the horizon. The starting point is the calibrated 2024 system of overlay.now.yaml
 # (fleet, hydro energy, fuel and CO2 prices, capacity-factor envelopes), with expansion allowed and no CO2 cap.
 # Demand of each horizon comes from the demand pathway (calibration/<year>/demand.csv, scripts/build_demand_pathway.py).
 # Applied by config-pypsa-earth/run.sh on top of config.<R>.yaml for a stage named <R>-myopic; the stage target is
@@ -36,6 +37,10 @@ calibration:            # fork patch: scripts/calibrate_network.py; 2024 tables 
     net_imports: ../../config-pypsa-earth/calibration/2024/net_imports.csv
   horizon_tables:
     demand: ../../config-pypsa-earth/calibration/{planning_horizons}/demand.csv
+
+existing_capacities:
+  fill_missing_dateout: false     # SOW: only announced, dated retirements (GEM trackers); undated plants stay (fork patch)
+  dispatch_only_horizons: [2025]  # SOW: 2025 validation run of the existing system, expansion from 2030 (fork patch)
 
 enable:
   build_cutout: false
