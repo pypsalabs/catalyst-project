@@ -85,12 +85,19 @@ depth. Grey land: no depth ≤ 6.5 km reaches 150 °C. Perceptually uniform colo
    and 85 % capacity factor (90 % until 2026-10-05), no grid connection; costs and capacity per **net** kW: the
    cost model's output excludes wellfield pumping, so per-kW costs are divided by (1 − `parasitic_fraction`)
    = 0.85 and MW multiplied by it; capacity = cell area × the model's capacity density (output per injector
-   unit / 1.39 km² per unit) × the cell's **available land share** (`build/land_availability.nc`, rule
+   unit / 1.07 km² per unit = the 1.39 km² of the five-lateral design × the 0.77 flow derating; 4–11 MW/km² net
+   by reservoir temperature) × the cell's **available land share** (`build/land_availability.nc`, rule
    `land_availability`: the onshore-wind exclusions of the PyPSA-Earth fork, read from its config.default.yaml —
    Copernicus LC100 2019 land-cover classes allowed for wind, 1 km from urban land, outside the fork's WDPA
    natura.tiff; area-weighted 70 % of feasible cell area; it replaced Ricks & Jenkins' flat 20 % on
    2026-10-05, which removed e.g. the hot protected cells of Yellowstone from the cheapest US West tranche). The
-   headline table keeps each cell's cheapest feasible depth; the netCDF keeps all depths.
+   headline table keeps each cell's cheapest feasible depth; the netCDF keeps all depths. Since 2026-10-12 each
+   cell also carries the plant's **ambient response**: its net output relative to the design point (`t_design_c`,
+   the WorldClim annual mean the cell is costed at) at air temperatures 20 and 10 K below and above it
+   (`ambient_m20`, `ambient_m10`, `ambient_p10`, `ambient_p20`, from the cost model's own ambient correction,
+   `conv_temp` + the output fit, capped at `t_max_c`; typically 1.19 / 1.09 / 0.92 / 0.85). The PyPSA-Earth fork
+   interpolates them at the hourly ERA5 air temperature to build EGS profiles, as Ricks & Jenkins derive hourly
+   capacity factors from hourly air temperature (config-pypsa-earth/README.md "Technology palette").
 4. **Aggregation** (`aggregate_regions.py`): supply curves in LCOE bins and a summary per ISO3
    and per composite region (US West/East and Australia SWIS by Natural Earth admin-1, as in
    the archetype pipeline; North-West Europe as in `config-pypsa-earth/config.NWE.yaml`;
@@ -100,7 +107,7 @@ depth. Grey land: no depth ≤ 6.5 km reaches 150 °C. Perceptually uniform colo
 
 | file | content |
 |---|---|
-| `build/egs_potential.csv` | **the dataset**: one row per feasible 0.25° land cell (176k rows, Antarctica excluded): lon, lat, iso3, country, continent, admin1, `t_source`, area, heat flow, `depth_km`, `t_reservoir_c`, `capex_usd_per_kw` (+ plant / well split), `fom_usd_per_kw_yr`, `vom_usd_per_mwh` (0), `lifetime_years` (30), `capacity_factor`, `lcoe_usd_per_mwh`, `mw_per_km2`, `capacity_mw` |
+| `build/egs_potential.csv` | **the dataset**: one row per feasible 0.25° land cell (176k rows, Antarctica excluded): lon, lat, iso3, country, continent, admin1, `t_source` (`stanford_conus`, `limberger_europe`, `conduction`), `remote_territory`, area, heat flow, `depth_km`, `t_reservoir_c`, `capex_usd_per_kw` (+ plant / well split), `fom_usd_per_kw_yr`, `vom_usd_per_mwh` (0), `lifetime_years` (30), `capacity_factor`, `lcoe_usd_per_mwh`, `mw_per_km2`, `capacity_mw`, `t_design_c`, `ambient_m20` / `ambient_m10` / `ambient_p10` / `ambient_p20` (net output relative to the design point at ±20 / ±10 K air temperature) |
 | `build/egs_grid.nc` | the same for every cell × depth (also infeasible cells), plus the temperature grid |
 | `build/egs_supply_curves.csv` | region × LCOE bin: capacity in the bin, cumulative capacity, capacity-weighted CAPEX, FOM, depth, temperature |
 | `build/egs_region_summary.csv` | one row per country / region: potential below 75–300 USD/MWh, minimum LCOE and CAPEX, cost/depth/temperature of the cheapest 10 GW |
@@ -154,9 +161,11 @@ shape of the curve; the totals are far less robust (next section).
 * **Capacity factor** 0.9 is availability (ATB: 0.9 flash, 0.8 binary); thermal drawdown over
   the 30-year life is inside the source model's productivity assumptions, not modelled
   explicitly. No make-up drilling.
-* Grid connection, water availability, protected areas and seismic-risk exclusions are not
-  applied (Franzmann et al. 2025 do a land-eligibility analysis; the archetype pipeline's
-  screening is by temperature only).
+* Grid connection, water availability and seismic-risk exclusions are not applied (protected
+  areas and the land-cover exclusions are, through the fork's onshore-wind rasters since 2026-10-05;
+  Franzmann et al. 2025 do a full land-eligibility analysis; the archetype pipeline's screening is by
+  temperature only). The model applies a further developable share (0.3, `config-pypsa-earth/overlay.myopic.yaml`)
+  on top.
 
 ## Hydrothermal (`build_hydrothermal.py`)
 

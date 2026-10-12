@@ -6,7 +6,15 @@ Inputs   build/temperature_grid.nc (build_temperature_grid.py)
                                     cell area x this share (it replaces the cost model's flat 20 % derating)
 Outputs  build/egs_grid.nc          every cell x depth: CAPEX split, FOM, capacity, LCOE
          build/egs_potential.csv    one row per cell at its cheapest feasible depth
-                                    (the headline dataset: CAPEX, OPEX, lifetime, potential)
+                                    (the headline dataset: CAPEX, OPEX, lifetime, potential, and the plant's
+                                    response to the ambient air temperature)
+
+Ambient response (columns t_design_c, ambient_m20, ambient_m10, ambient_p10, ambient_p20): an air-cooled
+binary plant produces more in cold air and less in hot air (Ricks & Jenkins 2025 derive hourly capacity
+factors from hourly air temperature, with the annual mean as the plant's design point). The columns give the
+net output relative to the design point (the WorldClim annual mean, t_design_c) at air temperatures 20 and 10 K
+below and above it, from the cost model's own ambient correction (`conv_temp` + the output fit, capped at
+t_max_c), so that a model with an hourly temperature series can build the time series by interpolation.
 
 Monetary values are converted from the cost model's 2021 USD to the repo's
 base year with the US CPI table of ../technology-costs/config.yaml. LCOE uses
@@ -53,6 +61,9 @@ def _lookup(av, lat, lon):
     return np.nan_to_num(out)
 
 
+# relative output columns: air temperature offset from the design point, K
+AMBIENT = {"ambient_m20": -20.0, "ambient_m10": -10.0, "ambient_p10": 10.0, "ambient_p20": 20.0}
+
 def crf(rate, years):
     return rate / (1 - (1 + rate) ** (-years)) if rate > 0 else 1 / years
 
@@ -70,7 +81,7 @@ def main():
     depths = g["depth"].values
     n = g.sizes["cell"]
     fields = ["capex_usd_per_kw", "plant_capex_usd_per_kw", "well_capex_usd_per_kw",
-              "fom_usd_per_kw_yr", "lcoe_usd_per_mwh", "capacity_mw", "mw_per_km2", "feasible"]
+              "fom_usd_per_kw_yr", "lcoe_usd_per_mwh", "capacity_mw", "mw_per_km2", "feasible"] + list(AMBIENT)
     out = {f: np.full((n, len(depths)), np.nan) for f in fields}
     area = g["area_km2"].values
     air = g["air_temp_k"].values
@@ -79,11 +90,15 @@ def main():
     avail = _lookup(av, g["lat"].values, g["lon"].values)
     for j, d in enumerate(depths):
         t = g["t_c"].values[:, j]
-        r = egs_costs(t, air, d, producers_per_injector=e["producers_per_injector"],
-                      stimulate_producers=e["stimulate_producers"], lateral_length_m=e["lateral_length_m"],
-                      flow_derating=e["flow_derating"], resource_derating=1.0,   # technical density; land share below
-                      drill_cost_multiplier=e["drill_cost_multiplier"], plant_size_mw=e["plant_size_mw"],
-                      t_max_c=e["t_max_c"])
+        kw = dict(producers_per_injector=e["producers_per_injector"],
+                  stimulate_producers=e["stimulate_producers"], lateral_length_m=e["lateral_length_m"],
+                  flow_derating=e["flow_derating"], resource_derating=1.0,   # technical density; land share below
+                  drill_cost_multiplier=e["drill_cost_multiplier"], plant_size_mw=e["plant_size_mw"],
+                  t_max_c=e["t_max_c"])
+        r = egs_costs(t, air, d, **kw)
+        # output relative to the design point at air temperatures `AMBIENT` K away from it
+        for col, dt in AMBIENT.items():
+            out[col][:, j] = egs_costs(t, air + dt, d, **kw)["gross_mw_per_injector"] / r["gross_mw_per_injector"]
         feas = t >= e["t_min_c"]
         plant = r["plant_capex_usd_per_kw"] * infl / net
         well = r["well_capex_usd_per_kw"] * infl / net
@@ -137,6 +152,8 @@ def main():
         "capacity_mw": out["capacity_mw"][rows, jbest],
     })
     df = df[has].reset_index(drop=True)
+        "t_design_c": air - 273.15,   # the air temperature the plant is designed (and costed) for
+        **{col: out[col][rows, jbest] for col in AMBIENT},
     print(f"land availability: area-weighted mean share {np.average(df['available_fraction'], weights=df['area_km2']):.1%} "
           f"of feasible cell area (was a flat 20 %)")
     df.to_csv(OUT_CSV, index=False, float_format="%.6g")   # 6 digits: lon/lat must survive the round trip
