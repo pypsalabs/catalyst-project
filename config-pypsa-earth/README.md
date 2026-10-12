@@ -929,6 +929,7 @@ The shared interface is the year. Demand and the myopic loop are in place; learn
 |---|---|---|
 | Demand | `calibration/<year>/demand.csv` | implemented |
 | Myopic | the solved network of the previous year + the per-year tables | implemented (2026-10-04) |
+| Palette | `technology-assumptions/technology_assumptions.csv` → cost rows per year + the stage config | implemented (2026-10-12, see "Technology palette" below) |
 | Learning | a per-year cost file written by a market step between years | planned |
 
 - **Myopic, electricity-only (2026-10-04).** Stage `<R>-myopic` = `config.<R>.yaml` + `overlay.myopic.yaml`
@@ -973,11 +974,11 @@ The shared interface is the year. Demand and the myopic loop are in place; learn
   Caveats:
   - The capacity, generation and net-import tables stay at 2024; the net-import band is therefore a 2024 volume
     in every horizon.
-  - The extendable palette is still pypsa-earth's default (wind, solar, battery, H2, and OCGT only where one
-    exists). Check on Singapore (single node): all six horizons solve in four minutes, demand rises
-    62 → 138 TWh, no plant retires (none has a reported date), the wind and solar potential is exhausted by
-    2035, and 0.4 TWh (2035) to 45 TWh (2050) of demand are unserved because nothing firm can be built
-    (85 TWh in 2050 before the retirement rule, 2026-10-09).
+  - Until 2026-10-12 the extendable palette was pypsa-earth's default (wind, solar, battery, H2, and OCGT only
+    where one exists), and Singapore left 0.4 TWh (2035) to 45 TWh (2050) of demand unserved because nothing
+    firm could be built. The study palette is wired in since then ("Technology palette" below): Singapore now
+    builds CCGT (11.6 → 24.7 GW by 2050, no shedding); the firm clean options exist but are dearer than gas at
+    Singapore's 2024 prices without a CO₂ price pathway.
 - **Learning.** A market step between years across all archetypes, as in `models/priam-myopic/scripts/
   solve_market.py`: cumulative capacity += new builds, `cost = reference cost × (cumulative / reference) ^
   log2(1 − learning rate)`. Inputs are already in `technology-assumptions/technology_assumptions.csv`
@@ -985,3 +986,73 @@ The shared interface is the year. Demand and the myopic loop are in place; learn
   with priam's column names, written outside the fork's `costs_{year}_{scope}.csv` pattern. The hook exists:
   the cost input of `add_brownfield_elec` is a function (`costs_planning_horizon_elec` in the fork's Snakefile). Because archetypes are cleared jointly it is a `run.sh` stage between years (like
   `world`), not a rule inside one region's run.
+
+## Technology palette in the model (stages with `catalyst.palette: true`, i.e. `<R>-myopic`; 2026-10-12)
+
+`technology-assumptions/technology_assumptions.csv` is the single source of what the model may build and at what
+cost. Nothing is copied from it: `merge_config.py` derives the stage config from its columns at every run and the
+fork reads a cost table derived from it at build time. Which technologies are included is a property of the CSV
+(`in_default_mix`, `model`, `regions`), not of a config list.
+
+**Columns → model** (`technology-assumptions/scripts/palette.py`, columns documented in the assumptions README):
+
+| CSV | becomes |
+|---|---|
+| `model: profile` rows (solar, onshore, offshore wind) | `electricity.extendable_carriers.Generator` entries, profiles as before |
+| `model: firm` rows (Gen IV, SOFC, SOFC-CC, CCGT, OCGT) | extendable generators at every AC bus (fork patch `electricity.extendable_carriers_buses: all`); `availability` / `min_load` → the fork's `conventional:` block (p_max_pu, p_min_pu) |
+| `model: storage` with a per-kWh CAPEX only (iron-air) | `extendable_carriers.StorageUnit` + `max_hours` = `duration_h` |
+| `model: storage` with per-kW and per-kWh CAPEX (Li-ion) | `extendable_carriers.Store` (store + charger/discharger links, free duration) |
+| `model: tranches` (EGS) | `supply_curves.<carrier>` of the overlay is kept (dataset, bins, derate; fork patch, below) |
+| `model: existing` (hydro, run-of-river, PHS, hydrothermal, biomass, both LWR bins) | cost rows only, no new builds; so H2 (not in the CSV) and new LWR (decision 2026-10-12) are not buildable |
+| `regions` | the row applies where it names a country of the stage (`nuclear-lwr-cnin` in CN, IN; `nuclear-lwr-row` elsewhere) |
+| `fuel`, `capture_rate` | CO₂ intensity (gas × (1 − capture): SOFC-CC emits 2.2 % of a gas plant's, priced by the CO₂ tables) and `calibration.fuel_map`, so SOFC gets the regional gas and CO₂ prices like CCGT |
+| `color`, `label` | `plotting.tech_colors` / `nice_names` |
+
+**Costs.** `assumptions.smk` rule `palette_costs` (`scripts/build_palette_costs.py`) writes
+`resources/<stage>/palette/costs_<year>.csv` for every year the stage needs, in technology-data's long format;
+the fork's `process_cost_data` merges it onto the retrieved technology-data table (fork patch `costs: overrides`,
+upstream candidate) before units, currency and annuities are processed. Per row: investment (USD/kW), FOM as % of
+CAPEX, VOM, efficiency, lifetime, fuel, CO₂ intensity; the names the fork looks up (`solar` and `solar-utility`
+with `rooftop_share: 0`; `offwind`, `offwind-ac/-dc` with the station and connection adders zeroed because the
+CSV's offshore CAPEX is all-in; `nuclear` from the applicable LWR bin; the `gas` fuel row, which `load_costs`
+copies onto CCGT and OCGT); storage through the fork's `storage_techs` names (store row per kWh, (bi)charger per
+kW, FOM split by CAPEX share, efficiency per direction except battery/li-ion where the fork square-roots the
+round trip itself); EGS rows `egs`, `egs-drilling`, `egs-plant` (CAPEX split by `capex_share_2`). Years: mature
+rows follow technology-data's investment path relative to 2025 (`techdata_trajectory`, decision 2026-10-12),
+advanced rows are flat until the learning step rewrites single years. The fork's `costs.marginal_cost` defaults
+are emptied so the CSV VOM applies. Sanity (SG 2025 table, 7 %): Gen IV 1.36 M USD/MW/yr, SOFC-CC 0.91 M, iron-air
+0.79 M per MW (100 h), CCGT 0.26 M; SOFC-CC co2_emissions 0.0044 t/MWh_th.
+
+**Currency.** Every overlay stage runs in USD (`costs.output_currency: USD`): the CSV is USD2024 and the
+calibration price tables (`calibration/2024/fuel_prices.csv`, `co2_prices.csv`) are written in USD2024 by
+`scripts/build_calibration.py` (hand-curated EUR × 1.0824, ECB 2024 average). Technology-data rows that remain
+in use (transmission; fuel rows the calibration overrides anyway) are EUR2020 converted by the fork's FX only,
+without CPI: a known inconsistency on non-palette rows. The validation dots of `scripts/build_validation.py`
+(prices) are still EUR; to be converted when the `now`/`zero` pages are refreshed.
+
+**Committed projects (no new LWR, but what is under construction).** powerplantmatching loads the GEM trackers
+with status `construction` (planned start year as DateIn) for every carrier; the fork's default
+`powerplants_filter` dropped them (`DateIn <= 2023`). `overlay.myopic.yaml` keeps them
+(`(DateOut >= 2022 or DateOut != DateOut)`, `grouping_years_power` to 2040) and the fork leaves a fixed asset out
+of every horizon before its build year (fork patch `remove_not_yet_built`, upstream candidate; PyPSA honours
+`build_year` only in multi-period runs); `calibration.reference_year: 2024` keeps them out of the 2024 capacity
+calibration. Pre-construction and announced projects are not loaded by powerplantmatching and stay out.
+Worldwide (GEM 2025): coal 275 GW, gas 215 GW, nuclear 91 GW under construction.
+
+**EGS supply curves (fork patch `supply_curves`, upstream candidate).** `misc-quarter1/geothermal/build/egs_potential.csv`
+(build that workflow first) has one row per 0.25° cell with the Ricks & Jenkins (2025) cost model's CAPEX split
+(wellfield, plant), FOM, and `capacity_mw` = well-spacing density (5 laterals × 2.29 km × 0.24 km spacing →
+1.07 km² per injector unit, 4–11 MW/km² net by reservoir temperature) × cell area × the onshore-wind land
+exclusions of the fork (Copernicus grid codes, 1 km urban buffer, natura: the renewable area constraint). The
+fork's rule `build_supply_curve` assigns the cells to the cluster regions, scales by `developable_share` 0.3
+(ASSUMPTION: ~21 % of hot land overall, between Ricks & Jenkins' further 80 % derate for land acquisition and
+subsurface barriers and Franzmann et al. 2025's ~25 %), bins them by CAPEX (`capex_bins`, cells above
+20,000 $/kW dropped) and merges adjacent bins with the smallest combined capacity until at most 5 tranches per
+region remain, so the cheap tail keeps a tranche of its own. Each tranche is one extendable generator
+`<bus> egs t<k>` with the tranche's capacity, capacity-weighted CAPEX/FOM, and an hourly profile from the
+cutout's air temperature: the geothermal workflow stores per cell the net output relative to the design point at
+−20/−10/+10/+20 K (`t_design_c`, `ambient_*`, from the cost model's ambient correction, as Ricks & Jenkins derive
+hourly capacity factors from hourly air temperature); the fork interpolates at the hourly deviation and
+normalises to an annual mean of 1 so the annual CF stays 0.85, output above rating in cold hours included. In
+myopic runs the tranche CAPEX components follow the `egs-drilling` / `egs-plant` rows between horizons and the
+land-use constraint nets each tranche's earlier builds off its cap by name.

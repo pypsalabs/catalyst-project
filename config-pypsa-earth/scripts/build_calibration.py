@@ -18,8 +18,8 @@ writes config-pypsa-earth/calibration/<year>/
     net_imports.csv  country, net_imports_twh               Ember net imports
     envelope_nofloor.csv                                    envelope.csv without floors on emitting carriers (for Co2L runs)
 and copies the hand-curated price tables next to them:
-    fuel_prices.csv  country, fuel, price   from fuel_prices_<year>.csv + fuel_price_regions.csv (EUR/MWh_th)
-    co2_prices.csv   country, price         from co2_prices_<year>.csv (EUR/tCO2)
+    fuel_prices.csv  country, fuel, price   from fuel_prices_<year>.csv + fuel_price_regions.csv, EUR x USD_PER_EUR (USD/MWh_th)
+    co2_prices.csv   country, price         from co2_prices_<year>.csv, EUR x USD_PER_EUR (USD/tCO2)
 
     python config-pypsa-earth/scripts/build_calibration.py --check <solved network.nc> [...]
 
@@ -126,16 +126,28 @@ def reservoir_hours():
     return h.rename("max_hours")
 
 
+USD_PER_EUR = {2024: 1.0824}  # ECB annual average; the hand-curated price tables are in EUR, the model runs in USD
+
+
 def prices(year, out):
+    """Fuel and CO2 price tables in USD of the year (the currency of technology_assumptions.csv and of the model)."""
+    fx = USD_PER_EUR[year]
     regions = pd.read_csv(os.path.join(CAL, "fuel_price_regions.csv"), comment="#")
     fuel = pd.read_csv(os.path.join(CAL, f"fuel_prices_{year}.csv"), comment="#")
-    rows = [dict(country="*", fuel=r.fuel, price=r.price, region=r.region)
+    rows = [dict(country="*", fuel=r.fuel, price=round(r.price * fx, 2), region=r.region)
             for r in fuel[fuel.region == "default"].itertuples()]
     for r in regions.itertuples():
         for f in fuel[fuel.region == r.region].itertuples():
-            rows.append(dict(country=r.country, fuel=f.fuel, price=f.price, region=r.region))
-    pd.DataFrame(rows).to_csv(os.path.join(out, "fuel_prices.csv"), index=False)
-    shutil.copy(os.path.join(CAL, f"co2_prices_{year}.csv"), os.path.join(out, "co2_prices.csv"))
+            rows.append(dict(country=r.country, fuel=f.fuel, price=round(f.price * fx, 2), region=r.region))
+    note = f"# USD{year}: the EUR values of {{name}} x {fx} (ECB {year} average USD per EUR)\n"
+    with open(os.path.join(out, "fuel_prices.csv"), "w") as f:
+        f.write(note.format(name=f"fuel_prices_{year}.csv") + "# price in USD/MWh_th\n")
+        pd.DataFrame(rows).to_csv(f, index=False)
+    co2 = pd.read_csv(os.path.join(CAL, f"co2_prices_{year}.csv"), comment="#")
+    co2["price"] = (co2["price"] * fx).round(1)
+    with open(os.path.join(out, "co2_prices.csv"), "w") as f:
+        f.write(note.format(name=f"co2_prices_{year}.csv") + "# price in USD/tCO2\n")
+        co2.to_csv(f, index=False)
 
 
 def main(year):

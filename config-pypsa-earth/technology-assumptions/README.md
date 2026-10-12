@@ -117,6 +117,15 @@ respective working directory, so the two modes may each rebuild once.
 | `max_build_rate_gw_yr` | maximum global additions per year, blank = unconstrained; set for the nuclear bins (2026-10-05) from GEM construction starts: China + India 12 (China ~10-11 + India ~2), rest of world 7 (2024 peak), Gen IV 1 (assumption, pipeline delivery rate) |
 | `learning_rate`, `learning_on`, `learning_basis` | cost reduction per doubling of cumulative capacity (fraction), the component it applies to (`plant`, `energy`, `power`, `drilling`, `none`) and its basis: `decided` (project meeting), `fitted` (technology-costs learning dashboards), `literature` (taken from a study, e.g. Ricks & Jenkins 2025 for EGS), `analogy`, `assumption`, `exogenous` (mature), `none` |
 | `learning_rate_2`, `learning_on_2` | optional second rate on another component, blank elsewhere; EGS: 0.15 on `drilling` (wellfield) and 0.10 on `plant` (surface binary plant). Table 2 prints both as `a / b` |
+| `carrier` | **model wiring (2026-10-12; `scripts/palette.py`, not typeset):** the PyPSA-Earth carrier(s) the row drives, comma list (`solar-utility` -> `solar`, `offwind` -> `offwind-ac,offwind-dc`, both LWR bins -> `nuclear`, `battery-liion` -> `battery`); blank = the key |
+| `model` | how the model may build the row: `profile` (atlite profile: solar, wind), `firm` (dispatchable generator at every bus: Gen IV, SOFC, SOFC-CC, CCGT, OCGT), `tranches` (site-specific supply curve per cluster region: EGS), `storage` (StorageUnit of `duration_h` when only a per-kWh CAPEX is given: iron-air; Store + charger/discharger links when a per-kW CAPEX is given too: Li-ion), `existing` (the existing fleet only, no new builds: hydro, run-of-river, PHS, hydrothermal, biomass, both LWR bins). Buildable = `in_default_mix` yes and not `existing` |
+| `regions` | ISO2 list where the row applies; blank = everywhere not claimed by a row with an explicit match on the same carrier (`nuclear-lwr-cnin`: `CN,IN`, `nuclear-lwr-row`: blank). `palette.py` raises when two rows would drive one carrier in a region |
+| `fuel` | `gas`, `uranium`, `haleu`, `biomass` or blank: gas-fired rows get technology-data's gas CO₂ intensity × (1 − `capture_rate`); rows with a fuel of the calibration's price tables (gas, uranium, biomass) take the regional fuel and CO₂ prices through the fork's `calibration.fuel_map` |
+| `capture_rate` | share of the fuel CO₂ captured (`sofc-cc` 0.978), blank = 0 |
+| `availability`, `min_load` | p_max_pu and p_min_pu of a `firm` row (Gen IV 0.9 / 0.5, SOFC 0.9); blank = 1 / 0. CCGT and OCGT have none: their `capacity_factor` is utilisation for the LCOE, not availability |
+| `capex_share_2` | CAPEX share of the `learning_on_2` component (EGS: plant 0.325 of 8,100 at Cape Station, wellfield the rest), the reference for scaling the two components of every EGS tranche between planning horizons |
+| `techdata_trajectory` | technology-data row(s) whose investment path shapes a **mature** row over the model years (investment × td[year] / td[2025]); blank = the row's own key when technology-data has it, else flat; two names for storage (energy, power: `battery storage,battery inverter`). Advanced rows are flat until the learning step writes them |
+| `color` | hex colour of the carrier in the fork's plots (`plotting.tech_colors`) |
 | `currency_year` | 2024 for every row (`build_table.py` asserts uniformity; conversions as in `misc-quarter1/technology-costs`: ECB rate of the price year, US CPI to 2024) |
 | `source`, `comment` | free text documenting the CSV; not typeset, their content is argued in the technology's section |
 
@@ -129,8 +138,8 @@ respective working directory, so the two modes may each rebuild once.
   2026-10-05: no learning, constant cost; Gen IV stays advanced), LWR China + India 3,150 (3,000 at the meeting; 2026-10-05 raised to the empirical mean of 3,164)
   $/kW no learning, LWR rest of world 11,000 $/kW no learning ("minor" discussed), Gen IV 17,000
   $/kW 10 %; LWR includes large and small modular reactors. Iron-air 75 $/kWh unsubsidised at a
-  fixed 100 h (the Pine Island price before incentives), target 15–20. EGS: 6,700 $/kW = the geothermal cost model at the Fervo Cape Station
-  cell (misc-quarter1/geothermal build/site_check.csv; Fervo's S-1 estimate ~7,000), a reference site only (the
+  fixed 100 h (the Pine Island price before incentives), target 15–20. EGS: 8,100 $/kW = the geothermal cost model at the Fervo Cape Station
+  cell (misc-quarter1/geothermal build/site_check.csv, 250 °C cap of 2026-10-10; Fervo's S-1 estimate ~7,000), a reference site only (the
   7,500 $/kW level of the meeting was dropped): the cost is highly heterogeneous per site and the model uses the
   geothermal supply curves; `reference_site` marks the CAPEX and LCOE cells of Table 1 with a dagger (representative values of that site). Learning 15 % wellfield / 10 % plant after Ricks & Jenkins 2025. SOFC
   4,100 $/kW without carbon capture, stack life not reflected. Row sofc-cc (2026-10-05): the same fuel cell with carbon capture, 4,740 $/kW = 4,100 + a 640 $/kW
@@ -145,10 +154,12 @@ respective working directory, so the two modes may each rebuild once.
 
 ## Caveats
 
-- `CCGT` / `OCGT` carry the pre-2024 DEA figure; US and European new-build quotes are now
-  ~2,000–2,500 $/kW with 4–5-year turbine lead times (the reason LDES is being procured), to be
-  replaced by a regional override before the scenario runs.
-- `battery-liion` and `vrfb` existing capacity are still blank ("TO FILL" in the comment).
+- `CCGT` / `OCGT` are the 2026-10-05 decision (2,500 / 1,300 $/kW, the quotes of the turbine shortage), a
+  global value without a regional split.
+- In the model (`scripts/palette.py`, `scripts/build_palette_costs.py`; config-pypsa-earth/README.md
+  "Technology palette") the CSV's offshore CAPEX is taken as all-in (the fork's station and connection adders are
+  zeroed), the `fuel_usd_mwh_th` of gas-fired rows is overridden by the calibration's regional gas prices, and
+  storage FOM is split between energy and power in proportion to their CAPEX shares (toy model convention).
 - `PHS` (0.894) and `vrfb` (0.806) carry technology-data's *bicharger* efficiency, which is per
   direction (round trip 0.80 and 0.65), although the column is defined as round trip; the sections
   say so. `battery-liion` 0.955 is technology-data's round-trip inverter value. Not yet corrected in

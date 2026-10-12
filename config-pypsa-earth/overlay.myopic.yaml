@@ -11,6 +11,9 @@
 # the solved network of the last horizon, Snakemake solves the earlier ones on the way.
 foresight: myopic
 
+catalyst:
+  palette: true           # technology_assumptions.csv decides what the model may build (merge_config.py, technology-assumptions/scripts/palette.py)
+
 scenario:
   simpl: [""]
   ll: [copt]
@@ -26,6 +29,7 @@ calibration:            # fork patch: scripts/calibrate_network.py; 2024 tables 
   efficiency_spread: 0.15
   tranches: 3
   net_import_tolerance: 0.25
+  reference_year: 2024    # plants under construction (build year > 2024) are left out of the 2024 capacity calibration
   tables:
     demand: ../../config-pypsa-earth/calibration/2024/demand.csv
     capacity: ../../config-pypsa-earth/calibration/2024/capacity.csv
@@ -38,9 +42,27 @@ calibration:            # fork patch: scripts/calibrate_network.py; 2024 tables 
   horizon_tables:
     demand: ../../config-pypsa-earth/calibration/{planning_horizons}/demand.csv
 
+supply_curves:            # fork patch: site-specific supply curves, attached per cluster region (scripts/build_supply_curve.py);
+  egs:                    # built only because technology_assumptions.csv has egs as `model: tranches` (merge_config.py drops the block otherwise)
+    potential: ../../misc-quarter1/geothermal/build/egs_potential.csv   # Ricks & Jenkins cost model per 0.25 degree cell, capacity = well-spacing
+                                                                        # density x area x onshore-wind land exclusions (build that workflow first)
+    components: {drilling: well_capex_usd_per_kw, plant: plant_capex_usd_per_kw}  # = the CSV's learning_on / learning_on_2 (cost rows egs-drilling, egs-plant)
+    tranches: 5           # at most five EGS generators per cluster region
+    capex_bins: [0, 6000, 8000, 10000, 12000, 15000, 20000]   # USD2024/kW edges, as the toy model; cells above 20,000 dropped
+    developable_share: 0.3  # ASSUMPTION: on top of the land exclusions (~70 % of hot land) -> ~21 % overall, between Ricks & Jenkins
+                            # (a further 80 % derate for land acquisition and subsurface barriers) and Franzmann et al. 2025 (~25 %)
+    filter: "not remote_territory"   # cells of remote islands are kept out of the supply curves, as in the geothermal workflow
+    # cutout: filled in by merge_config.py from the base config
+
+electricity:
+  # keep plants under construction (GEM trackers via powerplantmatching, DateIn = planned start year); the default filter
+  # drops DateIn > 2023. They enter the model in the first horizon on or after their build year (fork patch)
+  powerplants_filter: (DateOut >= 2022 or DateOut != DateOut)
+
 existing_capacities:
   fill_missing_dateout: false     # SOW: only announced, dated retirements (GEM trackers); undated plants stay (fork patch)
   dispatch_only_horizons: [2025]  # SOW: 2025 validation run of the existing system, expansion from 2030 (fork patch)
+  grouping_years_power: [1960, 1965, 1970, 1975, 1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040]  # covers the planned start years
 
 enable:
   build_cutout: false

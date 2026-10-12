@@ -106,6 +106,31 @@ rule assumptions_resource_maps:
         "scripts/plot_resource_maps.py"
 
 
+# The palette in the fork: when the stage config sets `costs: overrides` (merge_config.py does for palette stages,
+# with {year} in the path), this rule writes the cost table rows of each year from the CSV; the fork's
+# process_cost_data merges them onto technology-data's table (scripts/build_palette_costs.py).
+if config.get("costs", {}).get("overrides"):
+
+    rule palette_costs:
+        input:
+            csv=P("technology_assumptions.csv"),
+            techdata="resources/" + RDIR + "costs_{year}.csv",
+            techdata_base="resources/" + RDIR + f"costs_{config['costs']['year']}.csv",
+        output:
+            config["costs"]["overrides"],
+        params:
+            countries=config["countries"],
+            storage_techs=config["storage_techs"],
+        wildcard_constraints:
+            year=r"\d{4}",
+        log:
+            "logs/" + RDIR + "palette_costs_{year}.log",
+        resources:
+            mem_mb=500,
+        script:
+            "scripts/build_palette_costs.py"
+
+
 rule assumptions_doc:
     input:
         tex=os.path.join(DOC, "main.tex"),

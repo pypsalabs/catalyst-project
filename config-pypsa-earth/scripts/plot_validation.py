@@ -15,7 +15,7 @@ Standalone (inside the fork's pixi env):
     pixi run python ../../config-pypsa-earth/scripts/plot_validation.py NOW.nc [ZERO.nc] -o page.png [--title T]
         [--points validation_points.csv] [--costs costs_2025_elec.csv costs_2050_elec.csv] [--shapes country_shapes.geojson]
 
-All numbers are computed directly from the network (no make_summary): TWh, GW, Mt CO2, bn EUR/a. The
+All numbers are computed directly from the network (no make_summary): TWh, GW, Mt CO2, bn USD/a. The
 "existing fleet" annuity (capital_cost x fixed p_nom) is shown for information; it is not part of the
 optimisation objective, which only prices extendable components.
 """
@@ -54,6 +54,9 @@ SHORT_NAMES = {  # y-tick labels must stay short (eight tiles per block)
     "onwind": "Onshore wind", "solar": "Solar PV", "hydro": "Hydro reservoir", "ror": "Run of river", "PHS": "Pumped hydro",
     "battery": "Battery", "H2": "Hydrogen store", "AC": "AC lines", "DC": "HVDC links", SHED: "Load shedding",
     "nuclear": "Nuclear", "coal": "Coal", "lignite": "Lignite", "oil": "Oil", "biomass": "Biomass", "geothermal": "Geothermal",
+    # the advanced palette (technology-assumptions/technology_assumptions.csv)
+    "nuclear-gen4": "Gen IV nuclear", "sofc": "SOFC (gas)", "sofc-cc": "SOFC + CC", "egs": "Enhanced geothermal",
+    "iron-air": "Iron-air (100 h)",
 }
 
 
@@ -71,7 +74,7 @@ FUEL_CARRIER = {"gas": "CCGT", "coal": "coal", "lignite": "lignite", "oil": "oil
 
 
 def fuel_prices(n, costs=None):
-    """Fuel prices the model assumes, EUR/MWh_th by fuel: the `fuel` column of costs_<year>_elec.csv, or, without
+    """Fuel prices the model assumes, USD/MWh_th by fuel: the `fuel` column of costs_<year>_elec.csv, or, without
     the file, marginal_cost x efficiency of the existing generators (which still includes VOM)."""
     if costs and os.path.exists(costs):
         c = pd.read_csv(costs, index_col=0)
@@ -151,7 +154,7 @@ def collect(n, costs=None):
     dc = lk.index[lk.carrier == "DC"]
     d["dc_gw"] = (float(lk.loc[dc, "p_nom"].sum() / 1e3), float(lk.loc[dc, "p_nom_opt"].sum() / 1e3))
 
-    # ---- prices (EUR/MWh): load-weighted regional hourly price, spread across buses
+    # ---- prices (USD/MWh): load-weighted regional hourly price, spread across buses
     mp = n.buses_t.marginal_price.reindex(columns=ac, fill_value=np.nan)
     lb = load.T.groupby(n.loads.bus).sum().T.reindex(columns=ac, fill_value=0.0)
     wsum = lb.sum(axis=1).replace(0, np.nan)
@@ -194,7 +197,7 @@ def collect(n, costs=None):
     d["curtailment"] = pd.DataFrame({"curtailed": curt, "available": availc})
     d["curtailment"] = d["curtailment"][d["curtailment"].available > 1e-6]
 
-    # ---- system cost (bn EUR/a)
+    # ---- system cost (bn USD/a)
     ext = gg.p_nom_extendable
     exist_cap = (gg.loc[~ext, "capital_cost"] * gg.loc[~ext, "p_nom"]).sum() \
         + (gg.loc[ext, "capital_cost"] * gg.loc[ext, "p_nom_min"]).sum() \
@@ -244,15 +247,17 @@ def collect(n, costs=None):
 
 # ----------------------------------------------------------------------------- validation points ---------
 GROUPS = {  # validation carrier -> model carriers (segments drawn in this order)
-    "coal": ["coal", "lignite"], "gas": ["CCGT", "OCGT"], "oil": ["oil"], "nuclear": ["nuclear"],
+    "coal": ["coal", "lignite"], "gas": ["CCGT", "OCGT", "sofc", "sofc-cc"], "oil": ["oil"], "nuclear": ["nuclear", "nuclear-gen4"],
     "hydro": ["hydro", "ror", "PHS"], "wind": ["onwind", "offwind-ac", "offwind-dc"], "solar": ["solar", "csp"],
-    "biomass": ["biomass"], "geothermal": ["geothermal"], "battery": ["battery"], "H2": ["H2"], SHED: [SHED],
+    "biomass": ["biomass"], "geothermal": ["geothermal", "egs"], "battery": ["battery", "iron-air"], "H2": ["H2"], SHED: [SHED],
 }
 GROUP_NAMES = {"coal": "Coal", "gas": "Gas", "oil": "Oil", "nuclear": "Nuclear", "hydro": "Hydro", "wind": "Wind",
                "solar": "Solar", "biomass": "Biomass", "geothermal": "Geothermal", "battery": "Battery", "H2": "Hydrogen",
                SHED: "Load shedding", "total": "Total", "other": "Other"}
 SUB_SHORT = {"coal": "hard", "lignite": "lign", "CCGT": "CCGT", "OCGT": "OCGT", "hydro": "res", "ror": "RoR", "PHS": "PHS",
-             "onwind": "on", "offwind-ac": "offAC", "offwind-dc": "offDC", "solar": "PV", "csp": "CSP"}
+             "onwind": "on", "offwind-ac": "offAC", "offwind-dc": "offDC", "solar": "PV", "csp": "CSP",
+             "sofc": "SOFC", "sofc-cc": "SOFC+CC", "nuclear": "LWR", "nuclear-gen4": "GenIV", "geothermal": "hydrothermal",
+             "egs": "EGS", "battery": "Li-ion", "iron-air": "Fe-air"}
 SOURCE_STYLE = [("#111111", "o"), ("#e6194b", "D"), ("#3b6fd6", "s"), ("#f58231", "^"), ("#911eb4", "v"), ("#469990", "P"),
                 ("#9a6324", "X")]
 
@@ -504,7 +509,7 @@ def draw_block(fig, cell, d, colors, nice, title, points=None, styles=None, shap
             ax.text(8760 * 0.015, yy + 0.01 * (yhi - ylo), f"{s}: {v:,.0f}", color=col, fontsize=6, ha="left", va="bottom",
                     zorder=6, path_effects=[patheffects.withStroke(linewidth=1.5, foreground="white")])
     ax.set_xlabel("hours (sorted)", fontsize=7, labelpad=1)
-    ax.set_ylabel("EUR/MWh", fontsize=7, labelpad=1)
+    ax.set_ylabel("USD/MWh", fontsize=7, labelpad=1)
     ax.spines[["top", "right"]].set_visible(False)
     txt = (f"lw mean {ps['mean']:,.1f}  median {ps['median']:,.1f}\n"
            f"p95 {ps['p95']:,.0f}  max {ps['max']:,.0f}  min {ps['min']:,.1f}\n"
@@ -512,7 +517,7 @@ def draw_block(fig, cell, d, colors, nice, title, points=None, styles=None, shap
     if ps["share_shed_bus_h"] > 0:
         txt += f"\nexcl. shed bus-h ({ps['share_shed_bus_h']:.1f} %): {ps['mean_ok']:,.1f}"
     if np.isfinite(d["co2_price"]):
-        txt += f"\nCO2 shadow price {d['co2_price']:,.0f} EUR/t"
+        txt += f"\nCO2 shadow price {d['co2_price']:,.0f} USD/t"
     ax.text(0.97, 0.95, txt, transform=ax.transAxes, fontsize=6, va="top", ha="right", zorder=7, linespacing=1.15,
             bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="0.8", lw=0.5))
     ax.set_title("Price  (load-wtd; band 5–95 % of buses; dashed: published)", **ts)
@@ -586,14 +591,14 @@ def draw_block(fig, cell, d, colors, nice, title, points=None, styles=None, shap
         ax.set_axis_off()
         ax.set_title("Curtailment\n", **ts)
 
-    # 7 fuel prices assumed by the model (EUR/MWh_th) + published prices / outlook assumptions
+    # 7 fuel prices assumed by the model (USD/MWh_th) + published prices / outlook assumptions
     ax = axes[6]
     fp = d["fuel_price"]
     fcol = {f: colors.get(c, GREY) for f, c in FUEL_CARRIER.items()}
     fnice = {**nice, "gas": "Gas", "coal": "Hard coal", "lignite": "Lignite", "oil": "Oil", "uranium": "Uranium", "biomass": "Biomass"}
     pf = _pts(region_pts, "fuel_price")
     if len(fp) or (pf is not None and len(pf)):
-        _hbars(ax, fp if len(fp) else pd.Series(dtype=float), fcol, fnice, "EUR/MWh thermal", points=pf, styles=styles, group=False)
+        _hbars(ax, fp if len(fp) else pd.Series(dtype=float), fcol, fnice, "USD/MWh thermal", points=pf, styles=styles, group=False)
         ax.set_title("Fuel prices assumed\n" + ("≈ marginal cost × eff., incl. VOM" if d["fuel_price_approx"]
                                                 else f"technology-data {d['meta']['cost_year']}"), **ts)
         ax.text(0.98, 0.02, "same in every region", transform=ax.transAxes, ha="right", va="bottom", fontsize=6, color="0.35")
@@ -614,10 +619,10 @@ def draw_block(fig, cell, d, colors, nice, title, points=None, styles=None, shap
         ax.plot([], [], " ", label=f"+ shedding penalty {d['shed_penalty_bn']:,.0f} bn\n  (in objective, not in total)")
     ax.set_xlim(-0.4, 4.0)
     ax.set_xticks([])
-    ax.set_ylabel("bn EUR/a", fontsize=7, labelpad=1)
+    ax.set_ylabel("bn USD/a", fontsize=7, labelpad=1)
     ax.spines[["top", "right"]].set_visible(False)
     ax.legend(fontsize=5.5, loc="upper left", bbox_to_anchor=(0.17, 1.0), frameon=False, handlelength=1.0, handletextpad=0.4)
-    ax.set_title(f"Cost  {d['cost_total_bn']:,.1f} bn EUR/a", **ts)   # EUR/MWh is in the summary tile
+    ax.set_title(f"Cost  {d['cost_total_bn']:,.1f} bn USD/a", **ts)   # USD/MWh is in the summary tile
 
     # 9 summary
     ax = axes[8]
@@ -632,13 +637,13 @@ def draw_block(fig, cell, d, colors, nice, title, points=None, styles=None, shap
         f"Generation   {d['generation_twh']:>8,.0f} TWh",
         f"Shedding     {d['shed_twh']:>8,.2f} TWh ({d['shed_hours']} h)",
         f"CO2          {d['emissions_total']:>8,.1f} Mt ({1e3 * d['emissions_total'] / d['demand_twh']:.0f} g/kWh)",
-        f"Price        {ps['mean']:>8,.1f} EUR/MWh (lw mean)",
-        f"  excl. shed {ps['mean_ok']:>8,.1f} EUR/MWh",
-        f"System cost  {d['cost_total_bn']:>8,.1f} bn/a ({d['cost_per_mwh']:,.0f} EUR/MWh)",
-        f"Objective    {d['objective_bn']:>8,.1f} bn EUR",
+        f"Price        {ps['mean']:>8,.1f} USD/MWh (lw mean)",
+        f"  excl. shed {ps['mean_ok']:>8,.1f} USD/MWh",
+        f"System cost  {d['cost_total_bn']:>8,.1f} bn/a ({d['cost_per_mwh']:,.0f} USD/MWh)",
+        f"Objective    {d['objective_bn']:>8,.1f} bn USD",
     ]
     if np.isfinite(d["co2_price"]):
-        lines.append(f"CO2 price    {d['co2_price']:>8,.0f} EUR/t (shadow)")
+        lines.append(f"CO2 price    {d['co2_price']:>8,.0f} USD/t (shadow)")
     chg = d["storage_charge_twh"].sort_values(ascending=False).head(2)
     for c, v in chg.items():
         if v > 0.05:

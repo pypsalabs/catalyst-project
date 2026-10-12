@@ -11,7 +11,15 @@ kind = dashboard  : stage <R> = config.<R>.yaml + the validation custom rule; ta
 kind = assumptions: no network; the technology-assumptions custom rules only; target the assumptions PDF
                     ../../config-pypsa-earth/technology-assumptions/build/technology_assumptions.pdf
 Every merged config carries technology-assumptions/assumptions.smk in custom_rules, so the assumptions
-document (and, later, the rules that feed technology_assumptions.csv into the cost table) are part of every stage.
+document and the rule that feeds technology_assumptions.csv into the cost table are part of every stage.
+Palette stages (catalyst.palette: true in the overlay, e.g. overlay.myopic.yaml): technology_assumptions.csv
+decides what the model may build (technology-assumptions/scripts/palette.py): its `model`, `carrier`, `regions`,
+`availability`, `min_load`, `fuel` and `color` columns become electricity.extendable_carriers (all four lists),
+extendable_carriers_buses: all, max_hours, the fork's `conventional:` block, calibration.fuel_map, plotting, and
+costs.overrides = resources/<stage>/palette/costs_{year}.csv, written per year by assumptions.smk (palette_costs)
+from the CSV. Supply-curve technologies (model tranches) take their dataset and binning from the overlay's
+supply_curves.<carrier> block (cutout filled in from the base config); without such a block they are not built.
+Every overlay stage runs in USD (costs.output_currency), the currency of the CSV and of the calibration price tables.
 Rest-of-world groups (catalyst.single_node in config.<G>.yaml, written by scripts/select_countries.py): catalyst.extra_opts
 (ATKc) is prepended to every overlay opt (3h -> ATKc-3h, Co2L0-3h -> ATKc-Co2L0-3h), and the overlay target is the solved
 network results/<stage>/networks/<stem>.nc (no per-network validation page; plot_world.py draws all countries at once).
@@ -25,6 +33,9 @@ import sys
 import yaml
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, "technology-assumptions", "scripts"))
+import palette  # noqa: E402
+
 SMK = "../../config-pypsa-earth/validation.smk"  # relative to the fork root, see custom_rules in the overlays
 ASSUMPTIONS = "../../config-pypsa-earth/technology-assumptions"
 ASSUMPTIONS_SMK = ASSUMPTIONS + "/assumptions.smk"
@@ -55,6 +66,9 @@ def stage_config(kind, stage):
         cat.update(base_run=base_run, scenario=scen)
         if cat.get("extra_opts"):
             cfg["scenario"]["opts"] = [f"{cat['extra_opts']}-{o}" for o in cfg["scenario"]["opts"]]
+        cfg.setdefault("costs", {})["output_currency"] = "USD"  # the study's currency (technology_assumptions.csv, price tables)
+        if cat.get("palette"):
+            apply_palette(cfg, stage)
     elif kind == "assumptions":
         cfg = {"run": {"name": "assumptions"}, "custom_rules": [SMK]}
     else:
@@ -63,6 +77,21 @@ def stage_config(kind, stage):
             cfg["custom_rules"] = sorted(set(cfg.get("custom_rules", []) or []) | {SMK})
     cfg["custom_rules"] = sorted(set(cfg.get("custom_rules", []) or []) | {ASSUMPTIONS_SMK})
     return cfg
+
+
+def apply_palette(cfg, stage):
+    """technology_assumptions.csv -> extendable carriers, availability, fuel map, colours, cost overrides (palette.py)."""
+    rows = palette.read()
+    deep_merge(cfg, palette.model_config(rows, cfg["countries"], stage))
+    tranches = palette.tranche_carriers(rows, cfg["countries"])
+    curves = cfg.get("supply_curves") or {}
+    for c in tranches:
+        if c in curves:
+            curves[c].setdefault("cutout", next(iter(cfg["atlite"]["cutouts"])))
+        else:
+            print(f"merge_config: {c} is a supply-curve technology of the palette but the overlay has no "
+                  f"supply_curves.{c} block; it is not built in stage {stage}", file=sys.stderr)
+    cfg["supply_curves"] = {c: v for c, v in curves.items() if c in tranches}
 
 
 def network_stem(cfg):
