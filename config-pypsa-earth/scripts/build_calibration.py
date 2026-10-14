@@ -84,6 +84,8 @@ BACKFILL_CF = {"geothermal": 0.75, "biomass": 0.5, "oil": 0.3, "gas": 0.3, "coal
 # Ember's combustion accounting is intensity x generation / emissions (Gulf / CIS gas fleets are steam and simple-cycle
 # units at 30-35 %, old coal fleets 28-33 %, Ember's lignite factor makes lignite fleets look less efficient still).
 # Applied for fuels with > 0.5 TWh; clipped to the range.
+# KNOWN BIAS (2026-10-14): Ember's fossil emission factors are life-cycle (upstream methane in the gas factors), so
+# gas efficiencies come out too low; see README "Open issue: emissions-implied gas efficiencies".
 IMPLIED_EFFICIENCY = {"gas": (0.198, (0.28, 0.58), ["CCGT", "OCGT"]), "coal": (0.336, (0.25, 0.45), ["coal", "lignite"]),
                       "oil": (0.2571, (0.25, 0.45), ["oil"])}
 

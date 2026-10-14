@@ -865,6 +865,39 @@ Not touched: the `-zero` scenario now starts from the same calibrated 2024 syste
 envelopes; expansion allowed, no CO2 price) but its runs had not been repeated when this was written — see the
 world page's notes box for the state of the `zero` bars.
 
+### Open issue: emissions-implied gas efficiencies are biased low (found 2026-10-14; re-run pending)
+
+`build_calibration.py` sets the coal / gas / oil fleet efficiency to combustion intensity × Ember generation ÷ Ember
+CO2 (iteration 5 above). Ember's CO2 is not measured: it is generation × emission factors, and per Ember's methodology
+(files.ember-energy.org, "ember_electricity_data_methodology.pdf") those factors are **life-cycle** for the fossil
+rows too: coal from UNECE (Gibon et al. 2022) blended by GEM coal grade, gas from Jordaan et al. 2022 country factors
+incl. upstream methane. The upstream part is read as extra fuel burnt in the plant.
+
+| country | Ember gas t/MWh_el | implied gas eff. | implied coal eff. |
+|---|---|---|---|
+| AU / CA / SA | 0.72-0.73 | 0.27 (clipped to 0.28) | 0.37-0.38 (AU, CA) |
+| IN | 0.69 | 0.29 | 0.37 |
+| BR | 0.60 | 0.33 | 0.39 |
+| US | 0.54 | 0.37 (EIA heat rates: ≈ 0.45) | 0.35 |
+| DE / PL | 0.41-0.43 | 0.46-0.49 | 0.35 |
+
+- Coal comes out plausible; **gas is biased low and the bias varies by country** with Jordaan's leakage assumptions,
+  so gas sits too high in the merit order relative to coal (≈ +20 % fuel cost per MWh_el in the US, more in AU/CA/IN).
+- The `now` validation does not show it because the soft ±10 % energy bands pin coal and gas generation, and with
+  generation pinned the model's CO2 equals Ember's by construction (circular). In the 16 solved `now` runs coal sits
+  at the band cap in 40 of 66 country rows (11 at the floor), gas at the floor in 24 of 94 (33 at the cap): consistent
+  with gas looking too expensive (KR, CN, IN, GB, PL, AU gas at the floor; ID, JP, TR, MX coal at the cap), not a proof
+  (single national fuel prices push the same way). The large coal systems (CN, IN, ZA, DE) sit inside the band.
+- The myopic and `zero` runs have no bands, so from 2030 the coal-gas split runs on these efficiencies alone.
+- Ember's capacity is a separate source family from its generation (coal and/or gas from the GEM trackers, gross,
+  > 50 MW, co-firing counted as gas; everything else IRENA), so the capacity factors in `envelope.csv` mix sources, and
+  the coal / gas capacity targets share GEM with powerplantmatching (not an independent check).
+
+**Planned fix, folded into the next round of model improvements:** recover the plant's direct emissions with Ember's
+own life-cycle factor per fuel (or take fleet heat rates from EIA / national statistics where they exist), then
+re-solve a few `now` stages **without** energy bands, once with the corrected and once with the current
+efficiencies, and compare coal and gas shares against Ember before re-solving `now`, `zero` and `myopic`.
+
 ## Demand pathway (future model years; 2026-10-04)
 
 Out of the box the fork has no demand growth in the electricity-only workflow: the load is one GEGIS file chosen by
