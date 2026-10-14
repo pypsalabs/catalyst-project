@@ -34,9 +34,12 @@ COLUMNS = ["technology", "label", "group", "kind", "in_default_mix", "capex_powe
 # name(s) the row drives, model = profile | firm | tranches | storage | existing (existing: fleet only, no new builds),
 # regions = ISO2 list where the row applies (blank: everywhere not claimed), fuel -> CO2 intensity and the calibration's
 # fuel prices, capture_rate, availability = p_max_pu, min_load = p_min_pu, capex_share_2 = CAPEX share of the
-# learning_on_2 component, techdata_trajectory = technology-data row(s) shaping a mature row's cost path, color
+# learning_on_2 component, techdata_trajectory = technology-data row(s) shaping a mature row's cost path, color;
+# learning (config-pypsa-earth/scripts/clear_market.py): learning_pool = row whose cumulative capacity and cost factor
+# this row shares (sofc-cc -> sofc), reference_gw_2 = reference capacity of the learning_on_2 component when it learns
+# on a broader market than the row itself (EGS surface plant: global binary geothermal)
 MODEL_COLUMNS = ["carrier", "model", "regions", "fuel", "capture_rate", "availability", "min_load", "capex_share_2",
-                 "techdata_trajectory", "color"]
+                 "techdata_trajectory", "color", "learning_pool", "reference_gw_2"]
 # optional: a second learning rate on another component (EGS: drilling + plant), and reference_site = the site whose
 # CAPEX the row carries where the cost depends on the site (EGS: Fervo Cape Station; the CAPEX and LCOE cells are
 # marked with a dagger named in the caption), and section = the key of the section the row's table link jumps to when
@@ -45,7 +48,7 @@ OPTIONAL = ["learning_rate_2", "learning_on_2", "reference_site", "section"] + M
 NUMERIC = ["capex_power_usd_kw", "capex_energy_usd_kwh", "duration_h", "fom_usd_kw_yr", "vom_usd_mwh", "efficiency",
            "lifetime_yr", "capacity_factor", "cycles_per_yr", "fuel_usd_mwh_th", "existing_gw", "pipeline_gw",
            "lead_time_yr", "max_build_rate_gw_yr", "learning_rate", "learning_rate_2", "currency_year",
-           "capture_rate", "availability", "min_load", "capex_share_2"]
+           "capture_rate", "availability", "min_load", "capex_share_2", "reference_gw_2"]
 # levelised cost columns computed from the table's own numbers at these real discount rates
 DISCOUNT_RATES = [0.02, 0.07]
 HOURS = 8760

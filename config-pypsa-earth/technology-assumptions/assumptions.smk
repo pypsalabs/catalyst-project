@@ -108,11 +108,22 @@ rule assumptions_resource_maps:
 
 # The palette in the fork: when the stage config sets `costs: overrides` (merge_config.py does for palette stages,
 # with {year} in the path), this rule writes the cost table rows of each year from the CSV; the fork's
-# process_cost_data merges them onto technology-data's table (scripts/build_palette_costs.py).
+# process_cost_data merges them onto technology-data's table (scripts/build_palette_costs.py). In learning stages the
+# advanced rows of a year take the cost factors of the learning market file (config-pypsa-earth/scripts/clear_market.py).
 if config.get("costs", {}).get("overrides"):
+
+    def palette_market(w):
+        """The learning market file of the year (catalyst.learning_market, set by merge_config.py for learning
+        stages), for every year after costs.year: the base year's costs are the reference of every horizon and
+        never learn."""
+        market = config.get("catalyst", {}).get("learning_market")
+        if market and int(w.year) > int(config["costs"]["year"]):
+            return {"market": market.format(year=w.year)}
+        return {}
 
     rule palette_costs:
         input:
+            unpack(palette_market),
             csv=P("technology_assumptions.csv"),
             techdata="resources/" + RDIR + "costs_{year}.csv",
             techdata_base="resources/" + RDIR + f"costs_{config['costs']['year']}.csv",

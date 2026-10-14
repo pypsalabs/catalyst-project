@@ -19,9 +19,13 @@ value is the CSV's, translated to the fork's conventions:
   of tranche costs in the fork
 - the year: mature rows follow technology-data's cost path, investment x td[row, year] / td[row, costs.year]
   for the row named in techdata_trajectory (default: the row's own key when technology-data has it); advanced
-  rows are flat until the learning step writes them
+  rows are flat unless a learning market file is given (results/learning/<market>/market_<year>.csv, written by
+  config-pypsa-earth/scripts/clear_market.py between planning horizons): their CAPEX is then multiplied by the
+  factor of their learning pool and component (storage: on the energy or power part; supply curves: per
+  component, the plain row = the sum of the learned components)
 
 Standalone: python build_palette_costs.py <year> <techdata_year.csv> <techdata_base.csv> <out.csv> [ISO2 ...]
+            [--market market_<year>.csv]
 """
 import math
 import os
@@ -47,10 +51,37 @@ def investment(td, name):
     return float(s.iloc[0]) if len(s) else math.nan
 
 
-def trajectory(row, td, td_base, names):
-    """Cost path factors of a mature row for the technology-data rows `names` (1.0 where unavailable)."""
+def read_market(path):
+    """{(pool, component): cost factor} of a learning market file; {} without one."""
+    if not path:
+        return {}
+    m = pd.read_csv(path, comment="#")
+    return {(p, c): float(f) for p, c, f in zip(m["pool"], m["component"], m["factor"])}
+
+
+def components(row):
+    """[(component, CAPEX share)] of a row's learning components (one, or two with capex_share_2)."""
+    share_2 = palette.num(row, "capex_share_2", 0.0) if row.get("learning_on_2") else 0.0
+    out = [(row.get("learning_on", "none"), 1.0 - share_2)]
+    if row.get("learning_on_2"):
+        out.append((row["learning_on_2"], share_2))
+    return out
+
+
+def learned(row, market):
+    """{component: factor} of an advanced row from the market ({} when the row does not learn)."""
+    pool = palette.pool_of(row)
+    return {c: market[(pool, c)] for c, _ in components(row) if (pool, c) in market}
+
+
+def trajectory(row, td, td_base, names, market=None):
+    """Cost path factors of a row for the technology-data rows `names` (1.0 where unavailable): technology-data's
+    path for mature rows, the learning market's factor for advanced rows (storage: [energy, power])."""
     if row["group"] != "mature":
-        return [1.0] * len(names)
+        f = learned(row, market or {})
+        if len(names) == 2:
+            return [f.get("energy", f.get("plant", 1.0)), f.get("power", f.get("plant", 1.0))]
+        return [sum(share * f.get(c, 1.0) for c, share in components(row))] * len(names)
     out = []
     for name in names:
         f = investment(td, name) / investment(td_base, name)
@@ -105,8 +136,9 @@ def storage_rows(row, carrier, storage_techs, f_energy, f_power):
     return rows
 
 
-def build(csv_path, countries, year, td_path, td_base_path, storage_techs, out_path):
+def build(csv_path, countries, year, td_path, td_base_path, storage_techs, out_path, market_path=None):
     rows = palette.applicable(palette.read(csv_path), countries)
+    market = read_market(market_path)
     td, td_base = pd.read_csv(td_path), pd.read_csv(td_base_path)
     gas_co2 = float(td[(td.technology == "gas") & (td.parameter == "CO2 intensity")].value.iloc[0])
     table = {}  # technology -> {parameter: value}
@@ -119,23 +151,24 @@ def build(csv_path, countries, year, td_path, td_base_path, storage_techs, out_p
         key, note = r["technology"], f"row {r['technology']} of the palette ({r['group']}, model {r['model']})"
         names = palette._list(r.get("techdata_trajectory")) or [key]
         if r["model"] == "storage":
-            f = trajectory(r, td, td_base, names if len(names) == 2 else names * 2)
+            f = trajectory(r, td, td_base, names if len(names) == 2 else names * 2, market)
             for c in palette.carriers(r):
                 put_rows = storage_rows(r, c, storage_techs, f[0], f[1])
                 for name, p in put_rows.items():
                     put(name, p, note)
             continue
-        (f,) = trajectory(r, td, td_base, names[:1])
+        (f,) = trajectory(r, td, td_base, names[:1], market)
         p = generation_rows(r, f, gas_co2)
         if r["model"] == "existing" and r["kind"] == "storage":
             p.pop("efficiency", None)  # the fork's PHS efficiency convention differs from the CSV's (per direction)
-        for name in {key, *palette.carriers(r)}:
+        for name in dict.fromkeys([key, *palette.carriers(r)]):  # ordered: the file must not change between runs
             put(name, p, note)
         if r["model"] == "tranches":
-            share_2 = palette.num(r, "capex_share_2", 0.0)
-            for comp, share in ((r["learning_on"], 1 - share_2), (r.get("learning_on_2"), share_2)):
+            capex, lf = palette.num(r, "capex_power_usd_kw"), learned(r, market)
+            for comp, share in components(r):
                 if comp and comp != "none":
-                    put(f"{key}-{comp}", {"investment": p["investment"] * share}, f"{note}; CAPEX share of the {comp} component")
+                    put(f"{key}-{comp}", {"investment": capex * share * lf.get(comp, 1.0)},
+                        f"{note}; CAPEX share of the {comp} component" + (" (learned)" if comp in lf else ""))
         if r.get("fuel") == "gas" and "fuel" in p:
             gas_fuel.add(p["fuel"])
         if key == "offwind":
@@ -159,12 +192,19 @@ def build(csv_path, countries, year, td_path, td_base_path, storage_techs, out_p
 if __name__ == "__main__":
     if "snakemake" in globals():
         build(snakemake.input.csv, snakemake.params.countries, int(snakemake.wildcards.year), snakemake.input.techdata,
-              snakemake.input.techdata_base, snakemake.params.storage_techs, snakemake.output[0])
+              snakemake.input.techdata_base, snakemake.params.storage_techs, snakemake.output[0],
+              snakemake.input.get("market"))
     else:
         import yaml
 
-        year, td, td_base, out, *countries = sys.argv[1:]
+        args = sys.argv[1:]
+        market = None
+        if "--market" in args:
+            i = args.index("--market")
+            market = args[i + 1]
+            del args[i:i + 2]
+        year, td, td_base, out, *countries = args
         fork = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "models", "pypsa-earth")
         storage_techs = yaml.safe_load(open(os.path.join(fork, "config.default.yaml")))["storage_techs"]
-        df = build(palette.CSV, countries or ["SG"], int(year), td, td_base, storage_techs, out)
+        df = build(palette.CSV, countries or ["SG"], int(year), td, td_base, storage_techs, out, market)
         print(df.drop(columns=["source"]).to_string())

@@ -125,6 +125,59 @@ def model_config(rows, countries, stage):
     return cfg
 
 
+def learning_pools(rows):
+    """Learning markets of the advanced palette: {pool: {"members": [technology, ...], "components": [...]}}.
+
+    A pool is an advanced, buildable row with a learning rate > 0, together with the rows whose `learning_pool`
+    names it (sofc-cc -> sofc): their builds add up and they take the pool's cost factor. Each component is a dict
+    with `component` (learning_on / learning_on_2), `rate`, `share` (CAPEX share: 1 - capex_share_2 / capex_share_2),
+    `unit` (GWh when the component is `energy`, else GW) and `reference` = the cumulative capacity behind the CSV
+    CAPEX = existing_gw + pipeline_gw of the pool row (x duration_h for energy; decision 2026-10-14: the CSV CAPEX
+    is the cost of the projects being built now, learning starts with the model's builds), or reference_gw_2 for the
+    second component when set (EGS surface plant: global binary geothermal). Rows are not filtered by region: the
+    market is global.
+    """
+    by_key = {r["technology"]: r for r in rows}
+    pools = {}
+    for r in buildable(rows):
+        if r["group"] != "advanced" or r.get("learning_pool"):
+            continue
+        rate = num(r, "learning_rate", 0.0)
+        if rate <= 0 or r.get("learning_on", "none") == "none":
+            continue
+        q = num(r, "existing_gw", 0.0) + num(r, "pipeline_gw", 0.0)
+        if q <= 0:
+            raise ValueError(f"{r['technology']}: learning needs existing_gw + pipeline_gw > 0 (the reference capacity)")
+        share_2 = num(r, "capex_share_2", 0.0) if r.get("learning_on_2") else 0.0
+        comps = []
+        for comp, rate_c, share, ref in ((r["learning_on"], rate, 1.0 - share_2, q),
+                                         (r.get("learning_on_2"), num(r, "learning_rate_2", 0.0), share_2,
+                                          num(r, "reference_gw_2", q))):
+            if not comp:
+                continue
+            energy = comp == "energy"
+            if energy and not num(r, "duration_h"):
+                raise ValueError(f"{r['technology']}: learning on energy needs duration_h")
+            comps.append({"component": comp, "rate": rate_c, "share": share, "unit": "GWh" if energy else "GW",
+                          "reference": ref * (num(r, "duration_h") if energy else 1.0)})
+        pools[r["technology"]] = {"members": [r["technology"]], "components": comps}
+    for r in buildable(rows):
+        pool = r.get("learning_pool")
+        if not pool:
+            continue
+        if pool not in pools:
+            raise ValueError(f"{r['technology']}: learning_pool {pool!r} is not a learning row ({sorted(pools)})")
+        if r["model"] != by_key[pool]["model"]:
+            raise ValueError(f"{r['technology']}: learning_pool {pool!r} has another model ({by_key[pool]['model']})")
+        pools[pool]["members"].append(r["technology"])
+    return pools
+
+
+def pool_of(row):
+    """Learning pool a row belongs to (its own key unless learning_pool is set)."""
+    return row.get("learning_pool") or row["technology"]
+
+
 def tranche_carriers(rows, countries):
     """Carriers built as supply curves (model = tranches); their datasets are configured in the overlay (supply_curves)."""
     return [c for r in buildable(applicable(rows, countries)) if r["model"] == "tranches" for c in carriers(r)]
@@ -133,6 +186,9 @@ def tranche_carriers(rows, countries):
 if __name__ == "__main__":
     import json
 
+    if sys.argv[1:2] == ["learning"]:
+        print(json.dumps(learning_pools(read()), indent=1))
+        sys.exit()
     countries = sys.argv[1:] or ["SG"]
     print(json.dumps(model_config(read(), countries, "test"), indent=1))
     print("tranches:", tranche_carriers(read(), countries))

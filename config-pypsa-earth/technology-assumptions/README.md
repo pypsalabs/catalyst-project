@@ -124,8 +124,10 @@ respective working directory, so the two modes may each rebuild once.
 | `capture_rate` | share of the fuel CO₂ captured (`sofc-cc` 0.978), blank = 0 |
 | `availability`, `min_load` | p_max_pu and p_min_pu of a `firm` row (Gen IV 0.9 / 0.5, SOFC 0.9); blank = 1 / 0. CCGT and OCGT have none: their `capacity_factor` is utilisation for the LCOE, not availability |
 | `capex_share_2` | CAPEX share of the `learning_on_2` component (EGS: plant 0.325 of 8,100 at Cape Station, wellfield the rest), the reference for scaling the two components of every EGS tranche between planning horizons |
-| `techdata_trajectory` | technology-data row(s) whose investment path shapes a **mature** row over the model years (investment × td[year] / td[2025]); blank = the row's own key when technology-data has it, else flat; two names for storage (energy, power: `battery storage,battery inverter`). Advanced rows are flat until the learning step writes them |
+| `techdata_trajectory` | technology-data row(s) whose investment path shapes a **mature** row over the model years (investment × td[year] / td[2025]); blank = the row's own key when technology-data has it, else flat; two names for storage (energy, power: `battery storage,battery inverter`). Advanced rows follow the learning market of the pathway (`results/learning/<scen>/market_<year>.csv`, factor per pool and component), flat without one |
 | `color` | hex colour of the carrier in the fork's plots (`plotting.tech_colors`) |
+| `learning_pool` | **learning (2026-10-14; `config-pypsa-earth/scripts/clear_market.py`):** the row whose cumulative capacity and cost factor this row shares; `sofc-cc` -> `sofc` (their builds add up, SOFC-CC's whole CAPEX takes the factor). Blank = its own pool |
+| `reference_gw_2` | reference capacity of the `learning_on_2` component when it learns on a broader market than the row (EGS surface plant: 4 GW of binary geothermal worldwide, as in the EGS section). Blank = the row's own reference, `existing_gw` + `pipeline_gw` (the capacity behind the CSV CAPEX, decision 2026-10-14) |
 | `currency_year` | 2024 for every row (`build_table.py` asserts uniformity; conversions as in `misc-quarter1/technology-costs`: ECB rate of the price year, US CPI to 2024) |
 | `source`, `comment` | free text documenting the CSV; not typeset, their content is argued in the technology's section |
 
