@@ -13,6 +13,8 @@ foresight: myopic
 
 catalyst:
   palette: true           # technology_assumptions.csv decides what the model may build (merge_config.py, technology-assumptions/scripts/palette.py)
+  learning: true          # Wright's-law learning market of all <R>-myopic stages run as one pathway (run.sh pathway:myopic:<R1>,<R2>,...;
+                          # scripts/clear_market.py writes results/learning/myopic/market_<year>.csv between horizons)
 
 scenario:
   simpl: [""]

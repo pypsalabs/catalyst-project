@@ -954,16 +954,16 @@ columns, so only `prepare_network` and `solve_network` re-run. `run.sh` skips a 
 - A fitted alternative (income elasticity + electrification layer) was tested first and rejected:
   `misc-quarter1/demand-projection/`.
 
-### Pathway design: how demand, the myopic loop and learning fit together (learning not implemented)
+### Pathway design: how demand, the myopic loop and learning fit together
 
-The shared interface is the year. Demand and the myopic loop are in place; learning is design only.
+The shared interface is the year. Demand, the myopic loop, the palette and the learning market are in place.
 
 | Part | What a model year reads | Status |
 |---|---|---|
 | Demand | `calibration/<year>/demand.csv` | implemented |
 | Myopic | the solved network of the previous year + the per-year tables | implemented (2026-10-04) |
 | Palette | `technology-assumptions/technology_assumptions.csv` → cost rows per year + the stage config | implemented (2026-10-12, see "Technology palette" below) |
-| Learning | a per-year cost file written by a market step between years | planned |
+| Learning | `results/learning/<scen>/market_<year>.csv`, written by a market step between years across all regions of the pathway | implemented (2026-10-14, see "Learning market step" below) |
 
 - **Myopic, electricity-only (2026-10-04).** Stage `<R>-myopic` = `config.<R>.yaml` + `overlay.myopic.yaml`
   (`foresight: myopic`, `planning_horizons: [2025, 2030, ..., 2050]`, no CO2 cap, 2024 CO2 prices). The fork got
@@ -1012,13 +1012,7 @@ The shared interface is the year. Demand and the myopic loop are in place; learn
     firm could be built. The study palette is wired in since then ("Technology palette" below): Singapore now
     builds CCGT (11.6 → 24.7 GW by 2050, no shedding); the firm clean options exist but are dearer than gas at
     Singapore's 2024 prices without a CO₂ price pathway.
-- **Learning.** A market step between years across all archetypes, as in `models/priam-myopic/scripts/
-  solve_market.py`: cumulative capacity += new builds, `cost = reference cost × (cumulative / reference) ^
-  log2(1 − learning rate)`. Inputs are already in `technology-assumptions/technology_assumptions.csv`
-  (`learning_rate`, `learning_on`, `existing_gw`, `pipeline_gw`, `lead_time_yr`). Output: a per-year cost file
-  with priam's column names, written outside the fork's `costs_{year}_{scope}.csv` pattern. The hook exists:
-  the cost input of `add_brownfield_elec` is a function (`costs_planning_horizon_elec` in the fork's Snakefile). Because archetypes are cleared jointly it is a `run.sh` stage between years (like
-  `world`), not a rule inside one region's run.
+- **Learning (2026-10-14).** See "Learning market step" at the end of this README.
 
 ## Technology palette in the model (stages with `catalyst.palette: true`, i.e. `<R>-myopic`; 2026-10-12)
 
@@ -1052,7 +1046,7 @@ copies onto CCGT and OCGT); storage through the fork's `storage_techs` names (st
 kW, FOM split by CAPEX share, efficiency per direction except battery/li-ion where the fork square-roots the
 round trip itself); EGS rows `egs`, `egs-drilling`, `egs-plant` (CAPEX split by `capex_share_2`). Years: mature
 rows follow technology-data's investment path relative to 2025 (`techdata_trajectory`, decision 2026-10-12),
-advanced rows are flat until the learning step rewrites single years. The fork's `costs.marginal_cost` defaults
+advanced rows take the factor of the learning market ("Learning market step" below), flat without one. The fork's `costs.marginal_cost` defaults
 are emptied so the CSV VOM applies. Sanity (SG 2025 table, 7 %): Gen IV 1.36 M USD/MW/yr, SOFC-CC 0.91 M, iron-air
 0.79 M per MW (100 h), CCGT 0.26 M; SOFC-CC co2_emissions 0.0044 t/MWh_th.
 
@@ -1089,3 +1083,63 @@ hourly capacity factors from hourly air temperature); the fork interpolates at t
 normalises to an annual mean of 1 so the annual CF stays 0.85, output above rating in cold hours included. In
 myopic runs the tranche CAPEX components follow the `egs-drilling` / `egs-plant` rows between horizons and the
 land-use constraint nets each tranche's earlier builds off its cap by name.
+
+## Learning market step (`run.sh pathway:<scen>:<R1>,<R2>,...`; 2026-10-14)
+
+SOW (WP3): after each investment year the markets for advanced technologies are cleared across the regions,
+cumulative deployment sets the next year's investment costs (Wright's law). Each `<R>-myopic` stage is its own
+Snakemake run, so the regions meet in `run.sh`: a **pathway** stage advances all of them one planning horizon at a
+time and runs the market step in between.
+
+```
+run.sh pathway:myopic:SG,CA,OCE
+  clear_market.py init  -> results/learning/myopic/market_2025.csv      (reference: factor 1)
+  for Y in 2025, 2030, ..., 2050:
+      every <R>-myopic: Snakemake target results/<R>-myopic/networks/<stem>_<Y>.nc
+      clear_market.py step  (builds of Y in all stages) -> results/learning/myopic/market_<Y+5>.csv
+  plot_learning.py -> results/learning/myopic/learning.png
+```
+
+- **Market = overlay.** `catalyst.learning: true` in `overlay.myopic.yaml`; all `<R>-myopic` stages of a
+  pathway form the market `myopic` (merge_config.py sets `catalyst.learning_market`). The catalyst scenario gets
+  its own overlay and with it its own market.
+- **Pools** (`technology-assumptions/scripts/palette.py`, `learning_pools`): every advanced, buildable CSV row with
+  a learning rate: Gen IV (plant, 10 %), iron-air (energy, 15 %), EGS (drilling 15 % on 67.5 % of the CAPEX,
+  surface plant 10 % on 32.5 %), SOFC (plant, 30 %). SOFC-CC shares SOFC's pool (CSV column `learning_pool`):
+  their builds add up and SOFC-CC's whole CAPEX, capture adder included, takes the pool factor (decision
+  2026-10-14). VRFB and the CO2 battery are not in the default mix and do not learn.
+- **Wright's law**: `factor = max(Q / Q0, 1) ** log2(1 − learning rate)`, `CAPEX = CSV CAPEX × factor`, no floor
+  (decision 2026-10-14), never above 1. FOM is written as % of CAPEX and follows; VOM, fuel and efficiency do not
+  learn.
+- **Reference capacity Q0 = `existing_gw` + `pipeline_gw`** of the pool row (decision 2026-10-14): the CSV CAPEX is
+  read as the cost of the projects being built now (Fervo Cape Station, Form Energy's first plants), learning
+  starts with the model's own builds. Energy-learning rows in GWh (× `duration_h`). EGS surface plant: CSV column
+  `reference_gw_2` = 4 GW, global binary geothermal (egs.tex), so the plant learns slowly on EGS builds.
+
+  | pool | component | Q0 | rate | CSV CAPEX of the component |
+  |---|---|---|---|---|
+  | Gen IV | plant | 2.9 GW | 0.10 | 17,000 USD/kW |
+  | iron-air | energy | 40.2 GWh | 0.15 | 75 USD/kWh |
+  | EGS | drilling | 0.504 GW | 0.15 | 5,467.5 USD/kW |
+  | EGS | plant | 4 GW | 0.10 | 2,632.5 USD/kW |
+  | SOFC (+ SOFC-CC) | plant | 1.4 GW | 0.30 | 4,100 USD/kW (SOFC-CC 4,740) |
+
+- **What counts** (`clear_market.py`): extendable assets of each stage's solved network of horizon Y,
+  `p_nom_opt − p_nom_min` where `p_nom_opt` ≥ `threshold_capacity` (10 MW: what the next horizon carries over),
+  per CSV row through its carriers (Generator incl. EGS tranches; StorageUnit × `max_hours` for iron-air). **Only
+  modelled builds count**, no scaling to the world (decision 2026-10-14); the file header records the stages and
+  their share of 2024 world demand. Committed plants (GEM construction status) are fixed, not extendable, so they
+  are not counted: the pipeline is in Q0. Retirements do not reduce Q. Builds of Y set the costs of Y + 5.
+- **How costs reach the model**: `market_<Y>.csv` is an input of the palette costs of year Y
+  (`assumptions.smk`, rule `palette_costs`, for years after `costs.year`; the 2025 file is the reference of every
+  horizon and never learns), `build_palette_costs.py` scales the advanced rows by their pool factor (EGS per
+  component: `egs-drilling`, `egs-plant`), and the fork's `update_capital_costs` moves the extendable assets of the
+  horizon by the difference to 2025. No fork change.
+- **Resumable, minimal re-runs.** A pathway hands every horizon to Snakemake (`--rerun-triggers mtime input`);
+  `clear_market.py` rewrites a market file only when its content changes, so a second call re-runs nothing,
+  and a changed market file re-runs exactly the horizons from that year on in every stage.
+- **Test hook**: `LEARNING_EXOGENOUS=<csv>` (columns technology, year, gw) adds deployment outside the model in a
+  horizon (also the hook for procurement volumes of the catalyst scenario).
+- **Not yet**: no global build-rate limit (`max_build_rate_gw_yr`, Gen IV 1 GW/yr): once a technology is cheapest
+  nothing limits how fast the regions build it, and a joint limit needs an allocation across independently
+  solved regions. The no-learning results of 2026-10-12 are kept in `results/archive/<R>-myopic-nolearning/`.

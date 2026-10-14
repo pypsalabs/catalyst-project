@@ -16,6 +16,15 @@
 #                     <R>-now / <R>-zero network (archetypes and rest-of-world groups), run directly (no Snakemake)
 #   assumptions       technology-assumptions/build/technology_assumptions.pdf from technology_assumptions.csv and
 #                     technology-assumptions/doc (assumptions.smk; no network, always re-checked, never skipped)
+#   pathway:<scen>:<R1>,<R2>,...
+#                     myopic pathway with a learning market (overlay.<scen>.yaml with catalyst.learning, e.g.
+#                     pathway:myopic:SG,CA,OCE): all stages <R>-<scen> advance one planning horizon at a time (target
+#                     results/<R>-<scen>/networks/<stem>_<year>.nc, always handed to Snakemake so a changed market file
+#                     re-runs exactly the affected horizons), and between horizons scripts/clear_market.py clears the
+#                     market of the advanced technologies over all of them (results/learning/<scen>/market_<year>.csv,
+#                     read by the palette costs of that year); at the end scripts/plot_learning.py draws
+#                     results/learning/<scen>/learning.png. Resumable: a second call re-runs nothing that is up to date.
+#                     LEARNING_EXOGENOUS=<csv> (technology, year, gw) adds deployment outside the model (test hook).
 #   Rest-of-world groups (config.<G>.yaml with catalyst.single_node, from scripts/select_countries.py) run as
 #   prestage:<G> <G> <G>-now <G>-zero; their overlay target is the solved network itself.
 # Constraints enforced here: no Snakemake parallelism (-c1 -j1), the whole process tree capped at MEM_MAX
@@ -77,16 +86,17 @@ link_resources() {   # $1 = base run, $2 = scenario run: share the expensive res
     mkdir -p "networks/$run"; ln "networks/$base/base.nc" "networks/$run/base.nc"; log "[$run] networks/$run/base.nc hardlinked from networks/$base"; fi
 }
 
-run_stage() {   # $1 = stage name (see header)
+run_stage() {   # $1 = stage name (see header); HORIZON=<year> (pathway): target that horizon's solved network
   local run="$1" kind tag target slog rc attempt wd rule
   kind=$(stage_kind "$run"); run="${run#dashboard:}"
   tag="$run"; [ "$kind" = dashboard ] && tag="dashboard_$run"
   slog="$LOGDIR/$tag.log"
   cd "$PE" || return 1
   # build config.yaml for this stage and derive its target (merge_config.py prints the target)
-  target=$(pixi run python "$HERE/merge_config.py" "$kind" "$run" "$PE/config.yaml" 2>>"$slog") || { log "[$run] merge_config.py failed, see $slog"; return 1; }
+  target=$(pixi run python "$HERE/merge_config.py" "$kind" "$run" "$PE/config.yaml" ${HORIZON:+"$HORIZON"} 2>>"$slog") || { log "[$run] merge_config.py failed, see $slog"; return 1; }
   cp "$PE/config.yaml" "$LOGDIR/config.$tag.yaml"
-  if [ -f "$target" ] && [ "$kind" != assumptions ]; then log "[$run] $target exists, skip"; return 0; fi   # a document is re-edited: let Snakemake decide
+  # a document is re-edited, a pathway horizon may have a new market file: let Snakemake decide
+  if [ -f "$target" ] && [ "$kind" != assumptions ] && [ -z "${HORIZON:-}" ]; then log "[$run] $target exists, skip"; return 0; fi
   if [ "$kind" = overlay ]; then link_resources "${run%-*}" "$run"; fi
   for attempt in 1 2 3; do
     # pypsa-earth aborts at DAG construction if build_cutout is enabled while the
@@ -121,7 +131,7 @@ run_stage() {   # $1 = stage name (see header)
     rc=$?
     kill "$wd" 2>/dev/null; wait "$wd" 2>/dev/null
     log "[$run] attempt $attempt finished rc=$rc; $(grep -o 'SCOPE memory.peak=.*' "$slog" | tail -1)"
-    if [ -f "$target" ]; then
+    if [ -f "$target" ] && { [ -z "${HORIZON:-}" ] || [ "$rc" -eq 0 ]; }; then   # pathway: the target may predate this attempt
       log "[$run] SUCCESS $target ($(du -h "$target" | cut -f1)); free $(free_gb) GB"
       # resources/<run>/bus_regions/ must describe networks/<run>/ (busmap index/values, region names, clustered x/y =
       # member mean). 2026-09-20: the scenario runs shared resources/<R> through a directory symlink and rewrote the
@@ -159,6 +169,40 @@ run_world() {   # world page over all solved networks, same memory scope as the 
   log "[world] SUCCESS results/catalyst/validation_world.png"
 }
 
+run_pathway() {   # $1 = pathway:<scen>:<R1>,<R2>,... (see header)
+  local spec="${1#pathway:}" scen r s i y ynext slog horizons=() stages=() regions=()
+  scen="${spec%%:*}"; IFS=, read -ra regions <<< "${spec#*:}"
+  [ -n "$scen" ] && [ ${#regions[@]} -gt 0 ] && [ "$spec" != "$scen" ] || { log "[pathway] usage: pathway:<scen>:<R1>,<R2>,..."; return 1; }
+  for r in "${regions[@]}"; do
+    s="$r-$scen"; [ "$(stage_kind "$s")" = overlay ] || { log "[pathway $scen] unknown stage $s"; return 1; }; stages+=("$s")
+  done
+  slog="$LOGDIR/pathway_$scen.log"
+  cd "$PE" || return 1
+  read -ra horizons <<< "$(pixi run python "$HERE/merge_config.py" horizons "${stages[0]}" 2>>"$slog")"
+  [ ${#horizons[@]} -gt 0 ] || { log "[pathway $scen] no planning horizons (merge_config.py horizons ${stages[0]}), see $slog"; return 1; }
+  log "[pathway $scen] stages ${stages[*]}, horizons ${horizons[*]}${LEARNING_EXOGENOUS:+, exogenous $LEARNING_EXOGENOUS}"
+  echo "######## [pathway $scen] $(date) ########" >> "$slog"
+  pixi run python "$HERE/scripts/clear_market.py" init "$scen" "${horizons[0]}" >> "$slog" 2>&1 \
+    || { log "[pathway $scen] clear_market.py init FAILED, see $slog"; return 1; }
+  for i in "${!horizons[@]}"; do
+    y="${horizons[$i]}"
+    for s in "${stages[@]}"; do
+      HORIZON="$y" run_stage "$s" || { log "[pathway $scen] $s $y FAILED -> stop the pathway"; return 1; }
+    done
+    ynext="${horizons[$((i + 1))]:-}"
+    [ -n "$ynext" ] || break
+    log "[pathway $scen] market step: builds of $y -> costs of $ynext"
+    systemd-run --user --scope --quiet -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -- \
+      pixi run python "$HERE/scripts/clear_market.py" step "$scen" "$y" "$ynext" "${stages[@]}" \
+      ${LEARNING_EXOGENOUS:+--exogenous "$LEARNING_EXOGENOUS"} >> "$slog" 2>&1 \
+      || { log "[pathway $scen] clear_market.py step $y FAILED, see $slog"; return 1; }
+    log "[pathway $scen] $(grep -oE 'clear_market: (wrote .*|.* unchanged)$' "$slog" | tail -1)"
+  done
+  pixi run python "$HERE/scripts/plot_learning.py" "$scen" >> "$slog" 2>&1 \
+    && log "[pathway $scen] SUCCESS, results/learning/$scen/learning.png" \
+    || { log "[pathway $scen] plot_learning.py FAILED, see $slog"; return 1; }
+}
+
 stages=("$@"); [ ${#stages[@]} -eq 0 ] && stages=(prestage:US US-smoke US)
 log "######## run.sh start: ${stages[*]} (cap ${MEM_MAX}, continue_on_fail=${CONTINUE_ON_FAIL}) ########"
 ma=$(mem_avail_gb); need=$(( ${MEM_MAX%G} + 2 ))
@@ -173,6 +217,8 @@ for i in "${!stages[@]}"; do
       bash "$HERE/prestage.sh" "$cc" || { log "prestage $cc FAILED -> stop"; exit 1; } ;;
     world)
       run_world || { [ "$CONTINUE_ON_FAIL" = 1 ] && failed+=("$s") || exit 1; } ;;
+    pathway:*)
+      run_pathway "$s" || { [ "$CONTINUE_ON_FAIL" = 1 ] && failed+=("$s") || exit 1; } ;;
     *)
       [ "$(stage_kind "$s")" != unknown ] || { log "unknown stage $s (no config.$s.yaml, and not <R>-<scen> with config.<R>.yaml + overlay.<scen>.yaml)"; exit 1; }
       if ! run_stage "$s"; then
