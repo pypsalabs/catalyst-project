@@ -1,0 +1,74 @@
+# Icon plot style: rcParams half of the translation (helpers in iconstyle.py).
+# Sizes in points for a 5.6 x 3.6 in figure, where 1 px of the 560 x 360 reference SVG = 0.72 pt.
+
+font.family: sans-serif
+font.sans-serif: IBM Plex Sans, Helvetica Neue, Helvetica, Arial, Liberation Sans, Nimbus Sans, DejaVu Sans
+font.size: 7.9
+text.color: 1f2a36
+
+axes.facecolor: white
+axes.edgecolor: 1f2a36
+axes.linewidth: 1.37
+axes.labelcolor: 4a5866
+axes.labelsize: 7.9
+axes.titlesize: 7.9
+axes.titleweight: normal   # use() sets medium when IBM Plex Sans is installed
+axes.titlecolor: 1f2a36
+axes.titlelocation: left
+axes.titlepad: 12
+axes.spines.top: False
+axes.spines.right: False
+axes.spines.left: False
+axes.spines.bottom: True
+axes.grid: True
+axes.grid.axis: y
+axes.axisbelow: True
+axes.prop_cycle: cycler('color', ['2563a6', 'e8772f', '1f9a7a', '7d5bb3', 'd9a92e', 'c0392b'])
+axes.xmargin: 0
+axes.ymargin: 0
+
+grid.color: e8edf1
+grid.linewidth: 0.86
+grid.linestyle: -
+
+xtick.color: 9aa9b7
+xtick.labelcolor: 4a5866
+xtick.labelsize: 7.9
+xtick.major.size: 3.6
+xtick.major.width: 1.0
+xtick.major.pad: 4
+xtick.minor.size: 0
+ytick.color: 9aa9b7
+ytick.labelcolor: 4a5866
+ytick.labelsize: 7.9
+ytick.major.size: 0
+ytick.major.pad: 7
+ytick.minor.size: 0
+
+lines.linewidth: 2.3
+lines.solid_joinstyle: round
+lines.solid_capstyle: round
+lines.markersize: 6.6
+lines.markeredgewidth: 1.15
+lines.markeredgecolor: 1f2a36
+
+patch.edgecolor: 1f2a36
+patch.linewidth: 1.15
+patch.force_edgecolor: True
+
+legend.frameon: False
+legend.fontsize: 7.9
+legend.labelcolor: 1f2a36
+legend.handlelength: 0.9
+legend.handleheight: 0.9
+legend.handletextpad: 0.5
+legend.columnspacing: 1.6
+legend.borderaxespad: 0
+
+figure.facecolor: white
+figure.figsize: 5.6, 3.6
+figure.dpi: 100
+savefig.dpi: 200
+savefig.facecolor: white
+pdf.fonttype: 42
+svg.fonttype: none

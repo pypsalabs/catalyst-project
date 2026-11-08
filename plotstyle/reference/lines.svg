@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 360" width="560" height="360" role="img" aria-label="Line plot: experience curves of solar, onshore wind and Li-ion">
+<title>Line plot: experience curves of solar, onshore wind and Li-ion</title>
+<g font-family="'IBM Plex Sans','Helvetica Neue',Arial,sans-serif" stroke-linejoin="miter" stroke-linecap="butt">
+<text x="20.0" y="30.0" font-size="11" text-anchor="start" fill="#1f2a36" font-weight="500" stroke="none" >Cost relative to first observation</text>
+<line x1="62" y1="83.9" x2="470" y2="83.9" stroke="#e8edf1" stroke-width="1.2"/><text x="52.0" y="87.9" font-size="11" text-anchor="end" fill="#4a5866" font-weight="400" stroke="none" >1</text>
+<line x1="62" y1="133.9" x2="470" y2="133.9" stroke="#e8edf1" stroke-width="1.2"/><text x="52.0" y="137.9" font-size="11" text-anchor="end" fill="#4a5866" font-weight="400" stroke="none" >0.5</text>
+<line x1="62" y1="200.0" x2="470" y2="200.0" stroke="#e8edf1" stroke-width="1.2"/><text x="52.0" y="204.0" font-size="11" text-anchor="end" fill="#4a5866" font-weight="400" stroke="none" >0.2</text>
+<line x1="62" y1="250.0" x2="470" y2="250.0" stroke="#e8edf1" stroke-width="1.2"/><text x="52.0" y="254.0" font-size="11" text-anchor="end" fill="#4a5866" font-weight="400" stroke="none" >0.1</text>
+<line x1="62" y1="300.0" x2="470" y2="300.0" stroke="#e8edf1" stroke-width="1.2"/><text x="52.0" y="304.0" font-size="11" text-anchor="end" fill="#4a5866" font-weight="400" stroke="none" >0.05</text>
+<line x1="62.0" y1="300" x2="62.0" y2="305" stroke="#9aa9b7" stroke-width="1.4"/>
+<text x="62.0" y="322.0" font-size="11" text-anchor="middle" fill="#4a5866" font-weight="400" stroke="none" >1×</text>
+<line x1="133.5" y1="300" x2="133.5" y2="305" stroke="#9aa9b7" stroke-width="1.4"/>
+<text x="133.5" y="322.0" font-size="11" text-anchor="middle" fill="#4a5866" font-weight="400" stroke="none" >2×</text>
+<line x1="228.0" y1="300" x2="228.0" y2="305" stroke="#9aa9b7" stroke-width="1.4"/>
+<text x="228.0" y="322.0" font-size="11" text-anchor="middle" fill="#4a5866" font-weight="400" stroke="none" >5×</text>
+<line x1="299.5" y1="300" x2="299.5" y2="305" stroke="#9aa9b7" stroke-width="1.4"/>
+<text x="299.5" y="322.0" font-size="11" text-anchor="middle" fill="#4a5866" font-weight="400" stroke="none" >10×</text>
+<line x1="371.0" y1="300" x2="371.0" y2="305" stroke="#9aa9b7" stroke-width="1.4"/>
+<text x="371.0" y="322.0" font-size="11" text-anchor="middle" fill="#4a5866" font-weight="400" stroke="none" >20×</text>
+<line x1="465.6" y1="300" x2="465.6" y2="305" stroke="#9aa9b7" stroke-width="1.4"/>
+<text x="465.6" y="322.0" font-size="11" text-anchor="middle" fill="#4a5866" font-weight="400" stroke="none" >50×</text>
+<text x="266.0" y="344.0" font-size="11" text-anchor="middle" fill="#4a5866" font-weight="400" stroke="none" >Cumulative capacity relative to first observation (log)</text>
+<path d="M62.0 83.9 L119.8 93.0 L155.6 112.8 L187.2 122.2 L212.7 128.4 L237.1 149.1 L265.6 155.5 L293.8 166.4 L316.2 177.8 L335.9 191.5 L356.6 200.9 L375.4 205.9 L396.1 209.2 L426.7 222.3 L455.6 230.6" fill="none" stroke="#1f2a36" stroke-width="5.6" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M62.0 83.9 L119.8 93.0 L155.6 112.8 L187.2 122.2 L212.7 128.4 L237.1 149.1 L265.6 155.5 L293.8 166.4 L316.2 177.8 L335.9 191.5 L356.6 200.9 L375.4 205.9 L396.1 209.2 L426.7 222.3 L455.6 230.6" fill="none" stroke="#e8772f" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="62.0" cy="83.9" r="4.6" fill="#e8772f" stroke="#1f2a36" stroke-width="1.6"/>
+<circle cx="455.6" cy="230.6" r="4.6" fill="#e8772f" stroke="#1f2a36" stroke-width="1.6"/>
+<text x="465.6" y="234.6" font-size="11" text-anchor="start" fill="#1f2a36" font-weight="500" stroke="none" >Solar PV</text>
+<path d="M62.0 83.9 L82.3 85.3 L102.2 86.8 L114.1 89.0 L130.0 89.6 L148.0 96.3 L159.9 96.2 L170.0 96.1 L179.2 99.8 L189.6 103.7 L206.4 111.3 L218.5 115.2 L227.9 122.9 L240.3 132.4 L251.3 141.8" fill="none" stroke="#1f2a36" stroke-width="5.6" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M62.0 83.9 L82.3 85.3 L102.2 86.8 L114.1 89.0 L130.0 89.6 L148.0 96.3 L159.9 96.2 L170.0 96.1 L179.2 99.8 L189.6 103.7 L206.4 111.3 L218.5 115.2 L227.9 122.9 L240.3 132.4 L251.3 141.8" fill="none" stroke="#2563a6" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="62.0" cy="83.9" r="4.6" fill="#2563a6" stroke="#1f2a36" stroke-width="1.6"/>
+<circle cx="251.3" cy="141.8" r="4.6" fill="#2563a6" stroke="#1f2a36" stroke-width="1.6"/>
+<text x="261.3" y="145.8" font-size="11" text-anchor="start" fill="#1f2a36" font-weight="500" stroke="none" >Onshore wind</text>
+<path d="M62.0 83.9 L112.1 67.2 L186.4 85.2 L252.5 120.9" fill="none" stroke="#1f2a36" stroke-width="5.6" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M62.0 83.9 L112.1 67.2 L186.4 85.2 L252.5 120.9" fill="none" stroke="#7d5bb3" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="62.0" cy="83.9" r="4.6" fill="#7d5bb3" stroke="#1f2a36" stroke-width="1.6"/>
+<circle cx="252.5" cy="120.9" r="4.6" fill="#7d5bb3" stroke="#1f2a36" stroke-width="1.6"/>
+<text x="262.5" y="124.9" font-size="11" text-anchor="start" fill="#1f2a36" font-weight="500" stroke="none" >Li-ion</text>
+<line x1="62" y1="300" x2="470" y2="300" stroke="#1f2a36" stroke-width="1.9"/>
+<rect x="300" y="21" width="11" height="11" fill="#e8772f" stroke="#1f2a36" stroke-width="1.6"/><text x="318.0" y="31.0" font-size="11" text-anchor="start" fill="#1f2a36" font-weight="400" stroke="none" >Solar</text><rect x="370" y="21" width="11" height="11" fill="#2563a6" stroke="#1f2a36" stroke-width="1.6"/><text x="388.0" y="31.0" font-size="11" text-anchor="start" fill="#1f2a36" font-weight="400" stroke="none" >Wind</text><rect x="440" y="21" width="11" height="11" fill="#7d5bb3" stroke="#1f2a36" stroke-width="1.6"/><text x="458.0" y="31.0" font-size="11" text-anchor="start" fill="#1f2a36" font-weight="400" stroke="none" >Li-ion</text>
+</g>
+</svg>
