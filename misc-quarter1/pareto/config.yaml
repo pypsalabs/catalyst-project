@@ -1,0 +1,256 @@
+# misc-quarter1/pareto: isolated-system myopic learning loop.
+#
+# For each of ten isolated one-node systems: least-cost 100 % clean system (PyPSA, hourly),
+# apply every technology's learning rate to the capacity that system built, re-optimise with
+# the learned costs, repeat (`steps` rounds, greenfield each round). Two datasets: the ten
+# PyPSA-Earth sites (2013 weather + demand) and the Northern-Germany site with ten ERA5
+# weather years (2013 demand). Paths are relative to this directory.
+#
+# The previous convention ("world in miniature" base, H2 tank, no geothermal) is archived in
+# config.world-in-miniature.yaml with its figures in figures/archive-world-in-miniature/.
+
+costs_table:   ../technology-costs/build/costs_2025_table.csv     # USD2024, misc-quarter1/technology-costs
+costs_config:  ../technology-costs/config.yaml                    # colours of the palette
+learning_rates: ../technology-costs/build/learning_rates.csv      # cross-check of the fitted rates below
+
+datasets:
+  sites:
+    profiles: ../fourier/build/profiles_sites.nc
+    coordinates: ../fourier/build/sites.csv        # columns site, x (lon), y (lat)
+    title: "Ten PyPSA-Earth sites — weather and demand of 2013"
+    column_label: site
+  years:
+    profiles: ../weather-years/build/profiles_years.nc
+    coordinates: {lon: 10.0, lat: 52.5}
+    title: "Northern Germany (52.5°N, 10.0°E) — ten ERA5 weather years, demand of 2013"
+    column_label: weather year
+n_series: 10
+steps: 4                     # optimisation rounds; round 0 uses the 2025 baseline costs
+
+discount_rate: 0.07          # real, as in technology-costs (priam-myopic uses 0.02 social)
+fill_missing_fom: 0.0        # FOM used where the cost table has none (CO2 battery power, iron-air power)
+
+# Learning base: the global experience curve. Every component starts from `reference.capacity`,
+# the global cumulative capacity behind its 2025 cost (technology-costs data/learning/manual.csv),
+# floored by one indivisible unit where that is larger. The optimised system is read as a clean
+# sub-system of the world that grows from round to round: in round k it stands for
+# `shares_of_world[k]` of world electricity demand. With `counting: increment` the build of round k
+# is counted for the growth of the sub-system since the previous round (share_k - share_{k-1}; the
+# greenfield fleet of round k-1 is not counted twice), scaled by world_demand_twh x dshare_k /
+# site demand (a 40 TWh site: x 15 in round 0 at 2 %, x 22.5 in round 1 for the 2 -> 5 % step);
+# `counting: full` counts every round's whole fleet at share_k instead.
+# capex_k = capex_0 x (cum_k / cref)^log2(1 - rate), cum_k = cref + sum_{j<k} scale_j x built_j.
+# FOM is a fixed fraction of capex and learns with it; fuel does not.
+learning_base:
+  world_demand_twh: 30000                 # 2024 global electricity demand
+  shares_of_world: [0.02, 0.05, 0.10, 0.20]   # one entry per round
+  counting: increment
+
+# Site-specific geothermal from misc-quarter1/geothermal (USD2024): EGS cells within radius_km of
+# the site, binned by CAPEX into supply-curve tranches (one capped generator each); identified
+# hydrothermal systems within the radius as one capped generator. EGS learns on the well part of
+# CAPEX only (drilling, stimulation, exploration); the surface plant and the FOM do not learn.
+geothermal:
+  egs_potential: ../geothermal/build/egs_potential.csv
+  hydrothermal_sites: ../geothermal/build/hydrothermal_sites.csv
+  sites: ["US · Idaho"]      # series names that get geothermal tranches at all (conduction-model cells elsewhere are not trusted)
+  radius_km: 250
+  capex_bins_usd_kw: [0, 6000, 8000, 10000, 12000, 15000, 20000]   # cells above the last edge are dropped
+
+solver:
+  name: gurobi
+  options: {Method: 2, Crossover: 0, Threads: 2, OutputFlag: 0, BarConvTol: 1.0e-6}
+
+# capex: {row, column} reads costs_table, {value} is explicit (USD2024 per kW or kWh).
+# fom:   {row, column} reads the table (USD/kW/a or USD/kWh/a, turned into a fraction of capex), {frac} is explicit.
+# site_specific components carry a cost *factor* (capex 1.0) that multiplies the per-site tranche costs.
+technologies:
+  solar-utility:
+    label: Solar PV
+    components:
+      plant:
+        type: generator
+        cf: solar
+        capex: {row: solar-utility, column: capex_kw}
+        fom: {row: solar-utility, column: fom_kw_a}
+        lifetime: {row: solar-utility}
+        learning: {rate: 0.331, source: "level fit of IRENA 2010–2024 utility PV (learning_rates.csv)"}
+        reference: {capacity: 1883, unit: GW, source: "IRENA capacity statistics, all PV, end 2024"}
+  onwind:
+    label: Onshore wind
+    components:
+      plant:
+        type: generator
+        cf: wind
+        capex: {row: onwind, column: capex_kw}
+        fom: {row: onwind, column: fom_kw_a}
+        lifetime: {row: onwind}
+        learning: {rate: 0.244, source: "level fit of IRENA 2010–2024 onshore wind (learning_rates.csv)"}
+        reference: {capacity: 1133, unit: GW, source: "IRENA capacity statistics, all wind, end 2024"}
+  smr-nuclear:
+    label: Nuclear SMR
+    components:
+      plant:
+        type: generator
+        availability: 0.90
+        capex: {row: smr-nuclear, column: capex_kw}
+        fom: {row: smr-nuclear, column: fom_kw_a}
+        lifetime: {row: smr-nuclear}
+        learning: {rate: 0.10, source: "analogy (deck): scenario value; large LWR history −ve to 6 % (Rubin 2015)"}
+        reference: {capacity: 0.6, unit: GW, floor: 0.3, source: "indicative fleet + committed (Darlington BWRX-300, Natrium); floor one 300 MW unit"}
+  allam-ccs:
+    label: Allam-cycle gas + CCS
+    components:
+      plant:
+        type: generator
+        availability: 0.90
+        capex: {row: allam-ccs, column: capex_kw}
+        fom: {row: allam-ccs, column: fom_kw_a}
+        lifetime: {row: allam-ccs}
+        learning: {rate: 0.05, source: "analogy (deck): CO2 capture units 2–7 % (Rubin 2015)"}
+        reference: {capacity: 0.3, unit: GW, floor: 0.3, source: "NET Power Project Permian 300 MW (first plant, unbuilt); floor one unit"}
+  egs:
+    label: Enhanced geothermal (EGS)
+    site_specific: true
+    components:
+      plant:                                 # surface plant: no learning; carries the tranche's energy and cost in the outputs
+        type: generator
+        availability: 0.90
+        capex: {value: 1.0}
+        fom: {frac: 0.0}
+        lifetime: {value: 30}
+        learning: {rate: 0.0, source: "surface plant, no learning"}
+        reference: {capacity: 0.1, unit: GW, source: "Fervo Cape Station phase 1 + Project Red + Utah FORGE"}
+      wells:                                 # drilling, stimulation, exploration: 50–79 % of CAPEX in the Ricks & Jenkins model
+        type: generator
+        availability: 0.90
+        capex: {value: 1.0}
+        fom: {frac: 0.0}
+        lifetime: {value: 30}
+        learning: {rate: 0.21, source: "first-difference (Way) estimate of the Fervo well series (learning_rates.csv lr_fd; level fit 34 %)"}
+        reference: {capacity: 0.1, unit: GW, source: "Fervo Cape Station phase 1 + Project Red + Utah FORGE"}
+  hydrothermal:
+    label: Hydrothermal (identified systems)
+    site_specific: true
+    components:
+      plant:
+        type: generator
+        availability: 0.90
+        capex: {value: 1.0}
+        fom: {frac: 0.0}
+        lifetime: {value: 30}
+        learning: {rate: 0.0, source: "mature; ATB 2025 moderate costs per site"}
+        reference: {capacity: 15.6, unit: GW, source: "world installed hydrothermal capacity"}
+  battery-liion:
+    label: Li-ion battery
+    storage: {efficiency: {row: battery-liion}}            # round trip, put on the charger
+    components:
+      power:
+        type: storage_power
+        capex: {row: battery-liion, column: capex_kw}
+        fom: {row: battery-liion, column: fom_kw_a}
+        lifetime: {row: battery-liion}
+        learning: {rate: 0.188, source: "assumed equal to the energy component"}
+        reference: {capacity: 89, unit: GW, source: "355 GWh / 4 h (BNEF fleet end 2024)"}
+      energy:
+        type: storage_energy
+        capex: {row: battery-liion, column: capex_kwh}
+        fom: {frac: 0.0}
+        lifetime: {row: battery-liion}
+        learning: {rate: 0.188, source: "level fit of BNEF turnkey 2019–2024 (learning_rates.csv)"}
+        reference: {capacity: 355, unit: GWh, source: "BNEF stationary fleet end 2024"}
+  vrfb:
+    label: Vanadium flow battery
+    storage: {efficiency: {row: vrfb}}
+    components:
+      power:
+        type: storage_power
+        capex: {row: vrfb, column: capex_kw}
+        fom: {row: vrfb, column: fom_kw_a}
+        lifetime: {row: vrfb}
+        learning: {rate: 0.217, source: "energy-component fit applied to power (deck)"}
+        reference: {capacity: 1.6, unit: GW, floor: 0.025, source: "6.5 GWh / 4 h"}
+      energy:
+        type: storage_energy
+        capex: {row: vrfb, column: capex_kwh}
+        fom: {row: vrfb, column: fom_kwh_a}
+        lifetime: {row: vrfb}
+        learning: {rate: 0.217, source: "level fit of Schmidt 2018 + China 2022–2025 (learning_rates.csv)"}
+        reference: {capacity: 6.5, unit: GWh, floor: 0.1, source: "Schmidt series end + Project Blue China additions to 2025"}
+  co2-battery:
+    label: CO2 battery
+    storage: {efficiency: {row: co2-battery}}
+    components:
+      power:
+        type: storage_power
+        capex: {row: co2-battery, column: capex_kw}
+        fom: {row: co2-battery, column: fom_kw_a}
+        lifetime: {row: co2-battery}
+        learning: {rate: 0.05, source: "analogy (deck): mechanical storage"}
+        reference: {capacity: 0.02, unit: GW, floor: 0.02, source: "Energy Dome Sardinia 20 MW / 200 MWh; floor one unit"}
+      energy:
+        type: storage_energy
+        capex: {row: co2-battery, column: capex_kwh}
+        fom: {row: co2-battery, column: fom_kwh_a}
+        lifetime: {row: co2-battery}
+        learning: {rate: 0.05, source: "analogy (deck): mechanical storage; pumped hydro −1 ± 8 % (Schmidt 2018)"}
+        reference: {capacity: 0.2, unit: GWh, floor: 0.2, source: "Energy Dome Sardinia 200 MWh; floor one unit"}
+  iron-air:
+    label: Iron-air battery (100 h)
+    storage: {efficiency: {row: iron-air}, fixed_hours: 100}   # Form's product: energy = 100 h x power, cost per kWh only
+    components:
+      power:
+        type: storage_power
+        capex: {value: 0.0}
+        fom: {frac: 0.0}
+        lifetime: {row: iron-air}
+        learning: {rate: 0.0, source: "no separate power cost"}
+        reference: {capacity: 0.0165, unit: GW, source: "1.65 GWh / 100 h"}
+      energy:
+        type: storage_energy
+        capex: {row: iron-air, column: capex_kwh}
+        fom: {row: iron-air, column: fom_kwh_a}
+        lifetime: {row: iron-air}
+        learning: {rate: 0.15, source: "analogy (deck): DOE LDES Liftoff 2023, 12–18 %/doubling"}
+        reference: {capacity: 1.65, unit: GWh, floor: 0.15, source: "Form Energy projects delivered before the Google/Xcel 30 GWh order; floor one 150 MWh plant"}
+  h2:
+    label: H2 (electrolyser, cavern, SOFC)
+    components:
+      electrolyser:
+        type: link
+        bus0: elec
+        bus1: h2
+        efficiency: 0.587                                    # LHV, alkaline (deck)
+        capex: {value: 2138.35}                              # USD2024/kW_el, level fit at 21.8 GW (deck)
+        fom: {frac: 0.04}                                    # technology-costs h2-sofc convention
+        lifetime: {value: 27.5}
+        learning: {rate: 0.168, source: "level fit of Schmidt 2018 alkaline + IEA GHR 2025 (learning_rates.csv)"}
+        reference: {capacity: 21.8, unit: GW, source: "Schmidt series end 19.8 GW + 2 GW water electrolysers operating end 2024 (IEA)"}
+      cavern:
+        type: store
+        bus: h2
+        capex: {value: 3.68}                                 # USD2024/kWh_H2: DEA 151c salt cavern 3.3426 EUR2025/kWh x 1.1010 (geology-bound: applied everywhere here)
+        fom: {frac: 0.0}                                     # DEA 151c: no FOM
+        lifetime: {value: 100}
+        learning: {rate: 0.0, source: "no learning (deck)"}
+        reference: {capacity: 1.0, unit: GWh, source: "irrelevant at zero learning"}
+      sofc:
+        type: link
+        bus0: h2
+        bus1: elec
+        efficiency: 0.59
+        cost_basis: output                                   # capex per kW_el out; PyPSA prices p_nom at the H2 side
+        capex: {row: sofc, column: capex_kw}
+        fom: {row: sofc, column: fom_kw_a}
+        lifetime: {row: sofc}                                # 10 years (Bloom stack)
+        learning: {rate: 0.301, source: "level fit of Bloom product cost 2018–2023 (learning_rates.csv)"}
+        reference: {capacity: 1.3, unit: GW, source: "Bloom cumulative acceptances end 2023"}
+
+plotting:
+  dpi: 200
+  formats: [png, pdf]
+  # stacking order; adjacent pairs checked with the dataviz palette validator (white gaps + legend table as secondary encoding)
+  order: [solar-utility, onwind, co2-battery, battery-liion, iron-air, vrfb, h2, egs, hydrothermal, smr-nuclear, allam-ccs]
+  colours:                       # fallbacks / overrides of technology-costs config.yaml colours
+    h2: "#2f9e9e"
+    hydrothermal: "#c98a5a"

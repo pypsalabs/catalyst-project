@@ -3,7 +3,9 @@
 #
 #   run      one site x one weather year        -> build/runs/<site>/<year>.csv
 #   collect  all runs                            -> build/results.csv
-#   plot     map + violins per site              -> figures/overview.{png,pdf}
+#   run_variant / collect_variant: the same with the config overrides of a `variants` entry (e.g. a 2 % discount
+#            rate)                               -> build/runs-<variant>/<site>/<year>.csv, build/results-<variant>.csv
+#   plot     map + violins per site, variants overlaid as dashed translucent violins -> figures/overview.{png,pdf}
 #
 # Inputs: ../weather-years/build/profiles_siteyears.nc (+ sites.csv), ../geothermal/build/*.csv,
 # ../../config-pypsa-earth/technology-assumptions/technology_assumptions.csv (a change there reruns everything).
@@ -24,10 +26,12 @@ else:
     YEARS = list(range(WY["siteyears"]["first"], WY["siteyears"]["last"] + 1))
 FORMATS = config["plotting"]["formats"]
 GEO = [config["geothermal"][k] for k in ("egs_potential", "hydrothermal_sites", "hydrothermal_country")]
+VARIANTS = config.get("variants", {})
 
 wildcard_constraints:
     site="|".join(SITES),
     year=r"\d{4}",
+    variant="|".join(VARIANTS) if VARIANTS else "none",
 
 
 rule all:
@@ -51,19 +55,51 @@ rule run:
         "run_site_year.py"
 
 
+rule run_variant:
+    input:
+        profiles=config["profiles"],
+        sites=config["sites"],
+        assumptions=config["assumptions"],
+        geothermal=GEO,
+        config="config.yaml",
+    params:
+        overrides=lambda w: {k: v for k, v in VARIANTS[w.variant].items() if k != "label"},
+    output:
+        "build/runs-{variant}/{site}/{year}.csv",
+    threads: 2
+    resources:
+        mem_mb=3000, runtime="10m",
+    script:
+        "run_site_year.py"
+
+
+def _concat(input, output):
+    import pandas as pd
+    pd.concat([pd.read_csv(f) for f in input], ignore_index=True).to_csv(output[0], index=False)
+
+
 rule collect:
     input:
         expand("build/runs/{site}/{year}.csv", site=SITES, year=YEARS),
     output:
         "build/results.csv",
     run:
-        import pandas as pd
-        pd.concat([pd.read_csv(f) for f in input], ignore_index=True).to_csv(output[0], index=False)
+        _concat(input, output)
+
+
+rule collect_variant:
+    input:
+        expand("build/runs-{{variant}}/{site}/{year}.csv", site=SITES, year=YEARS),
+    output:
+        "build/results-{variant}.csv",
+    run:
+        _concat(input, output)
 
 
 rule plot:
     input:
         results="build/results.csv",
+        variants=expand("build/results-{variant}.csv", variant=list(VARIANTS)),
         sites=config["sites"],
         assumptions=config["assumptions"],
         config="config.yaml",

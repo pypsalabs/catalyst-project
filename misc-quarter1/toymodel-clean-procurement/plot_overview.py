@@ -9,11 +9,14 @@ a dashed separator, then one violin per storage technology (energy discharged, %
 Row "Capacity": one violin per technology for the installed power (MW; generators and storage discharge power),
 the separator, then one violin per storage technology for its energy capacity (GWh, right-hand scale). Every violin spans the ten weather years; the ten values are drawn as ink dots, the median
 as an ink tick; "–" marks a technology never built. Colours = PyPSA-Eur tech_colors (config.yaml), the rest in
-the icon plot style.
+the icon plot style. The config's `variants` (e.g. a 2 % discount rate, build/results-<variant>.csv) are drawn into
+the same slots behind the base case as translucent violins with a dashed outline and hollow dots; a variant that
+collapses to one value is a dashed line, so it stays visible on top of or beside a base violin.
 
-Also writes build/summary.csv: per site and technology the median / min / max of the plotted quantities.
+Also writes build/summary.csv: per variant (base first), site and technology the median / min / max of the plotted
+quantities.
 
-Standalone: python plot_overview.py [results.csv] [out dir]
+Standalone: python plot_overview.py [results.csv] [out dir]   (variants are read from build/results-<variant>.csv)
 """
 
 import sys
@@ -36,6 +39,7 @@ if "snakemake" in globals():
     CFG = snakemake.config  # noqa: F821
     _HERE = Path(snakemake.input.config).resolve().parent  # noqa: F821
     RESULTS = Path(snakemake.input.results)  # noqa: F821
+    VARIANT_FILES = [Path(p) for p in snakemake.input.variants]  # noqa: F821
     SITES = Path(snakemake.input.sites)  # noqa: F821
     OUTS = [Path(p) for p in snakemake.output.figure]  # noqa: F821
     TABLE = Path(snakemake.output.table)  # noqa: F821
@@ -43,6 +47,7 @@ else:
     _HERE = Path(__file__).resolve().parent
     CFG = yaml.safe_load((_HERE / "config.yaml").read_text())
     RESULTS = Path(sys.argv[1]) if len(sys.argv) > 1 else _HERE / "build" / "results.csv"
+    VARIANT_FILES = [f for f in (RESULTS.parent / f"results-{v}.csv" for v in CFG.get("variants", {})) if f.exists()]
     SITES = _HERE / CFG["sites"]
     _OUT = Path(sys.argv[2]) if len(sys.argv) > 2 else _HERE / "figures"
     OUTS = [_OUT / f"overview.{f}" for f in CFG["plotting"]["formats"]]
@@ -54,26 +59,45 @@ PL = CFG["plotting"]
 COLOUR = {t: (getattr(ic, c) if not str(c).startswith("#") else c) for t, c in PL["colours"].items()}
 SHORT = PL["short"]
 NCOL = 5
+VARIANTS = {f.stem.split("results-", 1)[1]: f for f in VARIANT_FILES}          # name -> results file
+VLABEL = {v: CFG["variants"][v].get("label", v) for v in VARIANTS}
+OVERLAY_ALPHA = 0.4
 
 # ---------------------------------------------------------------- data
-res = pd.read_csv(RESULTS)
 sites = pd.read_csv(SITES).set_index("key")
 gen_techs = [t for t, s in CFG["palette"].items() if s["model"] != "storage"]
 sto_techs = [t for t, s in CFG["palette"].items() if s["model"] == "storage"]
-res["mean_load_mw"] = res["demand_mwh"] / 8760
-per_run = res.groupby(["key", "year"])
-res["gen_total"] = per_run["energy_mwh"].transform(lambda s: s[res.loc[s.index, "tech"].isin(gen_techs)].sum())
-res["power_total"] = per_run["p_nom_mw"].transform("sum")
-is_gen = res["tech"].isin(gen_techs)
-res["energy_pct"] = np.where(is_gen, 100 * res["energy_mwh"] / res["gen_total"], 100 * res["energy_mwh"] / res["demand_mwh"])
-res["e_nom_gwh"] = res["e_nom_mwh"] / 1e3
-lcoe = res.drop_duplicates(["key", "year"]).groupby("key")["lcoe_usd_mwh"].agg(["median", "min", "max"])
+
+
+def derive(path: Path) -> pd.DataFrame:
+    """The plotted quantities per run and technology: energy_pct, p_nom_mw, e_nom_gwh."""
+    res = pd.read_csv(path)
+    per_run = res.groupby(["key", "year"])
+    res["gen_total"] = per_run["energy_mwh"].transform(lambda s: s[res.loc[s.index, "tech"].isin(gen_techs)].sum())
+    is_gen = res["tech"].isin(gen_techs)
+    res["energy_pct"] = np.where(is_gen, 100 * res["energy_mwh"] / res["gen_total"], 100 * res["energy_mwh"] / res["demand_mwh"])
+    res["e_nom_gwh"] = res["e_nom_mwh"] / 1e3
+    return res
+
+
+res = derive(RESULTS)
+var = {v: derive(f) for v, f in VARIANTS.items()}
+every = pd.concat([res, *var.values()], ignore_index=True)
+
+
+def lcoe_of(df):
+    return df.drop_duplicates(["key", "year"]).groupby("key")["lcoe_usd_mwh"].agg(["median", "min", "max"])
+
+
+lcoe = lcoe_of(res)
+lcoe_var = {v: lcoe_of(df) for v, df in var.items()}
 
 rows = []
-for (key, tech), g in res.groupby(["key", "tech"]):
-    for q in ("energy_pct", "p_nom_mw", "e_nom_gwh"):
-        rows.append({"key": key, "site": g["site"].iloc[0], "tech": tech, "quantity": q, "median": g[q].median(), "min": g[q].min(),
-                     "max": g[q].max(), "n_years": len(g)})
+for name, df in [("base", res), *var.items()]:
+    for (key, tech), g in df.groupby(["key", "tech"]):
+        for q in ("energy_pct", "p_nom_mw", "e_nom_gwh"):
+            rows.append({"variant": name, "key": key, "site": g["site"].iloc[0], "tech": tech, "quantity": q, "median": g[q].median(),
+                         "min": g[q].min(), "max": g[q].max(), "n_years": len(g)})
 pd.DataFrame(rows).to_csv(TABLE, index=False, float_format="%.4g")
 
 # ---------------------------------------------------------------- map, bands and column order
@@ -144,38 +168,55 @@ xpos2e = {t: len(gen_techs) + len(sto_techs) + 1 + k for k, t in enumerate(sto_t
 sep2_x = len(gen_techs) + len(sto_techs)
 
 
-def violin(ax, x, values, colour, zero_label=True):
+DASH = (0, (2.5, 1.5))
+
+
+def violin(ax, x, values, colour, zero_label=True, overlay=False):
+    """One violin over the weather years. `overlay`: a variant, drawn behind the base case as a translucent body with a
+    dashed outline and hollow dots; a single value becomes a dashed line a little wider than the base tick."""
     v = np.asarray(values, dtype=float)
     v = v[np.isfinite(v)]
     if len(v) == 0:
         return
+    z = 2 if overlay else 4
+    ls = DASH if overlay else "solid"
+    half = 0.4 if overlay else 0.3
     if v.max() - v.min() < 1e-6 * max(1.0, abs(v.max())):
         if v.max() <= 1e-9:
-            if zero_label:
+            if zero_label and not overlay:
                 ax.text(x, 0, "–", ha="center", va="bottom", color=ic.STEEL, fontsize=9)
             return
-        ax.hlines(v.mean(), x - 0.3, x + 0.3, color=ic.INK, linewidth=ic.MARK, zorder=5)
+        ax.hlines(v.mean(), x - half, x + half, color=ic.INK, linewidth=ic.MARK, linestyle=ls, zorder=z + 1)
     else:
         parts = ax.violinplot([v], positions=[x], widths=0.8, showextrema=False, showmedians=False)
         for b in parts["bodies"]:
             b.set_facecolor(colour)
             b.set_edgecolor(ic.INK)
             b.set_linewidth(ic.MARK)
-            b.set_alpha(1.0)
-        ax.hlines(np.median(v), x - 0.3, x + 0.3, color=ic.INK, linewidth=ic.MARK, zorder=5)
-    ax.scatter(x + np.linspace(-0.12, 0.12, len(v)), v, s=5, color=ic.INK, zorder=6, linewidths=0)
+            b.set_linestyle(ls)
+            b.set_alpha(OVERLAY_ALPHA if overlay else 1.0)
+            b.set_zorder(z)
+        ax.hlines(np.median(v), x - half, x + half, color=ic.INK, linewidth=ic.MARK, linestyle=ls, zorder=z + 1)
+    if overlay:
+        ax.scatter(x + np.linspace(-0.12, 0.12, len(v)), v, s=9, facecolor="white", edgecolor=ic.INK, linewidths=0.6, zorder=z + 2)
+    else:
+        ax.scatter(x + np.linspace(-0.12, 0.12, len(v)), v, s=5, color=ic.INK, zorder=z + 2, linewidths=0)
 
 
-ylim_e = max(1.0, res["energy_pct"].max()) * 1.12
-ylim_cp = max(1.0, res["p_nom_mw"].max()) * 1.12
-ylim_h = max(0.1, res[res.tech.isin(sto_techs)]["e_nom_gwh"].max()) * 1.12
+
+ylim_e = max(1.0, every["energy_pct"].max()) * 1.12
+ylim_cp = max(1.0, every["p_nom_mw"].max()) * 1.12
+ylim_h = max(0.1, every[every.tech.isin(sto_techs)]["e_nom_gwh"].max()) * 1.12
 
 for band, order in enumerate(bands):
     for j, key in enumerate(order):
         sub = res[res.key == key]
+        vsub = {v: df[df.key == key] for v, df in var.items()}
         short = sites.loc[key, "site"].split(" · ", 1)[1]
         ax = axes[band][0][j]
         for t in gen_techs + sto_techs:
+            for v in var:
+                violin(ax, xpos[t], vsub[v][vsub[v].tech == t]["energy_pct"], COLOUR[t], overlay=True)
             violin(ax, xpos[t], sub[sub.tech == t]["energy_pct"], COLOUR[t])
         ax.axvline(sep_x, color=ic.INK, linewidth=ic.SEAM, linestyle=(0, (3, 2)), zorder=1)
         ax.set_xlim(-0.7, len(slots) - 0.3)
@@ -183,17 +224,25 @@ for band, order in enumerate(bands):
         ax.set_xticks(list(xpos.values()))
         ax.set_xticklabels([SHORT.get(t, t) for t in xpos], rotation=90)
         l = lcoe.loc[key]
-        ax.set_title(f"{short}   {l['median']:.0f} $/MWh ({l['min']:.0f}–{l['max']:.0f})", loc="left")
+        title = f"{short}   {l['median']:.0f} $/MWh ({l['min']:.0f}–{l['max']:.0f})"
+        for v in var:
+            lv = lcoe_var[v].loc[key]
+            title += f"\n{VLABEL[v]}: {lv['median']:.0f} $/MWh ({lv['min']:.0f}–{lv['max']:.0f})"
+        ax.set_title(title, loc="left")
         ic.ground(ax)
 
         ax = axes[band][1][j]
         for t in gen_techs + sto_techs:
+            for v in var:
+                violin(ax, xpos2[t], vsub[v][vsub[v].tech == t]["p_nom_mw"], COLOUR[t], overlay=True)
             violin(ax, xpos2[t], sub[sub.tech == t]["p_nom_mw"], COLOUR[t])
         ax.axvline(sep2_x, color=ic.INK, linewidth=ic.SEAM, linestyle=(0, (3, 2)), zorder=1)
         ax.set_xlim(-0.7, len(slots2) - 0.3)
         ax.set_ylim(0, ylim_cp)
         ax2 = ax.twinx()
         for t in sto_techs:
+            for v in var:
+                violin(ax2, xpos2e[t], vsub[v][vsub[v].tech == t]["e_nom_gwh"], COLOUR[t], overlay=True)
             violin(ax2, xpos2e[t], sub[sub.tech == t]["e_nom_gwh"], COLOUR[t])
         ax2.set_ylim(0, ylim_h)
         ax2.set_xlim(-0.7, len(slots2) - 0.3)
@@ -218,10 +267,14 @@ for band, order in enumerate(bands):
 
 pts.plot(ax=ax_map, color=ic.AMBER, edgecolor=ic.INK, linewidth=ic.MARK, markersize=80, zorder=5)
 demand_mw = float(res["demand_mwh"].iloc[0] / 8760)
+rate_txt = f"{100 * CFG['discount_rate']:.0f} % real"
+if var:
+    rate_txt += " (dashed, translucent: " + ", ".join(VLABEL[v] for v in var) + ")"
 fig.suptitle(f"A constant {demand_mw:.0f} MW supplied 100 % clean in isolation, per site and weather year ({len(res.year.unique())} years): "
-             "technology_assumptions.csv, 7 % real, no imports",
+             f"technology_assumptions.csv, {rate_txt}, no imports",
              x=0.05, y=0.985, ha="left", color=ic.INK, fontsize=12, fontweight=ic.EMPH)
 handles = [Patch(facecolor=COLOUR[t], edgecolor=ic.INK, linewidth=ic.MARK, label=SHORT.get(t, t)) for t in gen_techs + sto_techs]
+handles += [Patch(facecolor=ic.STEEL_L, alpha=OVERLAY_ALPHA, edgecolor=ic.INK, linewidth=ic.MARK, linestyle=DASH, label=VLABEL[v]) for v in var]
 fig.legend(handles=handles, loc="upper right", bbox_to_anchor=(0.975, 0.975), ncol=len(handles), frameon=False, handlelength=1.0,
            handleheight=1.0, columnspacing=1.2)
 for out in OUTS:

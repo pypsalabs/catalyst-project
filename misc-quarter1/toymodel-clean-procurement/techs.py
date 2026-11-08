@@ -108,12 +108,16 @@ def components(cfg: dict, table: pd.DataFrame, country: str) -> pd.DataFrame:
 
 
 def hydrothermal_tranche(cfg: dict, lon: float, lat: float) -> pd.DataFrame:
-    """Identified hydrothermal systems within radius_km (all statuses) as one capped tranche; plants without a
-    cost class (unknown plant type) take the flash-plant cost of their country."""
+    """Identified hydrothermal systems within radius_km as one capped tranche (USGS identified resources and GEM
+    announced / pre-construction projects; operating plants are excluded as already taken); plants without a cost
+    class (unknown plant type) take the flash-plant cost of their country."""
     g = cfg["geothermal"]
     sites = pd.read_csv(cfg["_dir"] / g["hydrothermal_sites"])
     sites = sites[haversine_km(lon, lat, sites["lon"].values, sites["lat"].values) <= g["radius_km"]]
     sites = sites[sites["capacity_mw"].fillna(0) > 0].copy()
+    # greenfield: plants that already operate (or were retired / cancelled) are not available to a new buyer;
+    # identified resources, announced and pre-construction projects are
+    sites = sites[~sites["status"].fillna("").str.lower().isin(["operating", "retired", "cancelled", "mothballed", "shelved"])]
     if sites.empty:
         return pd.DataFrame(columns=TRANCHE_COLUMNS)
     country = pd.read_csv(cfg["_dir"] / g["hydrothermal_country"]).set_index("iso3")

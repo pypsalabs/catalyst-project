@@ -9,6 +9,8 @@ sites: ../weather-years/build/sites.csv                     # per site: key, sit
 weather_years_config: ../weather-years/config.yaml          # site keys and the weather years (Snakefile wildcards)
 
 discount_rate: 0.07          # real; the LCOE convention of the assumptions document (7 %) and of ../pareto
+variants:                    # extra cases run beside the base case and drawn into the same figure as translucent dashed violins
+  discount-2pct: {label: "2 % real", discount_rate: 0.02}   # keys other than `label` override top-level config keys
 demand:                      # the load to be supplied 100 % clean (decided 2026-10-07: a constant 10 MW, 87.6 GWh/a, the
   kind: flat                 # 24/7 buyer's flat profile; `kind: bus` instead uses the site bus's 2013 load shape scaled to `mw` mean)
   mw: 10
@@ -22,12 +24,10 @@ palette:
   egs:           {model: tranches, source: egs}                           # supply curve of the cells within radius_km (CSV row = the
                                                                           # reference site; CAPEX, FOM, CF, lifetime per tranche from
                                                                           # ../geothermal/build/egs_potential.csv)
-  geothermal:    {model: tranches, source: hydrothermal}                  # identified hydrothermal systems within radius_km (capped)
   # firm technologies dispatch freely between `min_load` (p_min_pu, default 0) and the CSV capacity factor (p_max_pu):
   # they are not forced to run as baseload; set e.g. min_load: 0.9 to make a technology must-run at its availability
-  nuclear-lwr:   {model: firm, min_load: 0.5, rows: {CN: nuclear-lwr-cnin, IN: nuclear-lwr-cnin, default: nuclear-lwr-row}}   # bin by site country;
-                                                                          # min_load 0.5 = minimum stable output (decided 2026-10-07: France runs 30-100 %, experience 50-100 %)
-  nuclear-gen4:  {model: firm, min_load: 0.5}
+  nuclear-gen4:  {model: firm, min_load: 0.5}                             # min_load 0.5 = minimum stable output (decided 2026-10-07:
+                                                                          # France runs 30-100 %, experience 50-100 %)
   sofc-cc:       {model: firm}                                            # gas with capture counts as clean here (decided 2026-10-07)
   battery-liion: {model: storage}                                         # power and energy sized freely
   vrfb:          {model: storage, efficiency_per_direction: true}         # CSV efficiency 0.806 is per direction (README caveat)
@@ -42,6 +42,18 @@ excluded:
   OCGT:        unabated fossil
   sofc:        unabated fossil (the capture variant sofc-cc is in)
   co2-battery: in_default_mix = no
+  # LWR nuclear is mature with learning_rate 0 in the CSV, so it cannot carry the catalytic effect the project is about
+  # (decided 2026-10-08); with it in, it took 100 % at Texas, Pennsylvania, Hebei, Karnataka and 20 % at Morocco
+  # (build/results_with_lwr.csv). To put it back: nuclear-lwr: {model: firm, min_load: 0.5,
+  #   rows: {CN: nuclear-lwr-cnin, IN: nuclear-lwr-cnin, default: nuclear-lwr-row}}  (3,150 $/kW in CN/IN, 11,000 elsewhere)
+  # Conventional hydrothermal: the assumptions document applies no learning and builds no new conventional geothermal
+  # by default (reservoirs few, site-specific, slow to develop; the CSV's 7 GW pipeline is the known reservoirs being
+  # developed anyway), so it is no catalytic candidate either (decided 2026-10-08). With it in, it took 100 % at Naivasha
+  # (66 $/MWh) and Idaho (97) (build/results_with_hydrothermal.csv). To put it back:
+  #   geothermal: {model: tranches, source: hydrothermal}   (identified systems within radius_km as one capped generator)
+  geothermal:  mature, no learning, no new build in the study's default; not a catalytic candidate
+  nuclear-lwr-cnin: mature, no learning (learning_rate 0), no catalytic effect to project
+  nuclear-lwr-row:  mature, no learning (learning_rate 0), no catalytic effect to project
 
 geothermal:                      # as ../pareto (its egs_tranches is reused), plus the country cost table for plants without a cost class
   egs_potential: ../geothermal/build/egs_potential.csv
@@ -60,7 +72,7 @@ plotting:
   # PyPSA-Eur default tech_colors (config/plotting.default.yaml, 2026-09): solar, onwind, nuclear, li-ion, iron-air,
   # vanadium verbatim; EGS = its "geothermal heat pump" plum, hydrothermal = "geothermal heat direct utilisation",
   # sofc-cc = "allam" (gas with capture), Gen IV = nuclear darkened (no PyPSA-Eur carrier)
-  colours: {solar-utility: "#f9d002", onwind: "#235ebc", nuclear-lwr: "#ff8c00", nuclear-gen4: "#b35f00",
+  colours: {solar-utility: "#f9d002", onwind: "#235ebc", nuclear-gen4: "#b35f00", nuclear-lwr: "#ff8c00",
             egs: "#4f2144", geothermal: "#ba91b1", sofc-cc: "#B98F76", battery-liion: "#ace37f", vrfb: "#9B111E", iron-air: "#edba1c"}
   short: {solar-utility: Solar, onwind: Wind, nuclear-lwr: LWR, nuclear-gen4: Gen IV, sofc-cc: SOFC-CC, egs: EGS,
           geothermal: Hydroth., battery-liion: Li-ion, vrfb: VRFB, iron-air: Iron-air}

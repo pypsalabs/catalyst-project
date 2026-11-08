@@ -1,0 +1,61 @@
+# Snakemake workflow: isolated-system myopic learning loop (misc-quarter1/pareto).
+#
+#   loop     one series of one dataset: `steps` greenfield PyPSA optimisations with local learning
+#            between them                                   -> build/loop/<dataset>/<i>.csv
+#   collect  all series of a dataset                        -> build/loop_<dataset>.csv
+#   plot     stacked capacity / energy-share / capex figures -> figures/{loop,energy,capex}_<dataset>.{png,pdf}
+#
+# Inputs: ../fourier/build/profiles_sites.nc (fourier), ../weather-years/build/profiles_years.nc (weather-years), ../technology-costs/build/*.
+# Run from misc-quarter1/pareto with the priam-myopic pixi env (Gurobi licence at ~/gurobi.lic):
+#   ../../models/priam-myopic/.pixi/envs/default/bin/snakemake -c8      (2 solver threads per job)
+
+configfile: "config.yaml"
+
+DATASETS = list(config["datasets"])
+SERIES = list(range(config["n_series"]))
+FORMATS = config["plotting"]["formats"]
+
+wildcard_constraints:
+    dataset="|".join(DATASETS),
+    i=r"\d+",
+
+
+rule all:
+    input:
+        expand("figures/{fig}_{dataset}.{fmt}", fig=["loop", "energy", "capex"], dataset=DATASETS, fmt=FORMATS),
+
+
+rule loop:
+    input:
+        profiles=lambda w: config["datasets"][w.dataset]["profiles"],
+        costs=config["costs_table"],
+        config="config.yaml",
+    output:
+        "build/loop/{dataset}/{i}.csv",
+    threads: 2
+    resources:
+        mem_mb=3000, runtime="30m",
+    script:
+        "run_loop.py"
+
+
+rule collect:
+    input:
+        expand("build/loop/{{dataset}}/{i}.csv", i=SERIES),
+    output:
+        "build/loop_{dataset}.csv",
+    run:
+        import pandas as pd
+        pd.concat([pd.read_csv(f) for f in input], ignore_index=True).to_csv(output[0], index=False)
+
+
+rule plot:
+    input:
+        loop="build/loop_{dataset}.csv",
+        config="config.yaml",
+    output:
+        expand("figures/{fig}_{{dataset}}.{fmt}", fig=["loop", "energy", "capex"], fmt=FORMATS),
+    resources:
+        mem_mb=1500, runtime="5m",
+    script:
+        "plot_loop.py"
