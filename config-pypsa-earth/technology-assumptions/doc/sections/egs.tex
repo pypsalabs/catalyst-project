@@ -1,20 +1,22 @@
 \needspace{15\baselineskip}% room for the wrapped icon (it cannot break across pages)
-\subsection{Enhanced geothermal, EGS (7,900~\$/kW at Cape Station)}\label{sec:egs}
+\subsection{Enhanced geothermal, EGS (8,100~\$/kW at Cape Station)}\label{sec:egs}
 \techicon{egs}{A drilling rig over two horizontal wells, joined by stimulated fractures in hot rock.}
 Enhanced geothermal systems (Figure~\ref{fig:icon-egs}) create a reservoir in hot, dry rock by drilling and hydraulic fracturing, using methods from the oil and gas industry.
 This enables heat extraction at places where conventional geothermal would not be viable.
 They give firm, carbon-free power, typically through a binary plant (organic Rankine cycle) whose working fluid boils at the comparatively low reservoir temperatures.
 
 
-EGS cost varies strongly from site to site, so the CAPEX of 7,900~\$/kW is that of one reference site, Fervo's Cape Station in Utah (red circle in Figure~\ref{fig:egs-maps}).
+EGS cost varies strongly from site to site, so the CAPEX of 8,100~\$/kW is that of one reference site, Fervo's Cape Station in Utah (red circle in Figure~\ref{fig:egs-maps}).
 It lies about 15\,\% above Fervo's own estimate of about 7,000~\$/kW for the first phase of Cape Station \citep{fervos1} (Figure~\ref{fig:egs}, right axis).
 Our value is per kW of net output, after the parasitic load of wellfield pumps; Fervo does not say which it reports.
 
 In the model, EGS uses supply curves per grid cell, which we build with the cost model of \citet{ricks2025}:
 \begin{itemize}[nosep,leftmargin=*]
-\item \textbf{Temperature at depth:} inferred from heat conduction from the heat-flow map of \citet{lucazeau2019} for every 0.25$^\circ$ land cell globally.
+\item \textbf{Temperature at depth:} for every 0.25$^\circ$ land cell globally, from two reference models where they exist, the Stanford thermal model over the contiguous US \citep{aljubran2024} and the 3-D temperature model of Europe \citep{limberger2014}, and elsewhere inferred from heat conduction from the heat-flow map of \citet{lucazeau2019}.
+Small islands far from a country's main grid (e.g.\ Svalbard, Hawaii) are left out of the supply curves.
 \item Depth: five candidate depths from 2.5 to 6.5~km; reservoirs below 150\,\textdegree C are not developed.
 \item \textbf{Surface plant:} a binary plant whose cost and output follow from the production temperature, after heat loss in the well and a correction for the ambient temperature.
+The cost relations are fitted up to 200\,\textdegree C and extrapolated linearly above; we credit production temperatures only up to 250\,\textdegree C, whereas \citet{ricks2025} apply no cap.
 \item \textbf{Net output:} the cost model omits the power demand of the wellfield pumps; to account for this, we subtract 15\,\% of the output, such that all costs are per kW of net output.
 \item \textbf{Wellfield:} horizontal wells with 2.3~km laterals and 1.5 producers per injector; drilling cost rises quadratically with depth, plus stimulation, exploration and interest during construction.
 \item \textbf{Depth trade-off per cell}: deeper wells cost more, but reach hotter rock, so each well yields more heat and the plant converts it more efficiently.
@@ -27,9 +29,9 @@ GETEM is a spreadsheet, developed at Idaho National Laboratory, that costs a geo
 \citet{ricks2025} conduct a fit of cost per depth and updated drilling costs based on the performance of Utah FORGE and Fervo in 2022--2024.
 
 Figure~\ref{fig:egs-maps} shows the geothermal gradient that drives this cost and the resulting CAPEX per cell.
-In the large modelled regions (China, the US, Brazil, North-West Europe and India), the cheapest 10~GW cost 4,700--7,600~\$/kW, while the median land cell costs about 16,500~\$/kW.
+In the large modelled regions China, the western US, Brazil and India, the cheapest 10~GW cost 5,600--8,100~\$/kW; in the eastern US and North-West Europe, where the rock is cooler, they cost about 11,900 and 12,700~\$/kW, and the median land cell costs about 16,700~\$/kW.
 
-At Cape Station, the cheapest depth in the model is 5.5~km, deeper than Fervo drills, because the model's temperature map gives only 166\,\textdegree C at 2.5~km.
+At Cape Station, the cheapest depth in the model is 4.5~km, deeper than Fervo drills, because the Stanford model gives only 166\,\textdegree C at 2.5~km.
 For a well of Cape's length (2.5~km deep plus a 2.3~km lateral), the model implies 435~\$ per foot drilled, between Fervo's first and latest Cape wells (Figure~\ref{fig:egs}).
 As a result, the model does not assume cheaper drilling than has been demonstrated.
 
@@ -44,7 +46,7 @@ As a result, the model does not assume cheaper drilling than has been demonstrat
 \end{subfigure}
 \caption{
   Enhanced geothermal on land, 0.25$^\circ$ cells.
-  Left: mean temperature gradient from the surface to 4.5~km, from heat conduction on the heat-flow map of \citet{lucazeau2019}.
+  Left: mean temperature gradient from the surface to 4.5~km, from the reference temperature models over the contiguous US \citep{aljubran2024} and Europe \citep{limberger2014}, elsewhere from heat conduction on the heat-flow map of \citet{lucazeau2019}.
   Right: CAPEX per kW of net output at each cell's cheapest depth from the cost model of \citet{ricks2025}, 2025 baseline without learning; grey: no reservoir of at least 150\,\textdegree C down to 6.5~km.
   Red circle: Fervo Cape Station, the reference site of Table~\ref{tab:costs} and Figure~\ref{fig:egs}.
   CAPEX colour scale logarithmic.
@@ -66,7 +68,7 @@ Wellfield costs (drilling and stimulation) fall by 15\,\% per doubling, starting
 We do not carry their additional R\&D-driven decline of 0.5\,\% per year.
 Fervo's first eight wells show faster drilling learning of 34\,\% per doubling (Figure~\ref{fig:egs}), but over only three doublings.
 
-The fixed O\&M of 164~\$/kW/yr is the cost model's value at Cape Station, and the lifetime is 30~years.
+The fixed O\&M of 167~\$/kW/yr is the cost model's value at Cape Station, and the lifetime is 30~years.
 The capacity factor of 0.85 lies between the 0.8 that NREL's ATB uses for binary plants and 0.9 \citep{atb2024}.
 Existing capacity is Fervo's Project Red; the pipeline is Fervo's Cape Station (500~MW by 2028).
 The lead time is 3~years.

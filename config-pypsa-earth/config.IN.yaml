@@ -37,6 +37,17 @@ osm:
   clean_osm_data:
     threshold_voltage: 200000   # [V] keeps 765 / 400 / 220 kV; 220 kV is the top intra-state level, same threshold as US and BR.
                                 # 132 / 110 / 66 kV subtransmission is left out.
+    drop_duplicate_ids: true      # a cross-border way arrives once per country extract and became parallel lines
+    fix_indirect_circuits: true   # voltage=230000;230000, cables=6 became 3 circuits per voltage instead of 1
+  build_osm_network:
+    geodesic_length: true         # Web Mercator stretches lengths by 1 / cos(latitude)
+
+links:
+  dc_projects:                    # HVDC capacity per project, README "Grid corrections"; overrides dc_ratings of statistics.yaml
+    file: ../../config-pypsa-earth/data/hvdc/hvdc_project_table.csv
+    reference_year: 2024          # the calibration year; myopic horizons would need the table's years per horizon
+    unmatched: zero               # links without a project: unnamed pieces of lines added separately, later lines, links outside the table
+    add_missing: true             # BritNed, COBRA, Kontek, Baihetan-Jiangsu, ...: in service, but not routable in OSM
 
 atlite:
   nprocesses: 1
@@ -56,6 +67,14 @@ build_shape_options:
   nprocesses: 1
   gdp_method: standard    # GDP_PPP raster ships in bundle_data_earth (data/GDP); used with population to distribute demand to buses
   clip_bbox: [65.5, 4.5, 98.0, 37.5]   # fork patch: same box as the cutout (nothing to drop for India; kept for the invariant)
+
+cluster_options:
+  simplify_network:
+    p_threshold_merge_isolated: false  # no merge before the fetch: every fragment joins its own nearest backbone bus
+    s_threshold_fetch_isolated: 0.05   # isolated AC fragments below 5 % of the national load join the nearest backbone bus
+                                       # (2026-10-20): the absolute drop / merge thresholds (20 / 300 MW mean load) left 41
+                                       # more single-bus islands at the 2050 demand of IN-zero than at 2024's, 54 sub-networks
+                                       # for 50 clusters; a share of the load keeps `now` and `zero` on the same topology
 
 solving:
   solver:

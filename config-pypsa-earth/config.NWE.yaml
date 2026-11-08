@@ -40,6 +40,17 @@ osm:
     threshold_voltage: 200000   # [V] keeps the ENTSO-E transmission level (220 / 380-400 kV) and GB's 275 / 400 kV;
                                 # DK's 150 / 132 kV and the 110 / 132 kV grids of IE, GB and the continent are left out
                                 # (same threshold as US, BR, IN, SG)
+    drop_duplicate_ids: true      # a cross-border way arrives once per country extract and became parallel lines
+    fix_indirect_circuits: true   # voltage=230000;230000, cables=6 became 3 circuits per voltage instead of 1
+  build_osm_network:
+    geodesic_length: true         # Web Mercator stretches lengths by 1 / cos(latitude)
+
+links:
+  dc_projects:                    # HVDC capacity per project, README "Grid corrections"; overrides dc_ratings of statistics.yaml
+    file: ../../config-pypsa-earth/data/hvdc/hvdc_project_table.csv
+    reference_year: 2024          # the calibration year; myopic horizons would need the table's years per horizon
+    unmatched: zero               # links without a project: unnamed pieces of lines added separately, later lines, links outside the table
+    add_missing: true             # BritNed, COBRA, Kontek, Baihetan-Jiangsu, ...: in service, but not routable in OSM
 
 atlite:
   nprocesses: 1
@@ -65,6 +76,7 @@ build_shape_options:
 
 cluster_options:
   simplify_network:
+    p_threshold_merge_isolated: false  # no merge before the fetch: every fragment joins its own nearest backbone bus
     s_threshold_fetch_isolated: 0.05   # isolated AC fragments below 5 % of the national load (unmapped 220 kV pockets in DE, FR, GB,
                                        # DK, PL, CH, IE: 20-1350 MW mean load each) are merged into the nearest backbone bus of their
                                        # country instead of each claiming a cluster; GB and IE(+NI) are backbones and stay separate

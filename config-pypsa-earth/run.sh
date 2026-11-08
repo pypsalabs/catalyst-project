@@ -34,7 +34,7 @@
 # logs/catalyst/<stage>.log, the merged config of each stage to logs/catalyst/config.<stage>.yaml.
 set -u
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PE=""; d="$HERE"; while [ "$d" != "/" ]; do [ -d "$d/models/pypsa-earth" ] && { PE="$d/models/pypsa-earth"; break; }; d="$(dirname "$d")"; done
+PE="${CATALYST_PE:-}"; d="$HERE"; [ -n "$PE" ] || while [ "$d" != "/" ]; do [ -d "$d/models/pypsa-earth" ] && { PE="$d/models/pypsa-earth"; break; }; d="$(dirname "$d")"; done
 [ -n "$PE" ] || { echo "models/pypsa-earth not found above $HERE" >&2; exit 1; }
 LOGDIR="$PE/logs/catalyst"; mkdir -p "$LOGDIR"
 STATUS="$LOGDIR/status.log"
@@ -42,6 +42,10 @@ MEM_MAX=${MEM_MAX:-8G}
 MIN_FREE_GB=${MIN_FREE_GB:-15}
 STAGE_TIMEOUT=${STAGE_TIMEOUT:-20h}
 CONTINUE_ON_FAIL=${CONTINUE_ON_FAIL:-0}
+# CATALYST_PE (fork checkout to drive, default: models/pypsa-earth above this script), CATALYST_RUN (command prefix for
+# python / snakemake, default `pixi run`) and SNAKEMAKE_EXTRA (appended to every snakemake call): used by
+# baseline/run_overnight.sh to drive the v0.9.0 worktree with the main fork's environment and an --allowed-rules list
+export RUN="${CATALYST_RUN:-pixi run}" SNAKEMAKE_EXTRA="${SNAKEMAKE_EXTRA:-}"
 NETWORK_RULES='retrieve_databundle_light|download_osm_data|build_cutout|retrieve_cost_data|build_shapes|build_powerplants|retrieve_validation_data'
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 export PATH="$HOME/.pixi/bin:$HOME/.local/bin:$PATH"
@@ -63,7 +67,7 @@ stage_kind() {   # $1 = stage name -> prenetwork | overlay | dashboard | unknown
 
 link_resources() {   # $1 = base run, $2 = scenario run: share the expensive resources of the base run
   # resources/<run>/ is a real directory of symlinks to the base run's entries (shapes, osm, renewable_profiles,
-  # powerplants, demand, natura, cost files) except bus_regions/, which gets its own directory with symlinks to the
+  # powerplants, natura; not the cost tables and demand profiles, see below) except bus_regions/, which gets its own directory with symlinks to the
   # two build_bus_regions outputs only: simplify_network / cluster_network write busmaps and clustered regions
   # into bus_regions/, and a shared directory would let one scenario run invalidate the other (and the base run)
   # by rewriting those files with a newer mtime (happened 2026-09-20: IN-now re-solved after IN-zero).
@@ -71,10 +75,16 @@ link_resources() {   # $1 = base run, $2 = scenario run: share the expensive res
   # resources; a fresh copy would make them all look outdated.
   local base="$1" run="$2" e
   if [ -L "resources/$run" ]; then rm "resources/$run"; log "[$run] resources/$run was a directory symlink -> replaced by per-entry links"; fi
+  # cost tables and demand profiles depend on stage settings (palette cost overrides, currency, demand year): every
+  # stage builds its own (a linked base-run file looks up to date to Snakemake; 2026-10-17 US-myopic lacked `sofc`)
+  for e in resources/"$run"/costs_* resources/"$run"/demand_profiles*.csv; do
+    [ -L "$e" ] && rm "$e" && log "[$run] removed stage-specific link $e"
+  done
   if [ ! -d "resources/$run" ]; then
     mkdir -p "resources/$run/bus_regions"
     for e in resources/"$base"/*; do
-      e="$(basename "$e")"; [ "$e" = bus_regions ] && continue
+      e="$(basename "$e")"
+      case "$e" in bus_regions|costs_*|demand_profiles*.csv) continue ;; esac
       ln -s "../$base/$e" "resources/$run/$e"
     done
     for e in regions_onshore.geojson regions_offshore.geojson; do
@@ -93,7 +103,7 @@ run_stage() {   # $1 = stage name (see header); HORIZON=<year> (pathway): target
   slog="$LOGDIR/$tag.log"
   cd "$PE" || return 1
   # build config.yaml for this stage and derive its target (merge_config.py prints the target)
-  target=$(pixi run python "$HERE/merge_config.py" "$kind" "$run" "$PE/config.yaml" ${HORIZON:+"$HORIZON"} 2>>"$slog") || { log "[$run] merge_config.py failed, see $slog"; return 1; }
+  target=$($RUN python "$HERE/merge_config.py" "$kind" "$run" "$PE/config.yaml" ${HORIZON:+"$HORIZON"} 2>>"$slog") || { log "[$run] merge_config.py failed, see $slog"; return 1; }
   cp "$PE/config.yaml" "$LOGDIR/config.$tag.yaml"
   # a document is re-edited, a pathway horizon may have a new market file: let Snakemake decide
   if [ -f "$target" ] && [ "$kind" != assumptions ] && [ -z "${HORIZON:-}" ]; then log "[$run] $target exists, skip"; return 0; fi
@@ -124,7 +134,7 @@ run_stage() {   # $1 = stage name (see header); HORIZON=<year> (pathway): target
     # over the read-only, shared data/ files although the bundle list was identical to the earlier stages)
     timeout --signal=TERM --kill-after=5m "$STAGE_TIMEOUT" \
       systemd-run --user --scope --quiet -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -p OOMPolicy=continue -- \
-      bash -c 'pixi run snakemake "$1" -c1 -j1 --rerun-incomplete --rerun-triggers mtime input --set-resources build_shapes:mem_mb=2000; rc=$?
+      bash -c '$RUN snakemake "$1" -c1 -j1 --rerun-incomplete --rerun-triggers mtime input --set-resources build_shapes:mem_mb=2000 $SNAKEMAKE_EXTRA; rc=$?
                cg=/sys/fs/cgroup$(cut -d: -f3 /proc/self/cgroup)
                echo "SCOPE memory.peak=$(( $(cat $cg/memory.peak 2>/dev/null || echo 0) / 1048576 )) MiB events: $(tr "\n" " " < $cg/memory.events 2>/dev/null)"
                exit $rc' _ "$target" >> "$slog" 2>&1
@@ -137,7 +147,7 @@ run_stage() {   # $1 = stage name (see header); HORIZON=<year> (pathway): target
       # member mean). 2026-09-20: the scenario runs shared resources/<R> through a directory symlink and rewrote the
       # base runs' busmaps and regions with those of another simplified network (US, BR, IN; README "Caveats").
       if [ "$kind" = prenetwork ] || [ "$kind" = overlay ]; then
-        if pixi run python "$HERE/scripts/check_bus_regions.py" "$run" >> "$slog" 2>&1; then
+        if $RUN python "$HERE/scripts/check_bus_regions.py" "$run" >> "$slog" 2>&1; then
           log "[$run] bus_regions/ consistent with networks/$run"
         else
           log "[$run] WARNING resources/$run/bus_regions/ does not describe networks/$run (check_bus_regions.py, see $slog)"
@@ -164,7 +174,7 @@ run_world() {   # world page over all solved networks, same memory scope as the 
   log "[world] plot_world.py -> results/catalyst/validation_world.png (cap ${MEM_MAX})"
   echo "######## [world] $(date) ########" >> "$slog"
   systemd-run --user --scope --quiet -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -- \
-    pixi run python "$HERE/scripts/plot_world.py" -o results/catalyst/validation_world.png >> "$slog" 2>&1 \
+    $RUN python "$HERE/scripts/plot_world.py" -o results/catalyst/validation_world.png >> "$slog" 2>&1 \
     || { log "[world] FAILED, see $slog"; return 1; }
   log "[world] SUCCESS results/catalyst/validation_world.png"
 }
@@ -178,11 +188,11 @@ run_pathway() {   # $1 = pathway:<scen>:<R1>,<R2>,... (see header)
   done
   slog="$LOGDIR/pathway_$scen.log"
   cd "$PE" || return 1
-  read -ra horizons <<< "$(pixi run python "$HERE/merge_config.py" horizons "${stages[0]}" 2>>"$slog")"
+  read -ra horizons <<< "$($RUN python "$HERE/merge_config.py" horizons "${stages[0]}" 2>>"$slog")"
   [ ${#horizons[@]} -gt 0 ] || { log "[pathway $scen] no planning horizons (merge_config.py horizons ${stages[0]}), see $slog"; return 1; }
   log "[pathway $scen] stages ${stages[*]}, horizons ${horizons[*]}${LEARNING_EXOGENOUS:+, exogenous $LEARNING_EXOGENOUS}"
   echo "######## [pathway $scen] $(date) ########" >> "$slog"
-  pixi run python "$HERE/scripts/clear_market.py" init "$scen" "${horizons[0]}" >> "$slog" 2>&1 \
+  $RUN python "$HERE/scripts/clear_market.py" init "$scen" "${horizons[0]}" >> "$slog" 2>&1 \
     || { log "[pathway $scen] clear_market.py init FAILED, see $slog"; return 1; }
   for i in "${!horizons[@]}"; do
     y="${horizons[$i]}"
@@ -193,12 +203,12 @@ run_pathway() {   # $1 = pathway:<scen>:<R1>,<R2>,... (see header)
     [ -n "$ynext" ] || break
     log "[pathway $scen] market step: builds of $y -> costs of $ynext"
     systemd-run --user --scope --quiet -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -- \
-      pixi run python "$HERE/scripts/clear_market.py" step "$scen" "$y" "$ynext" "${stages[@]}" \
+      $RUN python "$HERE/scripts/clear_market.py" step "$scen" "$y" "$ynext" "${stages[@]}" \
       ${LEARNING_EXOGENOUS:+--exogenous "$LEARNING_EXOGENOUS"} >> "$slog" 2>&1 \
       || { log "[pathway $scen] clear_market.py step $y FAILED, see $slog"; return 1; }
     log "[pathway $scen] $(grep -oE 'clear_market: (wrote .*|.* unchanged)$' "$slog" | tail -1)"
   done
-  pixi run python "$HERE/scripts/plot_learning.py" "$scen" >> "$slog" 2>&1 \
+  $RUN python "$HERE/scripts/plot_learning.py" "$scen" >> "$slog" 2>&1 \
     && log "[pathway $scen] SUCCESS, results/learning/$scen/learning.png" \
     || { log "[pathway $scen] plot_learning.py FAILED, see $slog"; return 1; }
 }

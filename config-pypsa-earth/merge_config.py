@@ -5,10 +5,14 @@ Build models/pypsa-earth/config.yaml for one run.sh stage and print its Snakemak
     pixi run python ../../config-pypsa-earth/merge_config.py <kind> <stage> <out.yaml> [<planning horizon>]
     pixi run python ../../config-pypsa-earth/merge_config.py horizons <stage>     (myopic: prints the horizons)
 
-kind = prenetwork : config.<stage>.yaml copied as is; target networks/<stage>/elec_s{simpl}_{clusters}_ec_l{ll}_{opts}.nc
-kind = overlay    : stage <R>-<scen> = config.<R>.yaml deep-merged with overlay.<scen>.yaml, run.name = stage,
-                    catalyst.base_run = R; target results/<stage>/plots/validation_elec_s..._{opts}.png
-kind = dashboard  : stage <R> = config.<R>.yaml + the validation custom rule; target results/catalyst/validation_<R>.png
+kind = prenetwork : statistics.yaml < config.<stage>.yaml; target networks/<stage>/elec_s{simpl}_{clusters}_ec_l{ll}_{opts}.nc
+kind = overlay    : stage <R>-<scen> = statistics.yaml < config.<R>.yaml < overlay.<scen>.yaml (deep merge), run.name =
+                    stage, catalyst.base_run = R; target results/<stage>/plots/validation_elec_s..._{opts}.png
+kind = dashboard  : stage <R> = statistics.yaml < config.<R>.yaml + the validation custom rule; target
+                    results/catalyst/validation_<R>.png
+statistics.yaml carries the 2024 statistics (calibration at the source: plant list, demand, hydro, wind / solar,
+efficiencies, fuel prices, operating envelope); catalyst.envelope: nofloor in an overlay points the envelope tables at
+calibration/<year>/envelope/nofloor/ (no must-run floors on emitting carriers).
 kind = assumptions: no network; the technology-assumptions custom rules only; target the assumptions PDF
                     ../../config-pypsa-earth/technology-assumptions/build/technology_assumptions.pdf
 Every merged config carries technology-assumptions/assumptions.smk in custom_rules, so the assumptions
@@ -16,11 +20,11 @@ document and the rule that feeds technology_assumptions.csv into the cost table 
 Palette stages (catalyst.palette: true in the overlay, e.g. overlay.myopic.yaml): technology_assumptions.csv
 decides what the model may build (technology-assumptions/scripts/palette.py): its `model`, `carrier`, `regions`,
 `availability`, `min_load`, `fuel` and `color` columns become electricity.extendable_carriers (all four lists),
-extendable_carriers_buses: all, max_hours, the fork's `conventional:` block, calibration.fuel_map, plotting, and
+extendable_carriers_buses: all, max_hours, the fork's `conventional:` block, costs.fuel_map, plotting, and
 costs.overrides = resources/<stage>/palette/costs_{year}.csv, written per year by assumptions.smk (palette_costs)
 from the CSV. Supply-curve technologies (model tranches) take their dataset and binning from the overlay's
 supply_curves.<carrier> block (cutout filled in from the base config); without such a block they are not built.
-Every overlay stage runs in USD (costs.output_currency), the currency of the CSV and of the calibration price tables.
+Every stage runs in USD (costs.output_currency), the currency of the CSV and of the calibration price tables.
 Rest-of-world groups (catalyst.single_node in config.<G>.yaml, written by scripts/select_countries.py): catalyst.extra_opts
 (ATKc) is prepended to every overlay opt (3h -> ATKc-3h, Co2L0-3h -> ATKc-Co2L0-3h), and the overlay target is the solved
 network results/<stage>/networks/<stem>.nc (no per-network validation page; plot_world.py draws all countries at once).
@@ -46,6 +50,14 @@ SMK = "../../config-pypsa-earth/validation.smk"  # relative to the fork root, se
 ASSUMPTIONS = "../../config-pypsa-earth/technology-assumptions"
 ASSUMPTIONS_SMK = ASSUMPTIONS + "/assumptions.smk"
 ASSUMPTIONS_PDF = ASSUMPTIONS + "/build/technology_assumptions.pdf"
+STATISTICS = "statistics.yaml"  # calibration at the source: the 2024 statistics, under every stage config
+PE = os.environ.get("CATALYST_PE") or os.path.join(HERE, "..", "models", "pypsa-earth")  # the fork root (config paths are relative to it)
+# CATALYST_BASELINE=1 (baseline/run_overnight.sh): PyPSA-Earth v0.9.0 as it comes, for the before/after comparison:
+# no statistics.yaml, the overlays are baseline/overlay.<scen>.yaml (the out-of-the-box definitions of 2026-09-19),
+# baseline/common.yaml is merged on top of everything (read-only data/ and cutouts/), and the technology-assumptions
+# rules are left out (they need fork options)
+BASELINE = os.environ.get("CATALYST_BASELINE") == "1"
+OVERLAY = "baseline/overlay.{scen}.yaml" if BASELINE else "overlay.{scen}.yaml"
 MARKET = "results/learning/{scen}/market_{{year}}.csv"  # relative to the fork root; one market per overlay
 
 
@@ -59,21 +71,38 @@ def deep_merge(base, over):
 
 
 def load(name):
+    if name == STATISTICS and BASELINE:
+        return {}
     with open(os.path.join(HERE, name)) as f:
         return yaml.safe_load(f) or {}
 
 
+def envelope_variant(cfg, variant):
+    """Point the `conventional: <carrier>: existing:` tables at calibration/<year>/envelope/<variant>/; an attribute
+    without a table in that variant (the floors of emitting carriers in nofloor) is dropped."""
+    for carrier, attrs in (cfg.get("conventional") or {}).items():
+        existing = attrs.get("existing") or {}
+        for attr, path in list(existing.items()):
+            new = path.replace("/envelope/floor/", f"/envelope/{variant}/")
+            if os.path.exists(os.path.join(PE, new)):
+                existing[attr] = new
+            else:
+                del existing[attr]
+
+
 def stage_config(kind, stage):
-    """Merged config dict of one stage."""
+    """Merged config dict of one stage: statistics.yaml < config.<R>.yaml (< overlay.<scen>.yaml)."""
     if kind == "overlay":
         base_run, scen = stage.rsplit("-", 1)
-        cfg = deep_merge(load(f"config.{base_run}.yaml"), load(f"overlay.{scen}.yaml"))
+        cfg = deep_merge(deep_merge(load(STATISTICS), load(f"config.{base_run}.yaml")), load(OVERLAY.format(scen=scen)))
         cfg.setdefault("run", {})["name"] = stage
         cat = cfg.setdefault("catalyst", {})
         cat.update(base_run=base_run, scenario=scen)
         if cat.get("extra_opts"):
             cfg["scenario"]["opts"] = [f"{cat['extra_opts']}-{o}" for o in cfg["scenario"]["opts"]]
         cfg.setdefault("costs", {})["output_currency"] = "USD"  # the study's currency (technology_assumptions.csv, price tables)
+        if cat.get("envelope", "floor") != "floor":
+            envelope_variant(cfg, cat["envelope"])
         if cat.get("palette"):
             apply_palette(cfg, stage)
         if cat.get("learning"):
@@ -83,10 +112,14 @@ def stage_config(kind, stage):
     elif kind == "assumptions":
         cfg = {"run": {"name": "assumptions"}, "custom_rules": [SMK]}
     else:
-        cfg = load(f"config.{stage}.yaml")
+        cfg = deep_merge(load(STATISTICS), load(f"config.{stage}.yaml"))
+        cfg.setdefault("costs", {})["output_currency"] = "USD"  # the price tables of statistics.yaml are in USD
         if kind == "dashboard":
             cfg["custom_rules"] = sorted(set(cfg.get("custom_rules", []) or []) | {SMK})
-    cfg["custom_rules"] = sorted(set(cfg.get("custom_rules", []) or []) | {ASSUMPTIONS_SMK})
+    if BASELINE:
+        deep_merge(cfg, load("baseline/common.yaml"))
+    else:
+        cfg["custom_rules"] = sorted(set(cfg.get("custom_rules", []) or []) | {ASSUMPTIONS_SMK})
     return cfg
 
 

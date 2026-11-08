@@ -1,25 +1,36 @@
 #!/usr/bin/env python
 # SPDX-License-Identifier: MIT
 """
-Build the per-country calibration tables read by the fork's `calibration:` block
-(models/pypsa-earth/scripts/calibrate_network.py) for one reference year.
+Build the per-country statistics of one reference year in the formats of the fork options that read them where
+each data vector enters the workflow (statistics.yaml wires them in; README "Calibration at the source").
 
     python config-pypsa-earth/scripts/build_calibration.py [--year 2024]
 
 writes config-pypsa-earth/calibration/<year>/
-    demand.csv       country, demand_twh                    Ember electricity demand
-    capacity.csv     country, group, gw                     Ember installed capacity per fuel group
-    generation.csv   country, group, twh, cf                Ember generation per fuel group (reference only)
-    hydro.csv        country, inflow_twh, max_hours         Ember hydro generation; reservoir hours from GloHydroRes
-    envelope.csv     country, carrier, p_min_pu, p_max_pu,  inflexible fleet (nuclear, biomass, geothermal) flat at the
-                     efficiency                             Ember capacity factor; thermal availability caps and
-                                                            fleet-average efficiencies (FLEET); plus the hand-maintained
-                                                            rows of envelope_overrides.csv
-    net_imports.csv  country, net_imports_twh               Ember net imports
-    envelope_nofloor.csv                                    envelope.csv without floors on emitting carriers (for Co2L runs)
-and copies the hand-curated price tables next to them:
-    fuel_prices.csv  country, fuel, price   from fuel_prices_<year>.csv + fuel_price_regions.csv, EUR x USD_PER_EUR (USD/MWh_th)
-    co2_prices.csv   country, price         from co2_prices_<year>.csv, EUR x USD_PER_EUR (USD/tCO2)
+    demand.csv            country, demand_twh            Ember demand -> load_options.annual_totals (build_demand_profiles)
+    capacity.csv          country, group, gw             Ember capacity per fuel group -> electricity.powerplants_statistics
+                                                         (build_powerplants; wind and solar come from IRENA, Ember's source);
+                                                         biomass and geothermal from IRENA by technology (IRENA_GROUPS), and
+                                                         a capacity too small for its generation back-filled
+    generation.csv        country, group, twh, cf        Ember generation -> electricity.capacity_factor_targets (wind,
+                                                         solar; add_electricity) and the energy bands (solve_network)
+    hydro_generation.csv  country, twh                   Ember hydro -> renewable.hydro.normalization (custom)
+    hydro_max_hours.csv   country, max_hours             GloHydroRes reservoir hours -> renewable.hydro.hydro_max_hours
+    efficiency.csv        country, carrier, efficiency   fleet efficiency -> electricity.powerplants_efficiency
+    envelope.csv          country, carrier, p_min_pu,    the operating envelope of the existing fleet with its sources:
+                          p_max_pu, efficiency, source   inflexible fleet (nuclear, biomass, geothermal, oil) flat at the
+                                                         Ember capacity factor, thermal availability caps and fleet
+                                                         efficiencies (FLEET, coal / oil implied by Ember CO2), plus the
+                                                         rows of envelope_overrides.csv
+    envelope/{floor,nofloor}/<carrier>_<attr>.csv        envelope.csv as one country table per carrier and attribute ->
+                          country, value                 conventional: <carrier>: existing: <attr> (add_electricity);
+                                                         nofloor without floors on emitting carriers (Co2L and future years)
+    net_imports.csv       country, net_imports_twh       Ember net imports -> net-import band (solve_network)
+and the hand-curated price tables:
+    fuel_prices.csv  country, fuel, price   fuel_prices_<year>.csv + fuel_price_regions.csv, EUR x USD_PER_EUR (USD/MWh_th)
+                                            -> costs.fuel_prices (add_electricity)
+    co2_prices.csv   country, price         co2_prices_<year>.csv, EUR x USD_PER_EUR (USD/tCO2)
+                                            -> co2.emission_prices_by_country (prepare_network)
 
     python config-pypsa-earth/scripts/build_calibration.py --check <solved network.nc> [...]
 
@@ -74,8 +85,19 @@ FLEET = {
     "oil": dict(p_max_pu=0.9, efficiency=0.35),   # cap for countries without an Ember oil row
 }
 
-# capacity factor used to back-fill an Ember capacity row that is missing or zero although the fuel generates
-# (Ember has no "Other Renewables" capacity for e.g. IS, NZ, CR, NI, SV, whose geothermal is 15-30 % of generation)
+# capacity of the biomass and geothermal groups from IRENA by technology, not from Ember: Ember's "Other Renewables"
+# capacity holds IRENA's renewable municipal waste in countries that have some (US 0.89 GW, against 2.7 GW of
+# geothermal; DE 1.06, NL 0.40 GW of "geothermal"), while Ember counts the waste's generation as Bioenergy, whose
+# capacity leaves the waste out (CN 18.6 GW for 208 TWh). Marine energy goes with geothermal, as Ember's tidal
+# generation does with its Other Renewables. Countries IRENA does not list keep Ember's value.
+IRENA_GROUPS = {
+    "biomass": ["Solid biofuels", "Renewable municipal waste", "Biogas", "Liquid biofuels"],
+    "geothermal": ["Geothermal energy", "Marine energy"],
+}
+
+# capacity factor used to back-fill an Ember capacity row that is missing, zero or too small for its generation
+# (capacity factor above 1): Ember has no "Other Renewables" capacity for e.g. IS, NZ, CR, NI, SV, whose geothermal is
+# 15-30 % of generation, and Other Fossil capacity far below its generation in IR, EG, SY (dual-fuel plants counted as gas)
 BACKFILL_CF = {"geothermal": 0.75, "biomass": 0.5, "oil": 0.3, "gas": 0.3, "coal": 0.5, "nuclear": 0.85,
                "wind": 0.28, "solar": 0.15, "hydro": 0.4}
 
@@ -84,10 +106,15 @@ BACKFILL_CF = {"geothermal": 0.75, "biomass": 0.5, "oil": 0.3, "gas": 0.3, "coal
 # Ember's combustion accounting is intensity x generation / emissions (Gulf / CIS gas fleets are steam and simple-cycle
 # units at 30-35 %, old coal fleets 28-33 %, Ember's lignite factor makes lignite fleets look less efficient still).
 # Applied for fuels with > 0.5 TWh; clipped to the range.
-# KNOWN BIAS (2026-10-14): Ember's fossil emission factors are life-cycle (upstream methane in the gas factors), so
-# gas efficiencies come out too low; see README "Open issue: emissions-implied gas efficiencies".
-IMPLIED_EFFICIENCY = {"gas": (0.198, (0.28, 0.58), ["CCGT", "OCGT"]), "coal": (0.336, (0.25, 0.45), ["coal", "lignite"]),
-                      "oil": (0.2571, (0.25, 0.45), ["oil"])}
+# Gas is left out (fixed 2026-10-19): Ember's gas factors are life-cycle country factors (Jordaan et al. 2022, incl.
+# upstream methane), so the implied efficiency read the upstream emissions as fuel burnt in the plant (US 0.37 against
+# ~0.45 from EIA heat rates, AU / CA / SA 0.27); gas fleets take the FLEET values per carrier instead. Coal's factors
+# (UNECE, by coal grade) carry a much smaller upstream share and give plausible fleets (0.35-0.41); oil is kept.
+IMPLIED_EFFICIENCY = {"coal": (0.336, (0.25, 0.45), ["coal", "lignite"]), "oil": (0.2571, (0.25, 0.45), ["oil"])}
+# envelope attributes written as country tables for the fork's `conventional:` block, and the emitting carriers that
+# lose their floor in the nofloor variant (geothermal carries a 0.12 t/MWh_th intensity in technology-data)
+ENVELOPE_ATTRS = ["p_min_pu", "p_max_pu"]
+EMITTING = ["oil", "geothermal", "coal", "lignite", "CCGT", "OCGT"]
 
 USABLE_RESERVOIR = 0.5  # share of the gross reservoir energy (rho g V head) taken as usable
 MAX_HOURS_CAP = 3000.0
@@ -109,6 +136,25 @@ def fuel_table(e, category, unit):
     d = e[(e.Category == category) & (e.Subcategory == "Fuel") & (e.Unit == unit)]
     d = d[d.Variable.isin(GROUPS)]
     t = d.groupby(["country", d.Variable.map(GROUPS)]).Value.sum()
+    t.index.names = ["country", "group"]
+    return t
+
+
+def irena_table(latest):
+    """IRENA capacity (GW) of the IRENA_GROUPS per country, in the country's Ember year; every group of a country IRENA lists
+    gets a row (0 where IRENA has none of its technologies). Read through powerplantmatching, the same IRENASTAT file the
+    fork uses for wind and solar."""
+    import powerplantmatching as pm
+
+    d = pm.data.IRENASTAT(raw=True)
+    d = d[d["Data Type"].str.contains("Capacity")]
+    names = d["Country/area"].replace("Congo (the)", "Congo")
+    iso2 = dict(zip(names.unique(), coco.CountryConverter().convert(list(names.unique()), to="ISO2", not_found=None)))
+    d = d.assign(country=names.map(iso2))
+    d = d[d.country.isin(latest.index) & (d.Year == d.country.map(latest))]
+    group = {tech: g for g, techs in IRENA_GROUPS.items() for tech in techs}
+    t = d[d.Technology.isin(group)].groupby(["country", d.Technology.map(group)])["Electricity statistics"].sum() / 1e3
+    t = t.unstack().reindex(index=sorted(d.country.unique()), columns=list(IRENA_GROUPS)).fillna(0.0).stack()
     t.index.names = ["country", "group"]
     return t
 
@@ -160,12 +206,15 @@ def main(year):
     cap = fuel_table(e, "Capacity", "GW")
     dem = demand_table(e)
 
-    # back-fill capacity where Ember has generation but no (or zero) capacity
-    cap = cap.reindex(cap.index.union(gen.index), fill_value=0.0)
+    irena = irena_table(latest)
+    cap = cap.reindex(cap.index.union(gen.index).union(irena.index), fill_value=0.0)
+    cap[irena.index] = irena
+    # back-fill capacity where Ember has generation but no capacity, or less than the generation needs (capacity factor > 1)
     for key, twh in gen.items():
-        if twh > 0 and cap.get(key, 0.0) <= 0:
+        if twh > 0 and cap.get(key, 0.0) * 8.76 < twh:
+            old = cap.get(key, 0.0)
             cap[key] = twh / (8.76 * BACKFILL_CF[key[1]])
-            print(f"capacity back-filled: {key[0]} {key[1]} {cap[key]:.2f} GW from {twh:.2f} TWh")
+            print(f"capacity back-filled: {key[0]} {key[1]} {old:.2f} -> {cap[key]:.2f} GW from {twh:.2f} TWh")
     dem.round(3).reset_index().to_csv(os.path.join(out, "demand.csv"), index=False)
     cap.rename("gw").round(4).reset_index().to_csv(os.path.join(out, "capacity.csv"), index=False)
     cf = (gen / (cap.reindex(gen.index) * 8.76)).rename("cf")
@@ -173,9 +222,11 @@ def main(year):
         os.path.join(out, "generation.csv"), index=False
     )
 
-    hydro = gen.xs("hydro", level="group").rename("inflow_twh").round(3).to_frame()
-    hydro["max_hours"] = reservoir_hours().reindex(hydro.index).round(0)
-    hydro.reset_index().to_csv(os.path.join(out, "hydro.csv"), index=False)
+    hydro = gen.xs("hydro", level="group").rename("twh").round(3)
+    hydro.reset_index().to_csv(os.path.join(out, "hydro_generation.csv"), index=False)
+    max_hours = reservoir_hours().reindex(hydro.index).round(0).dropna()
+    max_hours.reset_index().rename(columns={"index": "country"}).to_csv(
+        os.path.join(out, "hydro_max_hours.csv"), index=False)
 
     imports = e[(e.Category == "Electricity imports") & (e.Unit == "TWh") & (e.Variable == "Net Imports")]
     imports.groupby("country").Value.sum().rename("net_imports_twh").round(3).reset_index().to_csv(
@@ -217,15 +268,25 @@ def main(year):
         env = pd.concat([env[~env.set_index(["country", "carrier"]).index.isin(
             o.set_index(["country", "carrier"]).index)], o])
     env.to_csv(os.path.join(out, "envelope.csv"), index=False)
-    # variant for runs with a CO2 cap: no must-run floor on carriers that emit (oil; geothermal carries a 0.12 t/MWh_th
-    # intensity in technology-data), which would be infeasible under Co2L0
+    env[["country", "carrier", "efficiency"]].dropna().to_csv(os.path.join(out, "efficiency.csv"), index=False)
+    # one table per carrier and attribute for conventional: <carrier>: existing: <attr>; the nofloor variant (runs with
+    # a CO2 cap, future years) has no must-run floor on carriers that emit, which would be infeasible under Co2L0
     nofloor = env.copy()
-    nofloor.loc[nofloor.carrier.isin(["oil", "geothermal", "coal", "lignite", "CCGT", "OCGT"]), "p_min_pu"] = np.nan
-    nofloor.to_csv(os.path.join(out, "envelope_nofloor.csv"), index=False)
+    nofloor.loc[nofloor.carrier.isin(EMITTING), "p_min_pu"] = np.nan
+    for variant, table in [("floor", env), ("nofloor", nofloor)]:
+        d = os.path.join(out, "envelope", variant)
+        os.makedirs(d, exist_ok=True)
+        for f in os.listdir(d):
+            os.remove(os.path.join(d, f))
+        for carrier in sorted(set(FLEET) | {c for cs in INFLEXIBLE.values() for c in cs}):
+            for attr in ENVELOPE_ATTRS:
+                v = table[table.carrier == carrier].set_index("country")[attr].dropna()
+                if len(v):
+                    v.rename("value").reset_index().to_csv(os.path.join(d, f"{carrier}_{attr}.csv"), index=False)
 
     prices(year, out)
     print(f"{out}: {len(dem)} countries, Ember years {latest.min()}-{latest.max()}; "
-          f"{hydro.max_hours.notna().sum()} countries with reservoir hours; {len(env)} envelope rows")
+          f"{len(max_hours)} countries with reservoir hours; {len(env)} envelope rows")
 
 
 MODEL_GROUPS = {"coal": "coal", "lignite": "coal", "CCGT": "gas", "OCGT": "gas", "oil": "oil", "nuclear": "nuclear",

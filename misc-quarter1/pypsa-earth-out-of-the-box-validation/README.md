@@ -8,6 +8,11 @@ annual net-import and coal/gas energy bands; see the
 of the fork notes). **`figures/out-of-the-box/`** keeps the pages of 2026-09-20/30 described in the
 rest of this file: the six prenetworks solved *as PyPSA-Earth comes*, which is what motivated the
 calibration (coal +11 pp, gas −12 pp, solar +10 pp of generation share on average over the world).
+**`figures/before-after/`** (2026-10-28) holds the comparison for colleagues: `before_after.png` / `.pdf` / `.csv`
+puts PyPSA-Earth v0.9.0 as it comes (re-run on the same stages, `before/` holds its dashboards and world page)
+next to the patched, calibrated fork, and `validation_world_before_after.{png,pdf}` shows per country Ember 2024, 0.9.0 and
+0.9.0 with patches (`config-pypsa-earth/scripts/plot_world_before_after.py`, from the two `validation_world.csv`); how it is made:
+[Before/after the patches](../../config-pypsa-earth/README.md#beforeafter-the-patches-baseline-2026-10-28).
 
 ## Out of the box (2026-09-20/30, `figures/out-of-the-box/`)
 
@@ -84,5 +89,6 @@ file) and Kosovo (no load series). Produced by `config-pypsa-earth/scripts/plot_
 
 The same six regional dashboards and the world page after the calibration of the `now` solve to the 2024
 system (the `zero` solves are re-run on top of the calibrated system as well). `figures/validation_world.csv`
-carries the per-country numbers. Residuals against Ember 2024, per country and fuel, come from
+carries the per-country numbers. The world page was redrawn on 2026-11-04 from the 2026-10-20 solves (plot_world.py only,
+no model run; numbers identical to the fork's table of 2026-10-20), so it matches the "after" side of `figures/before-after/`. Residuals against Ember 2024, per country and fuel, come from
 `python config-pypsa-earth/scripts/build_calibration.py --check <solved network>`.

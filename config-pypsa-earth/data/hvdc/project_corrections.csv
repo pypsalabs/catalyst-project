@@ -1,0 +1,63 @@
+# Hand-curated corrections to Wikipedia's "List of HVDC projects", read by scripts/build_hvdc_ratings.py --table (2026-11-02).
+# action update = overwrite the given fields of the list row of that name, or add the project if the list lacks it; drop = remove the list row.
+# Ratings, lengths and years of China's UHV lines: Wikipedia, Ultra-high-voltage electricity transmission in China (china_uhv_lines.csv).
+# Coordinates here are APPROXIMATE terminal locations from the place names (0.1 degree), good enough to snap to a DC bus: check_grid.py tests them through the matched route length against length_km.
+name,action,country1,country2,voltage_kv,p_nom_mw,year,status,length_km,x1,y1,x2,y2,source
+Yunnan - Guangdong,update,,,,5000,2010,existing,1438,,,,,UHV page
+Xiangjiaba-Shanghai,update,,,,6400,2010,existing,1907,,,,,UHV page
+Jinping - Sunan,update,,,,7200,2012,existing,2059,,,,,UHV page
+Hami - Zhengzhou,update,,,,8000,2014,existing,2210,,,,,UHV page
+Xiluodo - West Zhejiang,update,,,,8000,2014,existing,1680,,,,,UHV page
+Nuozhadu - Guangdong,update,,,,5000,2015,existing,1413,,,,,UHV page
+Yinchuan - Zhuji,update,,,,8000,2016,existing,1720,,,,,UHV page: Lingzhou - Shaoxing
+Jiuquan- Xiangtan,update,,,,8000,2017,existing,2383,,,,,UHV page: Jiuquan - Hunan
+North Shanxi - Nanjing,update,,,800,8000,2017,existing,1119,,,,,UHV page: Shanxi North - Jiangsu
+Xilin Hot - Taizhou,update,,,,10000,2017,existing,1620,,,,,UHV page: Xilingol - Jiangsu
+Inner Mongolia - Linyi,update,,,,10000,2017,existing,1238,,,,,UHV page: Shanghaimiao - Linyi
+Northwest Yunnan - Guangdong,update,,,,5000,2017,existing,1959,,,,,UHV page: Dianxi - Guangdong
+Humeng - Shandong,update,,,,10000,2017,existing,1234,120.9,44.6,118.5,36.7,UHV page: Zhalute - Qingzhou; approximate coordinates
+Wudongde multi-terminal UHVDC demonstration project,update,,,,8000,2020,existing,1489,102.5,26.0,114.3,23.7,UHV page; approximate coordinates (Luquan - Longmen)
+Zhangbei DC Grid Project,update,,,,,,existing,,115.5,41.2,116.3,40.4,approximate coordinates (Zhangbei - Beijing)
+Dianxibei - Guangdong,drop,,,,,,,,,,,,same line as Northwest Yunnan - Guangdong
+Humeng - Liaoning,drop,,,,,,,,,,,,planning name; not on the UHV page
+Jinsha River II - East China,drop,,,,,,,,,,,,planning name; not on the UHV page
+Jinsha River II - Fujian,drop,,,,,,,,,,,,planning name; not on the UHV page
+Goupitan - Guangdong,drop,,,,,,,,,,,,could not be confirmed as built
+Irkutsk - Beijing,drop,,,,,,,,,,,,not on the UHV page
+Zhundong - South Anhui,update,CN,CN,1100,12000,2018,existing,3293,89.3,44.1,118.9,31.0,UHV page: Changji - Guquan; approximate coordinates
+Qinghai - Henan,update,CN,CN,800,8000,2020,existing,1587,100.6,36.3,114.0,33.0,UHV page; approximate coordinates
+Yazhong - Jiangxi,update,CN,CN,800,8000,2021,existing,1711,101.8,27.4,116.0,28.6,UHV page; approximate coordinates
+Shanbei - Hubei,update,CN,CN,800,8000,2021,existing,1127,109.7,38.3,114.6,30.5,UHV page; approximate coordinates
+Baihetan - Jiangsu,update,CN,CN,800,8000,2022,existing,2087,102.9,27.7,120.7,31.7,UHV page; approximate coordinates
+Baihetan - Zhejiang,update,CN,CN,800,8000,2022,existing,2193,102.9,27.7,120.1,30.4,UHV page; approximate coordinates
+Longdong - Shandong,update,CN,CN,800,8000,2025,existing,926,107.6,35.7,116.3,35.9,UHV page; approximate coordinates
+Hami - Chongqing,update,CN,CN,800,8000,2025,existing,2260,93.5,42.8,106.5,29.6,UHV page; approximate coordinates
+Ningxia - Hunan,update,CN,CN,800,8000,2025,existing,1634,105.2,37.5,112.6,26.9,UHV page; approximate coordinates
+Jinshang - Hubei,update,CN,CN,800,8000,2025,existing,1901,99.0,31.0,114.9,30.1,UHV page; approximate coordinates
+Shaanbei - Anhui,update,CN,CN,800,8000,2026,existing,1069,109.7,38.3,117.2,31.8,UHV page; approximate coordinates
+Champa-Kurukshetra,update,,,,,,existing,,82.6,22.0,76.9,30.0,approximate coordinates
+"Xingu-Estreito (aka, Belo Monte 1)",update,BR,BR,800,4000,2017,existing,2077,-52.2,-3.1,-47.3,-20.2,approximate coordinates
+"Xingu-Rio (aka, Belo Monte 2)",update,BR,BR,800,4000,2019,existing,2550,-52.2,-3.1,-43.7,-22.6,approximate coordinates
+Neptune Cable,update,,US,,,,,,,,,,the list parser read the terminal cell as the country
+SunZia Transmission,update,,,,,,existing,,-105.7,34.2,-112.8,32.9,approximate coordinates
+New England Clean Energy Connect,update,,,,,,existing,,-69.9,45.5,-70.2,44.1,approximate coordinates
+Nemo Link,update,,,,,,existing,,3.2,51.3,1.35,51.3,approximate coordinates (Zeebrugge - Richborough)
+{{ill|ALEGrO|de}},update,,,,,,existing,,5.7,50.75,6.45,50.87,approximate coordinates (Lixhe - Oberzier)
+IFA-2,update,,,,,,existing,,-0.2,49.2,-1.2,50.8,approximate coordinates (Tourbe - Chilling)
+ElecLink,update,,,,,,existing,,1.8,50.9,1.15,51.1,approximate coordinates (Peuplingues - Folkestone)
+Viking Link,update,,,,,,existing,,9.05,55.5,-0.2,52.95,approximate coordinates (Revsing - Bicker Fen)
+Greenlink,update,,,,,,,,-7.0,52.25,-5.0,51.7,approximate coordinates (Great Island - Pembroke)
+BorWin1,update,,,,,,,,7.3,53.1,6.0,54.4,approximate coordinates (Diele - offshore)
+BorWin3,update,,,,,,,,7.25,53.3,6.5,54.2,approximate coordinates (Emden - offshore)
+HVDC DolWin6 |DolWin6,update,,,,,,,,7.25,53.3,7.1,53.9,approximate coordinates (Emden - offshore)
+HVDC DolWin5 |DolWin5,update,,,,,,,,7.25,53.3,6.6,53.9,approximate coordinates (Emden - offshore)
+BorWin5,update,,,,,,,,8.0,53.0,6.3,54.4,approximate coordinates (Garrel - offshore)
+Dogger Bank A,update,,,,,,,,-0.4,53.85,1.9,54.9,approximate coordinates (Creyke Beck - offshore)
+Dogger Bank B,update,,,,,,,,-0.4,53.85,1.9,54.9,approximate coordinates (Creyke Beck - offshore)
+NeuConnect,update,,,,,,,,8.1,53.6,0.7,51.45,approximate coordinates; under construction
+BEI Bornholm - Germany,update,DE,DK,525,2000,2033,under construction,,13.6,54.1,14.85,55.05,not in the list; OSM way name BEI-Interkonnektor Bornholm-Deutschland; rating ASSUMPTION = median at 525 kV; year approximate
+SOO Green,update,,,,,2030,planned,,,,,,the list has year 2023 but marks it planned; not built. Year ASSUMPTION
+Rio Madeira,update,,,,3150,2013,existing,2375,,,,,one of the two bipoles of 3150 MW; the list row of 7100 MW also holds the 800 MW back-to-back
+Rio Madeira 2,update,BR,BR,600,3150,2014,existing,2375,-63.958,-8.9147,-48.348,-21.833,second bipole; see Rio Madeira
+Yongren - Funing,update,CN,CN,500,3000,2016,existing,569,102.0,26.1,105.6,23.6,not in the list; OSM name; rating and length ASSUMPTION from memory of the project; approximate coordinates
+Quebec - New England (US section),update,US,US,450,2000,1990,existing,386,-72.5,42.7,-71.6,42.6,US part of the list row Quebec - New England Transmission; length = OSM; rating ASSUMPTION; approximate coordinates

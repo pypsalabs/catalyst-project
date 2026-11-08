@@ -1,0 +1,11 @@
+# National fleet efficiencies for check_fleet.py (compared with calibration/2024/efficiency.csv); collected 2026-11-04.
+# efficiency = net, on the lower heating value: EIA heat rates (Btu/kWh, HHV) as 3412 / heat rate / LHV-to-HHV ratio (coal 0.95,
+# gas 0.90); China's standard coal consumption for power supply (gce/kWh, LHV by definition, all thermal plants >= 6 MW) as
+# 122.84 / value. kind: operating = fleet average of actual operation; tested = full-load tested, capacity-weighted (EIA 8.2).
+country,carrier,label,value,unit,kind,efficiency,source,url
+US,coal,coal,10777,Btu/kWh HHV,operating,0.333,EIA Electric Power Annual 2025 Table 8.1 (2024),https://www.eia.gov/electricity/annual/html/epa_08_01.html
+US,gas,all gas,7754,Btu/kWh HHV,operating,0.489,EIA Electric Power Annual 2025 Table 8.1 (2024),https://www.eia.gov/electricity/annual/html/epa_08_01.html
+US,CCGT,combined cycle,7548,Btu/kWh HHV,tested,0.502,EIA Electric Power Annual 2025 Table 8.2 (2024),https://www.eia.gov/electricity/annual/html/epa_08_02.html
+US,OCGT,gas turbine,10999,Btu/kWh HHV,tested,0.345,EIA Electric Power Annual 2025 Table 8.2 (2024),https://www.eia.gov/electricity/annual/html/epa_08_02.html
+US,OCGT,gas steam turbine,10337,Btu/kWh HHV,tested,0.367,EIA Electric Power Annual 2025 Table 8.2 (2024),https://www.eia.gov/electricity/annual/html/epa_08_02.html
+CN,coal,thermal fleet,302.4,gce/kWh,operating,0.406,CEC annual development report 2025 (via Sina Finance),https://finance.sina.cn/stock/relnews/hk/2025-07-10/detail-infeytki3691600.d.html?vt=4

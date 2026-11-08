@@ -1,0 +1,3 @@
+# Projects missing from Wikipedia's "List of HVDC projects" (2026-10-19), appended by scripts/build_hvdc_ratings.py
+name,country1,country2,voltage_kv,p_nom_mw,year,status,source
+Changji - Guquan,CN,CN,1100,12000,2019,existing,"Wikipedia, Changji-Guquan UHVDC (State Grid; 3,293 km, 12 GW)"

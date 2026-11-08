@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Before/after comparison, BEFORE side: put under every stage config instead of statistics.yaml when CATALYST_BASELINE=1
+# (merge_config.py), i.e. none of the 2024 statistics enter; PyPSA-Earth v0.9.0 defaults apply (GEGIS SSP2-2.6 2030
+# demand, powerplantmatching fleet, IRENA 2023 wind/solar, IRENA hydro normalisation). See baseline/run_overnight.sh.
+
+enable:
+  retrieve_databundle: false   # data/ is a read-only link to the main fork's data
+  build_cutout: false          # cutouts/ likewise
+  retrieve_cutout: false
+
+catalyst:
+  baseline: true               # labels of plot_validation.py ("as it comes")

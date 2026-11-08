@@ -1,0 +1,35 @@
+% Model: introduction of the layer principle, beside the layer-stack figure (scripts/plot_layers.py)
+\section{Model}\label{sec:model}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{coverage.pdf}
+  \caption{Countries included in modelling and share of demand covered per level of modelling detail.
+  Country borders from \citet{naturalearth}.}
+  \label{fig:coverage}
+\end{figure}
+
+PyPSA-Earth [ add citation ] offers globally applicable data pipelines to compile grid, fleet, techno-economic assumptions and renewable potentials into runnable linear optimization energy models.
+This project uses this pipeline for 132 countries, that are then run independently (Figure~\ref{fig:coverage}).
+Sixteen of them are spatially resolved: the contiguous United States, Brazil, India, China and the twelve countries of North-West Europe whose extensive interconnection requires to be modelled within one model.
+%
+% [26]: the figure's height in text lines; without it wrapfig miscounts (parskip) and keeps narrowing lines onto the next page
+\begin{wrapfigure}[26]{l}{0.47\textwidth}
+  \vspace{-0.6\baselineskip}\centering
+  \includegraphics[width=0.46\textwidth]{layers.pdf}
+  \captionsetup{font=footnotesize}
+  \caption{
+  Data layers that go into each country's model (grid data is skipped for single-node countries) and the subsection structure this report contains.
+}
+  \label{fig:layers}
+  \vspace{-0.8\baselineskip}
+\end{wrapfigure}
+
+Most countries share the same data pipeline to build the model, however local adjustments are needed where the default data source are insufficient.
+In every subsection we describe both; the standard data processing, and individual adjustments on top.
+
+In short, the PyPSA model finds the lowest-cost supply to meet demand exactly.
+This formulation is accurate, if the data layers represent real power supply and demand.
+We start with the grid which conditions and constrains power transport, and then set up the spatial and temporal distribution of demand.
+Next, we build the supply side: the existing fleet, the spatial distribution of renewable potential, techno-economic assumptions and fuel costs.
+

@@ -1,0 +1,171 @@
+# OSM HVDC way name (name:en if present, else name) -> project of hvdc_project_table.csv, hand-curated 2026-11-02 from the raw OSM extracts of the five regions.
+# One row per name and project; a way shared by several projects has several rows. Names not listed here are not claimed by a project.
+# Chinese names read by hand: 龙政线 Longquan-Zhengping; 昆柳龙 Kunbei-Liubei-Longmen; 雅湖 Yazhong-Jiangxi; 白浙 Baihetan-Zhejiang; 布托-虞城 Butuo-Changshu (Yucheng = Changshu; Baihetan-Jiangsu), an inference;
+# 金中 / 金沙江中游至广西 Yongren-Funing; 禄高肇 Luquan-Gaopo-Zhaoqing shares the Gaopo-Zhaoqing line of Guizhou-Guangdong I. HVDC Nexus Line -> CU is an ASSUMPTION: same voltage, region and length, name unconfirmed.
+osm_name,project
+Celilo - Sylmar (Path 65),Pacific DC Intertie
+Celilo-Sylmar,Pacific DC Intertie
+SunZia Transmission Project,SunZia Transmission
+HVDC Intermountain,Path 27
+Square Butte HVDC 250kV,Square Butte
+HVDC Nexus Line 400kV,CU
+HVDC Quebec - New England,Quebec - New England (US section)
+HVDC Quebec - New England Transmission Line,Quebec - New England (US section)
+Appalaches-Maine HVDC Interconnection,New England Clean Energy Connect
+Ligne d’interconnexion des Appalaches-Maine,New England Clean Energy Connect
+Neptune Cable,Neptune Cable
+Trans Bay Cable,Trans Bay Cable
+HVDC Belo Monte,"Xingu-Estreito (aka, Belo Monte 1)"
+HVDC Belo Monte,"Xingu-Rio (aka, Belo Monte 2)"
+HVDC Rio Madeira - Bipole 1,Rio Madeira
+HVDC Rio Madeira - Bipole 2,Rio Madeira 2
+HVDC Rio Madeira Bipole 2,Rio Madeira 2
+HVDC Itaipu Bipole North,Itaipu 2
+HVDC Itaipu - Bipole North,Itaipu 2
+HVDC Itaipu Bipole South,Itaipu 1
+HVDC Itaipu - Bipole South,Itaipu 1
+HVDC Raigarh - Pugalur,Raigarh-Pugalur
+HVDC Talcher - Kolar Line,Talcher-Kolar
+Champa-Kurukshetra HVDC line,Champa-Kurukshetra
+Mundra - Mahendragarh HVDC line,Mundra - Haryana
+Rihand - Dadri HVDC Line,Rihand-Delhi
+HVDC Ballia - Bhiwadi Line,Ballia - Bhiwadi
+Chandrapur - Padghe HVDC line,Chandrapur-Padghe
+Alipurdur to Agra HVDC Line,North-East Agra
+Agra HVDC Line,North-East Agra
+Biswanath Charai to Alipurdur HVDC Line,North-East Agra
+HVDC Sileru–Barsoor,Sileru-Barsoor
+Changji – Guquan ±1100 kV UHVDC Transmission Line,Zhundong - South Anhui
+HVDC Jiuquan- Xiangtan,Jiuquan- Xiangtan
+HVDC Southern Hami–Zhengzhou,Hami - Zhengzhou
+HVDC Jinping–Sunan,Jinping - Sunan
+HVDC Xiangjiaba-Shanghai,Xiangjiaba-Shanghai
+HVDC Lingzhou - Shaoxing,Yinchuan - Zhuji
+HVDC Xiluodo - West Zhejiang,Xiluodo - West Zhejiang
+HVDC Xilin Hot - Taizhou,Xilin Hot - Taizhou
+±800 kV Qingyu Line,Qinghai - Henan
+HVDC Xiluodu-Guangdong,Xiluodo - Guangdong
+HVDC Nuozhadu – Guangdong,Nuozhadu - Guangdong
+HVDC Chuxiong–Suidong,Yunnan - Guangdong
+HVDC Yunnan–Guangdong,Yunnan - Guangdong
+HVDC Ningxia-Shandong,Ningdong - Shandong
+HVDC Hami-Chongqing,Hami - Chongqing
+HVDC Yazhong-Jiangxi,Yazhong - Jiangxi
+雅湖直流,Yazhong - Jiangxi
+HVDC Inner Mongolia - Linyi,Inner Mongolia - Linyi
+HVDC North Shanxi - Nanjing,North Shanxi - Nanjing
+HVDC Xingren-Baoan,Guizhou - Guangdong II
+HVDC Guizhou-Guangdong II,Guizhou - Guangdong II
+HVDC Qinghai-Tibet,Qinghai - Tibet
+HVDC Three Gorges-Shanghai,Three Gorges - Shanghai
+HVDC Ningxia-Hunan,Ningxia - Hunan
+±800 kV Ningxiang Line,Ningxia - Hunan
+HVDC Tianshengqiao–Guangzhou,Tian-Guang
+HVDC 葛洲坝-上海,Gezhouba - Shanghai
+HVDC Gezhouba–Shanghai,Gezhouba - Shanghai
+HVDC Gezhouba-Shanghai,Gezhouba - Shanghai
+HVDC Three Gorges-Guangdong,Three Gorges - Guangdong
+HVDC Hulunbeir-Liaoning,Hulunbeir - Liaoning
+昆北至柳北至龙门直流,Wudongde multi-terminal UHVDC demonstration project
+昆柳龙800kV输电线路,Wudongde multi-terminal UHVDC demonstration project
+昆柳龙直流,Wudongde multi-terminal UHVDC demonstration project
+龙政线,Three Gorges - Changzhou
+HVDC Guizhou-Guangdong I,Guizhou - Guangdong I
+禄劝至高坡至肇庆直流,Guizhou - Guangdong I
+HVDC Luquan-Gaopo-Zhaoqing,Guizhou - Guangdong I
+HVDC Shanbei – Wuhan,Shanbei - Hubei
+HVDC Northwest Yunnan - Guangdong,Northwest Yunnan - Guangdong
+滇西北至广东特高压直流,Northwest Yunnan - Guangdong
+Zhangbei VSC-HVDC,Zhangbei DC Grid Project
+HVDC Yongren-Funing,Yongren - Funing
+金中直流,Yongren - Funing
+金沙江中游至广西直流,Yongren - Funing
+±800kV扎鲁特-广固直流输电线,Humeng - Shandong
+HVDC Zhalute–Qingzhou,Humeng - Shandong
+HVDC Baoji-Deyang,Baoji - Deyang
+±500 kV Baoji – Deyang HVDC Line,Baoji - Deyang
+白浙线,Baihetan - Zhejiang
+白鹤滩-浙江800千伏特高压直流输变电线路,Baihetan - Zhejiang
+±800kV布托-虞城,Baihetan - Jiangsu
+金沙江上游至湖北特高压直流,Jinshang - Hubei
+HVDC 湖北-上海,Hubei - Shanghai
+HVDC Hubei - Shanghai,Hubei - Shanghai
+HVDC Hubei-Shanghai,Hubei - Shanghai
+Longdong – Shandong ±800 kV UHVDC Line,Longdong - Shandong
+Viking Link,Viking Link
+Western HVDC Link,Western HVDC Link
+COBRA cable,COBRAcable
+East-West Interconnector,East West Interconnector
+Shetland HVDC Connection,Shetland HVDC Connection
+IFA2,IFA-2
+IFA 2000,Interconnexion France Angleterre (new)
+IFA 2000 bipole 1,Interconnexion France Angleterre (new)
+IFA 2000 bipole 2,Interconnexion France Angleterre (new)
+Dogger Bank A Export Cable,Dogger Bank A
+Dogger Bank B Export Cable,Dogger Bank B
+Dogger Bank C Wind Farm export cable onshore,Dogger Bank C
+Dogger Bank C Wind Farm export cable nearshore,Dogger Bank C
+HGÜ BorWin2,BorWin2
+Greenlink,Greenlink
+East Anglia THREE Grid Connection,East Anglia THREE
+BEI-Interkonnektor Bornholm-Deutschland,BEI Bornholm - Germany
+SylWin1,SylWin1
+SylWin 1 HVDC,SylWin1
+HVDC DolWin 3,DolWin3
+HVDC BorWin 3,BorWin3
+Nemo Link,Nemo Link
+Nemo Link UK onshore,Nemo Link
+Caithness-Moray Link,Caithness - Moray Link<sup>3</sup>
+Caithness/Spittal,Caithness - Moray Link<sup>3</sup>
+HVDC BorWin5,BorWin5
+HVDC Borwin5,BorWin5
+Aachen Lüttich Electricity Grid Overlay,{{ill|ALEGrO|de}}
+HVDC DolWin 1 & 2,DolWin1
+HVDC DolWin 1 & 2,DolWin2
+HVDC DolWin 1,DolWin1
+HVDC DolWin 2,DolWin2
+HVDC DolWin 6,HVDC DolWin6 |DolWin6
+HelWin 1,HelWin1
+HelWin 1 HVDC,HelWin1
+HelWin 2,HelWin2
+HelWin 2 HVDC,HelWin2
+HelWin 1; HelWin 2; SylWin 1,HelWin1
+HelWin 1; HelWin 2; SylWin 1,HelWin2
+HelWin 1; HelWin 2; SylWin 1,SylWin1
+HelWin 1; SylWin 1,HelWin1
+HelWin 1; SylWin 1,SylWin1
+Moyle Interconnector,Moyle
+Moyle Interconnector North,Moyle
+Moyle Interconnector South,Moyle
+ElecLink,ElecLink
+Sofia Wind Farm export cable,Sofia
+BritNed,BritNed
+SuedLink,SuedLink DC3
+Südlink V2 Abschnitt A3 Minus,SuedLink DC3
+Südlink V3 Abschnitt A2 Plus,SuedLink DC3
+Südlink V3 Abschnitt A3 Minus,SuedLink DC3
+Südlink V3 Abschnitt A3 Plus,SuedLink DC3
+Südlink V3 Abschnitt A4 Plus,SuedLink DC3
+Südlink V3 Abschnitt B2 Minus,SuedLink DC3
+Südlink V3 Abschnitt B2 Plus,SuedLink DC3
+Südlink V3 Abschnitt B3 Minus,SuedLink DC3
+Südlink V3 Abschnitt B3 Plus,SuedLink DC3
+Südlink V3 Abschnitt C1 Minus,SuedLink DC3
+Südlink V3 Abschnitt C1 Plus,SuedLink DC3
+Südlink V3 Abschnitt D1 Minus,SuedLink DC3
+Südlink V3 Abschnitt D1 Plus,SuedLink DC3
+Südlink V4 Abschnitt A2 Minus,SuedLink DC4
+Südlink V4 Abschnitt A2 Plus,SuedLink DC4
+Südlink V4 Abschnitt A3 Minus,SuedLink DC4
+Südlink V4 Abschnitt A3 Plus,SuedLink DC4
+Südlink V4 Abschnitt A4 Minus,SuedLink DC4
+Südlink V4 Abschnitt A4 Plus,SuedLink DC4
+Südlink V4 Abschnitt B2 Minus,SuedLink DC4
+Südlink V4 Abschnitt B2 Plus,SuedLink DC4
+Südlink V4 Abschnitt B3 Minus,SuedLink DC4
+Südlink V4 Abschnitt B3 Plus,SuedLink DC4
+Südlink V4 Abschnitt C1 Minus,SuedLink DC4
+Südlink V4 Abschnitt C1 Plus,SuedLink DC4
+Südlink V4 Abschnitt D1 Minus,SuedLink DC4
+Südlink V4 Abschnitt D1 Plus,SuedLink DC4
+SuedOstLink+,SüdOstLink

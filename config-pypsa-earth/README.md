@@ -34,6 +34,12 @@ propose to pypsa-meets-earth, `(no relevance 4 upstream)` a fork-only change:
 | `add_electricity`: the statistics-based wind/solar fleet is the expansion floor | `attach_wind_and_solar` put the IRENA-completed installed capacity into `p_nom` but left `p_nom_min` at the powerplantmatching share; an extendable generator ignores `p_nom`, so every `now` run rebuilt wind and solar from ≈0 (NWE onwind `p_nom` 91.8 GW, `p_nom_min` 0.33 GW). `p_nom_min` now carries the fleet times the documented `estimate_renewable_capacities.p_nom_min` factor; the `p_nom_max` factor of the same block is honoured. Calibration, 2026-09-30. |
 | `calibrate_network.py` + hooks in `prepare_network` / `solve_network`: config-gated calibration of a clustered network to a reference year (`calibration:` block, off by default) | per-country csv tables for demand, installed capacity per fuel group, hydro energy and reservoir hours, wind/solar capacity factors, fuel and CO2 prices, must-run / availability / fleet-efficiency envelopes and annual net imports; `brownfield_only` freezes every capacity for a pure dispatch; `efficiency_spread` splits fuel-burning generators into tranches so a country's merit order is a staircase. Applied after clustering, so one iteration costs prepare + solve. See "Calibration to 2024" below. |
 | `build_demand_profiles`: optional `load_options.fallback_source: demcast` | GEGIS SSP2-2.6 has all-zero series for HK, PR, LA, BT, PS, AF, UG, PG, ... (0.6 % of world demand). With the key, countries without load in `source` take the DemandCast series of `weather_year`; default `false`, archetype runs unaffected. Rest of world, 2026-09-29. |
+| `simplify_network.simplify_links`: capacity and length of a merged HVDC chain (upstream candidate) | the merged link summed the `p_nom` of every segment and converter of the chain (`min(... i_links ...)` over all links instead of over each group of parallel edges), so its capacity grew with the number of OSM segments (China: 483 GW of clustered HVDC, one link 29.8 GW). Now parallel edges add up and the weakest group limits the chain; the length is the sum over the series. 2026-10-19. |
+| `base_network`: `links.dc_ratings` (upstream candidate) | every OSM HVDC line became a link of `v_nom` x 1.638 kA (the one `lines.dc_types` cable type): 1.31 GW for a +-800 kV bipole. With the option an HVDC line is one bipole of the rating of its country and voltage from a csv, converters the summed rating of their lines. Default `false`. 2026-10-19. |
+| `base_network`: `links.dc_projects`, `_dc_projects.py` (upstream candidate) | rating per HVDC project instead of per OSM way: PyPSA-Eur's `links_p_nom` method generalised to segments (terminals snap to the DC bus of the voltage, shortest route preferring unused links, each bus pair carries the rating once). Options `reference_year`, `unmatched`, `add_missing`. Default `false`, not in any stage. 2026-11-02. |
+| `clean_osm_data`: `drop_duplicate_ids` (upstream candidate) | a cross-border way arrives once per country extract and became parallel lines (PyPSA-Eur's `_drop_duplicate_lines`). Default off, not in any stage. 2026-11-02. |
+| `clean_osm_data`: `fix_indirect_circuits` (upstream candidate) | `fill_circuits` wrote cables instead of circuits for a way with several voltages and one total of cables: `voltage=230000;230000, cables=6, circuits=2` became 6 circuits. About 21 % of US and 22 % of NWE AC circuit km (with the duplicates). Default off, not in any stage. 2026-11-02. |
+| `build_osm_network`: `geodesic_length` (upstream candidate) | lengths in Web Mercator are stretched by 1 / cos(latitude); HVDC links keep this through clustering. Default off, not in any stage. 2026-11-02. |
 
 ## Files
 
@@ -109,6 +115,9 @@ propose to pypsa-meets-earth, `(no relevance 4 upstream)` a fork-only change:
   mean of the members, later networks contain the clustered buses; bus tables only, seconds per run); `run.sh` runs
   it after every prenetwork / scenario stage and logs a `WARNING` line on mismatch. Exit code 1 on mismatch. See
   "Caveats: bus_regions of the base runs".
+- `baseline/` (`overlay.{now,zero}.yaml`, `common.yaml`, `prep_region.sh`, `run_overnight.sh`) +
+  `scripts/plot_before_after.py` — the same global experiment on PyPSA-Earth v0.9.0 as it comes, and the before/after
+  page; see "Before/after the patches".
 - `check_network.py <run>` — sanity table + map for a finished stage
   (`cd models/pypsa-earth && pixi run python ../../config-pypsa-earth/check_network.py BR`);
   writes `results/catalyst/<run>_map.png`.
@@ -429,8 +438,8 @@ archetype (SOW §1.2, archetype 1), 50 clusters, weather year 2013, built 2026-0
   mean 0.097 (SARAH-3, fixed tilt); onwind DK 0.46, GB 0.43, IE 0.37, NL 0.34, BE 0.28, DE 0.24, PL 0.22, FR 0.18,
   AT 0.14, CH 0.03; offshore 0.37 (FR) – 0.50 (NL). Potentials after the Copernicus / natura exclusions: solar
   4,033 GW, onwind 1,295 GW, offwind-ac 394 GW, offwind-dc 560 GW.
-- **Caveats** (on top of the general ones): HVDC capacities come from pypsa-earth's per-cable defaults and are
-  3–5× the real ratings (FR–GB 19 GW in the model vs 4 GW; GB–IE 9.4 vs 1; DE–DK 7.8 vs ≈ 2.5; GB–BE 2.7 vs 1;
+- **Caveats** (on top of the general ones): HVDC capacities came from pypsa-earth's per-cable defaults and were
+  (until the fix of 2026-10-19, section "HVDC capacities") 3–5× the real ratings (FR–GB 19 GW in the model vs 4 GW; GB–IE 9.4 vs 1; DE–DK 7.8 vs ≈ 2.5; GB–BE 2.7 vs 1;
   BE–DE 5.6 vs 1; GB–DK 4.6 vs 1.4) — WP2 should override them with ENTSO-E NTC values, as it should the
   interconnectors to countries outside the set (ES, IT, NO, SE, SK, HU, SI, LT), which are absent. Corsica is
   an isolated OSM "DC" substation and is now attached to the nearest mainland bus. Hydro reservoirs carry the
@@ -475,11 +484,11 @@ this machine covers all of China, so it was cropped instead (40 min instead of a
   substations, 1,527 generators at >= 51 kV; the densest of the six regions, US was 44 MB / 61k lines). At the
   200 kV threshold the base network has **13,549 buses and 21,049 lines** - twice the US - by voltage:
   220 kV 9,143, 500 kV 2,788, 330 kV 713, 800 kV 379, 750 kV 287, 1000 kV 172, 400 kV 40.
-- **Caveat, UHV line types:** `electricity.voltages` (inherited) is `[132, 220, 300, 380, 500, 750]` and
-  `lines.dc_types` only has 500 kV, so `base_network` snaps the 330 kV lines to the 380 kV type and the 800 /
-  1000 kV ones to 750 kV, understating the capacity of exactly the corridors that move power from the west to the
-  coast. Fixing it needs new entries in `lines.ac_types`/`dc_types`, i.e. a patch, so it is on the list rather
-  than in this screening run.
+- **Line capacities (checked 2026-10-19):** AC types are taken at the nearest configured voltage
+  (`electricity.voltages` [132, 220, 300, 380, 500, 750]) but `s_nom` uses each line's own voltage, so the 1000 kV
+  lines get 7.2 GVA per circuit (5 GW at `s_max_pu` 0.7, about the design transfer of China's UHVAC lines) and the
+  330 kV lines the 300 kV type (1.1 GVA): acceptable, no change. HVDC was wrong (and in every archetype, not just
+  China): see "HVDC capacities" below.
 - **Run history:** cutout crops 00:05-00:45 (January, 0.4 min of streaming) and 00:45-01:26 (full year, 38.5 min).
   prestage 01:26-01:41 (15 min: 1.6 GB download, osmium filter). Stage A (`CN-smoke`, January) 01:41-04:11
   (2 h 30 min), scope peak 9,500 MiB, zero OOM; the long rules were `build_powerplants` 74 min (powerplantmatching
@@ -492,6 +501,53 @@ this machine covers all of China, so it was cropped instead (40 min instead of a
   3 min / 5.1 GB. Disk 69 GB free afterwards. **Do not run this stage under an 8 GB cap** and do not raise the
   cluster count without re-checking: the availability matrices scale with base buses x cutout cells, and China is
   the worst case of the six (2x the US buses, 1.6x the cells).
+
+## HVDC capacities (2026-10-19)
+
+OpenStreetMap maps HVDC lines with their voltage but, on ways, without their rating (ratings sit on route relations,
+which earth-osm does not export). PyPSA-Earth therefore gave every DC line the current of one 500 kV cable type
+(`v_nom` x 1.638 kA: 1.31 GW at +-800 kV against 4-12 GW real), and `simplify_links` then summed all segments and
+converters of a chain, so the clustered capacities were arbitrary (China 483 GW, India 74 GW, both ~2x the real fleets;
+Belo Monte 5.9 instead of 8 GW; NWE interconnectors 3-5x their ratings). Two fork changes (patch table) and one study
+table fix this:
+
+- `scripts/build_hvdc_ratings.py` parses Wikipedia's "List of HVDC projects" (wikitext cached in `data/hvdc/`, fetched
+  2026-10-19) plus `data/hvdc/manual.csv` (projects the list lacks: Changji-Guquan +-1100 kV 12 GW) into
+  `data/hvdc/hvdc_ratings.csv`: the median design rating per country (either terminal) and pole voltage over all
+  projects not decommissioned (the list's status colours lag years behind), and `*` rows = world median per voltage.
+  E.g. CN 500 kV 3.0 GW, 800 kV 6.4 GW, 1100 kV 12 GW; IN 500 kV 2.5, 800 kV 6.0; BR 600 kV 3.15, 800 kV 4.0;
+  US 500 kV 2.4; DE 525 kV 2.0 GW. Screening-grade: one source; a multi-bipole project listed with its total counts
+  as one line; one OSM line = one bipole.
+- `statistics.yaml` sets `links.dc_ratings` to that table for every stage.
+- **Caveat, lines under construction:** OSM carries SuedLink's partly laid 525 kV cables (Brunsbuettel to Bavaria /
+  Baden-Wuerttemberg, in service 2028) without a construction tag, so NWE may contain fragments of it in 2024.
+- **Rebuild shortcut used on 2026-10-19:** `networks/<R>/base.nc` of US, BR, IN, NWE, CN was rebuilt with
+  `--forcerun base_network --allowed-rules base_network` and given back its old mtime, because only the DC link
+  capacities changed and none of the shared resources (bus regions, profiles, plants, demand) read them; the overlay
+  hardlinks were removed so `run.sh` re-links them.
+
+### Grid corrections and their check (2026-11-02, in the configs, not yet in any solved network)
+
+The options above are on in `config.{US,BR,IN,CN,NWE}.yaml`, `p_threshold_merge_isolated: false` in IN, CN, NWE. Existing networks predate them and
+`run.sh` will not rebuild them by itself (`--rerun-triggers mtime input`, and config values are no input): force the rebuild from `clean_osm_data` at the rerun. `scripts/check_grid.py`
+applies them in memory to the existing networks and writes `model-doc/build/grid_check/` (about 10 min, read-only). Table:
+`data/hvdc/hvdc_project_table.csv` = `build_hvdc_ratings.py --table` from the list, `links_p_nom.csv` (PyPSA-Eur's coordinates),
+`project_corrections.csv` (hand-curated; `china_uhv_lines.csv`; coordinates approximate) and `osm_name_map.csv` (OSM way name -> project, hand-curated, including Chinese names). `hvdc_ratings.csv` is unchanged.
+Matching is by way name first, read from the raw tables by way id without new Snakemake inputs, so that no rerun is triggered; note that earth-osm keeps many names and ratings in the column `other_tags`. Terminals pick the route, and continue through unnamed ways where needed.
+
+| HVDC | US | BR | IN | CN | NWE |
+|---|---|---|---|---|---|
+| GW km now / listed | 1.50 | 1.05 | 1.12 | 1.08 | 3.62 |
+| GW km corrected / listed | 0.98 | 1.01 | 0.99 | 0.95 | 0.76 |
+| routes within 10 % of listed length | 6/7 | 6/6 | 9/9 | 25/32 | 7/20 |
+| in-service projects found + added, of | 7 of 7 | 6 of 6 | 9 of 9 | 32+5 of 40 | 20+4 of 27 |
+
+Seven of eight NWE borders within 10 % (France-GB 4.0 GW; Germany-Denmark is off by exactly SylWin1). Terminals alone gave CN 1.03 but about a quarter of named km on the wrong parallel line, which name-first removes. Rating tags (unused by the matching, 63 % of NWE km) agree on 22 of 26 links. NWE's 0.76 and its route score come from offshore export cables that OSM only partly maps. CN: four in-service lines are only partly named or connected (65-86 % of listed length); Baihetan-Jiangsu, Baihetan-Zhejiang and Hubei-Shanghai are added as straight links.
+AC circuit km corrected vs published: India 461,800 / 466,560 (CEA, May 2024), Germany 32,600 / about 37,000, Brazil 173,500 / about 157,000 (projected
+from ONS 2020); the network now holds 500,100, 79,800 and 181,900. No published total was found for the US or China.
+Caveats: stored lengths of split lines are right but in Mercator, while their geometry may be that of the whole way, so `check_grid.py` uses the geometry only where the two agree;
+`underwater_fraction` reads that same geometry and may be affected. Links added by `add_missing` have no geometry and get `underwater_fraction` 0. `reference_year` is one year, so myopic horizons would need more.
+Effects on results are unknown. Merge fix (`p_threshold_merge_isolated: false`): structurally no isolated India pocket; shedding untested.
 
 ## Screening solves (stages `<R>-now`, `<R>-zero`, `dashboard:<R>`; 2026-09-19/20)
 
@@ -759,52 +815,46 @@ district heat, ancillary services, and a 33-46 % efficiency spread across vintag
 gradual). That spread is now represented explicitly (#7: three efficiency tranches per generator); a must-run
 floor per country and carrier is available in the same table (`p_min_pu`) but was not needed for the archetypes.
 
-### Where the fixes live
+### Where the statistics enter (calibration at the source, since 2026-10-19)
 
 Genuine defects are fixed at their source, one `(upstream candidate)` commit each (patches 16 and 17 in the table
-above). Everything that *calibrates to a reference year* goes through one fork module,
-`models/pypsa-earth/scripts/calibrate_network.py` (patch 18), called from `prepare_network` when
-`calibration.enable` is set and fed by per-country csv tables under **`config-pypsa-earth/calibration/2024/`**,
-which `scripts/build_calibration.py` derives from Ember (`data/validation/yearly_full_release_long_format.csv`,
-latest year ≤ 2024 per country) and GloHydroRes, plus three hand-curated tables kept next to them:
+above). The 2024 statistics themselves also enter **where each data vector enters the workflow**, through generic,
+config-gated fork options (each documented in `models/pypsa-earth/config.default.yaml`, off by default) fed by the
+per-country tables under **`config-pypsa-earth/calibration/2024/`**, which `scripts/build_calibration.py` derives from
+Ember (`data/validation/yearly_full_release_long_format.csv`, latest year ≤ 2024 per country), IRENA (through
+powerplantmatching), GloHydroRes and three hand-curated tables. **`statistics.yaml`** wires them in;
+`merge_config.py` puts it under every stage config (`statistics.yaml` < `config.<R>.yaml` < `overlay.<scen>.yaml`).
 
-| table | content | source |
-|---|---|---|
-| `demand.csv` | annual demand per country; the load time series are scaled to it | Ember |
-| `capacity.csv` | installed GW per fuel group (coal, gas, oil, nuclear, biomass, geothermal = Ember "Other Renewables", wind, solar, hydro without pumped storage); generators of the group are scaled, a group with a target but no plant is added at the country's largest-load bus | Ember |
-| `generation.csv` | generation and capacity factor per fuel group; wind and solar profiles are scaled per country to the observed capacity factor (a loss / weather-year correction of the atlite 2013 profiles, factor within 0.6-1.4); also the reference of `--check` | Ember |
-| `hydro.csv` | annual hydro generation (reservoir inflow and run-of-river energy scaled to it) and reservoir hours = ½ · ρ g V h of the country's reservoirs over its storage-plant capacity, capped at 3000 h | Ember; GloHydroRes v1 (`misc-quarter1/geothermal/data/`) |
-| `envelope.csv` | per country and carrier `p_min_pu`, `p_max_pu`, `efficiency`: nuclear, biomass, geothermal and "oil" (Ember's Other Fossil: industrial and refinery gases, waste and oil-fired CHP in Europe, crude / HFO baseload in the Gulf) run flat at ±5 % of their observed capacity factor; price-dispatched thermal plant gets an availability cap (0.9 / 0.92) and a fleet efficiency (coal 0.38, lignite 0.38, CCGT 0.50, OCGT 0.35, oil 0.35); rows of `envelope_overrides.csv` replace generated ones | Ember; IEA / national fleet statistics for the efficiencies |
-| `net_imports.csv` | annual net imports; `solve_network` keeps every country with cross-border lines or links within ±25 % (floor 1 TWh) of it | Ember |
-| `fuel_prices_2024.csv` + `fuel_price_regions.csv` → `fuel_prices.csv` | 2024 fuel prices in EUR/MWh_th by price region (Henry Hub 7, TTF 34, Japan LNG 40, China 30, India blend 25, regulated producer states 4, Russia/CIS 5, SE Asia domestic 15, Latin America 18 / 35, Australia 27; coal US 7.5, ARA 15, Newcastle 17, China 17, India 6, Australia / South Africa domestic 5-7; oil 45, Gulf 20) | World Bank Pink Sheet 2024, EIA, IEA gas market reports, regulators (each row cites its source) |
-| `co2_prices_2024.csv` → `co2_prices.csv` | effective marginal CO2 price on power-sector emissions: EU ETS 65 (EU, NO, IS, CH), UK 64 (ETS + CPS), CA 54, NZ 31, SG 17, KR 6, CL / CO 5, MX 3, JP 2; CN, ZA, US 0 with the reason in the row | World Bank State and Trends 2025, ICAP |
+| data vector | upstream source (first set) | where it now enters | fork option | table |
+|---|---|---|---|---|
+| annual demand | GEGIS SSP2-2.6 **2030** profiles (weather 2013) | `build_demand_profiles`: national series scaled before it is spread over the buses | `load_options.annual_totals` | `demand.csv` (Ember) |
+| demand per myopic horizon | — | `build_demand_profiles_horizon` (same rule per year); `add_brownfield_elec` swaps the loads, aggregated through the busmaps | `load_options.horizon_totals` | `calibration/<year>/demand.csv` (demand pathway) |
+| thermal, nuclear, geothermal, hydro capacity | powerplantmatching (GEO, GPD, GEM, EESI) | `build_powerplants`: plant list scaled per country and fuel group (location, vintage, retirement year kept); statistic 0 removes the group; a group without plants is added at the country's thermal sites ∝ capacity, with the site's commissioning year and no retirement year; plants after 2024 left out | `electricity.powerplants_statistics` | `capacity.csv` (Ember: GEM, IRENA) |
+| wind and solar capacity | plant list, topped up to IRENA 2023 | `add_electricity` (`estimate_renewable_capacities`): IRENA **2024**, Ember's own source for them; plant list scaled **down** where above | `stats: irena`, `year: 2024`, `scale_down: true` | IRENASTAT (powerplantmatching) |
+| wind and solar capacity factor | atlite ERA5 2013 | `add_electricity`, where profile and fleet first meet: profiles × target / fleet CF per country and group, ×0.6-1.4 | `electricity.capacity_factor_targets` | `generation.csv` (Ember) |
+| hydro energy | atlite runoff, rescaled to IRENA 2023 × 1.1 | `build_renewable_profiles` hydro normalisation: Ember 2024 TWh, one capacity factor per country (each plant keeps its runoff profile; pumped storage left out); multiplier 1.0 | `normalization: {method: custom, distribute: capacity}` | `hydro_generation.csv` (Ember) |
+| reservoir hours | `data/hydro_capacities.csv` (Africa) or 6 h | `add_electricity.attach_hydro` | `hydro_max_hours: <csv>` | `hydro_max_hours.csv` (GloHydroRes) |
+| plant efficiency | technology-data per carrier (new-build values); the plant list's own value was dropped | `add_electricity.load_powerplants`: the plant's efficiency, else the table, else technology-data; group and cluster means capacity-weighted | `electricity.powerplants_efficiency` | `efficiency.csv` (fleet values; coal / oil implied by Ember CO2, gas per carrier) |
+| fuel prices | one global price per fuel (technology-data) | `add_electricity`, where the marginal cost is formed: VOM + fuel price of the plant's country / plant efficiency | `costs.fuel_prices`, `costs.fuel_map` | `fuel_prices.csv` |
+| operating envelope (floor, availability) of today's fleet | none (nuclear: IAEA availability) | `add_electricity` `conventional:` per-country tables under `existing:` (new builds keep the palette's values); must-run ≤ 90 % of the lowest load | `conventional: <carrier>: existing:`, `electricity.must_run_cap`, `nuclear_p_max_pu: false` | `envelope/{floor,nofloor}/<carrier>_<attr>.csv` |
+| CO2 price | none (`Ep` global) | `prepare_network`, where upstream adds emission prices | `co2.emission_prices_by_country` | `co2_prices.csv` |
 
-The choice of one module + one data directory over spreading the tables across `build_demand_profiles`,
-`add_electricity` (`conventional:` hooks, `estimate_*_capacities`) and `prepare_network` (`Ep`) is deliberate: the
-module works on the clustered network, so an iteration costs `prepare_network` + `solve_network` (four minutes for
-NWE) instead of the base-network rebuild (hours); it is one optional, data-agnostic feature that upstream can take
-as a "historical validation year" mode without carrying our numbers; and the same tables with another year are
-what the WP3 loop needs anyway (the SOW's exogenous CO2 price per region, fuel prices, must-run floors). Converting
-a table into the native per-country hooks later is mechanical.
+What remains in `scripts/calibrate_network.py` (`calibration:` block, `prepare_network` / `solve_network`) acts on the
+clustered network because it is a representation or a constraint, not data: the three efficiency tranches per
+fuel-burning generator (the fuel part of the marginal cost follows each tranche), the `brownfield_only` freeze of
+the `now` dispatch, the net-import band and the soft coal / gas energy bands of `now`.
 
-Config (`overlay.now.yaml`; `overlay.zero.yaml` uses the same tables minus `co2_prices` with
-`brownfield_only: false`, i.e. expansion on top of the calibrated 2024 system):
+**Until 2026-10-19** all of this was one module that rewrote the clustered network in `prepare_network` (and the
+demand again in `add_brownfield`), chosen because an iteration then cost minutes instead of a base-network rebuild.
+It set several vectors two or three times (plants: powerplantmatching → Ember; wind / solar: plant list → IRENA 2023
+→ Ember; hydro: runoff → IRENA × 1.1 → Ember; demand: GEGIS 2030 → Ember 2024 → horizon) and could not go upstream,
+so it was replaced. The price: a change of the plant, hydro or demand tables rebuilds from `build_powerplants` /
+`build_renewable_profiles` (hydro only) / `build_demand_profiles` on, a change of efficiencies, envelopes, fuel
+prices or capacity-factor targets from `add_electricity` on.
 
-```yaml
-calibration:
-  enable: true
-  brownfield_only: true      # generators, stores, lines and links frozen -> pure dispatch; ll v1.0
-  efficiency_spread: 0.15    # three tranches per fuel-burning generator, efficiencies x0.85 / x1.0 / x1.15
-  tranches: 3
-  net_import_tolerance: 0.25
-  tables: {demand: ..., capacity: ..., generation: ..., hydro: ..., fuel_prices: ..., co2_prices: ..., envelope: ..., net_imports: ...}
-```
-
-Because the module runs after clustering, the archetype `-now` stages only re-ran `prepare_network` and
-`solve_network` (the calibration adds the missing biomass plants and sets the VRE fleet itself, so patches 16 and 17
-take effect at the next base-network build). `python config-pypsa-earth/scripts/build_calibration.py --check
-<solved network> ...` prints, per country and fuel, model vs Ember share, capacity factors and every row more than
-10 pp off.
+`scripts/check_sources.py <stage> ...` checks the statistics where they arrive (demand profiles, plant list, hydro
+inflow, efficiencies and marginal costs in `elec.nc`); `scripts/build_calibration.py --check <solved network> ...`
+prints, per country and fuel, model vs Ember share, capacity factors and every row more than 10 pp off.
 
 ### Iterations on NWE (12 countries, 50 nodes; each ≈ 4 min)
 
@@ -865,7 +915,7 @@ Not touched: the `-zero` scenario now starts from the same calibrated 2024 syste
 envelopes; expansion allowed, no CO2 price) but its runs had not been repeated when this was written — see the
 world page's notes box for the state of the `zero` bars.
 
-### Open issue: emissions-implied gas efficiencies are biased low (found 2026-10-14; re-run pending)
+### Fixed: emissions-implied gas efficiencies were biased low (found 2026-10-14, fixed 2026-10-19)
 
 `build_calibration.py` sets the coal / gas / oil fleet efficiency to combustion intensity × Ember generation ÷ Ember
 CO2 (iteration 5 above). Ember's CO2 is not measured: it is generation × emission factors, and per Ember's methodology
@@ -893,10 +943,100 @@ incl. upstream methane. The upstream part is read as extra fuel burnt in the pla
   > 50 MW, co-firing counted as gas; everything else IRENA), so the capacity factors in `envelope.csv` mix sources, and
   the coal / gas capacity targets share GEM with powerplantmatching (not an independent check).
 
-**Planned fix, folded into the next round of model improvements:** recover the plant's direct emissions with Ember's
-own life-cycle factor per fuel (or take fleet heat rates from EIA / national statistics where they exist), then
-re-solve a few `now` stages **without** energy bands, once with the corrected and once with the current
-efficiencies, and compare coal and gas shares against Ember before re-solving `now`, `zero` and `myopic`.
+**Fix (2026-10-19):** gas is no longer derived from emissions (`IMPLIED_EFFICIENCY` in `build_calibration.py` keeps
+coal, lignite and oil); gas fleets take the per-carrier defaults of `efficiency.csv` (CCGT 0.50, OCGT 0.35). The
+band-free comparison of old and new efficiencies was not run; the 2026-10-20 validation with bands shows one visible
+consequence: Israel's coal (11.5 TWh in 2024) no longer runs, cheap domestic gas at realistic efficiency undercuts it
+and the band is too soft to hold it (accepted for now, see "Validation of 2026-10-20" below).
+
+### Validation of 2026-10-20 (calibration at the source, HVDC ratings, hydro as generation, capacity cluster weights)
+
+All 16 `-now` stages (132 countries) solved; `check_sources.py` passes everywhere (demand, plant capacity per fuel
+group, hydro energy exact). Worst fuel row per country vs Ember, demand-weighted: **2.3 pp** (old downstream
+calibration 2.8 pp, calibration at the source before the two fixes below 3.0 pp). CN 0.7, US 1.5, IN 1.5, BR 0.9,
+GB 2.9, JP 3.4 pp. Two fixes made during this validation:
+- **Hydro inflow = generation** (`renewable.hydro.normalization.dispatch_efficiency`, fork): run-of-river inflow clipped
+  at capacity after scaling (32 TWh were lost to clipping in Brazil), reservoir inflow / 0.9 (dispatch efficiency;
+  26 TWh in Brazil). BR 10.4 -> 0.9 pp, VE 9.2 -> 0.4, NZ 5.5 -> 1.0, CO 5.5 -> 2.2.
+- **Cluster weights by capacity** (`renewable.<tech>.cluster_weight: capacity`, fork): the profiles of merged buses
+  were averaged by technical potential, so the fleet lost the capacity factor set in `add_electricity` (GB offshore
+  0.32 -> 0.41, wind +6.8 pp). GB 6.8 -> 2.9 pp.
+
+Accepted residuals (2026-10-20, revisit later):
+- **Islanded exporters:** the rest-of-world groups solve each country as an island, so net exporters cannot export.
+  With hydro now at its full energy, NO (net exports 18 TWh) and SE (33 TWh) curtail wind instead (NO wind CF 0.00,
+  SE wind -11.7 pp, hydro +9 to +10 pp). A fix would be an export sink at the net-export value.
+- **Israel coal** 0 instead of 11.5 TWh (gas fix above).
+- **Wind profiles of several rest-of-world countries** are so far below Ember that the CF correction stops at its
+  x1.4 clip (NAM summed CF 1.66 vs 3.61 over 11 countries; also SAM, ASI, EUR).
+- Small systems with a fuel off by > 10 pp as before (LT, PT, SD, LB, PS, AF, ...: single national fuel price,
+  islanding).
+
+### Fleet corrections and their check (2026-11-04, in the tables and configs, not yet in any solved network)
+
+`scripts/check_fleet.py` (read-only, 10 s) rebuilds each region's plant list in memory from powerplantmatching's cached
+`matched_data_red.csv`, scales it with the fork's `harmonise_to_statistics` and compares with Ember's own generation, national
+statistics (`data/validation/fleet_national.csv`: EIA, CEC, CEA, EPE, Energy-Charts, DUKES, RTE) and national heat rates
+(`data/validation/fleet_efficiency_national.csv`); it reproduces the `build_powerplants` logs of the existing networks exactly.
+Output in `model-doc/build/fleet_check/`, written up in the model doc's Existing Fleet section. Found and fixed:
+- **Ember's capacity too small for its generation** (29 rows, 148 TWh unreachable at full output): Ember's "Other Renewables"
+  capacity holds IRENA's renewable municipal waste (US "geothermal" 0.89 GW vs 2.7, ID 0.02 vs 2.6, TR 0.06 vs 1.7; DE/NL/PL/BE
+  geothermal that does not exist), its bioenergy capacity leaves the waste out (CN 18.6 GW for 208 TWh), and dual-fuel plants
+  leave Other Fossil short (IR, EG, SY). `build_calibration.py` now takes biomass and geothermal from IRENA by technology
+  (`IRENA_GROUPS`, via powerplantmatching's IRENASTAT) and back-fills every row with capacity factor > 1. `calibration/2024/`
+  rebuilt (capacity, generation, envelope changed; the rest identical).
+- **No existing OCGT anywhere**: powerplantmatching's GEM loader labels gas turbines and engines "Steam Turbine", which
+  `build_powerplants` maps to CCGT (US: 0 OCGT although GEM lists 150 GW of gas turbines). New fork option
+  `electricity: gas_technology_mapping` (fork working tree, **not committed**), set to `{Steam Turbine: OCGT}` in `statistics.yaml`:
+  US 359 GW CCGT + 187 GW OCGT; EIA's tested heat rates match (CC 0.50, GT 0.345, steam 0.367 LHV).
+- Open, documented only: the `now` filter with filled decommissioning years drops operating plants (Salem, Amos, Gavin, Drax)
+  as well as closed ones (US: 106 GW coal, 163 GW gas); the statistic restores the totals at the other sites. Coal efficiencies
+  implied by Ember CO2 are 6 % high in the US (0.354 vs EIA 0.333) and 9 % low in China (0.371 vs CEC 0.406).
+
+The new `capacity.csv` is newer than every `powerplants.csv`, so the next run of any stage rebuilds from `build_powerplants` on
+(`--rerun-triggers mtime input`); the gas mapping itself is a parameter and would not trigger a rebuild on its own.
+
+## Before/after the patches (`baseline/`; 2026-10-28)
+
+What the fork changes buy, shown on the same global experiment: every stage of the 2026-10-20 validation (`now` and
+`zero` of the 6 archetype regions and the 10 rest-of-world groups) solved once more with **PyPSA-Earth v0.9.0 as it
+comes**, against the 2026-10-20 results of the fork (the "after", not re-run).
+
+- **Code:** git worktree `models/pypsa-earth-baseline`, local branch `baseline-v0.9.0` = v0.9.0 + only the 12 patches
+  without which the stages do not run on this laptop (`clip_bbox`, earth-osm single process, resumable bundle, monthly
+  CDS, no WKT in `base.nc`, gdp fallback, lean aggregation, empty lines table, NaN cutout columns,
+  `excluder_resolution`, in-process availability, backbone guard of `merge_into_network`). Not in it: everything else
+  in the patch table (biomass labels, VRE `p_nom_min`, HVDC chains and `dc_ratings`, DC-bus absorption, cross-border
+  transformers, calibration at the source, `calibrate_network.py`, the demand pathway, cluster weights).
+  **Exception, China and Canada:** v0.9.0 cannot cluster them. `simplify_links` leaves stray DC buses (CN 115, CA 4), each
+  its own sub-network, and `cluster_network` needs one cluster per sub-network: "Number of clusters must be 116 <=
+  n_clusters" for CN's 50, "5 <=" for CA's single node (run of 2026-10-28/29). Those two regions were therefore solved on
+  2026-10-29 with the DC-bus absorption patch (`caa0f116`) cherry-picked on top, deleted `networks/{CN,CA}-*/elec_s.nc`,
+  and the patch reverted on the branch afterwards. Every other region is v0.9.0 + the 12 patches.
+- **Config:** the stage configs `config.<R>.yaml` as they are; `merge_config.py` with `CATALYST_BASELINE=1` leaves out
+  `statistics.yaml` and the technology-assumptions rules, takes `baseline/overlay.{now,zero}.yaml` (the out-of-the-box
+  overlays of 2026-09-19, parent commit `fa6c511`: `now` = brownfield expansion at 2025 costs without a CO2 cap,
+  `zero` = `Co2L0` at 2050 costs, both on GEGIS SSP2-2.6 2030 demand, since GEGIS has no 2050 file for North America and
+  Oceania) and merges `baseline/common.yaml` on top (no retrieval into the shared `data/` and `cutouts/`).
+- **Sharing without copies:** `baseline/prep_region.sh <R>` hardlinks the patch-independent resources of the main run
+  (shapes, OSM, `build_osm_network` outputs, natura, onshore/offshore regions, wind and solar profiles), rebuilds
+  `base.nc` with v0.9.0 and gates on identical buses (so the linked regions and profiles describe it), gives it the
+  main `base.nc`'s mtime, gates on a dry run that may only contain `build_powerplants` and the hydro profile, then
+  builds those. Checked 2026-10-28 for all 16 regions: buses identical, only the HVDC link ratings differ
+  (v0.9.0 = v × 1.638 kA).
+- **Driver:** `baseline/run_overnight.sh` (run.sh with `CATALYST_PE`, `CATALYST_RUN` = the main fork's environment,
+  `SNAKEMAKE_EXTRA` = an `--allowed-rules` list) runs prep + `<R>-now <R>-zero` per region, the six dashboards and the
+  world page in the worktree, then `scripts/plot_before_after.py` and `scripts/plot_world_before_after.py` (per country:
+  Ember 2024 · 0.9.0 · with patches, from the two `validation_world.csv`) →
+  `misc-quarter1/pypsa-earth-out-of-the-box-validation/figures/before-after/` (`before_after.{png,pdf,csv}`, the
+  before pages in `before/`). At the end it reports any main-fork file newer than its start (expected: none).
+  Launch and progress:
+  ```bash
+  setsid nohup systemd-inhibit --what=handle-lid-switch:sleep:idle --who=catalyst --why="pypsa-earth baseline run" env MEM_MAX=20G bash config-pypsa-earth/baseline/run_overnight.sh > models/pypsa-earth-baseline/logs/catalyst/driver.out 2>&1 &
+  tail -f models/pypsa-earth-baseline/logs/catalyst/status.log
+  ```
+- **Remove:** `git -C models/pypsa-earth worktree remove --force ../pypsa-earth-baseline && git -C models/pypsa-earth
+  branch -D baseline-v0.9.0` (the figures stay in `misc-quarter1/`).
 
 ## Demand pathway (future model years; 2026-10-04)
 

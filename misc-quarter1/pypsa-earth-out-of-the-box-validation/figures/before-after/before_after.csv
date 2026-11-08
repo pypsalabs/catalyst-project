@@ -1,0 +1,4 @@
+side,countries,mae_fossil_pp,mae_coal_pp,mae_gas_pp,mae_nuclear_pp,mae_hydro_pp,mae_wind_solar_pp,mae_biomass_pp,fossil_within_10pp,fossil_within_20pp,now_co2_gt,now_shed_twh,now_load_twh,zero_co2_gt,zero_shed_twh,zero_load_twh
+before,115.0,11.819,10.858,11.661,2.748,3.529,12.584,2.293,40.0,69.0,12.828,4.393,29824.192,0.0,469.255,29824.192
+after,121.0,1.294,1.022,1.492,0.421,0.366,0.884,0.224,105.0,115.0,12.267,68.09,30763.238,0.0,1177.057,54352.223
+ember,121.0,,,,,,,,,,14.103,,30767.56,,,

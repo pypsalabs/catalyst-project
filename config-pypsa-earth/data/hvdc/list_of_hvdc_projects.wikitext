@@ -1,0 +1,1324 @@
+{{short description|Notable 100+ kV electrical transmission systems}}
+{{Use dmy dates|date=February 2025}}
+{{GeoGroup}}
+[[Electric power transmission]] through [[Electrical interconnector|interconnectors]] using [[High-voltage direct current|high-voltage direct-current]] (HVDC) involves usually two converter stations and a transmission line. Generally overhead lines are used, but an important class of HVDC projects use [[submarine power cable]]s. A back-to-back station has no transmission line and joins two separate AC grids at a single point. Historical HVDC systems used the [[Rene Thury|Thury]] system of motor-generators but these have all been made obsolete by later developments such as mercury-arc valves (now also obsolete), thyristors, and [[Insulated-gate bipolar transistor|IGBT]] power transistors.<!-- To add: historical Thury system installations -->
+<!-- To add: Missing geographical coordinates of terminals -->
+<!-- To add: Reference for each project -->
+
+==Legend==
+Converter technology:
+* Thury = Series-connected generators as designed by [[René Thury]]
+* Merc = [[Mercury-arc valve]] rectifier and inverter
+* Thyr = [[Thyristor]] rectifier and inverter
+* IGBT = [[Insulated-gate bipolar transistor|Insulated gate bipolar transistor]]
+* BIGT = Bi-mode insulated gate transistor<ref name=":13">{{Cite web |date=2022-03-30 |title=IEC Technical Report 62543 |url=https://webstore.iec.ch/en/publication/68338 |website=IEC}}</ref>
+* IEGT = Injection enhanced gate transistor<ref name=":13" />
+
+Line status:
+{{legend|#FFFFFF|Existing}}
+{{legend|#EFFFBF|Planned}}
+{{legend|#BFBFFF|Under construction}}
+{{legend|#EFBFBF|Decommissioned}}
+
+==Africa==
+{| class="wikitable sortable"
+ ! style="background-color: #87CEEB" | {{tooltip|Name|System/Project}}<br/>
+ ! style="background-color: #87CEEB" | Converter<br/>station 1<br/>
+ ! style="background-color: #87CEEB" | Converter<br/>station 2<br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Total Length (Cable/Pole) <br/> (km)|Cable – undersea or underground cable; Pole – overhead line}}<br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Nominal<br/> Voltage<br/> (kV)|DC Voltage}}<br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Power (MW)|Power Rating}}<br/>
+ ! style="background-color: #87CEEB" | {{tooltip|Year|Year Commissioned}}<br/>
+ ! style="background-color: #87CEEB" | Type<br/>
+ ! style="background-color: #87CEEB" class="unsortable" | Remarks<br/>
+ ! style="background-color: #87CEEB" class="unsortable" | {{tooltip|Ref|Source}}<br/>
+|-<!-- to make sorting work -->style="display:none;" || !a || !a || !a || -9e99 || -9e99 || -9e99 || 1000-01-01 || !a || !a || !a
+|-<!-- to make sorting work -->style="display:none;" || ~z || ~z || ~z || 9e99  || 9e99  || 9e99  || 9000-01-01 || ~z || ~z || ~z
+|-
+| [[Cahora Bassa (HVDC)|Cahora Bassa]] || Mozambique - [[Songo, Mozambique|Songo]]<br/>{{Coord|15|36|41|S|32|44|59|E|type:landmark|name=Cahora Bassa Transmission - Songo Static Inverter Plant}} || South Africa - Apollo <br/> {{Coord|25|55|11|S|28|16|34|E|type:landmark|name=Cahora Bassa Transmission - Apollo Static Inverter Plant}} || 1420 <br/> (0/1420) || 533 || 1920 || 1979 || Thyr || First HVDC with Project up to 500kV <br/> Siemens and [[ABB]] refurb 2013–2014
+||<ref name="List"/><ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/cahora-bassa|title=References - ABB|website=New.abb.com|access-date=16 January 2018|archive-date=5 January 2018|archive-url=https://web.archive.org/web/20180105044230/http://new.abb.com/systems/hvdc/references/cahora-bassa|url-status=dead}}</ref><ref>{{cite web|url=http://www.abb.com/cawp/seitp202/770801937E2459D0C1257A83002E9A4A.aspx|title=ABB wins $50 million HVDC order in Mozambique|website=Abb.com|access-date=16 January 2018|archive-date=17 January 2018|archive-url=https://web.archive.org/web/20180117132703/http://www.abb.com/cawp/seitp202/770801937E2459D0C1257A83002E9A4A.aspx|url-status=live}}</ref>
+|-
+| [[Inga-Shaba]] || Democratic Republic of the Congo - Kolwezi <br/>{{Coord|10|39|27|S|25|27|08|E|type:landmark|name=Inga-Shaba - Kolwezi Static Inverter Plant}} || Democratic Republic of the Congo - Inga<br/> {{Coord|05|31|27|S|13|36|39|E|type:landmark|name=Inga-Shaba - Inga Static Inverter Plant}} || 1700 <br/> (0/1700) || 500 || 560 || 1982 || Thyr || Upgraded in 2014 <br/> Supplier: [[ABB]], [[General Electric]] ||<ref name="List"/><ref>{{cite web|url=http://www.abb.com/industries/ap/db0003db004333/ae638bad1d35b5d1c12577490032bfea.aspx|title=References - ABB|website=Abb.com|access-date=16 January 2018|archive-date=12 December 2013|archive-url=https://web.archive.org/web/20131212034646/http://www.abb.com/industries/ap/db0003db004333/ae638bad1d35b5d1c12577490032bfea.aspx|url-status=live}}</ref><ref>{{cite web|url=http://www.abb.com/cawp/seitp202/bd5a6a83c2436e84c12576cb003269f1.aspx|title=ABB wins $107 million power order in Africa|website=Abb.com|access-date=16 January 2018|archive-date=17 January 2018|archive-url=https://web.archive.org/web/20180117073314/http://www.abb.com/cawp/seitp202/bd5a6a83c2436e84c12576cb003269f1.aspx|url-status=live}}</ref><ref>{{cite web|url=http://www.winne.com/congo/to18.html|title=Winne.com - Report on Congo DRC, Paving the reconstruction|website=Winne.com|access-date=16 January 2018|archive-date=3 November 2018|archive-url=https://web.archive.org/web/20181103063014/http://www.winne.com/congo/to18.html|url-status=live}}</ref>
+|-
+| Caprivi Link || Namibia - Gerus<br/> {{Coord|20|18|53|S|16|27|9|E|type:landmark|name=Caprivi Link - Gerus Static Inverter Plant}}  || Namibia - Zambezi <br/>{{Coord|17|30|6|S|24|13|20|E|type:landmark|name=Caprivi Link - Zambezi Static Inverter Plant}} || 950 <br/> (0/950) || 350 || 300 || 2010 || IGBT || Supplier: [[ABB]] ||<ref name="List"/><ref>{{cite web |title=ABB commissions Caprivi link |url=http://www.instrumentation.co.za/news.aspx?pklnewsid=37569 |date=1 January 2011 |access-date=15 February 2014 |archive-date=22 February 2014 |archive-url=https://web.archive.org/web/20140222062950/http://www.instrumentation.co.za/news.aspx?pklnewsid=37569 |url-status=live }}</ref>
+|-
+| [[Sodo–Moyale–Suswa High Voltage Power Line|Ethiopia–Kenya HVDC Interconnector]] || Ethiopia - Wolayta <br/>{{Coord|6|54|27|N|37|43|19|E|type:landmark|name=Ethiopia–Kenya HVDC Interconnector - Wolayta Static Inverter Plant}} || Kenya - Suswa<br/> {{Coord|1|03|44|S|36|21|35|E|type:landmark|name=Ethiopia–Kenya HVDC Interconnector - Suswa Static Inverter Plant}} || 1045 <br/> (0/1045) || 500 || 2000 || 2022 || Thyr || Supplier: Siemens
+|}
+
+==Australia and Oceania==
+{| class="wikitable sortable"
+ ! style="background-color: #87CEEB" | {{tooltip|Name|System/Project}}<br/>
+ ! style="background-color: #87CEEB" | Converter<br/>station 1<br/>
+ ! style="background-color: #87CEEB" | Converter<br/>station 2<br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Total Length (Cable/Pole) <br/> (km)|Cable – undersea or underground cable; Pole – overhead line}}
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Nominal<br/> Voltage<br/> (kV)|DC Voltage}}<br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Power (MW)|Power Rating}}<br/>
+ ! style="background-color: #87CEEB" | {{tooltip|Year|Year Commissioned}}<br/>
+ ! style="background-color: #87CEEB" | Type<br/>
+ ! style="background-color: #87CEEB" class="unsortable" | Remarks<br/>
+ ! style="background-color: #87CEEB" class="unsortable" | {{tooltip|Ref|Source}}<br/>
+|-<!-- to make sorting work -->style="display:none;" || !a || !a || !a || -9e99 || -9e99 || -9e99 || 1000-01-01 || !a || !a || !a
+|-<!-- to make sorting work -->style="display:none;" || ~z || ~z || ~z || 9e99 || 9e99 || 9e99 || 9000-01-01 || ~z || ~z || ~z
+|- style="background:#efbfbf;"
+| [[HVDC Inter-Island]] 1 || New Zealand - [[Benmore Dam|Benmore]]<br/>{{Coord|44|33|55|S|170|11|24|E|type:landmark|name=Inter-Island - Benmore Static Inverter Plant}} || New Zealand - [[Haywards]]<br/>{{Coord|41|9|1|S|174|58|52|E|type:landmark|name=Inter-Island - Haywards Static Inverter Plant}} || 611 <br/> (40/571) || 270 || 600 || 1965 || Merc || Built as 250&nbsp;kV 600&nbsp;MW link <br/>Paralleled to operate at 270 kV as positive pole with HVDC Inter-Island 2 in 1992.<br/>Partially decommissioned in 2007, fully decommissioned in August 2012.<br/>Supplier: [[ABB]]
+||<ref name="List"/>
+|-
+| [[HVDC Inter-Island]] 2 || New Zealand - [[Benmore Dam|Benmore]]<br/>{{Coord|44|33|55|S|170|11|24|E|type:landmark|name=Inter-Island - Benmore Static Inverter Plant}} || New Zealand - [[Haywards]]<br/>{{Coord|41|9|1|S|174|58|52|E|type:landmark|name=Inter-Island - Haywards Static Inverter Plant}} || 611 <br/> (40/571) || 350 || 700 || 1992 || Thyr || Negative pole, operates in bipole configuration with HVDC Inter-Island 3 (previously HVDC Inter-Island 1) <br />Restricted to 500&nbsp;MW due to cable rating.<br/>Supplier: [[ABB]]||<ref name="List"/>
+|-
+| [[Terranora interconnector]] (Directlink) || Australia - [[Mullumbimby]]<br/>{{Coord|28|34|15|S|153|27|8|E|type:landmark|name=Directlink - Mullumbimby Static Inverter Plant}} || Australia - [[Bungalora]]<br/>{{Coord|28|15|20|S|153|28|20|E|type:landmark|name=Directlink - Bungalora Static Inverter Plant}} || 59 <br/> (59/0) || 80 || 180 || 2000 || IGBT || Land cable <br/>Supplier: [[ABB]]||<ref name="List"/>
+|-
+| [[Murraylink]] || Australia - [[Red Cliffs, Victoria|Red Cliffs]]<br/>{{Coord|34|17|31|S|142|14|19|E|type:landmark|name=Red Cliffs Static Inverter Plant}} || Australia - [[Berri, South Australia|Berri]]<br/>{{Coord|34|14|17|S|140|36|01|E|type:landmark|name=Berri Static Inverter Plant}} || 176 <br/> (176/0) || 150 || 200 || 2002 || IGBT || Underground XLPE cable <br/>Supplier: [[ABB]] ||<ref name="List"/>
+|-
+| [[Basslink]] || Australia - [[Loy Yang Power Station|Loy Yang]]<br/>{{Coord|38|15|45|S|146|36|29|E|type:landmark|name=Basslink - LoyYang Static Inverter Plant}} || Australia - [[George Town, Tasmania|George Town]]<br/>{{Coord|41|6|53|S|146|53|31|E|type:landmark|name=Basslink - GeorgeTown Static Inverter Plant}} || 370 (298/72) || 400 || 500 || 2006 || Thyr || One of the longest HVDC cable in operation <br/>Supplier: [[Siemens]] ||<ref name="List"/><ref>{{cite web|url=http://www.basslink.com.au/|title=Basslink|website=Basslink.com.au|access-date=16 January 2018|archive-date=17 January 2018|archive-url=https://web.archive.org/web/20180117131431/http://www.basslink.com.au/|url-status=live}}</ref><ref name=siemens02>{{cite journal|url=http://www.ptd.siemens.de/HVDC_Solutions_EPRI_Conference_09-07_V_1b.pdf|page=44|publisher=[[Siemens]]|title=HVDC Solutions for System Interconnection and Advanced Grid Access|journal=EPRI HVDC Conference 2007-09-13 to 14|author=Joerg Dorn|author2=Dietmar Retzmann|author3=Cristen Schimpf|author4=Dag Soerangr|date=2007-11-06|access-date=15 February 2014|archive-date=2013-01-14|archive-url=https://web.archive.org/web/20130114222915/http://www.ptd.siemens.de/HVDC_Solutions_EPRI_Conference_09-07_V_1b.pdf|url-status=live}}</ref>
+|-
+| [[HVDC Inter-Island]] 3 || New Zealand - [[Benmore Dam|Benmore]]<br/>{{Coord|44|33|55|S|170|11|24|E|type:landmark|name=Inter-Island - Benmore Static Inverter Plant}} || New Zealand - [[Haywards]]<br/>{{Coord|41|9|1|S|174|58|52|E|type:landmark|name=Inter-Island - Haywards Static Inverter Plant}} || 611 <br/> (40/571) || 350 || 735 || 2013 || Thyr || Positive pole, operates in bipole configuration with HVDC Inter-Island 2<br />Supplier: [[Siemens]]  ||<ref name="pole3project">{{cite web|url=https://www.transpower.co.nz/projects/hvdc-inter-island-link-project |title=HVDC Inter-Island Link Project - Transpower |work=Transpower New Zealand |access-date=15 February 2014 |url-status=dead |archive-url=https://web.archive.org/web/20130210075035/https://www.transpower.co.nz/projects/hvdc-inter-island-link-project |archive-date=February 10, 2013 }}</ref>
+|- style="background:#efffbf;"
+| [[Australia–ASEAN Power Link]] || Australia - [[Darwin, Northern Territory|Darwin]] || Singapore || 4200 undersea<br/> 800 overland|| || || 2027 || || aka [[Sun Cable]] || 
+|- style="background:#efffbf;"
+| [[Marinus Link|Marinus link]] || Australia - [[Burnie]]|| Australia - [[Latrobe Valley]]|| Approximately 340 (90/250) || || 750 + 750 || late 2020s || || || <ref name="marinuslink">{{cite web|url=https://www.marinuslink.com.au/wp-content/uploads/2021/12/quadfold-Marinus-Link-Fact-Sheet-NOV-v31.pdf |title=Fact Sheet - 1500 MW Marinus Link - Nov 2021|website=www.marinuslink.com.au |access-date=20 December 2021}}</ref>
+|}
+
+==Asia==
+{| class="wikitable sortable"
+ ! style="background-color: #87CEEB" | {{tooltip|Name|System/Project}}
+ ! style="background-color: #87CEEB" | Converter<br/>station 1<br/>
+ ! style="background-color: #87CEEB" | Converter<br/>station 2<br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Total Length (Cable/Pole) <br/> (km)|Cable – undersea or underground cable; Pole – overhead line}}<br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Nominal<br/> Voltage<br/> (kV)|DC Voltage}}<br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Power (MW)|Power Rating}}<br/>
+ ! style="background-color: #87CEEB" | {{tooltip|Year|Year Commissioned}}<br/>
+ ! style="background-color: #87CEEB" | Type<br/>
+ ! style="background-color: #87CEEB" class="unsortable" | Remarks<br/>
+ ! style="background-color: #87CEEB" class="unsortable" | {{tooltip|Ref|Source}}<br/>
+|-<!-- to make sorting work -->style="display:none;" || !a || !a || !a || -9e99 || -9e99 || -9e99 || 1000-01-01 || !a || !a || !a
+|-<!-- to make sorting work -->style="display:none;" || ~z || ~z || ~z || 9e99 || 9e99 || 9e99 || 9000-01-01 || ~z || ~z || ~z
+|-
+| [[HVDC Hokkaido-Honshu|Hokkaido - Honshu]] || Japan - [[Hakodate]]<br/>{{Coord|41|55|55|N|140|39|47|E|type:landmark_region:JP|display=inline|name=Hokkaido-Honshu Transmission - Hakodate Static Inverter Plant}} || Japan - Kamikita <br/>{{Coord|40|48|06|N|141|11|52|E|type:landmark_region:JP|display=inline|name=Hokkaido-Honshu Transmission - Kamikita Static Inverter Plant}} || 193 <br/>(44/149) || 250 || 300 || 1979 || Thyr || Supplier: [[ABB]], [[Hitachi]], [[Toshiba]] ||<ref name="List"/>
+|-
+| [[HVDC Zhoushan|Zhou Shan]] || China - [[Ningbo]]<br/>{{coord|29|55|25|N|121|46|51|E|type:landmark|name = HVDC Zhoushan - Ningbo Static Inverter Plant?}} || China - Gao Tongge <br/>{{coord|30|02|13|N|122|04|03|E|type:landmark|name = HVDC Zhoushan - Gao Tongge Static Inverter Plant?}} || 54 <br/>(12/42) || 100 || 50 || 1982 || Thyr || ||<ref name="List"/>
+|-
+| [[HVDC Gezhouba - Shanghai|Gezhouba - Shanghai]] || China - [[Gezhouba Dam]]<br/>{{Coord|30|43|44|N|111|14|39|E|type:landmark|name=GeSha - Gezhouba Static Inverter Plant}}  || China - Nan Qiao <br/>{{Coord|30|57|22|N|121|24|48|E|type:landmark|name=GeSha - Nan Qiao Static Inverter Plant}} || 1046 <br/>(0/1046) || 500 || 1200 || 1989 || Thyr || Power line shares pylons of HVDC Hubei - Shanghai in most part of its track
+Supplier: [[ABB]], [[Siemens]]
+
+HVDC C&P System Refurbished by NR Electric
+||<ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/gezhouba---shanghai|title=References - ABB|website=New.abb.com|access-date=16 January 2018|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/http://new.abb.com/systems/hvdc/references/gezhouba---shanghai|url-status=live}}</ref>
+|-
+| [[HVDC Sileru-Barsoor|Sileru-Barsoor]] || India - Sileru <br/>{{Coord|17|52|01|N|81|39|21|E|type:landmark|name=Sileru-Barsoor Transmission - Sileru Static Inverter Plant}} || India - Barsoor <br/>{{Coord|19|8|20|N|81|23|47|E|type:landmark|name=Sileru-Barsoor Transmission - Barsoor Static Inverter Plant}} || 196 <br/>(0/196) || 200 || 100 || 1989 || Thyr || Supplier: BHEL ||<ref name="List"/>
+|- style="background:#efbfbf;"
+| [[HVDC Ekibastuz–Centre|Ekibastuz&ndash;Tambov]]|| Kazakhstan - Ekibastuz <br/>{{Coord|51|48|57|N|75|18|58|E|type:landmark_region:UA|name=HVDC Ekibastuz-Centre - Ekibastuz HVDC Static Inverter Plant}} || Russia - Tambov <br/>{{Coord|52|46|25|N|41|19|17|E|type:landmark_region:UA|name=Tambov Substation ( planned terminal of HVDC Ekibastuz–Centre)}} || 2414 <br/>(0/2414) || 750 || 6000 || - || Thyr || Construction sites abandoned around 1990 owing to collapse of [[Soviet Union]], line was never completed||
+|-
+| [[HVDC Rihand-Delhi|Rihand-Delhi]] || India - Rihand <br/>{{Coord|24|01|13|N|82|47|21|E|type:landmark|name=Rihand-Delhi Transmission - Rihand Static Inverter Plant}} || India - Dadri <br/>{{Coord|28|35|36|N|77|36|16|E|type:landmark|name=Rihand-Delhi Transmission - Dadri Static Inverter Plant}} || 814 <br/>(0/814) || 500 || 1500 || 1990 || Thyr || Supplier: [[ABB]], BHEL ||<ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/rihand---delhi|title=References - ABB|website=New.abb.com|access-date=16 January 2018|archive-date=27 January 2017|archive-url=https://web.archive.org/web/20170127073135/http://new.abb.com/systems/hvdc/references/rihand---delhi|url-status=live}}</ref>
+|-
+| [[HVDC Haenam-Cheju|Haenam-Cheju]] || South Korea - Haenam <br/>{{Coord|34|22|03|N|126|35|34|E|type:landmark|name=Haenam-Cheju Transmission - Haenam Static Inverter Plant}} || South Korea - Jeju <br/>{{Coord|33|32|06|N|126|35|44|E|type:landmark|name=Haenam-Cheju Transmission - Jeju Static Inverter Plant}} || 101 <br/>(101/0) || 180 || 300 || 1996 || Thyr || Supplier: [[Alstom]] ||<ref name="List"/>
+|-
+| [[HVDC Leyte - Luzon|Leyte - Luzon]] || Philippines - [[Ormoc]], Leyte <br/>{{Coord|11|5|19|N|124|38|21|E|type:landmark|name=Leyte-Luzon Transmission - Ormoc Static Inverter Plant}} || Philippines - Naga, Camarines Sur <br/>{{Coord|13|36|40|N|123|14|19|E|type:landmark|name=Leyte-Luzon Transmission - Naga Static Inverter Plant}} || 451 <br/>(21/430) || 350 || 440 || 1998 || Thyr || Supplier: [[ABB]], Marubeni 
+HVDC C&P System Refurbished by NR Electric 
+|<ref name="List"/>
+|-
+| [[Chandrapur-Padghe HVDC system|Chandrapur-Padghe]] || India - Chandrapur <br/>{{Coord|20|0|36|N|79|17|06|E|type:landmark|name=Chandrapur-Padghe Transmission - Chandrapur converter station}} || India - Padghe <br/>{{Coord|19|21|26|N|73|11|18|E|type:landmark|name=Chandrapur-Padghe Transmission - Padghe converter station}} || 752 <br/>(0/752) || 500 || 1500 || 1999 || Thyr || Supplier: [[ABB]]||<ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/chandrapur---padghe|title=References - ABB|website=New.abb.com|access-date=16 January 2018|archive-date=9 January 2018|archive-url=https://web.archive.org/web/20180109023456/http://new.abb.com/systems/hvdc/references/chandrapur---padghe|url-status=live}}</ref>
+|-
+| [[Kii Channel HVDC system|Kii Channel]] || Japan - Anan <br/>{{Coord|33|49|40|N|134|38|14|E|type:landmark_region:JP|display=inline|name=Kii Channel Crossing - Anan Static Inverter Plant}} || Japan - Kihoku <br/>{{Coord|34|12|50|N|135|30|07|E|type:landmark_region:JP|display=inline|name=Kii Channel Crossing - Kihoku Static Inverter Plant}} || 100 <br/>(50/50) || 250 || 1400 || 2000 || Thyr || Supplier: [[Hitachi]], [[Toshiba]], [[Mitsubishi]] ||<ref name="List"/>
+|-
+| [[HVDC Tian-Guang|Tian-Guang]] || China - Tianshengqiao <br/>{{coord|24|54|56|N|105|05|47|E|type:landmark|name=HVDC Tian-Guang Tianshengqiao Static Inverter Plant}} || China - Beijiao <br/>{{coord|23|18|58|N|113|15|05|E|type:landmark|name=HVDC Tian-Guang Beijiao Static Inverter Plant}} || 960 <br/>(0/960) || 500 || 1800 || 2001 || Thyr || Supplier: [[Siemens]] 
+HVDC C&P System Refurbished by NR Electric 
+|<ref name="List"/>
+|-
+| [[HVDC Thailand-Malaysia|Thailand-Malaysia]] || Thailand - Khlong Ngae <br/>{{Coord|6|42|56|N|100|27|8|E|type:landmark|name=Thailand-Malaysia Transmission - Khlong Ngae Static Inverter Plant}} || Malaysia - Gurun <br/>{{Coord|5|48|45|N|100|32|6|E|type:landmark|name=Thailand-Malaysia Transmission - Gurun Static Inverter Plant}} || 110 <br/>(0/110) || 300 || 300 || 2001 || Thyr || Supplier: [[Siemens]] ||<ref name="List"/>
+|-
+| [[Shengsi County|Shengsi]] || China - Shengsi<br/>{{Coord|30|42|06|N|122|26|22|E|type:landmark|name=HVDC Shengsi - Shengsi Static Inverter Plant}} || China - Anabasis Sizu<br/>{{Coord|30|51|56|N|121|50|25|E|type:landmark|name=HVDC Shengsi - Anabasis Sizu Static Inverter Plant}} || 66.2 <br/>(63.21/2.99) || 50 || 60 || 2002 || Thyr || ||<ref>{{cite web|url=http://www.dsius.com/cet/HVDCinChina_EPRI2013_HVDC.pdf|title=HVDC in China|website=Dsius.com|access-date=16 January 2018|archive-date=24 March 2017|archive-url=https://web.archive.org/web/20170324145409/http://dsius.com/cet/HVDCinChina_EPRI2013_HVDC.pdf|url-status=live}}</ref>
+|-
+| [[Talcher-Kolar HVDC system|Talcher-Kolar]] || India - Talcher, Odisha <br/>{{Coord|21|06|01|N|85|03|49|E|type:landmark|name=Talcher-Kolar HVDC system - Talcher converter station}} || India - Kolar, Karnataka <br/>{{Coord|13|10|39|N|78|7|0|E|type:landmark|name=Talcher-Kolar HVDC system - Kolar converter station}} || 1450 <br/>(0/1450) || 500 || 2500 || 2003 || Thyr || Supplier: [[Siemens]] ||<ref name="List"/>
+|-
+| [[HVDC Three Gorges-Changzhou|Three Gorges - Changzhou]] || China - Longquan <br/>{{Coord|30|47|6|N|111|31|48|E|type:landmark|name=Three Gorges-Changzhou Transmission - Longquan Static Inverter Plant}} || China - Zhengping <br/>{{Coord|31|36|42|N|119|59|27|E|type:landmark|name=Three Gorges-Changzhou Transmission - Zhengping Static Inverter Plant}} || 890 <br/>(0/890) || 500 || 3000 || 2003 || Thyr || From north bank of Three Gorges to Zhengping, 200&nbsp;km from Shanghai in the East grid <br/>Supplier: [[ABB]], [[Siemens]]. Sharing of grounding electrode at Chujiahu with HVDC Hubei-Shanghai ||<ref name="List"/><ref name=tdworld1>{{cite web|url=http://library.abb.com/global/scot/scot221.nsf/veritydisplay/5a3c07c06ce80821c1256fda003b4d45/$File/Role%20of%20Three%20Gorges%20-%20Changzhou%20HVDC%20in%20Interconnecting%20.pdf |title=ROLE OF THREE GORGES - CHANGZHOU HVDC IN INTERCONNECTING CENTRAL AND EAST CHINA |publisher=[[ABB]] |access-date=2014-02-10 |url-status=dead |archive-url=https://web.archive.org/web/20120216011121/http://library.abb.com/global/scot/scot221.nsf/veritydisplay/5a3c07c06ce80821c1256fda003b4d45/%24File/Role%20of%20Three%20Gorges%20-%20Changzhou%20HVDC%20in%20Interconnecting%20.pdf |archive-date=February 16, 2012 }}</ref><ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/three-gorges---changzhou|title=References - ABB|website=New.abb.com|access-date=16 January 2018|archive-date=8 September 2019|archive-url=https://web.archive.org/web/20190908050418/https://new.abb.com/systems/hvdc/references/three-gorges---changzhou|url-status=live}}</ref>
+|-
+| Guizhou - Guangdong I || China - Anshun, Guizhou <br/>{{Coord|26|16|23|N|105|48|21|E|type:landmark|name=GuG I - Anshun Static Inverter Plant}} || China - Zhaoqing, Guangdong <br/>{{Coord|22|54|57|N|112|29|11|E|type:landmark|name=GuG I - Zhaoqing Static Inverter Plant}} || 980 <br/>(0/980) || 500 || 3000 || 2004 || Thyr || Supplier: [[Siemens]] ||<ref name="List"/>
+|-
+| [[HVDC Three Gorges-Guangdong|Three Gorges - Guangdong]] || China - Jingzhou <br/>{{Coord|30|27|26|N|112|08|18|E|type:landmark|name=Three Gorges-Guangdong Transmission - Jingzhou Static Inverter Plant}} || China - Huizhou <br/>{{Coord|23|16|15|N|114|12|5|E|type:landmark|name=Three Gorges-Guangdong Transmission - Huizhou Static Inverter Plant}} || 940 <br/>(0/940) || 500 || 3000 || 2004 || Thyr || Supplier: [[ABB]]  ||<ref name="List"/><ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/three-gorges---guangdong|title=References - ABB|website=New.abb.com|access-date=16 January 2018|archive-date=11 July 2017|archive-url=https://web.archive.org/web/20170711020654/http://new.abb.com/systems/hvdc/references/three-gorges---guangdong|url-status=live}}</ref>
+|-
+| Three Gorges - Shanghai || China - Yidu <br/>{{Coord|30|31|45|N|111|22|35|E|type:landmark|name=Three Gorges-Shanghai Transmission - Yidu Static Inverter Plant}} || China - Shanghai <br/>{{Coord|31|14|13|N|121|11|13|E|type:landmark|name=Three Gorges-Shanghai Transmission - Shanghai Static Inverter Plant}} || 1060 <br/>(0/1060) || 500 || 3000 || 2006 || Thyr || Supplier: [[ABB]] ||<ref name="List"/><ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/three-gorges---shanghai|title=References - ABB|website=New.abb.com|access-date=16 January 2018|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/http://new.abb.com/systems/hvdc/references/three-gorges---shanghai|url-status=live}}</ref>
+|- 
+| Guizhou - Guangdong II || China - Xingren <br/>{{Coord|25|27|56|N|105|15|14|E|type:landmark|name=GuG II - Xingren Static Inverter Plant}} || China - Shenzhen <br/>{{Coord|22|45|1|N|113|59|28|E|type:landmark|name=GuG II - Shenzhen Static Inverter Plant}} || 1200 <br/>(0/1200) || 500 || 3000 || 2007 || Thyr || Supplier: [[Siemens]], Sharing of grounding electrode at Linwu with HVDC Yunnan - Guangdong ||<ref name="List"/>
+|-
+| Ballia - Bhiwadi || India - Ballia <br/>{{coord|26|04|16|N|83|42|48|E|type:landmark|name=HVDC Ballia-Bhiwadi - Ballia Static Inverter Plant}} || India - Bhiwadi <br/>{{coord|28|11|0|N|76|48|58|E|type:landmark|name=HVDC Ballia-Bhiwadi - Bhiwadi Static Inverter Plant}} || 800 <br/>(0/800) || 500 || 2500 || 2010 || Thyr || Supplier: [[Siemens]] ||<ref name="List"/>
+|-
+| Baoji - Deyang || China - Baoji <br/>{{coord|34|34|47|N|107|19|49|E|type:landmark|name=HVDC Baoji-Deyang - Baoji Static Inverter Plant}} || China - Denyang <br/>{{coord|31|19|22|N|104|34|51|E|type:landmark|name=HVDC Baoji-Deyang - Deyang Static Inverter Plant}} || 574 <br/>(0/574)|| 500 || 3000 || 2010 || Thyr || || ???
+|-
+| Hulunbeir - Liaoning || China - Hulunbeir <br/>{{coord|48|31|04|N|119|43|30|E|type:landmark|name=HVDC Hulunbeir-Liaoning - Hulunbeir Static Inverter Plant}} || China - Shenyang <br/>{{coord|41|07|25|N|122|46|44|E|type:landmark|name=HVDC Hulunbeir-Liaoning - Shenyang Static Inverter Plant}} || 920 <br/>(0/920) || 500 || 3000 || 2010 || Thyr || Supplier: [[ABB]] ||<ref name="List"/><ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/hulunbeir---liaoning|title=References - ABB|website=New.abb.com|access-date=16 January 2018|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/http://new.abb.com/systems/hvdc/references/hulunbeir---liaoning|url-status=live}}</ref>
+|-
+| [[Xiangjiaba–Shanghai HVDC system|Xiangjiaba-Shanghai]] || China - Fulong <br/>{{Coord|28|32|47|N|104|25|04|E|type:landmark|name= Xiangjiaba–Shanghai HVDC system – Fulong converter station}} || China - Fengxia <br/>{{Coord|30|55|32|N|121|46|16|E|type:landmark|name= Xiangjiaba–Shanghai HVDC system – Fengxia converter station}}
+|| 1980 <br/>(0/1980) || 800 || 6400 || 2010 || Thyr || Supplier: [[ABB]] ||<ref name="List"/><ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/xiangjiaba---shanghai|title=References - ABB|website=New.abb.com|access-date=16 January 2018|archive-date=16 May 2018|archive-url=https://web.archive.org/web/20180516064433/http://new.abb.com/systems/hvdc/references/xiangjiaba---shanghai|url-status=live}}</ref>
+|- 
+| [[Yunnan–Guangdong HVDC|Yunnan - Guangdong]] || China - Yunnan province <br/>{{coord|25|11|24|N|102|11|30|E|type:landmark|name=HVDC Yunnan - Chuxiong Static Inverter Plant}}|| China - Zengcheng <br/>{{coord|23|15|19|N|113|40|44|E|type:landmark|name=HVDC Yunnan–Guangdong - Zengcheng Static Inverter Plant}} || 1418 <br/>(0/1418) || 800 || 5000 || 2010 || Thyr || Supplier: [[Siemens]], Sharing of grounding electrode at Linwu with HVDC Guizhou - Guangdong II
+highlight: worldwide first dc 800kv hvdc application
+|<ref name="List"/>
+|-
+| Hubei - Shanghai || China - Jingmen <br/>{{Coord|30|49|21|N|112|07|15|E|type:landmark|name=HVDC Hubei - Shanghai - Jingmen Static Inverter Plant}} || China - Fenjing  <br/>{{Coord|30|52|00|N|121|00|58|E|type:landmark|name=HVDC Hubei - Shanghai - Fenjing Static Inverter Plant}} || 970 <br/>(0/970) || 500 || 3000 || 2011 || Thyr || Power line shares pylons of HVDC Gezhouba - Shanghai in most part of its track, sharing of grounding electrode at Chujiahu with HVDC Shanghai-Changzhou || ???
+|-
+| Nanhui Wind Farm Integration || China  || China || 8.4 <br/>(8.4/0) || 30 || 18 || 2011 || IGBT ||   Supplier: C-EPRI Electric Power Engineering Co., Ltd||<ref>{{cite web|url=http://www.epri.sgcc.com.cn/prgc/english/Company_Capability/201203/t20120307_1038855.html|archive-url=https://web.archive.org/web/20130702053357/http://www.epri.sgcc.com.cn/prgc/english/Company_Capability/201203/t20120307_1038855.html|url-status=dead|archive-date=2 July 2013|title=China-EPRI Electric Power Engineering Co., Ltd.|date=2 July 2013|access-date=16 January 2018}}</ref>
+|-
+| Ningdong - Shandong || China - Yinchuan <br/>{{coord|38|06|56|N|106|30|55|E|type:landmark|name=HVDC Ningxia-Shandong - Yinchuan Static Inverter Plant}} || China - Qingdao <br/>{{coord|36|18|41|N|119|52|53|E|type:landmark|name=HVDC Ningxia-Shandong - Qingdao Static Inverter Plant}} || 1335 <br/>(0/1335) || 660 || 4000 || 2011 || Thyr || Supplier:Alstom; C-EPRI Electric Power Engineering Co., Ltd||<ref name="List"/>
+|-
+| [[Qinghai-Tibet Networking Project|Qinghai - Tibet]] || China - Geermu <br/>{{coord|36|21|20|N|95|11|05|E|type:landmark|name=HVDC Qinghai-Tibet - Geermu Static Inverter Plant}} || China - [[Lhasa Converter Station|Lhasa]] <br/>{{coord|29|52|39|N|91|11|44|E|type:landmark|name=HVDC Qinghai-Tibet - Lhasa Static Inverter Plant}} || 1038 <br/>(0/1038) || 400 || 1500 || 2011 || Thyr || Powerline reaches altitudes up to 5300 m above sea level <br/>Supplier: CET, SGCC  ||<ref name="List"/>
+|-
+| Mundra - Haryana || India - Mundra <br/>{{coord|22|49|46|N|69|33|22|E|type:landmark|name=HVDC Mundra-Haryana - Mundra Static Inverter Plant}}  || India - Mohindergarh {{coord|28|21|40|N|76|12|56|E|type:landmark|name=HVDC Mundra-Haryana - Mohindergarh Static Inverter Plant}} || 960 <br/>(0/960) || 500 || 2500 || 2012 || Thyr || Supplier: [[Siemens]] ||<ref name="List"/>
+|-
+| Dalian City Infeed || China - Dalian North  || China - Dalian South || 43 <br/>(43/0)  || 320 || 1000 || 2013 || IGBT||   ||<ref>{{cite web|url=http://www.epri.sgcc.com.cn/prgc/english/Company_Capability/201203/t20120307_1038854.html|archive-url=https://web.archive.org/web/20130702045929/http://www.epri.sgcc.com.cn/prgc/english/Company_Capability/201203/t20120307_1038854.html|url-status=dead|archive-date=2 July 2013|title=China-EPRI Electric Power Engineering Co., Ltd.|date=2 July 2013|access-date=16 January 2018}}</ref>
+|-
+| Jinping - Sunan || China - Jinping <br/>{{coord|27|50|11|N|102|08|30|E|type:landmark|name=HVDC Jinping-Sunan - Jinping Static Inverter Plant}}|| China - Suzhou <br/>{{coord|31|03|44|N|120|37|20|E|type:landmark|name=HVDC Jinping-Sunan - Suzhou Static Inverter Plant}} || 2090 <br/>(0/2090)  || 800 || 7200 || 2013 || Thyr || Supplier: ABB, C-EPRI Electric Power Engineering Co., Ltd 
+ACC Provided by NR Electric in Jinping Converter Station 
+|<ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/jinping---sunan|title=References - ABB|website=New.abb.com|access-date=16 January 2018|archive-date=6 April 2018|archive-url=https://web.archive.org/web/20180406133428/http://new.abb.com/systems/hvdc/references/jinping---sunan|url-status=live}}</ref>
+|-
+| Nanao Multi-terminal VSC HVDC || China - Sucheng <br/>{{coord|23|26|40|N|116|48|50|E|type:landmark|name=HVDC Nanao - Sucheng Static Inverter Plant}} || China - Jinniu <br/>{{coord|23|26|14|N|117|01|36|E|type:landmark|name=HVDC Nanao - Jinniu Static Inverter Plant}}; China - Qingao <br/>{{coord|23|25|46|N|117|07|45|E|type:landmark|name=HVDC Nanao - Qingao Static Inverter Plant}} || 32 <br/>(10/32)  || {{sort|320|±160}} || 200/100/50 || 2013 || IEGT/IGBT || SEPRI (Electric Power Research Institute, China Southern Power Grid) is technically responsible for the entire project. Multiple suppliers are involved: three different VSC HVDC valve suppliers, two different HVDC land/sea cable suppliers and three different control & protection system/equipment suppliers. ||<ref>
+[http://www.csg.cn/nwgsxw/2013/mtgz/201312/t20131226_75031.html world's first multi-terminal VSC HVDC transmission project ] {{webarchive|url=https://web.archive.org/web/20140301043022/http://www.csg.cn/nwgsxw/2013/mtgz/201312/t20131226_75031.html |date=2014-03-01 }}, accessed in February 2014</ref><ref>
+[http://www.dnvgl.com/news-events/news/word-record-hvdc-transmission.aspx world's first multi-terminal VSC HVDC transmission project ], accessed in February 2014 {{webarchive |url=https://web.archive.org/web/20140208095726/http://www.dnvgl.com/news-events/news/word-record-hvdc-transmission.aspx |date=February 8, 2014 }}</ref>
+|-
+| Nuozhadu - Guangdong || China - Nuozhadu <br/>{{coord|22|39|20|N|100|40|00|E|type:landmark|name=HVDC Nuozhadu Static Inverter Plant}}|| China - Jiangmen<br/>{{coord|22|42|33|N|112|52|12|E|type:landmark|name=HVDC Jiangmen Static Inverter Plant}} || 1413 || 800 || 6400 || 2013 || Thyr || || ???
+|-
+| Xiluodo - Guangdong || China - Zhaotong  <br/>{{coord|28|07|21|N|104|22|27|E|type:landmark|name=HVDC Xiluodu Static Inverter Plant}}|| China - Conghua <br/>{{coord|23|34|00|N|113|27|03|E|type:landmark|name=HVDC Conghua Static Inverter Plant}}|| 1286 <br/>(0/1286) || 500 || 6400 || 2013 || Thyr || || ???
+|-
+| [[Southern Hami–Zhengzhou UHVDC|Hami - Zhengzhou]] || China-Hami <br/>{{coord|42|35|20|N|93|27|46|E|type:landmark|name=HVDC Hami Static Inverter Plant}}|| China-Zhengzhou <br/>{{coord|34|48|46|N|114|03|24|E|type:landmark|name=HVDC Zhengzhou Static Inverter Plant}}|| 2210 || 800 || 8000 || 2014 || Thyr || Supplier: C-EPRI Electric Power Engineering Co., Ltd
+HVDC C&P System Provided by NR Electric
+| <ref name="sgcc140512">
+{{cite press release
+ | url = http://www.sgcc.com.cn/ywlm/mediacenter/corporatenews/05/272889.shtml
+ | title = Southern Hami-Zhengzhou ±800kV UHVDC Transmission Project, Second Xinjiang-Northwest Main Grid 750kV HVDC Transmission Line Start Construction to Build the Silk Road of Electricity Connecting the Western Frontier with the Central Plains
+ | publisher = [[State Grid Corporation of China]]
+ | date = 2012-05-14
+ | accessdate = 2012-11-27}}
+</ref><ref>{{cite web |url=http://www.epri.sgcc.com.cn/prgc/english/News/201402/t20140228_1386217.html |title=China-EPRI Electric Power Engineering Co., Ltd |access-date=2014-04-19 |url-status=dead |archive-url=https://web.archive.org/web/20140420042719/http://www.epri.sgcc.com.cn/prgc/english/News/201402/t20140228_1386217.html |archive-date=2014-04-20 }}</ref><ref name="abb271112">{{cite press release
+ | url = http://www.abb.com/cawp/seitp202/4679778c0a79cd42c1257ac300289ee3.aspx
+ | title = ABB wins power transformers order in China worth over $100 million 
+ | publisher = [[ABB]]
+ | date = 2012-11-27
+ | accessdate = 2012-11-27}}
+</ref><ref name="gtr161012">{{cite news
+ | url = http://www.globaltransmission.info/archive.php?id=13203
+ | title = China XD to supply equipment for SGCC's UHVDC project
+ | work = Global Transmission Report
+ | date = 2012-10-16
+ | accessdate = 2012-11-27
+ | archive-date = 2012-10-27
+ | archive-url = https://web.archive.org/web/20121027030529/http://www.globaltransmission.info/archive.php?id=13203
+ | url-status = dead
+ }}</ref><ref>{{cite web|publisher=[[Siemens]]|date=2015|accessdate=2019-01-31|url=https://www.energy.siemens.com/ru/pool/hq/power-transmission/Transformers/news/2015/2015-nov-new-order-from-sgcc.pdf|title=New order from SGCC: Siemens' biggest HVDC transformer order to date|format=PDF;101KiB|archive-date=2019-01-31|archive-url=https://web.archive.org/web/20190131145458/https://www.energy.siemens.com/ru/pool/hq/power-transmission/Transformers/news/2015/2015-nov-new-order-from-sgcc.pdf|url-status=dead}}</ref><ref name="sgcc120412">
+{{cite press release|url=http://www.sgcc.com.cn/ywlm/mediacenter/corporatenews/04/271033.shtml|title=Preliminary Assessments for Hami-Zhengzhou and Xiluodu-Western Zhejiang UHV DC Projects Completed|publisher=[[State Grid Corporation of China]]|date=2012-04-12|accessdate=2012-11-27}}
+</ref>
+|-
+| [[Jindo–Jeju HVDC system|Jindo - Jeju]] || South Korea - Jindo <br/>{{Coord|34|23|08|N|126|11|14|E|type:landmark|name=HVDC Jindo–Jeju - Jindo Static Inverter Plant}} || South Korea - Jeju <br/>{{Coord|33|27|17|N|126|28|25|E|type:landmark|name=HVDC Jindo–Jeju - Jeju Static Inverter Plant}}|| 105 <br/>(105/0) || 250 || 400 || 2014 || Thyr || Supplier: [[Alstom]] (converter stations), [[LS Group|LS Cable and System]] (cables). ||<ref name="List"/><ref>[http://www.alstom.com/press-centre/2014/7/alstom-grid-energises-jeju-island-in-south-korea/Alstom]{{dead link|date=September 2017|bot=InternetArchiveBot|fix-attempted=yes}}, Alstom Press Release, 7 July 2014.</ref><ref>{{cite web|url=http://m.lscns.com/solution/solution0601.asp|title=Error - LS Cable|website=m.lscns.com|access-date=16 January 2018|archive-url=https://web.archive.org/web/20151119055134/http://m.lscns.com/solution/solution0601.asp|archive-date=19 November 2015|url-status=dead}}</ref>
+|-
+| Xiluodo - West Zhejiang || China - Xiluodu  <br/>{{coord|28|27|37|N|104|20|20|E|type:landmark|name=HVDC Shuanglong Static Inverter Plant}}|| China - Jinghua<br/>{{coord|28|53|46|N|119|43|00|E|type:landmark|name=HVDC Wuyi Static Inverter Plant}} || 1680 || 800 || 8000 || 2014 || Thyr || Supplier:C-EPRI Electric Power Engineering Co., Ltd || ???
+|-
+| Zhoushan Multi-terminal DC Interconnection || China - Zhoushan <br/>{{Coord|30|09|07|N|121|59|29|E|type:landmark|name=HVDC Zhejiang Zhoushan Islands - Zhoushan Static Inverter Plant}} || China - Qushan <br/>{{Coord|30|25|26|N|122|16|48|E|type:landmark|name=HVDC Zhejiang Zhoushan Islands - Qushan Static Inverter Plant}} ; China - Daishan <br/>{{Coord|30|19|37|N|122|11|35|E|type:landmark|name=HVDC Zhejiang Zhoushan Islands - Daishan Static Inverter Plant}} ; China - Yangshan <br/>{{Coord|30|36|26|N|122|07|40|E|type:landmark|name=HVDC Zhejiang Zhoushan Islands - Yangshan Static Inverter Plant}} ; China - Sijiao <br/>{{Coord|30|41|45|N|122|25|50|E|type:landmark|name=HVDC Zhejiang Zhoushan Islands - Sijiao Static Inverter Plant}}|| 134 <br/>(134/0)  || {{sort|400|±200}} || 400 || 2014 || IGBT || Supplier:C-EPRI Electric Power Engineering Co., Ltd
+HVDC C&P System Provided by NR Electric
+|<ref>[http://www.epri.sgcc.com.cn/prgc/english/Company_Capability/201203/t20120307_1038853.html Zhoushan Multi-terminal DC Interconnection], accessed in February 2014 {{webarchive |url=https://web.archive.org/web/20140414071748/http://www.epri.sgcc.com.cn/prgc/english/Company_Capability/201203/t20120307_1038853.html |date=April 14, 2014 }}</ref>
+|-
+| Humeng - Shandong || China  || China || || 800 || 6400 || 2015 || Thyr || || ???
+|-
+| Irkutsk - Beijing || Russia - Irkutsk  || China - Beijing || || 800 || 6400 || 2015 || Thyr || || ???
+|-
+| Champa-Kurukshetra|| India - Champa|| India - Kurukshetra|| 1365 <br/>(0/1365) || 800 || {{sort|6000|2 x 3000}} ||2016 || Thyr || 2 Bipoles. Supplier: [[Alstom]] ||<ref>{{cite web|url=http://www.alstom.com/Global/OneAlstomPlus/Grid/PDF/Supergrid/Champa%20800%20kV%20UHVDC%20project%20in%20India.pdf?epslanguage=en-GB|format=PDF|title=Champa ±800 kV UHVDC|website=Alstom.com|access-date=16 January 2018|archive-url=https://web.archive.org/web/20150127054620/http://www.alstom.com/Global/OneAlstomPlus/Grid/PDF/Supergrid/Champa%20800%20kV%20UHVDC%20project%20in%20India.pdf?epslanguage=en-GB|archive-date=27 January 2015|url-status=dead}}</ref>
+|-
+| Goupitan - Guangdong || China  || China || ||  || 3000 || 2016 || Thyr || || ???
+|-
+| Jinsha River II - East China || China  || China || || 800 || 6400 || 2016 || Thyr || || ???
+|- 
+| North-East Agra || India - Agra <br/>{{coord|27|05|01|N|78|04|22|E|type:landmark|name=HVDC Biswanath-Agra - Agra Static Inverter Plant}} || India - Biswanath <br/> {{coord|26|44|23|N|93|13|09|E|type:landmark|name=HVDC Biswanath Static Inverter Plant}} || 1728 <br/>(0/1728) || 800 || 6000 || 2016 || Thyr || Will supply electricity to serve 90 million people <br/>Bipole Ultra high voltage, multiterminal (intermediate converter station at Alipurdauar {{coord|26|29|23|N|89|27|41|E|type:landmark|name=HVDC Biswanath-Agra}}) <br/>Supplier: [[ABB]] ||<ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/north-east-agra|title=References - ABB|website=New.abb.com|access-date=16 January 2018|archive-date=12 January 2018|archive-url=https://web.archive.org/web/20180112233948/http://new.abb.com/systems/hvdc/references/north-east-agra|url-status=live}}</ref>
+|-
+| New [[HVDC Hokkaido-Honshu]] || Japan - Imabetsu <br/>{{Coord|41|08|01|N|140|30|46|E|type:landmark_region:JP|display=inline|name=New Hokkaido-Honshu Transmission - Imabetsu Static Inverter Plant}} || Japan - Hokuto  <br/>{{Coord|41|54|57|N|140|35|07|E|type:landmark_region:JP|display=inline|name=New Hokkaido-Honshu Transmission - Hokuto Static Inverter Plant}} || 122 <br/>(24/98) || 250 || 300 || 2019 || IGBT || suppliers: Toshiba|| <ref>{{cite web |url= https://www.cigre2019.jp/_img/program/The%20New%20Hokkaido-Honshu%20HVDC%20Link.pdf |title= The New Hokkaido-Honshu HVDC Link }}{{Dead link|date=June 2022 |bot=InternetArchiveBot |fix-attempted=yes }}</ref><ref>{{cite web|url=https://www.toshiba-energy.com/en/info/info2019_0328_02.htm|title=New Hokkaido-Honshu VSC HVDC Commissioned, Interconnecting Hokkaido and the Main Island of Honshu|date=28 March 2019|access-date=7 January 2021|archive-date=17 October 2020|archive-url=https://web.archive.org/web/20201017023609/https://www.toshiba-energy.com/en/info/info2019_0328_02.htm|url-status=live}}</ref>
+|-
+| Matiari to Lahore Transmission Line Project  || Pakistan - Matiari, Sindh || Pakistan - Lahore, Punjab || 878   || 660 || 4000 || 2021 || Thyr || ±660 kV Bipole HVDC with Converter/ Grounding Electrode Stations
+| <ref>{{cite web |url= http://cpec.gov.pk/project-details/17 |title= Matiari To Lahore ±660kV HVDC Transmission Line Project |access-date= 2021-02-02 |archive-date= 2020-11-04 |archive-url= https://web.archive.org/web/20201104171519/http://cpec.gov.pk/project-details/17 |url-status= live }}</ref>
+|- style="background:#bfbfff;"
+| Inner Mongolia - Linyi || China - Shizhustan<br/>{{coord|38|46|40|N|106|52|00|E|type:landmark|name=HVDC Shizhustan Static Inverter Plant}}|| China - Linyi<br/>{{coord|35|33|07|N|118|37|07|E|type:landmark|name=HVDC Linyi Static Inverter Plant}}  || || 800 || 6400 || 2017 || Thyr || || ???
+|- style="background:#bfbfff;"
+| Jiuquan- Xiangtan ||China - Qiaowan <br/>{{coord|40|36|03|N|96|43|22|E|type:landmark|name=HVDC Qiaowan Static Inverter Plant}}|| China - Xiangtan <br/>{{coord|27|38|55|N|112|47|25|E|type:landmark|name=HVDC Xiangtan Static Inverter Plant}}  || || 800 || 6400 || 2017 || Thyr || Supplier:C-EPRI Electric Power Engineering Co., Ltd 
+HVDC C&P System Provided by NR Electric 
+| ???
+|- style="background:#bfbfff;"
+| North Shanxi - Nanjing || China - North Shanxi <br/>{{coord|39|39|35|N|112|27|45|E|type:landmark|name=HVDC North Shanxi Static Inverter Plant}} || China - Nanjing <br/>{{coord|32|54|47|N|118|35|33|E|type:landmark|name=HVDC Nanjing Static Inverter Plant}}  || ||  ||  || 2017 || Thyr || || ???
+|- style="background:#efffbf;"
+| Northwest Yunnan - Guangdong||  China - Xinsong <br/>{{coord|26|24|55|N|99|49|12|E|type:landmark|name=HVDC Xinsong Static Inverter Plant}}|| China - Dongfang <br/>{{coord|22|44|17|N|113|52|07|E|type:landmark|name=HVDC Dongfang Static Inverter Plant}} || 1953|| 800 || 5000 || 2018 || Thyr || || ???
+|- style="background:#efffbf;"
+| Xilin Hot - Taizhou || China - Xilin Hot <br/>{{coord|44|14|40|N|116|30|22|E|type:landmark|name=HVDC Xilin Hot Static Inverter Plant}}|| China - Taizhou <br/>{{coord|33|07|25|N|119|58|05|E|type:landmark|name=HVDC Taizhou Static Inverter Plant}} || || 800 || 10000 || 2017 || Thyr || || ???
+|- style="background:#efffbf;"
+| Yinchuan - Zhuji || China - Yinchuan <br/>{{coord|37|43|45|N|106|32|22|E|type:landmark|name=HVDC Yinchuan Static Inverter Plant}}|| China - Zhuji <br/>{{coord|29|56|25|N|120|13|12|E|type:landmark|name=HVDC Zhuji Static Inverter Plant}} || || 800 || 6400 || 2017 || Thyr || HVDC C&P System Provided by NR Electric
+| ???
+|- style="background:#efffbf;"
+| Dianxibei - Guangdong || China-Lijiang  || China-Zhengzhen || 1928/0|| 800 || 5000 || 2017 || Thyr || Supplier: C-EPRI Electric Power Engineering Co., Ltd || ???
+|- style="background:#efffbf;"
+| Jinsha River II - Fujian || China  || China || || 800 || 6400 || 2018 || Thyr || || ???
+|- style="background:#efffbf;"
+| Humeng - Liaoning || China  || China || || 800 || 6400 || 2018 || Thyr || || ???
+|- style="background:#bfbfff;"
+| Rudong Offshore Wind Connector || China - Jiangsu Rudong || China - Jiangsu Rudong Platform || 100 <br/>(100/0) || 400 || 1100  || 2022 || IGBT ||Suppliers: XJ and RXHK for valve, ZTT Cable ||
+|- style="background:#bfbfff;"
+| Sheyang Offshore Wind Connector || China - Jiangsu Sheyang || China - Jiangsu Sheyang Platform  || 83 <br/>(83/0) || 250|| 1100  || 2022|| IGBT || || 
+|- style="background:#bfbfff;"
+| Zhangbei DC Grid Project  || China - Beijing  || China - Zhangbei <br/> China - Fengning <br/> China - Kangbao <br/>  || 495 <br/> (0/495) || 500 || 3000/3000/1500/1500 || 2021 || IGBT || Four terminal DC Grid 
+Suppliers: NR Electric, others
+| <ref>{{cite web |url= https://www.nrec.com/en/web/upload/2019/05/14/15578229444108hgcuh.pdf |title= Case Study Zhangbei DC Grid |access-date= 2021-01-07 |archive-date= 2020-12-05 |archive-url= https://web.archive.org/web/20201205082947/https://nrec.com/en/web/upload/2019/05/14/15578229444108hgcuh.pdf |url-status= live }}</ref>
+|- style="background:#bfbfff;"
+| Wudongde multi-terminal UHVDC demonstration project || China - Yunnan || China - Guangxi <br/> China - Guangdong  || 1489 <br/> (0/1489) || 800 || 8000/3000/5000 || 2021 || Thyr/IGBT || Three terminal Hybrid DC system, Yunnan (Thyristor), Guangdong and Guangxi (IGBT) ||
+|- 
+| Raigarh-Pugalur || India - Raigarh <br/>{{coord|21|51|21|N|83|21|01|E|type:landmark|name=HVDC Raigarh - Raigarh Static Rectifier Plant}} || India - [[Pugalur]] <br/>{{coord|10|49|33|N|77|32|13|E|type:landmark|name=HVDC Pugalur Static Inverter Plant}} <br/> India - [[Thrissur]] || 1830 <br/> || 800 || 6000 || 2019 || Thyr || Supplier: [[ABB]]; One of the World's biggest Multi-terminal HVDC system with Ultra High Voltage DC Transmission system (UHVDC)||<ref>{{cite web|url=http://tdworld.com/overhead-transmission/india-build-longest-800kv-uhvdc-transmission-line|title=India to Build Longest 800kV UHVDC Transmission Line|date=11 January 2017|access-date=20 January 2017|archive-date=18 January 2017|archive-url=https://web.archive.org/web/20170118194747/http://tdworld.com/overhead-transmission/india-build-longest-800kv-uhvdc-transmission-line|url-status=live}}</ref>
+|- style="background:#bfbfff;"
+| [[CASA-1000]] || Tajikistan - Sangtuda || Pakistan - Nowshera || 750 || 500 || 1300 || 2025 || Thyr || ±500 kV Bipole HVDC with Converter Stations ||<ref>{{cite news|title=Central Asia-South Asia Electricity Transmission and Trade Project|url=https://www.worldbank.org/en/news/speech/2016/05/10/central-asia-south-asia-electricity-transmission-and-trade-project-casa-1000|accessdate=23 July 2023|date=10 May 2016}}</ref><ref>{{cite news|title=HVDC Classic Reference list|url=https://search.abb.com/library/Download.aspx?DocumentID=POW0013&LanguageCode=en&DocumentPartId=&Action=Launch|accessdate=23 July 2023}}</ref>
+|- style="background:#efffbf;"
+|[[India–Sri Lanka HVDC Interconnection]]
+|Madurai - India
+|Anurathapura - Sri Lanka
+|285
+|{{sort|320|±320}}
+|500/1000
+|2030
+|Thyr
+|
+|
+|- style="background:#efffbf;"
+|Andaman HVDC Connection
+|Paradip - India
+|Port Blair - India
+|1160
+|{{sort|320|±320}}
+|250/125
+|2030
+|IGBT
+|one of the world's longest deep-sea UG cable HVDC system 
+|<ref>{{Cite web |title=Meeting notice and agenda|url=https://www.ctuil.in/uploads/ists_consultation_meeting/agenda/169829919767Meeting%20Notice%20and%20Agenda_24th%20CMETS-ER_final.pdf}}</ref>
+|}
+
+==Europe==
+{| class="wikitable sortable"
+ ! style="background-color: #87CEEB" | {{tooltip|Name|System/Project}}<br/>
+ ! style="background-color: #87CEEB" | Converter<br/>station 1<br/>
+ ! style="background-color: #87CEEB" | Converter<br/>station 2<br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Total Length (Cable/Pole) <br/> (km)|Cable – undersea or underground cable; Pole – overhead line}}<br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Nominal<br/> Voltage<br/> (kV)|DC Voltage}}<br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Power (MW)|Power Rating}}<br/>
+ ! style="background-color: #87CEEB" | {{tooltip|Year|Year Commissioned}}<br/>
+ ! style="background-color: #87CEEB" | Type<br/>
+ ! style="background-color: #87CEEB" class="unsortable" | Remarks<br/>
+ ! style="background-color: #87CEEB" class="unsortable" | {{tooltip|Ref|Source}}<br/>
+|-<!-- to make sorting work -->style="display:none;" || !a || !a || !a || -9e99 || -9e99 || -9e99 || 1000-01-01 || !a || !a || !a
+|-<!-- to make sorting work -->style="display:none;" || ~z || ~z || ~z || 9e99 || 9e99 || 9e99 || 9000-01-01 || ~z || ~z || ~z
+|- style="background:#efbfbf;"
+| [[Miesbach-Munich Power Transmission]] || Germany - Miesbach || Germany - Munich || 58 <br/>(0/58) || 2 || 0.0025 || 1882 || Single machine || Demonstration facility
+Dismantled
+||
+|- style="background:#efbfbf;"
+| Gorzente River - Genoa DC transmission scheme || Italy - Gorzente River || Italy - Genoa || ? || 6 || ? || 1889 || Thury ||  Upgraded later to a voltage of 14 kV, power of 2.5 MW and a length of 120&nbsp;km
+Dismantled
+||
+|- style="background:#efbfbf;"
+| La Chaux-de-Fonds DC transmission scheme || Switzerland - ? || Switzerland - ? || ? || 14 || ? || 1897 || Thury ||  Dismantled||
+|- style="background:#efbfbf;"
+| St. Maurice - Lausanne DC transmission scheme || Switzerland - St. Maurice || Switzerland - Lausanne || ? || 22 || 3.7 || 1899 || Thury ||  Dismantled||
+|- style="background:#efbfbf;"
+| [[Lyon-Moutiers DC transmission scheme]] || France - Lyon || France - Moutiers ||200 <br/>(10/190) || 75 || 30 || 1906 || Thury || Dismantled in 1936||
+|- style="background:#efbfbf;"
+| [[Wilesden-Ironbridge DC transmission scheme]] || UK - Wilesden || UK - Ironbridge || ? || 100 || ? || 1910 || Thury || Dismantled ||
+|- style="background:#efbfbf;"
+| [[Chambéry DC transmission scheme]] || France - ? || France - ? || ? || 150 || ? || 1925 || Thury || Dismantled in 1937||
+|- style="background:#efbfbf;"
+| [[HVDC Zurich-Wettingen]] || Switzerland - Wettingen {{Coord|47|27|25|N|8|19|15|E|type:landmark|name=Zurich-Wettingen Transmission - Wettingen Hydroelectric Power Plant}} || Switzerland - Zurich || 20<br/>(0/20) || 50 || 0.5 || 1939 || Merc || Experimental facility built by [[Brown, Boveri & Cie|BBC]]
+Dismantled
+||
+|- style="background:#efbfbf;"
+| [[HVDC Charlottenburg-Moabit]] || Germany - Berlin-Moabit || Germany - Berlin-Charlottenburg || 4.6<br/>  (0/4.6) || 100 || 14 || 1942 || Merc || Experimental facility built by Siemens
+Dismantled in 1945
+||
+|- style="background:#efbfbf;"
+| [[Lehrte-Misburg HVDC]] || Germany - Lehrte {{Coord|52|22|54|N|9|55|03|E|type:landmark|name=Lehrte-Misburg Transmission - Lehrte Substation}} || Germany - Hannover/Misburg || ? || 80 || 16 || 1944 || Merc || Experimental facility
+Dismantled
+||
+|- style="background:#efbfbf;"
+| [[Elbe-Project]] || Germany - [[Vockerode Power Plant|Vockerode]] {{Coord|51|50|32|N|12|21|26|E|type:landmark|name=Elbe-Project - Vockerode Static Inverter Plant (today workshop)}} || Germany - Berlin, Marienfelde {{Coord|52|25|39|N|13|22|13|E|type:landmark|name=Elbe-Project - Marienfelde Static Inverter Plant (today sports hall}} || 115<br/>(115/0) || 200 || 60 || 1945 || Merc || Never placed in service
+Dismantled
+||
+|- style="background:#efbfbf;"
+| [[HVDC Trollhättan-Mellerud]] || Sweden - Trollhättan || Sweden - Mellerud ||  50<br/>(0/50) || 45 || 6.5 || 1946 || Merc || Experimental facility built by ASEA
+Dismantled
+||
+|- style="background:#efbfbf;"
+| [[Moscow–Kashira HVDC transmission system|Moscow–Kashira]]  || [[Russia]] - [[Moscow]] {{Coord|55|39|32|N|37|38|16|E|type:landmark|name=Moscow-Kashira - Moscow Static Inverter Plant}} || Russia - [[Kashira]] {{Coord|54|51|29|N|38|14|45|E|type:landmark|name=Moscow-Kashira - Kashira Static Inverter Plant}} || 100<br/>(100/0) || 200 || 30 || 1951 || Merc || Built of parts of HVDC [[Elbe-Project]]
+Shut down 
+||<ref name="List">[http://www.ece.uidaho.edu/hvdcfacts/Projects/HVDCProjectsListingMarch2012-existing.pdf HVDC Projects List, March 2012 - Existing or Under Construction (PDF)] {{Webarchive|url=https://web.archive.org/web/20140201181654/http://www.ece.uidaho.edu/hvdcfacts/Projects/HVDCProjectsListingMarch2012-existing.pdf |date=2014-02-01 }}, Ece.uidaho.edu, accessed in February 2014</ref>
+|- style="background:#efbfbf;"
+| [[HVDC Gotland|Gotland 1]] || Sweden - Västervik {{Coord|57|43|41|N|16|38|51|E|type:landmark|name=Gotland Transmission - Västervik Static Inverter Plant}} || Sweden - Yigne {{Coord|57|35|13|N|18|11|44|E|type:landmark|name=Gotland Transmission -  Yigne Static Inverter Plant}} || 98<br/>(98/0) || 200 || 20 || 1954 || Merc || World's first commercial HVDC link, by ASEA. Expanded by [[ABB]] in 1970, decommissioned in 1986||<ref name="List"/><ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/the-gotland-hvdc-link|title=The Gotland HVDC link|work=abb.com|access-date=2014-05-30|archive-date=2014-07-14|archive-url=https://web.archive.org/web/20140714184934/http://new.abb.com/systems/hvdc/references/the-gotland-hvdc-link|url-status=live}}</ref>
+|- style="background:#efbfbf;"
+| [[HVDC Cross-Channel|Cross-Channel]] || France - Echingen {{Coord|50|41|48|N|1|38|21|E|type:landmark|name=Cross-Channel ( old) - Echingen Static Inverter Plant}} || UK - Lydd {{Coord|50|54|54|N|0|56|50|E|type:landmark|name=Cross-Channel ( old) - Lydd Static Inverter Plant}} || 64<br/>(64/0) || 100 || 160 || 1961 || Merc || Shut down in 1984||<ref name="List"/>
+|- style="background:#efbfbf;"
+| [[HVDC Volgograd-Donbass|Volgograd-Donbass]] || Russia - Volzhskaya {{Coord|48|49|34|N|44|40|20|E|type:landmark|name=Volgograd-Donnbass - Volzhskaya Static Inverter Plant}} || Ukraine - Mikhailovskaya {{Coord|48|39|13|N|38|33|56|E|type:landmark_region:UA|name=Volgograd-Donnbass - Mikhailovskaya Static Inverter Plant}} || 475<br/>(0/475) || 400 || 750 || 1965 || Merc/Thyr || Shut down in 2014||<ref name="List"/>
+|-
+| [[Konti-Skan|Konti-Skan 1]] || Denmark - Vester Hassing {{Coord|57|3|46|N|10|5|24|E|type:landmark|name=Konti-Skan - Vester Hassing Static Inverter Plant}} || Sweden - Stenkullen {{Coord|57|48|15|N|12|19|13|E|type:landmark|name=Konti-Skan 1 - Stenkullen Static Inverter Plant (dismantled)}} || 176<br/>(87/89) || 250 || 250 || 1965 || Merc || Replaced in August 2006 by modern converters using thyristors ||<ref name="List"/>
+|- style="background:#efbfbf;"
+| [[HVDC Italy–Corsica–Sardinia|SACOI 1]] || Italy - Suvereto {{Coord|43|3|10|N|10|41|42|E|type:landmark|name=SACOI - Suvereto Static Inverter Plant}} ( before 1992: Italy - San Dalmazio {{Coord|43|15|43|N|10|55|05|E|type:landmark|name=SACOI - San Dalmazio Static Inverter Plant ( abandoned)}})|| France- Lucciana {{Coord|42|31|40|N|9|26|59|E|type:landmark|name=SACOI - Lucciana Static Inverter Plant}} ; Codrongianos, Italy {{Coord|40|39|7|N|8|42|48|E|type:landmark|name=SACOI - Codrogianos Static Inverter Plant}} || 483<br/>(365/118) || 200 || 200 || 1965 || Merc || Replaced in 1986 by Thyr, multiterminal scheme.<br/>The line reused by SACOI 2, see below.||<ref name="List"/>
+|- style="background:#efbfbf;"
+| [[HVDC Kingsnorth|Kingsnorth]] || UK - [[Kingsnorth]] {{Coord|51|25|11|N|0|35|46|E|type:landmark|name=Kingsnorth Transmission - Kingsnorth Static Inverter Plant}} || UK - London-[[Beddington]] {{Coord|51|22|23|N|0|7|38|W|type:landmark|name=Kingsnorth Transmission - Beddington Static Inverter Plant}} || 85<br/>(85/0) || 266 || 320 || 1975 || Merc ||Bipolar scheme
+Supplier: [[English Electric]]
+Shut down in 1987 
+||<ref>Kingsnorth Power Station brochure on the DC system (Kingsnorth to London HVDC power reinforcement scheme - dated 1975)</ref>
+|- style="background:#efbfbf;"
+| Kingsnorth || UK - [[Kingsnorth]] || UK - London-[[Willesden]] {{Coord|51|32|03|N|0|15|29|W|type:landmark|name=Kingsnorth Transmission - Willesden Static Inverter Plant}} || 111<br/>(111/0)  || 266 || 320 || 1975 || Merc || Opposite pole of Kingsnorth - Beddington. Cable wholly underground except for Thames crossing - crossed on upstream side of Putney [[District line]] railway bridge ||
+|-
+| [[Skagerrak (power transmission system)|Skagerrak]] 1 + 2 || Denmark - Tjele {{Coord|56|28|44|N|9|34|1|E|type:landmark|name=Skagerrak - Tjele Static Inverter Plant}} || Norway - Kristiansand {{Coord|58|15|36|N|7|53|55|E|type:landmark|name=Skagerrak - Kristiansand Static Inverter Plant}} || 230<br/>(130/100) || 250 || 500 || 1977 || Thyr || Supplier: STK (Nexans)<br/>Control system upgrade by [[ABB]] in 2007 ||<ref name="abb.com">{{cite web|url=http://new.abb.com/systems/hvdc/references/skagerrak|title=Skagerrak|work=abb.com|access-date=2014-05-02|archive-date=2016-01-20|archive-url=https://web.archive.org/web/20160120170439/http://new.abb.com/systems/hvdc/references/skagerrak|url-status=dead}}</ref><ref>{{cite web|url=http://www.abb.com/cawp/seitp202/7f5adcba62cdd62fc12573b000391dc2.aspx|title=New lease on life for northern European power link|work=abb.com|access-date=2013-12-06|archive-date=2013-12-12|archive-url=https://web.archive.org/web/20131212033935/http://www.abb.com/cawp/seitp202/7f5adcba62cdd62fc12573b000391dc2.aspx|url-status=live}}</ref><ref>{{cite web|url=http://www.abb.com/cawp/seitp202/f83745e3cb765121c125783300278fe3.aspx|title=ABB wins $180 million order for Norway-Denmark power transmission link|work=abb.com|access-date=2013-12-06|archive-date=2013-12-12|archive-url=https://web.archive.org/web/20131212031731/http://www.abb.com/cawp/seitp202/f83745e3cb765121c125783300278fe3.aspx|url-status=live}}</ref>
+|-
+| [[HVDC Gotland|Gotland]] 2 || Sweden - Västervik {{Coord|57|43|41|N|16|38|51|E|type:landmark|name=Gotland Transmission - Västervik Static Inverter Plant}} || Sweden - Yigne {{Coord|57|35|13|N|18|11|44|E|type:landmark|name=Gotland Transmission -  Yigne Static Inverter Plant}} || 99.5<br/>(92.9/6.6) || 150 || 130 || 1983 || Thyr || Supplier: [[ABB]] 
+|- 
+| [[HVDC Cross-Channel|Interconnexion France Angleterre]] (new) || France - Les Mandarins {{Coord|50|54|11|N|1|47|5|E|type:landmark|name=Cross-Channel ( new) - Les Mandarins Static Inverter Plant}} || UK - [[Sellindge]] {{Coord|51|6|21|N|0|58|32|E|type:landmark|name=Cross-Channel ( new) - Sellindge Static Inverter Plant}} || 72<br/>(72/0) || 270 || 2000 || 1986 || Thyr || 2 bipolar systems
+Supplier: [[Alstom]]
+||<ref name="List"/><ref name="NG IFA">{{cite web|title=National Grid info on IFA|url=http://www2.nationalgrid.com/About-us/European-business-development/Interconnectors/france/|website=Interconnections - France|publisher=National Grid plc|access-date=31 December 2015|archive-url=https://web.archive.org/web/20160820024637/http://www2.nationalgrid.com/About-us/European-business-development/Interconnectors/france/|archive-date=20 August 2016|url-status=dead|df=dmy-all}}</ref>
+|-
+| [[HVDC Gotland|Gotland]] 3 || Sweden - Västervik {{Coord|57|43|41|N|16|38|51|E|type:landmark|name=Gotland Transmission - Västervik Static Inverter Plant}} || Sweden - Yigne {{Coord|57|35|13|N|18|11|44|E|type:landmark|name=Gotland Transmission - Yigne Static Inverter Plant}} || 98<br/>(98/0) || 150 || 130 || 1987 || Thyr ||Supplier: [[ABB]] 
+|-
+| [[Konti-Skan]] 2 || Denmark - Vester, Hassing {{Coord|57|3|46|N|10|5|24|E|type:landmark|name=Konti-Skan - Vester Hassing Static Inverter Plant}} || Sweden - Lindome {{Coord|57|36|24|N|12|6|40|E|type:landmark|name=Konti-Skan - Lindome Static Inverter Plant}} || 147<br/>(87/60) || 285 || 300 || 1988 || Thyr || Supplier: [[ABB]]||
+|-
+| [[Fenno-Skan]] || Finland - Rauma {{Coord|61|09|07|N|21|37|32|E|type:landmark|name=Fenno-Skan - Rauma Static Inverter Plant}} || Sweden - Dannebo {{Coord|60|24|14|N|18|08|10|E|type:landmark|name=Fenno-Skan - Dannebo Static Inverter Plant}} || 233<br/>(200/33) || 400 || 500 || 1989 || Thyr || Supplier: [[ABB]] 
+||
+|-
+| [[HVDC Italy-Corsica-Sardinia|SACOI]] 2 || Italy - Suvereto {{Coord|43|3|10|N|10|41|42|E|type:landmark|name=SACOI - Suvereto Static Inverter Plant}} ( before 1992: Italy - San Dalmazio {{Coord|43|15|43|N|10|55|05|E|type:landmark|name=SACOI - San Dalmazio Static Inverter Plant ( abandoned)}}) || France- Lucciana {{Coord|42|31|40|N|9|26|59|E|type:landmark|name=SACOI - Lucciana Static Inverter Plant}} ; Codrongianos, Italy {{Coord|40|39|7|N|8|42|48|E|type:landmark|name=SACOI - Codrogianos Static Inverter Plant}} || 422<br/>(118/304) || 200 || 300 || 1992 || Thyr || Multiterminal scheme
+Supplier: [[Alstom]]
+||
+|-
+| [[Skagerrak (power transmission system)|Skagerrak]] 3 || Denmark - Tjele {{Coord|56|28|44|N|9|34|1|E|type:landmark|name=Skagerrak - Tjele Static Inverter Plant}} || Norway - Kristiansand {{Coord|58|15|36|N|7|53|55|E|type:landmark|name=Skagerrak - Kristiansand Static Inverter Plant}} || 230<br/>(130/100) || 350 || 440 || 1993 || Thyr || Supplier: Nexans [[ABB]]||<ref name="abb.com"/>
+|-
+| [[Baltic Cable]] || Germany - Lübeck- Herrenwyk {{Coord|53|53|46|N|10|48|9|E|type:landmark|name=Baltic-Cable - Lubeck-Herrenwyk Static Inverter Plant}} || Sweden - Kruseberg  {{Coord|55|30|1|N|13|8|45|E|type:landmark|name=Baltic-Cable - Kruseberg Static Inverter Plant}} || 262<br/>(250/12) || 450 || 600 || 1994 || Thyr || Supplier: [[ABB]] ||
+|-
+| [[Kontek]] || Denmark - Bjæverskov {{Coord|55|27|1|N|12|0|27|E|type:landmark|name=Kontek - Bjæverskov Static Inverter Plant}}  || Germany - [[Bentwisch]]  {{Coord|54|6|3|N|12|13|1|E|type:landmark|name=Kontek - Bentwisch Static Inverter Plant}} || 170<br/>(170/0) || 400 || 600 || 1996 || Thyr || Supplier: [[ABB]] ||
+|-
+| [[HVDC Hellsjön-Grängesberg|Hellsjön-Grängesberg]] || Sweden - Hellsjön {{Coord|60|02|50|N|15|08|52|E|type:landmark|name=Hellsjön-Grängesberg Transmission - Hellsjön Static Inverter Plant}} || Sweden - Grängesberg {{Coord|60|03|53|N|14|59|39|E|type:landmark|name=Hellsjön-Grängesberg Transmission - Grängesberg Static Inverter Plant}} || 10<br/>(0/10) || 180 || 3 || 1997 || IGBT || Experimental HVDC
+Supplier: [[ABB]]
+||
+|-
+| [[HVDC Visby-Näs|Visby-Näs]] || Sweden - Näs {{Coord|57|05|58|N|18|14|27|E|type:landmark|name=Visby-Nas Transmission - Nas Static Inverter Plant}} || Sweden - Visby {{Coord|57|37|29|N|18|21|18|E|type:landmark|name=Visby-Nas Transmission - Visby Static Inverter Plant}} || 70<br/>(70/0) || 80 || 50 || 1999 || IGBT || World's first commercial HVDC Light ||<ref>{{Cite web |last=Svensson |first=Jan R. |title=Efficient power transfer with HVDC Light® |url=https://library.e.abb.com/public/2fdb92b24fec4e0f946b30434c1c514b/24-26%203m6043_EN_72dpi.pdf |access-date=2025-05-18}}</ref>
+|-
+| [[SwePol]] || Poland - Wierzbięcin {{Coord|54|30|8|N|16|53|28|E|type:landmark|name=SwePol - Wierzbięcin (Slupsk) Static Inverter Plant}}  || Sweden - Stärnö {{Coord|56|9|11|N|14|50|29|E|type:landmark|name=SwePol - Stärnö Static Inverter Plant}}  || 245<br/>(245/0) || 450 || 600 || 2000 || Thyr || Supplier: [[ABB]] ||<ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/swepol-link|title=SwePol Link|work=abb.com|access-date=2014-01-16|archive-date=2018-10-25|archive-url=https://web.archive.org/web/20181025205911/https://new.abb.com/systems/hvdc/references/swepol-link|url-status=live}}</ref>
+|-
+| [[HVDC Tjæreborg|Tjæreborg]] || Denmark - Tjæreborg/Enge {{Coord|55|26|52|N|8|35|34|E|type:landmark|name=Tjæreborg-Enge Transmission - Enge Static Inverter Plant}} || Denmark - Tjæreborg/Substation {{Coord|55|28|07|N|8|33|36|E|type:landmark|name=Tjæreborg-Enge Transmission - Tjæreborg Static Inverter Plant}} || 4.3<br/>(4.3/0) || 9 || 7 || 2000 || IGBT || Interconnection to wind power generating stations ||
+|-
+| [[HVDC Italy-Greece|Italy-Greece]] || Greece - Arachthos {{Coord|39|11|00|N|20|57|48|E|type:landmark|name=Italy-Greece Transmission - Arachthos Static Inverter Plant}} || Italy - Galatina {{Coord|40|9|53|N|18|7|49|E|type:landmark|name=Italy-Greece Transmission - Galatina Static Inverter Plant}} || 310<br/>(200/110) || 400 || 500 || 2001 || Thyr || &nbsp; ||
+|-
+| [[HVDC Moyle|Moyle]] || UK - Auchencrosh {{Coord|55|04|10|N|4|58|50|W|type:landmark|name=Moyle - Auchencrosh Static Inverter Plant}} || UK - N. Ireland- Ballycronan More {{Coord|54|50|34|N|5|46|11|W|type:landmark|name=Moyle - Ballycronan More Static Inverter Plant}} || 63.5<br/>(63.5/0) || 250 || 500 || 2001 || Thyr || Supplier: [[Siemens]], [[Nexans]] ||<ref name=Moyle>{{cite web|title=Mutual Energy|url=http://www.mutual-energy.com/|website=Mutual Energy|access-date=31 December 2015|archive-date=9 January 2016|archive-url=https://web.archive.org/web/20160109114447/http://www.mutual-energy.com/|url-status=live}}</ref>
+|- 
+| [[HVDC Troll]] || Norway - Kollsnes {{Coord|60|33|01|N|4|50|26|E|type:landmark|name=Kollsnes-Troll Transmission - Kollsnes Static Inverter Plant}} || Norway - Offshore platform [[Troll A]] {{Coord|60|40|00|N|3|40|00|E|type:landmark|name=Kollsnes-Troll Transmission - Troll A Static Inverter Plant (situated on Troll A offshore platform)}} || 70<br/>(70/0) || 60 || 80 || 2004 || IGBT || Power supply for offshore gas compressor 
+Supplier: [[ABB]]
+||<ref name=hvdcproj01>{{cite journal|title=HVDC PROJECTS LISTING|url=http://www.ece.uidaho.edu/hvdcfacts/Projects/HVDCProjectsListingMay2008-existing.pdf|author=Working Group on HVDC and FACTS Bibliography and Records|journal=IEEE Transmission and Distribution Committee|date=2008-07-07|access-date=2008-12-19|archive-date=2008-12-15|archive-url=https://web.archive.org/web/20081215234956/http://www.ece.uidaho.edu/hvdcfacts/Projects/HVDCProjectsListingMay2008-existing.pdf|url-status=dead}}</ref>
+|-
+| [[Estlink]] || Finland - Espoo {{Coord|60|12|14|N|24|33|06|E|type:landmark|name=Estlink - Espoo Static Inverter Plant}} || Estonia - Harku {{Coord|59|23|5|N|24|33|37|E|type:landmark|name=Estlink - Harku Static Inverter Plant}} || 105<br/>(105/0) || 150 || 350 || 2006 || IGBT || Supplier: [[ABB]] ||<ref name=hvdcproj01 />
+|-
+| [[NorNed]] || Netherlands - Eemshaven {{Coord|53|26|4|N|6|51|57|E|type:landmark|name=NorNed - Eemshaven Static Inverter Plant}} || Norway - Feda {{coord|58|16|58|N|6|51|55|E|type:landmark|name=NorNed - Feda Static Inverter Plant}}|| 580<br/>(580/0) || 450 || 700 || 2008 || Thyr || Supplier: [[ABB]], [[Nexans]]||<ref name=hvdcproj01 />
+|-
+| [[BritNed]] || UK - Grain {{Coord|51|26|24|N|0|43|0|E|type:landmark|name=HVDC Britned - Grain Static Inverter Plant}}||  Netherlands - Maasvlakte {{Coord|51|57|27|N|4|01|17|E|type:landmark|name=HVDC Britned - Maasvlakte Static Inverter Plant}}|| 245<br/>(245/0) || 450 || 1000 || 2010 || Thyr || Operational since April 2011. Supplier: [[Siemens]] ||<ref name=hvdcproj01 /><ref name=BritNed01>{{Cite press release|title=BritNed cable live today |date=2011-04-01 |url=https://www.britned.com/news/Pages/1April2011.aspx |publisher=BritNed |access-date=2011-04-01 }}{{dead link|date=June 2016|bot=medic}}{{cbignore|bot=medic}}
+</ref>
+<ref>{{cite web|title=BritNed organisation|url=http://www.britned.com|website=BritNed|access-date=5 January 2016|archive-date=9 January 2016|archive-url=https://web.archive.org/web/20160109184034/http://britned.com/|url-status=live}}</ref><ref>{{cite web|title=National Grid on BritNed|url=http://www2.nationalgrid.com/About-us/European-business-development/Interconnectors/Netherlands/|website=Interconnectors - Netherlands|publisher=National Grid plc|access-date=5 January 2016|archive-url=https://web.archive.org/web/20160120170439/http://www2.nationalgrid.com/About-us/European-business-development/Interconnectors/Netherlands/|archive-date=20 January 2016|url-status=dead|df=dmy-all}}</ref>
+|-
+| [[Great Belt Power Link|StoreBælt]] || Denmark - Fraugde {{Coord|55|22|01|N|10|30|25|E|type:landmark|name=HVDC StoreBælt - Fraugde Static Inverter Plant}} || Denmark - Herslev {{Coord|55|31|53|N|11|19|01|E|type:landmark|name=HVDC StoreBælt - Herslev Static Inverter Plant}} || 56<br/>(56/0) || 400 || 600 || 2010 || Thyr || Operational since August 2010. Supplier: [[Siemens]] ||<ref name=hvdcproj01 />
+|-
+| [[Cometa (HVDC)|Cometa]] || Spain - [[Morvedre]] {{coord|39|38|28|N|0|14|7|W|type:landmark|name=Cometa - Morvedre HVDC Static Inverter}} || Spain - [[Santa Ponsa]] {{coord|39|32|2|N|2|30|21|E|type:landmark|name=Cometa - Santa Ponsa HVDC Static Inverter}}  || 247<br/>(247/0) || 250 || 400 || 2011 || Thyr || Expected completion 2011 
+Supplier: [[Siemens]] (converter stations); [[Prysmian Group|Prysmian]]/[[Nexans]] (cables) 
+||<ref name=hvdcproj01 />
+|-
+| [[Fenno-Skan]] 2 || Finland - Rauma {{Coord|61|09|07|N|21|37|32|E|type:landmark|name=Fenno-Skan - Rauma Static Inverter Plant}} || Sweden - Finnböle {{coord|60|25|30|N|17|3|42|E|type:landmark|name=Fenno-Skan - Finnböle HVDC Static Inverter}} || 303<br/>(200/103) || 500 || 800 || 2011 || Thyr || &nbsp; ||
+|-
+| [[SAPEI]] || Italy - Latina {{Coord|41|25|47|N|12|48|25|E|type:landmark|name=SAPEI - Latina Static Inverter Plant}} || Italy - Fiume Santo {{Coord|40|50|29|N|8|18|21|E|type:landmark|name=SAPEI - Fiume Santo Static Inverter Plant}} || 435<br/>(435/0) || 500 || 1000 || 2011 || Thyr || The largest HVDC link in the Mediterranean Sea. Supplier: [[ABB]]||<ref name=hvdcproj01 /><ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/sapei|title=SAPEI|work=abb.com|access-date=2014-05-02|archive-date=2017-04-15|archive-url=https://web.archive.org/web/20170415005900/http://new.abb.com/systems/hvdc/references/sapei|url-status=dead}}</ref><ref>{{cite web|url=http://www.abb.com/cawp/seitp202/9e5c1f1a1cb0675ac12571800058456d.aspx|title=ABB wins $180 million order for undersea power link in Italy|work=abb.com|access-date=2014-05-02|archive-date=2014-05-02|archive-url=https://web.archive.org/web/20140502203202/http://www.abb.com/cawp/seitp202/9e5c1f1a1cb0675ac12571800058456d.aspx|url-status=live}}</ref>
+|-
+| Valhall HVDC || Norway - Lista {{Coord|58|04|37|N|6|46|29|E|type:landmark|name=HVDC Valhall - Lista Static Inverter Plant}} || Norway - Valhall, Offshore platform || 292<br/>(292/0) || 150 || 78 || 2011 || IGBT ||Supplier: [[ABB]], [[Nexans]] &nbsp; || <ref>{{cite press release|title=ABB commissions power link to Valhall offshore platform |url=http://www.abb.com/cawp/seitp202/E06F0100088D9098C125793000367F6F.aspx|website=[[ABB|abb.com]] |access-date=5 January 2016|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/http://www.abb.com/cawp/seitp202/E06F0100088D9098C125793000367F6F.aspx|url-status=dead}}</ref>
+|-
+| [[HVDC BorWin1|BorWin1]] || Germany - Diele || Germany - [[BorWin Alpha]] platform|| 200<br/>(200/0) || ±150 || 400 || 2012 || IGBT || Supplier: [[ABB]]  ||<ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/borwin1|title=BorWin1|work=abb.com|access-date=2014-05-02|archive-date=2017-11-23|archive-url=https://web.archive.org/web/20171123064858/http://new.abb.com/systems/hvdc/references/borwin1|url-status=dead}}</ref><ref>{{cite web|url=http://www.abb.com/cawp/seitp202/98b8128e95e94127c125735a003203e3.aspx|title=ABB wins power order worth more than $400 million for world's largest offshore wind farm|work=abb.com|access-date=2014-05-02|archive-date=2014-05-02|archive-url=https://web.archive.org/web/20140502205401/http://www.abb.com/cawp/seitp202/98b8128e95e94127c125735a003203e3.aspx|url-status=live}}</ref><ref>{{cite AV media|url=https://www.youtube.com/watch?v=Hg0AaY5RmzA |archive-url=https://ghostarchive.org/varchive/youtube/20211221/Hg0AaY5RmzA |archive-date=2021-12-21 |url-status=live|title=BorWin1 - Transmission project|date=7 July 2010|work=YouTube}}{{cbignore}}</ref>
+|-
+| [[East West Interconnector]] || Ireland - Woodland {{coord|53|28|16|N|6|34|3|W|type:landmark|name=East West Interconnector - Woodland HVDC Static Inverter}} || UK - Shotton, Wales {{coord|53|13|38|N|3|4|22|W|type:landmark|name=East West Interconnector - Shotton HVDC Static Inverter}}
+ || 130<br/>(130/0) ||±200 || 500 || 2012 || IGBT || Supplier: [[ABB]]||<ref>{{cite web|title=Overview of EirGrid Connection|url=https://library.e.abb.com/public/4d580b5e493d268dc1257c00003e44dc/Overview%20of%20the%20500MW%20EirGrid%20East-West.pdf|website=Paper presented at UPEC 2013|publisher=ABB|access-date=31 December 2015|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/https://library.e.abb.com/public/4d580b5e493d268dc1257c00003e44dc/Overview%20of%20the%20500MW%20EirGrid%20East-West.pdf|url-status=live}}</ref>
+|-
+| Fenno-Skan 1 Upgrade || Finland - Rauma || Sweden - Finnböle || 233<br/>(200/33) || 400 || 500 || 2013 || Thyr ||  Upgrade
+Supplier:[[ABB]] 
+||<ref>{{cite web|url=http://www.abb.com/industries/ap/db0003db004333/3acfe6c11d602c2bc125774a0030b2b4.aspx%7ctitle=Fenno-Skan%7cwork=abb.com|archive-url=https://archive.today/20150420231240/http://www.abb.com/industries/ap/db0003db004333/3acfe6c11d602c2bc125774a0030b2b4.aspx%7Ctitle=Fenno-Skan%7Cwork=abb.com|url-status=dead|archive-date=2015-04-20|title=ABB Fenno-Skan - ABB HVDC Reference Projects in Europe (HVDC References)|work=abb.com}}</ref><ref>{{cite web|url=http://www.abb.com/cawp/seitp202/a822e2244feacf0dc125762d00442cbc.aspx|title=ABB to upgrade transmission control for Scandinavian power interconnector|work=abb.com|access-date=2013-12-06|archive-date=2013-12-12|archive-url=https://web.archive.org/web/20131212032848/http://www.abb.com/cawp/seitp202/a822e2244feacf0dc125762d00442cbc.aspx|url-status=live}}</ref><ref>{{cite web|url=http://search-ext.abb.com/library/Download.aspx?DocumentID=9AKK105713A1113&LanguageCode=en&DocumentPartId=&Action=Launch|title=New Fenno-Skan 2 HVDC pole with an upgrade of the existing Fenno-Skan 1 pole|website=Search-ext.abb.com|access-date=25 September 2017|archive-date=12 December 2013|archive-url=https://web.archive.org/web/20131212031730/http://search-ext.abb.com/library/Download.aspx?DocumentID=9AKK105713A1113&LanguageCode=en&DocumentPartId=&Action=Launch|url-status=live}}</ref>
+|-
+| [[Estlink]] 2 || Finland - Anttila {{Coord|60|22|36|N|25|22|01|E|type:landmark_region:FI|name=Estlink 2 - Anttila Static Inverter Plant|display=inline}} || Estonia - Püssi {{Coord|59|22|13|N|27|04|05|E|type:landmark_region:EE|name=Estlink 2 - Püssi Static Inverter Plant|display=inline}} || 171<br/>(157/14) || 450 || 650 || 2014 || Thyr ||Supplier: [[Siemens]], [[Nexans]] ||
+|-
+| ÅL-link || Finland - [[Naantali]] (sv:Nådendal) {{Coord|60|27|49|N|22|03|49|E|type:landmark|name= HVDC Finland-Åland -  Naantali Static Inverter Plant}} || [[Åland]] - Ytterby  || 158<br/>(158/0) || 80 || 100 || 2015 || IGBT || Supplier: [[ABB]] ||<ref>{{cite web|url=http://www.abb.com/industries/ap/db0003db004333/a670e39a342f72a3c1257ad200497320.aspx|title=Åland|work=abb.com|access-date=2013-12-06|archive-date=2013-12-12|archive-url=https://web.archive.org/web/20131212031850/http://www.abb.com/industries/ap/db0003db004333/a670e39a342f72a3c1257ad200497320.aspx|url-status=live}}</ref><ref>{{cite web|url=http://www.abb.com/cawp/seitp202/8a2d70431a983cbdc1257ad30035af25.aspx|title=ABB wins $130-million HVDC order for subsea power transmission link in Finland|work=abb.com|access-date=2013-12-06|archive-date=2013-12-12|archive-url=https://web.archive.org/web/20131212033304/http://www.abb.com/cawp/seitp202/8a2d70431a983cbdc1257ad30035af25.aspx|url-status=live}}</ref><ref>{{cite web|title=Åland Link project management|url=http://www.poyry.com/sites/default/files/media/related_material/poyry_kraftnat_aland_tech_leaflet.pdf|website=pöyry case summary|publisher=Pöyry SwedPower AB|access-date=8 January 2016|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/http://www.poyry.com/sites/default/files/media/related_material/poyry_kraftnat_aland_tech_leaflet.pdf|url-status=live}}</ref> 
+|-
+| [[HVDC BorWin2|BorWin2]] || Germany - Diele {{Coord|53|7|30|N|7|18|29|E|type:landmark|name=BorWin2 - Diele Static Inverter Plant}} || Germany - BorWin Beta platform {{Coord|54|21|18|N|6|01|30|E|type:landmark|name=BorWin2 - BorWin Beta platform}} || 200<br/>(200/0) || ±300 || 800 || 2015 || IGBT ||Supplier: [[Siemens]]   ||<ref>{{cite web|url=http://www.tennettso.de/pages/tennettso_de/Aufgaben/Offshore/Unsere_Projekte/BorWin2/index.htm|title=Wir bringen die Windenergie vom Meer an Land - TenneT TSO GmbH|work=tennettso.de|access-date=2011-03-31|archive-date=2011-11-20|archive-url=https://web.archive.org/web/20111120022540/http://www.tennettso.de/pages/tennettso_de/Aufgaben/Offshore/Unsere_Projekte/BorWin2/index.htm|url-status=live}}</ref>
+|-
+| [[HVDC DolWin1|DolWin1]] || Germany - Heede {{Coord|52|58|57|N|7|15|26|E|type:landmark|name=HVDC DolWin1 - Heede Static Inverter Plant}}  || Germany - DolWin Alpha platform {{Coord|53|59|42|N|6|25|16|E|type:landmark|name=DolWin1 - DolWin Alpha platform}}  || 165<br/>(165/0) || ±320 || 800 || 2015 || IGBT || Supplier:[[ABB]] ||<ref>{{cite web|url=http://www.abb.com/industries/ap/db0003db004333/8b74a5fe4cc03e44c125777c003f3203.aspx|title=DolWin1|work=abb.com|access-date=2011-01-24|archive-date=2011-03-25|archive-url=https://web.archive.org/web/20110325015722/http://www.abb.com/industries/ap/db0003db004333/8b74a5fe4cc03e44c125777c003f3203.aspx|url-status=live}}</ref>
+|-
+| [[HVDC HelWin1|HelWin1]] || Germany - Büttel {{Coord|53|55|01|N|9|13|55|E|type:landmark|name=HVDC HelWin1 - Büttel Static Inverter Plant}} || Germany - HelWin Alpha platform {{Coord|54|27|07|N|7|44|20|E|type:landmark|name=HelWin1 - HelWin Alpha platform}}  || 130<br/>(130/0) || ±250 || 576 || 2015 || IGBT ||Supplier: [[Siemens]]     ||<ref>{{cite web|url=http://www.tennettso.de/pages/tennettso_en/Press/Press_releases/News/Pressemitteilung.htm?id=1441603|title=Wir bringen die Windenergie vom Meer an Land - TenneT TSO GmbH|website=Tennettso.de|access-date=25 September 2017|archive-date=19 July 2011|archive-url=https://web.archive.org/web/20110719091042/http://www.tennettso.de/pages/tennettso_en/Press/Press_releases/News/Pressemitteilung.htm?id=1441603|url-status=live}}</ref>
+|-
+| [[HVDC HelWin2|HelWin2]] || Germany - Büttel {{Coord|53|55|01|N|9|13|55|E|type:landmark|name=HVDC HelWin2 - Büttel Static Inverter Plant}} || Germany - HelWin Beta platform {{Coord|54|27|11|N|7|44|20|E|type:landmark|name=HelWin2 - HelWin Beta platform}}  || 130<br/>(130/0) || ±320 || 690 || 2015 || IGBT ||Supplier: [[Siemens]]   || 
+|- 
+| {{Interlanguage link|INELFE|fr|Interconnexion électrique France-Espagne}} || France - Baixas {{coord|42|43|56|N|2|48|14|E|type:landmark|name=INELFE - Baixas Static Inverter Plant}} || Spain - Santa Llogaia {{coord|42|13|59|N|2|56|39|E|type:landmark|name=INELFE - Santa Llogaia Static Inverter Plant}} || 64<br/>(64/0) || ±320 || 2000 || 2015 || IGBT || Supplier: [[Siemens]], Cables: Prysmian. €700m, 8&nbsp;km tunnel near [[Perpignan–Barcelona high-speed rail line|HSR]] ||<ref name=INELFE>{{Cite press release
+| title = 2014 INELFE, France-Spain
+| date = 2011-01-12
+| url = http://www.energy.siemens.com/us/pool/hq/power-transmission/HVDC/HVDC-PLUS/pm-pdf/INELFE_en.pdf
+| publisher = Siemens
+| access-date = 2012-05-13
+| archive-date = 2013-12-25
+| archive-url = https://web.archive.org/web/20131225054933/http://www.energy.siemens.com/us/pool/hq/power-transmission/HVDC/HVDC-PLUS/pm-pdf/INELFE_en.pdf
+| url-status = live
+}}</ref>
+<ref>{{cite web|title=REE on INELFE|url=http://www.ree.es/en/activities/unique-projects/new-interconnection-with-france|website=Spain-France underground interconnection|publisher=Red Eléctrica da España|access-date=5 January 2016|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/http://www.ree.es/en/activities/unique-projects/new-interconnection-with-france|url-status=live}}</ref><ref>{{cite web|title=INEFE ready for testing|url=http://www.siemens.com/press/en/events/2015/energymanagement/2015-04-Inelfe.php?content%5B%5D=EM|website=HVDC link between France and Spain|publisher=Siemens|access-date=5 January 2016|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/http://www.siemens.com/press/en/events/2015/energymanagement/2015-04-Inelfe.php?content%5B%5D=EM|url-status=live}}</ref><ref>{{cite web |url= http://www.tdworld.com/transmission/crossing-mountains-connect-two-countries |title= Crossing Mountains to Connect Two Countries |date= 8 June 2017 |publisher= TD world |access-date= 21 June 2017 |archive-url= https://web.archive.org/web/20170621162554/http://www.tdworld.com/transmission/crossing-mountains-connect-two-countries |archive-date= 21 June 2017 |url-status= live }}</ref>
+|- style="background:#efbfbf;"
+| [[LitPol Link]] HVDC was B2B || Lithuania - Alytus || Poland - Elk || 160<br/>(0/160) || 70 || 500 || 2015<sup>2</sup><ref>{{cite web|title=Russia's Power Grip Over Baltics Ending With Billion-Euro Cables|url=https://www.bloomberg.com/news/articles/2015-12-08/russia-s-power-grip-over-baltics-ending-with-billion-euro-cables|publisher=Bloomberg|access-date=11 August 2016|archive-date=2016-03-19|archive-url=https://web.archive.org/web/20160319073545/http://www.bloomberg.com/news/articles/2015-12-08/russia-s-power-grip-over-baltics-ending-with-billion-euro-cables|url-status=live}}</ref> || Thyr || Switched to AC in 2025 to facilitate the Baltic countries' synchronization with [[Continental Europe Synchronous Area|CESA]].<br />Supplier: [[ABB]] ||<ref>{{cite web|url=http://www.litpol-link.com/|title=LITPOL Link|work=litpol-link.com|access-date=2013-12-06|archive-url=https://web.archive.org/web/20131230075710/http://litpol-link.com/|archive-date=2013-12-30|url-status=usurped}}</ref><ref>{{cite web|url=http://www.abb.com/cawp/seitp202/e33f0222195b2559c1257b130034f0c0.aspx|title=ABB wins $110 million power order to interconnect Lithuania and Poland|work=abb.com|access-date=2013-12-06|archive-date=2013-12-12|archive-url=https://web.archive.org/web/20131212033258/http://www.abb.com/cawp/seitp202/e33f0222195b2559c1257b130034f0c0.aspx|url-status=live}}</ref><ref>{{cite web|url=http://www.abb.com/industries/ap/db0003db004333/453ca2eceb1a2b0ac1257b100034bc9e.aspx|title=LitPol Link|website=Abb.com|access-date=2013-12-06|archive-date=2013-12-12|archive-url=https://web.archive.org/web/20131212034742/http://www.abb.com/industries/ap/db0003db004333/453ca2eceb1a2b0ac1257b100034bc9e.aspx|url-status=live}}</ref>
+|-
+| [[NordBalt]] || Sweden - Nybro {{coord|56|46|4|N|15|51|15|E|type:landmark|name=NordBalt - Nybro Static Inverter Plant}} || Lithuania - Klaipėda {{coord|55|40|54|N|21|15|24|E|type:landmark|name=NordBalt - Klaipeda Static Inverter Plant}}  || 450<br/>(450/0) || 300 || 700 || 2015 || IGBT || Supplier: [[ABB]] ||<ref>{{cite web|url = http://new.abb.com/systems/hvdc/references/nordbalt|title = NordBalt|access-date = 12 January 2015|archive-date = 21 December 2014|archive-url = https://web.archive.org/web/20141221195915/http://new.abb.com/systems/hvdc/references/nordbalt|url-status = live}}</ref>
+|-
+| [[Skagerrak (power transmission system)|Skagerrak]] 4 || Denmark - Tjele {{Coord|56|28|44|N|9|34|1|E|type:landmark|name=Skagerrak - Tjele Static Inverter Plant}} || Norway - Kristiansand {{Coord|58|15|36|N|7|53|55|E|type:landmark|name=Skagerrak - Kristiansand Static Inverter Plant}} || 244<br/>(244/0) || 500 || 700 || 2015 || IGBT || Suppliers: [[Nexans]], [[ABB]] || <ref>{{cite web|title=ABB press release|url=http://www.abb.com/cawp/seitp202/E0311EE675BB33B3C1257DCB00300A8C.aspx|website=ABB sets world record|publisher=ABB|access-date=5 January 2016|archive-date=25 December 2015|archive-url=https://web.archive.org/web/20151225122908/http://www.abb.com/cawp/seitp202/e0311ee675bb33b3c1257dcb00300a8c.aspx|url-status=live}}</ref>
+|-
+| [[HVDC SylWin1|SylWin1]] || Germany - Büttel {{Coord|53|55|01|N|9|13|55|E|type:landmark|name=HVDC SylWin1 - Büttel Static Inverter Plant}} || Germany - SylWin Alpha platform {{Coord|55|03|47|N|7|14|28|E|type:landmark|name=SylWin1 - SylWin Alpha platform}}  || 205<br/>(205/0) || ±320 || 864 || 2015 || IGBT ||Supplier: [[Siemens]]  ||<ref>{{cite web|url=http://www.tennettso.de/pages/tennettso_de/Aufgaben/Offshore/Unsere_Projekte/Sylwin1/index.htm|title=Wir bringen die Windenergie vom Meer an Land - TenneT TSO GmbH|work=tennettso.de|access-date=2011-03-31|archive-date=2011-11-20|archive-url=https://web.archive.org/web/20111120022945/http://www.tennettso.de/pages/tennettso_de/Aufgaben/Offshore/Unsere_Projekte/Sylwin1/index.htm|url-status=live}}</ref>
+|-
+| Troll A 3&4 || Norway - Kollsnes || Norway - Troll A 3&4 platform || 70<br/>(70/0) || 66 || 100 || 2015 || IGBT || Supplier: [[ABB]] ||<ref>{{cite web|url=http://www.abb.com/cawp/seitp202/39C42F95CEEEBA1CC125793300312349.aspx|title=ABB wins $270 million order from Statoil for world's largest offshore gas platform|work=abb.com|access-date=2013-12-06|archive-date=2013-12-12|archive-url=https://web.archive.org/web/20131212033929/http://www.abb.com/cawp/seitp202/39C42F95CEEEBA1CC125793300312349.aspx|url-status=live}}</ref><ref>{{cite web|url=http://www.abb.com/cawp/seitp202/AB637CE3C1F21FFEC12570930030722C.aspx|title=Inauguration event of ABB technologies at the Troll A platform in Norway|work=abb.com|access-date=2013-12-06|archive-date=2013-12-12|archive-url=https://web.archive.org/web/20131212031737/http://www.abb.com/cawp/seitp202/AB637CE3C1F21FFEC12570930030722C.aspx|url-status=live}}</ref><ref>{{cite web|url=http://www.statoil.com/en/ouroperations/explorationprod/ncs/troll/pages/default.aspx|title=The Troll area|work=statoil.com|access-date=2013-12-06|archive-url=https://web.archive.org/web/20140925064030/http://www.statoil.com/en/ouroperations/explorationprod/ncs/troll/pages/default.aspx|archive-date=2014-09-25|url-status=dead}}</ref><ref>{{cite web|url=http://www.abb.com/cawp/seitp202/c1256c290031524bc1256be400349f13.aspx?l=us|title=ABB signs US$ 230 million in contracts with Statoil|work=abb.com|access-date=2013-12-06|archive-date=2013-12-12|archive-url=https://web.archive.org/web/20131212031858/http://www.abb.com/cawp/seitp202/c1256c290031524bc1256be400349f13.aspx?l=us|url-status=live}}</ref><ref>{{cite web|url=http://www.abb.com/industries/seitp406/2d61933a86dcc1c9c12572570056b3a6.aspx|title=ABB HVDC Light - Electrical/Integrated Project Solutions (Offshore Production)|work=abb.com|access-date=2013-12-06|archive-url=https://web.archive.org/web/20131212031116/http://www.abb.com/industries/seitp406/2d61933a86dcc1c9c12572570056b3a6.aspx|archive-date=2013-12-12|url-status=dead}}</ref><ref>{{cite web|url=http://www.abb.com/product/seitp322/bdf72a1253c27d64c1256e1c001aebe2.aspx?v=9AAC910009&e=us|title=Very high voltage synchronous motors|work=abb.com|access-date=2013-12-06|archive-url=https://web.archive.org/web/20131212031129/http://www.abb.com/product/seitp322/bdf72a1253c27d64c1256e1c001aebe2.aspx?v=9AAC910009&e=us|archive-date=2013-12-12|url-status=dead}}</ref> 
+|-
+| [[HVDC DolWin2|DolWin2]] || Germany - Heede {{Coord|52|58|52|N|7|15|26|E|type:landmark|name=HVDC DolWin1 - Heede Static Inverter Plant}}  || Germany - DolWin Beta platform {{Coord|53|58|41|N|6|55|23|E|type:landmark|name=DolWin2 - DolWin Beta platform}}  || 135<br/>(135/0) || ±320 || 900 || 2016 || IGBT || Supplier: [[ABB]] ||<ref>{{cite web|url = http://www.abb.com/industries/ap/db0003db004333/E1E1631CA0D32A92C12578DB0034CDBF.aspx|title = DolWin2|access-date = 12 January 2015|archive-date = 1 October 2013|archive-url = https://web.archive.org/web/20131001213641/http://www.abb.com/industries/ap/db0003db004333/e1e1631ca0d32a92c12578db0034cdbf.aspx|url-status = live}}</ref>
+|-
+| [[HVDC DolWin3|DolWin3]] || Germany - Heede {{Coord|52|58|57|N|7|15|26|E|type:landmark|name=HVDC DolWin3 - Heede Static Inverter Plant}}  || Germany - DolWin Gamma platform {{Coord|53|59|42|N|6|25|16|E|type:landmark|name=DolWin3 - DolWin Gamma platform}} || 160<br />(160/0) || ±320 || 900 || 2017 || IGBT || Supplier: [[Alstom]] ||<ref>{{cite web|url=http://www.alstom.com/press-centre/2013/2/offshore-wind-energy-tennet-awards-dolwin3project-to-alstom-marking-next-step-in-germanys-energy-turnaround/|title=Offshore wind energy: TenneT awards "DolWin3"project to Alstom, marking next step in Germany's energy turnaround|work=alstom.com|access-date=2015-02-12|archive-date=2015-02-12|archive-url=https://web.archive.org/web/20150212223236/http://www.alstom.com/press-centre/2013/2/offshore-wind-energy-tennet-awards-dolwin3project-to-alstom-marking-next-step-in-germanys-energy-turnaround/|url-status=live}}</ref>
+|-
+| HVDC MON.ITA Project|| Italy-[[Cepagatti]] {{Coord|42|23|41|N|14|07|30|E|type:landmark|name=HVDC MON.ITA Cepagatti Static Inverter Plant}} || Montenegro - [[Lastva Grbaljska]] {{Coord|42|19|03|N|18|47|41|E|type:landmark|name=HVDC MON.ITA Lastva Grbaljska Static Inverter Plant}} || 415<br />(415/0) || ±500 ||1000 || 2019 || Thyr ||Supplier: [[Toshiba]] (converter stations); [[Nexans]] (cables). ||<ref>{{cite web |url=http://www.nexans.com/eservice/Corporate-en/navigatepub_0_-32312/Nexans_wins_major_subsea_cable_contract_for_Terna_.html |title=Nexans wins major subsea cable contract for Terna's new HVDC power interconnection between Italy and Montenegro |date=30 October 2012 |access-date=6 November 2015 |archive-date=20 January 2016 |archive-url=https://web.archive.org/web/20160120170439/http://www.nexans.com/eservice/Corporate-en/navigatepub_0_-32312/Nexans_wins_major_subsea_cable_contract_for_Terna_.html |url-status=live }}</ref><ref>{{cite web |url=http://www.toshiba.co.jp/about/press/2012_12/pr0701.htm |title=Toshiba wins EPC Contract for HVDC power conversion system |publisher=Toshiba Press Release |date=7 December 2012 |access-date=6 November 2015 |archive-date=18 October 2015 |archive-url=https://web.archive.org/web/20151018110924/http://www.toshiba.co.jp/about/press/2012_12/pr0701.htm |url-status=live }}</ref><ref>{{cite web |url=http://www.cigre-seerc.org/Images/files/MNE%20CIGRE%20SEERC%20MONITA_2.pdf |title=HVDC MON.ITA Project |publisher=Terna Crna Gora |date=27 January 2014 |access-date=6 November 2015 |archive-date=20 January 2016 |archive-url=https://web.archive.org/web/20160120170439/http://www.cigre-seerc.org/Images/files/MNE%20CIGRE%20SEERC%20MONITA_2.pdf |url-status=live }}</ref> 
+|-
+| [[Western HVDC Link]] || UK - [[Hunterston]] {{coord|55|43|16|N|4|53|7|W|type:landmark|name=Western HVDC Link - Hunterston Static Inverter Plant}} 
+ || UK - [[Flintshire Bridge]] {{coord|53|13|54|N|3|1|58|W|type:landmark|name=Western HVDC Link - Flintshire Bridge Static Inverter Plant}} || 422<br />(422/0) || 600 || 2200 || 2017-18 || Thyr || Supplier: [[Prysmian Group]], [[Siemens]]<br />First subsea 600kV link ||<ref>{{cite web |url=http://www.westernhvdclink.co.uk/qanda.aspx |title=Q&A |publisher=Western HVDC |access-date=28 March 2015 |archive-date=22 March 2015 |archive-url=https://web.archive.org/web/20150322063143/http://www.westernhvdclink.co.uk/qanda.aspx |url-status=live }}</ref><ref name="ETYS2015">{{cite web|title=NG ETYS 2015|url=http://www2.nationalgrid.com/UK/Industry-information/Future-of-Energy/Electricity-Ten-Year-Statement/|website=Electricity 10 year statement|publisher=National Grid plc|access-date=31 December 2015|archive-date=21 December 2015|archive-url=https://web.archive.org/web/20151221224117/http://www2.nationalgrid.com/UK/Industry-information/Future-of-Energy/Electricity-ten-year-statement/|url-status=live}}</ref>
+|- 
+| [[Caithness - Moray Link]]<sup>3</sup> || UK - [[Spittal, Highland|Spittal]] {{coord|58|28|47|N|3|27|08|W|type:landmark|name=Caithness - Moray Link}} || UK - [[Keith, Moray|Blackhillock]] {{coord|57|31|24|N|2|56|55|W|type:landmark|name=Caithness - Moray Link}} || 160  || 320 || 1200  || 2018 || IGBT || Supplier: ABB || <ref>{{cite web|title=Caithness Moray HVDC|url=https://www.ssepd.co.uk/CaithnessMoray/|website=Caithness Moray|publisher=SSE Power Distribution|access-date=3 January 2016|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/https://www.ssepd.co.uk/CaithnessMoray/|url-status=live}}</ref><ref>{{cite web|title=ABB information|url=http://new.abb.com/systems/hvdc/references/caithness-moray-hvdc-link|website=Caithness Moray HVDC Link|publisher=ABB|access-date=3 January 2016|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/http://new.abb.com/systems/hvdc/references/caithness-moray-hvdc-link|url-status=live}}</ref> 
+|-
+| [[HVDC BorWin3|BorWin3]] || Germany - Diele || Germany - BorWin Gamma platform || 200<br />(200/0) || ±320 || 900 || 2019 || IGBT ||Supplier: [[Siemens]]    ||
+|-
+| [[COBRAcable]] || Denmark - Endrup via [[Fanø]] {{coord|55|31|49|N|8|42|13|E|type:landmark|name=COBRAcable - Endrup Static Inverter Plant}} || Netherlands - [[Eemshaven]] {{coord|53|26|07|N|6|52|02|E|type:landmark|name=COBRAcable - Eemshaven Static Inverter Plant}} || 325 || ±320 || 700 || 2019<sup>4</sup> || IGBT || Suppliers: Siemens, Prysmian, Cost € 449m || <ref>[https://web.archive.org/web/20101129121058/http://energinet.dk/DA/ANLAEG-OG-PROJEKTER/Anlaegsprojekter-el/Kabel-til-Holland-COBRA/Sider/Kabel-til-Holland-COBRA.aspx Kabel til Holland – COBRA<!-- Bot generated title -->]</ref><ref>{{cite web|title=Energienet in English|url=http://www.energinet.dk/EN/ANLAEG-OG-PROJEKTER/Anlaegsprojekter-el/Kabel-til-Holland-COBRA/Sider/Kabel-til-Holland-COBRA.aspx|website=Cable to NL - COBRACable|publisher=Energienet.DK|access-date=4 January 2016|url-status=dead|archive-url=https://web.archive.org/web/20160120170439/http://www.energinet.dk/EN/ANLAEG-OG-PROJEKTER/Anlaegsprojekter-el/Kabel-til-Holland-COBRA/Sider/Kabel-til-Holland-COBRA.aspx|archive-date=20 January 2016}}</ref><ref>{{cite web|url=http://www.tennet.eu/our-grid/international-connections/cobracable/|title=COBRAcable|publisher=[[TenneT]]|access-date=26 February 2017|archive-date=27 February 2017|archive-url=https://web.archive.org/web/20170227062326/http://www.tennet.eu/our-grid/international-connections/cobracable/|url-status=live}}</ref><ref>{{cite web|url=http://www.tennet.eu/news/detail/works-starts-in-eemshaven-on-cobracable-a-green-subsea-electricity-highway-between-the-netherlan/|title=Works starts in Eemshaven on COBRAcable – a 'green' subsea electricity highway between the Netherlands and Denmark|date=3 January 2017|publisher=[[TenneT]]|access-date=26 February 2017|archive-date=27 February 2017|archive-url=https://web.archive.org/web/20170227063854/http://www.tennet.eu/news/detail/works-starts-in-eemshaven-on-cobracable-a-green-subsea-electricity-highway-between-the-netherlan/|url-status=live}}</ref><ref>{{cite web|url=http://ec.europa.eu/energy/eepr/projects/files/offshore-wind-energy/cobra-cable_en.pdf|title=Offshore wind : Cobra cable|website=Alstom.com|access-date=16 January 2018|archive-date=27 February 2017|archive-url=https://web.archive.org/web/20170227150132/http://ec.europa.eu/energy/eepr/projects/files/offshore-wind-energy/cobra-cable_en.pdf|url-status=live}}</ref>
+|- 
+| [[Johan Sverdrup oil field|Johan Sverdrup Phase 1]]|| Norway - Haugsneset   || Norway - [[Johan Sverdrup oil field|Johan Sverdrup platform]] || 200<br />(200/0) || ±80 || 100 || 2019|| IGBT || Supplier: ABB, NKT ||<ref name="equinor.com">{{cite press release |url=https://www.equinor.com/en/news/2018-10-09-johan-sverdrup-powered-shore.html |title=Johan Sverdrup powered from shore |date=October 9, 2018 |website=equinor.com |access-date=2020-03-27 |archive-date=2020-06-25 |archive-url=https://web.archive.org/web/20200625231122/https://www.equinor.com/en/news/2018-10-09-johan-sverdrup-powered-shore.html |url-status=live }}</ref>
+|- 
+| France-Italy via [[Fréjus Road Tunnel]] || [[France]], Grand-Île|| [[Italy]], [[:it:Piossasco|Piossasco]]|| 190 || ±320 || 2x600 || 2019 || IGBT || Supplier: [[Alstom]] (converter stations); [[Prysmian Group|Prysmian]] (cables).|| <ref>{{cite web|url=http://www.enerdata.net/enerdatauk/press-and-publication/energy-news-001/alstom-will-supply-converter-stations-italy-france-interconnector_34023.html|title=Alstom will supply converter stations to Italy-France interconnector - Enerdata|website=Enerdata.net|access-date=16 January 2018|archive-date=21 April 2016|archive-url=https://web.archive.org/web/20160421223651/http://www.enerdata.net/enerdatauk/press-and-publication/energy-news-001/alstom-will-supply-converter-stations-italy-france-interconnector_34023.html|url-status=live}}</ref><ref>[http://prysmiangroup.com/en/corporate/press-releases/New-strategic-interconnection-Italy-France-for-Terna-R.-I.-and-RTE-/ New strategic interconnection Italy-France for Terna R. I. and RTE] {{Webarchive|url=https://web.archive.org/web/20150403100336/http://prysmiangroup.com/en/corporate/press-releases/New-strategic-interconnection-Italy-France-for-Terna-R.-I.-and-RTE-/ |date=2015-04-03 }}, Prysmian Press Release, 26 March 2015.</ref><ref>{{cite web|title=RTE on France Italy link|url=http://www.rte-france.com/fr/projet/savoie-piemont-190-km-de-solidarite-europeenne-entre-chambery-et-turin|website=Savoie-Piémont: 190 km|publisher=RTE France|access-date=7 January 2016|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/http://www.rte-france.com/fr/projet/savoie-piemont-190-km-de-solidarite-europeenne-entre-chambery-et-turin|url-status=live}}</ref><ref>{{cite web|title=Terna on Italy France link|url=https://www.terna.it/en-gb/azienda/media/presskit/italia-francia,lalineainvisibilechetrasmetteenergia.aspx|website=Italy - France, the invisible line|publisher=Terna|access-date=7 January 2016|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/https://www.terna.it/en-gb/azienda/media/presskit/italia-francia,lalineainvisibilechetrasmetteenergia.aspx|url-status=live}}</ref>
+|- 
+| [[Nemo Link]] || Belgium - near [[Bruges]] || UK - [[Richborough Power Station|Richborough Energy Park]] || 140<br />(140/0) || 400 || 1000 || 2019 ||  IGBT
+||  Converter stations: [[Siemens]], cables: J-power systems<ref>{{cite web|title=Nemo Link news June '15|url=http://www.nemo-link.com/latest-news/|website=Nemo Link news June '15|publisher=Nemo Link|access-date=31 December 2015|archive-date=4 March 2016|archive-url=https://web.archive.org/web/20160304065710/http://www.nemo-link.com/latest-news/|url-status=live}}</ref> 
+|| <ref>{{cite web|title=Nemo Link|url=http://www.nemo-link.com|website=Nemo Link|access-date=31 December 2015|archive-date=10 January 2016|archive-url=https://web.archive.org/web/20160110154823/http://www.nemo-link.com/|url-status=live}}</ref><ref>{{cite web|title=Siemens re Nemo Link|url=http://www.siemens.com/press/en/pressrelease/?press=/en/pressrelease/2015/energymanagement/pr2015060244emen.htm&content[]=EM|website=Siemens wins major HVDC order to connect British and Belgian power grid|publisher=Siemens|access-date=13 January 2016|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/http://www.siemens.com/press/en/pressrelease/?press=%2Fen%2Fpressrelease%2F2015%2Fenergymanagement%2Fpr2015060244emen.htm&content%5B%5D=EM|url-status=live}}</ref>
+|- 
+| {{ill|ALEGrO|de}} || Belgium - [[Visé]] || Germany - Oberzier || 100<br />(100/0) || 320 || 1000 || 2020<sup>5</sup> ||  IGBT
+|| Converter stations: [[Siemens]]
+Cables: General Cable
+|| <ref>{{cite web|title=ALEGrO Project|url=http://www.elia.be/en/projects/grid-projects/alegro/alegro-content|website=ALEGrO Project|publisher=Elia|access-date=24 January 2016|archive-date=30 January 2016|archive-url=https://web.archive.org/web/20160130200022/http://www.elia.be/en/projects/grid-projects/alegro/alegro-content|url-status=live}}</ref><ref>{{cite web |title=Siemens Energy supplies HVDC technology for electricity link between Germany and Belgium |url=https://www.windtech-international.com/projects-and-contracts/siemens-energy-supplies-hvdc-technology-for-electricity-link-between-germany-and-belgium |website=www.windtech-international.com |access-date=10 November 2020 |archive-url=https://web.archive.org/web/20201110083345/https://www.windtech-international.com/projects-and-contracts/siemens-energy-supplies-hvdc-technology-for-electricity-link-between-germany-and-belgium |archive-date=10 November 2020 |date=10 November 2020 |url-status=live}}</ref><ref>{{Cite web|title=ALEGrO|url=https://www.amprion.net/Netzausbau/Aktuelle-Projekte/ALEGrO-Deutschland-Belgien/|access-date=2021-03-29|website=www.amprion.net|language=de|archive-date=2021-01-27|archive-url=https://web.archive.org/web/20210127174429/https://www.amprion.net/Netzausbau/Aktuelle-Projekte/ALEGrO-Deutschland-Belgien/|url-status=live}}</ref>
+<ref>{{Cite web|title=Elia infrastructure project|url=https://www.elia.be/en/infrastructure-and-projects/infrastructure-projects/alegro?clang=en|url-status=live|access-date=2021-03-29|archive-date=2020-11-01|archive-url=https://web.archive.org/web/20201101040613/https://www.elia.be/en/infrastructure-and-projects/infrastructure-projects/alegro?clang=en}}</ref>
+
+<ref>{{Cite web|title=Siemens Energy liefert HGÜ-Technik für erste Stromverbindung zwi ...|url=https://press.siemens-energy.com/global/de/pressemitteilung/siemens-energy-liefert-hgue-technik-fuer-erste-stromverbindung-zwischen|access-date=2021-03-29|website=press.siemens-energy.com|language=de}}</ref>
+|-
+| [[SydVästlänken]] || Sweden - [[Barkeryd]] {{coord|57|44|52|N|14|39|19|E|type:landmark|name=SydVästlänken - Barkeryd Static Inverter Plant}} || Sweden - [[Hurva, Sweden|Hurva]] {{coord|55|49|59|N|13|36|08|E|type:landmark|name=SydVästlänken - Hurva Static Inverter Plant}} || 260<br/>(197/63) || ±300|| 2x720 || 2021 || IGBT ||Supplier: [[Alstom]] || 
+|- 
+| [[IFA-2]] || France - Tourbe, Normandie || UK - Chilling, Hampshire || 204 || 320 || 1000 || 2021 || IGBT ||Supplier: ABB || <ref>{{cite web|title=IFA2 - National Grid|url=http://www2.nationalgrid.com/About-us/European-business-development/Interconnectors/france/|website=France - National Grid|publisher=National Grid plc|access-date=3 January 2016|archive-url=https://web.archive.org/web/20160820024637/http://www2.nationalgrid.com/About-us/European-business-development/Interconnectors/france/|archive-date=20 August 2016|url-status=dead|df=dmy-all}}</ref><ref>{{cite web|title=IFA2 - RTE info|url=http://www.rte-france.com/fr/projet/interconnexion-sous-marine-et-souterraine-france-angleterre|website=Interconnection France Angleterre|publisher=RTE|access-date=3 January 2016|language=fr|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/http://www.rte-france.com/fr/projet/interconnexion-sous-marine-et-souterraine-france-angleterre|url-status=live}}</ref><ref>{{cite web|title=IFA2 Brochure|url=http://www.rte-france.com/sites/default/files/projetifa2brochureinformation.pdf|website=IFA2 brochure d'information|publisher=RTE|access-date=4 January 2016|archive-date=2 November 2014|archive-url=https://web.archive.org/web/20141102080745/http://www.rte-france.com/sites/default/files/projetifa2brochureinformation.pdf|url-status=dead}}</ref><ref>{{cite web|title=IFA2: low-carbon electricity now flowing through second UK-France interconnector|url=https://www.nationalgrid.com/stories/engineering-innovation-stories/ifa2-low-carbon-electricity-now-flowing-through-second-uk|website=National Grid|access-date=27 January 2021|archive-date=22 January 2021|archive-url=https://web.archive.org/web/20210122125439/https://www.nationalgrid.com/stories/engineering-innovation-stories/ifa2-low-carbon-electricity-now-flowing-through-second-uk|url-status=live}}</ref>
+|- 
+| [[NORD.LINK]] || Norway - Tonstad {{Coord|58|40|07|N|6|45|16|E|type:landmark|name=Nordlink - Tonstad Static Inverter Plant}} || Germany - Wilster {{Coord|53|55|18|N|9|20|41|E|type:landmark|name=Nordlink - Wilster Static Inverter Plant}} || 623<br/>(570/53)  || 525 || 1400  || 2021 || IGBT || Supplier: ABB || <ref name="spiegel">{{cite web|title=Riesen-Seekabel NordLink: Deutschland nutzt Norwegen jetzt als Batterie|periodical=Spiegel.de|publisher=|url=https://www.spiegel.de/wirtschaft/unternehmen/erneuerbare-energien-strom-seekabel-nordlink-nach-norwegen-geht-in-betrieb-a-cc67854a-733d-42c9-9d65-1dbd78fcda84|url-status=live|format=|access-date=|archive-url=https://web.archive.org/web/20210608115755/https://www.spiegel.de/wirtschaft/unternehmen/erneuerbare-energien-strom-seekabel-nordlink-nach-norwegen-geht-in-betrieb-a-cc67854a-733d-42c9-9d65-1dbd78fcda84|archive-date=2021-06-08|last=|date=2021-04-12|language=de|pages=|quote=}}</ref>
+|- 
+| [[North Sea Link]]|| Norway - [[Ulla-Førre#Kvilldal Hydroelectric Power Station|Kvilldal]] || UK - [[Blyth, Northumberland|Blyth]] || 730<br/>(730/0) || 515 || 1400 || 2021 ||  IGBT
+||  Supplier: [[ABB]], Prysmian Group, Nexans, MACH 3 Control & Protection
+||<ref>{{cite web|url = http://www.statnett.no/en/Projects/Cable-to-the-UK/News-archive/Heading-for-British-clarification-of-interconnector-framework-conditions/|title = Heading for British clarification of interconnector framework conditions|access-date = 12 January 2015|archive-url = https://web.archive.org/web/20141129042610/http://www.statnett.no/en/Projects/Cable-to-the-UK/News-archive/Heading-for-British-clarification-of-interconnector-framework-conditions/|archive-date = 29 November 2014|url-status = dead}}</ref><ref>{{cite web |url=http://www.statnett.no/en/Projects/Cable-to-the-UK/ |title=Cable to the UK |author=<!--Staff writer(s); no by-line.--> |date=2014 |publisher=Statnett |access-date=2014-11-20 |archive-url=https://web.archive.org/web/20141030142417/http://www.statnett.no/en/Projects/Cable-to-the-UK/ |archive-date=2014-10-30 |url-status=dead }}</ref><ref>{{Cite web|title = €1.5 billion contracts awarded to build the world's longest interconnector|url = http://www.statnett.no/en/News/News-archives/News-archive-2015/15-billion-contracts-awarded-to-build-the-worlds-longest-interconnector/|website = statnett|access-date = 2015-09-03|archive-url = https://web.archive.org/web/20150817223325/http://www.statnett.no/en/News/News-archives/News-archive-2015/15-billion-contracts-awarded-to-build-the-worlds-longest-interconnector/|archive-date = 2015-08-17|url-status = dead}}</ref><ref>{{Cite web|title = What is NSN Link? {{!}} NSN Link|url = http://nsninterconnector.com/about/what-is-nsn-link/|website = nsninterconnector.com|access-date = 2015-09-03|url-status = dead|archive-url = https://web.archive.org/web/20150801154446/http://nsninterconnector.com/about/what-is-nsn-link/|archive-date = 2015-08-01}}</ref>
+|- 
+| [[ElecLink]] || France - Les Mandarins || UK - [[Sellindge]] || 70 || 320 || 1000 || 2022 || IGBT || In the [[Channel Tunnel]]<br />Cost €580m|| <ref>{{cite web|title=ElecLink|url=http://www.eleclink.co.uk/index.php|website=Eleclink|access-date=3 January 2016|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/http://www.eleclink.co.uk/index.php|url-status=live}}</ref><ref>{{cite web|url=http://renews.biz/106033/foundation-laid-for-uk-france-link/|title=Foundation laid for UK-France link|work=reNEWS - Renewable Energy News|date=23 February 2017|access-date=26 February 2017|archive-date=27 February 2017|archive-url=https://web.archive.org/web/20170227062443/http://renews.biz/106033/foundation-laid-for-uk-france-link/|url-status=live}}</ref>
+|- 
+| [[Johan Sverdrup oil field|Johan Sverdrup Phase 2]]|| Norway - Haugsneset   || Norway - Johan Sverdrup platform || 200<br />(200/0) || ±80 || 200 || 2022 || IGBT || Supplier: Siemens, NKT ||<ref name="equinor.com" /><ref>{{Cite web |last=Skopljak |first=Nadja |date=2023-02-14 |title=Two months after production start, Johan Sverdrup Phase 2 officially opens |url=https://www.offshore-energy.biz/two-months-after-production-start-johan-sverdrup-phase-2-officially-opens/ |access-date=2024-07-27 |website=Offshore Energy |language=en-US}}</ref>
+|- 
+| [[Viking Link]] || Denmark - Revsing || UK - Bicker Fen|| 740 || 525 || 1400 || 2023 || IGBT || Suppliers: Siemens, Prysmian and NKT || <ref>[https://web.archive.org/web/20150121045718/http://energinet.dk/EN/ANLAEG-OG-PROJEKTER/Anlaegsprojekter-el/Kabel-til-England-Viking-Link/Sider/default.aspx Cable to England – Viking Link<!-- Bot generated title -->]</ref><ref>{{cite web|title=Viking Link|url=http://www.viking-link.com|website=Viking Link|access-date=31 December 2015|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/http://www.viking-link.com/|url-status=live}}</ref>
+|- 
+| HVDC DolWin6 |DolWin6 || Germany - Emden/Ost  || Germany - DolWin Zeta platform || 90<br />(90/0) || ±320 || 900 || 2023 || IGBT || Supplier: Siemens, Prysmian ||<ref>{{Cite web |url=https://www.tennet.eu/our-grid/offshore-projects-germany/dolwin6/ |title=DolWin6 - TenneT<!-- Bot generated title --> |access-date=2020-03-27 |archive-date=2020-04-04 |archive-url=https://web.archive.org/web/20200404091034/https://www.tennet.eu/our-grid/offshore-projects-germany/dolwin6/ |url-status=live }}</ref><ref>{{Cite web |title=New record in the German North Sea: TenneT commissions DolWin6 and expands connection capacity to more than 8,000 Megawatt |url=https://www.tennet.eu/news/new-record-german-north-sea-tennet-commissions-dolwin6-and-expands-connection-capacity-more |access-date=2024-07-27 |website=TenneT |language=en}}</ref>
+|-
+|[[Dogger Bank A Offshore Wind Farm|Dogger Bank A]] ||UK - Creyke Beck {{Coord|53|48|33|N|0|25|1|W|type:landmark|name=Dogger Bank A - Creyke Beck Converter Station}} || UK - Dogger Bank A platform || 207 <br />(207/0)|| 320 || 1200|| 2023 ||IGBT/BIGT || Suppliers: ABB, Aibel and NKT, 172&nbsp;km submarine cable and 35&nbsp;km underground cable || <ref name="4coffshore.com">{{Cite web |url=https://www.4coffshore.com/news/abb-and-aibel-net-dogger-bank-bounty-nid14371.html |title=ABB and Aibel net Dogger Bank bounty {{!}} 4C Offshore News<!-- Bot generated title --> |access-date=2020-03-27 |archive-date=2020-03-27 |archive-url=https://web.archive.org/web/20200327133825/https://www.4coffshore.com/news/abb-and-aibel-net-dogger-bank-bounty-nid14371.html |url-status=live }}</ref><ref name="nkt.com">{{Cite web |url=https://www.nkt.com/news-press-releases/nkt-confirms-order-for-dogger-bank-offshore-wind-farms-creyke-beck-a-b |title=NKT confirms order for Dogger Bank offshore Wind Farms Creyke Beck A/B<!-- Bot generated title --> |access-date=2020-03-27 |archive-date=2020-03-27 |archive-url=https://web.archive.org/web/20200327133827/https://www.nkt.com/news-press-releases/nkt-confirms-order-for-dogger-bank-offshore-wind-farms-creyke-beck-a-b |url-status=live }}</ref><ref>{{Cite web |last=Memija |first=Adnan |date=2023-10-10 |title=First Power Flows from World's Largest Offshore Wind Farm |url=https://www.offshorewind.biz/2023/10/10/first-power-flows-from-worlds-largest-offshore-wind-farm/ |access-date=2024-07-27 |website=Offshore Wind |language=en-US}}</ref><ref name=":11">{{Cite web |date=2021-05-18 |title=World's most powerful press-pack for the world's largest offshore wind farm |url=https://www.hitachienergy.com/news-and-events/features/2021/05/world-s-most-powerful-press-pack-for-the-world-s-largest-offshore-wind-farm |website=Hitachi Energy}}</ref>
+<ref name=":12">{{Cite web |title=Dogger Bank A,B,C - Hitachi Energy accelerates green energy transition |url=https://publisher.hitachienergy.com/download?DocumentID=HVDC0117&LanguageCode=en&DocumentPartId=&Action=download&DocumentRevisionId=B&parentURL=68747470733a2f2f7075626c69736865722e68697461636869656e657267792e636f6d2f646f63756d656e74733f6369643d394141433330333030333934266c616e673d656e26713d636f6d62696e65642532306772696476&opi=89978449 |access-date=2025-02-06}}</ref>
+|-
+| [[Shetland HVDC Connection]] || UK - Upper [[Kergord]] {{Coord|60|17|35|N|1|16|15|W|type:landmark|name=Shetland - Kergord Converter Station}} || UK - near [[Staxigoe]] {{Coord|58|27|50|N|3|4|52|W|type:landmark|name=Shetland - Staxigoe Noss Head Switching Station}} <ref name=Staxigoe>{{cite web|title=Caithness|url=https://www.ssepd.co.uk/CaithnessHVDC/|website=Caithness HVDC|publisher=SSE PD|access-date=1 January 2016|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/https://www.ssepd.co.uk/CaithnessHVDC/|url-status=live}}</ref> || 260<br/>(260/0) || 320 || 600 || 2024<sup>6</sup> || IGBT || ||<ref name=Shetland>{{cite web|title=Shetland HVDC Link|url=https://www.ssepd.co.uk/Shetland/|website=Shetland|publisher=SSE Power Distribution|access-date=31 December 2015|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/https://www.ssepd.co.uk/Shetland/|url-status=live}}</ref><ref>{{cite web|title=Shetland HVDC -4C|url=http://www.4coffshore.com/windfarms/interconnector-shetland-hvdc-icid4.html|website=Shetland HVDC Interconnector|publisher=4Coffshore|access-date=31 December 2015|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170440/http://www.4coffshore.com/windfarms/interconnector-shetland-hvdc-icid4.html|url-status=live}}</ref>
+|- style="background:#bfbfff;"
+| HVDC DolWin5 |DolWin5 || Germany - Emden/Ost  || Germany - DolWin Epsilon platform || 130<br />(130/0) || ±320 || 900 || 2024 || IGBT/BIGT || Supplier: ABB, Aibel, Prysmian ||<ref>{{Cite web |url=https://www.tennet.eu/our-grid/offshore-projects-germany/dolwin5/ |title=DolWin5 - TenneT |access-date=2020-03-27 |archive-date=2020-04-03 |archive-url=https://web.archive.org/web/20200403151017/https://www.tennet.eu/our-grid/offshore-projects-germany/dolwin5/ |url-status=live }}</ref><ref>{{Cite web |title=HVDC DolWin 5 – a project from the energy Premier League |url=https://elnosgroup.com/hvdc-dolwin-5-projekat-iz-energetske-premijer-lige/ |access-date=2025-02-06}}</ref><ref>{{Cite web |title=It's time to connect - Hitachi Energy |url=https://publisher.hitachienergy.com/preview?DocumentID=POW-0038&LanguageCode=en&DocumentPartId=&Action=launch&DocumentRevisionId=L |access-date=2025-02-06}}</ref>
+|- 
+|Ariadne Interconnection
+|Greece – [[Athens]]
+|Greece – [[Heraklion]]
+|335
+(335/0)
+|500
+|1000
+|2024
+|2025
+|
+|<ref>{{Cite web |title=Home {{!}} Ariadne Interconnection |url=http://www.ariadne-interconnection.gr/en |access-date=2024-02-27 |website=www.ariadne-interconnection.gr |language=en}}</ref><ref>{{Cite web |last=Argyropoulos |first=Daniel |date=2025-09-30 |title=Ariadne’s string goes electric: a new interconnection between Crete and mainland Greece drives the energy transition |url=https://energytransition.org/2025/09/ariadnes-string-goes-electric-a-new-interconnection-between-crete-and-mainland-greece-drives-the-energy-transition/ |access-date=2026-10-05 |website=EnergyTransition.org |language=en-US}}</ref>
+|- style="background:#bfbfff;"
+|[[Dogger Bank B Offshore Wind Farm|Dogger Bank B]] ||UK - Creyke Beck {{Coord|53|48|33|N|0|25|1|W|type:landmark|name=Dogger Bank B - Creyke Beck Converter Station}} || UK - Dogger Bank B platform || 207 <br />(207/0)|| 320 || 1200|| 2024 ||IGBT/BIGT || Suppliers: ABB, Aibel and NKT, 172&nbsp;km submarine cable and 35&nbsp;km underground cable || <ref name="4coffshore.com" /><ref name="nkt.com" />
+<ref name=":11" />
+<ref name=":12" />
+|-
+|[[Greenlink]]
+|Ireland – [[County Wexford]]
+|UK – [[Pembrokeshire]], Wales
+|200
+|320
+|500
+|2025
+|
+|
+|<ref>{{Cite web |title=504 MW link between Ireland and Great Britain begins commercial operations |url=https://www.offshore-energy.biz/504-mw-link-between-ireland-and-great-britain-begins-commercial-operations/ |last=Skopljak |first=Nadja |date=2025-02-03 |access-date=2025-02-08 |website=www.offshore-energy.biz}}</ref>
+|- style="background:#bfbfff;" 
+|BorWin5
+|Germany - Garrel/Ost
+|Germany - BorWin Epsilon platform
+|230
+|320
+|900
+|2025
+|
+|
+|<ref>{{Cite web |title=Grüner Strom für die Zukunft – Grundstein für Konverter im Projekt BorWin5 zur Umwandlung und Einspeisung in Garrel/Ost gelegt |url=https://www.tennet.eu/de/news/gruener-strom-fuer-die-zukunft-grundstein-fuer-konverter-im-projekt-borwin5-zur-umwandlung-0 |access-date=2024-07-27 |website=TenneT |language=de}}</ref>
+|- style="background:#bfbfff;" 
+|[[Dogger Bank C Offshore Wind Farm|Dogger Bank C]]
+|UK - Lazenby
+|UK - Dogger Bank C platform
+|270
+|320
+|1200
+|2026
+|IGBT/BIGT
+|
+|<ref name=":11" />
+<ref>{{Cite web |title=Dogger Bank HVDC Connection {{!}} Hitachi Energy |url=https://www.hitachienergy.com/news-and-events/customer-success-stories/dogger-bank |access-date=2024-07-27 |website=www.hitachienergy.com |language=en}}</ref><ref>{{Cite web |title=Dogger Bank Wind Farm, UK |url=https://www.nkt.com/references/dogger-bank-wind-farm-uk |access-date=2024-07-27 |website=www.nkt.com |language=English}}</ref>
+|- style="background:#bfbfff;" 
+|[[Sofia Offshore Wind Farm|Sofia]]
+|UK - Lazenby
+|UK - Sofia platform
+|227
+|320
+|1320
+|2026
+|
+|
+|<ref>{{Cite web |last=Durakovic |first=Adnan |date=2021-03-29 |title=GE and Sembcorp Seal Sofia Transmission System Deal |url=https://www.offshorewind.biz/2021/03/29/ge-and-sembcorp-seal-sofia-transmission-system-deal/ |access-date=2024-07-27 |website=Offshore Wind |language=en-US}}</ref><ref>{{Cite web |title=Project |url=https://sofiawindfarm.com/project/ |access-date=2024-07-27 |website=Sofia Offshore Wind Farm |language=en}}</ref>
+|- style="background:#bfbfff;"
+|[[Celtic Interconnector]]
+|Ireland
+|France
+|575
+|500
+|700
+|2028
+|
+|
+|<ref>{{Cite web|url=http://www.eirgridgroup.com/the-grid/projects/celtic-interconnector/the-project/|title=The Project|website=www.eirgridgroup.com|access-date=2019-05-14|archive-date=2019-05-14|archive-url=https://web.archive.org/web/20190514140813/http://www.eirgridgroup.com/the-grid/projects/celtic-interconnector/the-project/|url-status=live}}</ref>
+|- style="background:#bfbfff;"
+|[[East Anglia Array|East Anglia THREE]]
+|UK - Bramford
+|UK - East Anglia THREE platform
+|190
+|320
+|1400
+|2026
+|
+|
+|<ref>{{Cite web |title=NKT confirms turnkey power cable order for East Anglia THREE offshore wind farm |url=https://www.nkt.com/news-press-releases/nkt-confirms-turnkey-power-cable-order-for-east-anglia-three-offshore-wind-farm |access-date=2024-07-27 |website=www.nkt.com |language=English}}</ref><ref>{{Cite web |title=East Anglia THREE |url=https://www.scottishpowerrenewables.com/pages/east_anglia_three.aspx |access-date=2024-07-27 |website=ScottishPower Renewables}}</ref>
+|- style="background:#bfbfff;"
+|SüdOstLink
+|Germany – [[Wolmirstedt]]
+|Germany – [[Landshut]]
+|500
+|525
+|2000
+|2027
+|
+|
+|<ref>{{Cite web|title=SuedOstLink: First award of contract for plastic-insulated underground cable for 525 kilovolts|url=https://www.50hertz.com/en/News/FullarticleNewsof50Hertz/id/6734|website=www.50hertz.com|language=en-US|access-date=2020-05-08|archive-date=2020-05-10|archive-url=https://web.archive.org/web/20200510051609/https://www.50hertz.com/en/News/FullarticleNewsof50Hertz/id/6734|url-status=live}}</ref>
+|- style="background:#bfbfff;"
+|[[Hornsea Wind Farm|Hornsea 3 Link 1]]
+|UK - Norwich
+|UK - Hornsea 3 Link 1 platform
+|170
+|320
+|
+|2027
+|
+|
+|<ref name=":4">{{Cite web |title=Hornsea 3 {{!}} Hitachi Energy |url=https://www.hitachienergy.com/news-and-events/customer-success-stories/hornsea-3 |access-date=2024-07-27 |website=www.hitachienergy.com |language=en}}</ref><ref name=":5">{{Cite web |last=Sagar |first=Vidya |date=2022-07-15 |title=Aibel, Hitachi Energy awarded Ørsted's Hornsea 3 offshore wind contract |url=https://www.nsenergybusiness.com/news/aibel-hitachi-energy-hornsea-3-offshore-wind-contract/ |access-date=2024-07-27 |website=NS Energy |language=en-US}}</ref><ref name=":6">{{Cite web |title=Hornsea 3 Offshore Wind Farm, North Sea |url=https://www.power-technology.com/projects/hornsea-3-offshore-wind-farm-north-sea/ |access-date=2024-07-27 |website=Power Technology |language=en-US}}</ref>
+|- style="background:#bfbfff;"
+|[[Hornsea Wind Farm|Hornsea 3 Link 2]]
+|UK - Norwich
+|UK - Hornsea 3 Link 2 platform
+|170
+|320
+|
+|2027
+|
+|
+|<ref name=":4" /><ref name=":5" /><ref name=":6" />
+|- style="background:#efffbf;"
+| [[EuroAsia Interconnector]] || Israel - [[Hadera]], via Cyprus - [[Kofinou]]|| Greece - Korakia, Crete || 1208 || 500 || 2000 || 2027 || || Uncertain status, border disputes<ref>https://www.dw.com/en/greece-cyprus-israel-subsea-cable-energy-great-sea-interconnector-graphics/a-74024610</ref> || <ref>{{cite web|title=EuroAsia Interconnector Project|url=http://www.euroasia-interconnector.com|website=EuroAsia Interconnector|access-date=24 January 2016|archive-date=30 January 2016|archive-url=https://web.archive.org/web/20160130225643/http://www.euroasia-interconnector.com/|url-status=live}}</ref><ref>{{cite web|title=EU PCI 2013 - see Cyprus|url=http://ec.europa.eu/energy/sites/ener/files/documents/2013_pci_projects_country.pdf|website=EU Projects of Common Interest|publisher=European Commission|access-date=24 January 2016|archive-date=14 January 2016|archive-url=https://web.archive.org/web/20160114051959/http://ec.europa.eu/energy/sites/ener/files/documents/2013_pci_projects_country.pdf|url-status=live}}</ref>
+|- style="background:#efffbf;"
+| [[EuroAfrica Interconnector]] || Egypt - [[Damietta]] - via Cyprus - [[Kofinou]]|| Greece - Korakia, Crete || 1396 || 500 || 2000 ||2027  || || ||<ref>{{Cite web |url=http://www.euroafrica-interconnector.com/ |title=The EuroAfrica Interconnector |access-date=2018-03-07 |archive-date=2018-03-08 |archive-url=https://web.archive.org/web/20180308041627/http://www.euroafrica-interconnector.com/ |url-status=live }}</ref><ref>{{Cite news |url=https://www.bloomberg.com/news/articles/2017-02-08/electricity-cable-aims-to-link-cyprus-egypt-greece |title=Electricity Cable Aims to Link Cyprus, Egypt, Greece, Bloomberg, February 8, 2017 |website=[[Bloomberg News]] |date=8 February 2017 |access-date=2018-03-07 |archive-date=2018-02-04 |archive-url=https://web.archive.org/web/20180204070354/https://www.bloomberg.com/news/articles/2017-02-08/electricity-cable-aims-to-link-cyprus-egypt-greece |url-status=live }}</ref><ref>{{Cite web |url=http://www.financialmirror.com/news-details.php?nid=35163 |title=EuroAfrica 2,000MW cable boosts Egypt-Cyprus ties, Financial Mirror February 8, 2017 |date=8 February 2017 |access-date=March 7, 2018 |archive-date=February 4, 2018 |archive-url=https://web.archive.org/web/20180204000905/http://www.financialmirror.com/news-details.php?nid=35163 |url-status=live }}</ref><ref>{{Cite web |url=http://www.dailynewsegypt.com/2017/02/06/614506/ |title=EEHC, Euro Africa Company sign MoU to conduct a feasibility study to link Egypt, Cyprus, Greece, Daily News Egypt, February 6, 2017 |date=6 February 2017 |access-date=March 7, 2018 |archive-date=March 30, 2019 |archive-url=https://web.archive.org/web/20190330021048/https://www.dailynewsegypt.com/2017/02/06/614506/ |url-status=live }}</ref>
+|- style="background:#bfbfff;"
+|[[NeuConnect]]
+|Germany - [[Wilhelmshaven]]
+|UK - [[Isle of Grain]]
+|725
+|±525
+|1400
+|2028
+|
+|
+|
+|- style="background:#efffbf;"
+|[[Harmony Link]]
+|Lithuania - [[Darbėnai]]
+|Poland - [[Zarnowiec]]
+|330
+|±320
+|700
+|2028
+|
+|
+|
+|- style="background:#efffbf;"
+|DolWin4
+|Germany - Hanekenfähr
+|Germany - DolWin4 platform
+|215
+|320
+|900
+|2028
+|
+|
+|<ref name=":7">{{Cite web |title=DolWin4 & BorWin4 |url=https://offshore.amprion.net/Offshore-Projekte/DolWin4-BorWin4/ |access-date=2024-07-28 |website=offshore.amprion.net |language=de}}</ref><ref name=":8">{{Cite web |title=Prysmian awarded more than €800M for two offshore wind farm grid connection cable systems in Germany {{!}} Prysmian |url=https://www.prysmian.com/en/media/press-releases/prysmian-awarded-more-than-%E2%82%AC-800-m-for-two-offshore-wind-farm-grid-connection-cable-systems-in-germany |access-date=2024-07-28 |website=www.prysmian.com |language=en}}</ref>
+|- style="background:#efffbf;"
+|BorWin4
+|Germany - Hanekenfähr
+|Germany - BorWin4 platform
+|280
+|320
+|900
+|2029
+|
+|
+|<ref name=":7" /><ref name=":8" />
+|- style="background:#bfbfff;"
+|IJmuiden Ver Alpha
+|Netherlands - Borssele
+|Netherlands - IJmuiden Ver Alpha platform
+|176
+|525
+|2000
+|2029
+|
+|
+|<ref>{{Cite web |title=Start bouw converterstation – Net op zee IJmuiden Ver Alpha |url=https://www.tennet.eu/nl/projectnieuws/start-bouw-converterstation-net-op-zee-ijmuiden-ver-alpha |access-date=2024-07-27 |website=TenneT |language=nl}}</ref><ref name=":1">{{Cite web |title=Net op zee-projecten Sloegebied |url=https://www.tennet.eu/nl/projecten/provincies/offshore/net-op-zee-projecten-sloegebied |access-date=2024-07-27 |website=TenneT |language=nl}}</ref><ref name=":2">{{Cite web |last=Ellichipuram |first=Umesh |date=2023-03-06 |title=TenneT gives €1.8bn offshore cable contracts to Prysmian and NKT |url=https://www.power-technology.com/news/prysmian-nkt-cables/ |access-date=2024-07-27 |website=Power Technology |language=en-US}}</ref>
+|- style="background:#efffbf;"
+|IJmuiden Ver Beta
+|Netherlands - Maasvlakte
+|Netherlands - IJmuiden Ver Beta platform
+|
+|525
+|2000
+|2029
+|
+|
+|<ref>{{Cite web |title=Net op zee IJmuiden Ver Beta |url=https://www.tennet.eu/nl/projecten/provincies/zuid-holland/net-op-zee-projecten-maasvlakte/net-op-zee-ijmuiden-ver-beta |access-date=2024-07-27 |website=TenneT |language=nl}}</ref><ref name=":3">{{Cite web |title=NKT awarded record orders for world's first 525 kV XLPE HVDC submarine cable projects for offshore wind |url=https://www.nkt.com/news-press-releases/nkt-awarded-record-orders-for-worlds-first-525-kv-xlpe-hvdc-submarine-cable-projects-for-offshore-wind |access-date=2024-07-27 |website=www.nkt.com |language=English}}</ref>
+|- style="background:#efffbf;"
+|IJmuiden Ver Gamma
+|Netherlands - Maasvlakte
+|Netherlands - IJmuiden Ver Gamma platform
+|
+|525
+|2000
+|2029
+|
+|
+|<ref>{{Cite web |title=Net op zee IJmuiden Ver Gamma |url=https://www.tennet.eu/nl/projecten/provincies/zuid-holland/net-op-zee-projecten-maasvlakte/net-op-zee-ijmuiden-ver-gamma |access-date=2024-07-27 |website=TenneT |language=nl}}</ref><ref name=":3" />
+|- style="background:#bfbfff;"
+| [[Eastern HVDC|Eastern Green Link EGL1]]|| UK - [[Torness nuclear power station]]|| UK - [[Hawthorn, County Durham|Hawthorn]] Pit || 196 || 400 || 2000 || 2029 || || || <ref name=":14">{{Cite web |title=Eastern HVDC Link |url=https://www.nsenergybusiness.com/projects/eastern-hvdc-link/ |access-date=2024-07-27 |website=NS Energy |language=en-US}}</ref><ref name=":15">{{cite web |last=Evison |first=James |title=Eastern Green Link 1 work begins |url=https://transportandenergy.com/2025/02/13/eastern-green-link-1-work-begins/ |website=Transport + Energy |access-date=13 February 2025 |date=13 February 2025}}</ref>
+|-style="background:#bfbfff;"
+|[[Eastern HVDC|Eastern Green Link EGL2]]
+|UK - [[Peterhead]]
+|UK - [[Drax, North Yorkshire]]
+|505
+|400
+|2000
+|2029
+|
+|
+|<ref name=":14" /><ref name=":15" />
+|- style="background:#efffbf;"
+| [[Western Isles HVDC connection]] || UK - Arnish Point near [[Stornoway]]|| UK - [[Beauly]] || 156  || 320 || 600 || 2030 || || || <ref>{{Cite web |last=Jamie.Billington@mandogroup.com |date=2024-05-22 |title=Western Isles |url=https://www.ssen-transmission.co.uk/link/e3c4740411d4415595823fe21d8fbfc2.aspx |access-date=2024-07-27 |website=SSEN Transmission |language=en}}</ref>
+|- style="background:#efffbf;"
+| [[FAB Link]] || France - [[L'Étang-Bertrand|Menuel]] on [[Cotentin Peninsula|Cherbourg Peninsula]] || UK - [[Exeter]] via [[Alderney]] || 210 <br /> (210/0)  || 320 || 1400 || 2030 || IGBT || || <ref>{{cite web|title=FAB Link|url=http://www.fablink.net|website=Fab Link|access-date=3 January 2016|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170439/http://www.fablink.net/|url-status=live}}</ref><ref>{{cite web|title=Alderney Renewable Energy|url=http://www.are.gg/projects/fab-link/|website=FAB - Alderney Renewable Energy|publisher=ARE|access-date=3 January 2016|archive-date=20 January 2016|archive-url=https://web.archive.org/web/20160120170441/http://www.are.gg/projects/fab-link/|url-status=live}}</ref>
+|- style="background:#efffbf;"
+|Nederwiek 1
+|Netherlands - Borssele
+|Netherlands - Nederwiek 1 platform
+|217
+|525
+|2000
+|2030
+|
+|
+|<ref name=":1" /><ref name=":2" />
+|- style="background:#efffbf;"
+|Nederwiek 2
+|Netherlands - Maasvlakte
+|Netherlands - Nederwiek 2 platform
+|
+|525
+|2000
+|2030
+|
+|
+|<ref>{{Cite web |title=Net op zee Nederwiek 2 |url=https://www.tennet.eu/nl/projecten/provincies/zuid-holland/net-op-zee-projecten-maasvlakte/net-op-zee-nederwiek-2 |access-date=2024-07-27 |website=TenneT |language=nl}}</ref><ref name=":3" />
+|- style="background:#efffbf;"
+|BalWin1
+|Germany - Wehrendorf
+|Germany - BalWin1 platform
+|360
+|525
+|2000
+|2030
+|
+|
+|<ref name=":9">{{Cite web |title=BalWin1 & BalWin2 |url=https://offshore.amprion.net/Offshore-Projekte/BalWin1-2/ |access-date=2024-07-28 |website=offshore.amprion.net |language=de}}</ref><ref name=":10">{{Cite web |date=2023-08-22 |title=Prysmian selected as preferred bidder for BalWin1, BalWin2 and DC34 power transmission cable projects |url=https://www.amprion.net/Press/Press-Detail-Page_56704.html |access-date=2024-07-28 |website=www.amprion.net |language=en}}</ref>
+|- style="background:#efffbf;"
+|BalWin2
+|Germany - Westerkappeln
+|Germany - BalWin2 platform
+|380
+|525
+|2000
+|2031
+|
+|
+|<ref name=":9" /><ref name=":10" />
+|- style="background:#efffbf;"
+|SuedLink DC3
+|Germany - Brunsbuettel, {{coord|53.896501|9.1943543}}
+|Germany - Grossgartach, {{coord|49.143397|9.1495596}}
+|700
+|±525
+|2000
+|2028
+|IGBT
+|Suppliers: VSC substations: [https://press.siemens-energy.com/global/de/pressemitteilung/windstromleitung-suedlink-wird-mit-hgue-technologie-von-siemens-energy Siemens Energy], DC cable: [https://www.nkt.de/presse-events/nkt-erhaelt-einen-auftrag-ueber-mehr-als-eur-1-mrd-fuer-das-hochspannungs-gleichstromprojekt-suedlink nkt]
+Common project of [[TenneT TSO|Tennet TSO]] and Transnet BW
+
+highlight: first 525kV fully underground DC cable project
+|
+|- style="background:#efffbf;"
+|SuedLink DC4
+|Germany - Wilster, {{coord|53.920632|9.340798}}
+|Germany - Bergrheinfeld, {{coord|49.989555|10.1486123}}
+|550
+|±525
+|2000
+|2028
+|IGBT
+|Supplier substations: tbd
+dc cable: [https://de.prysmiangroup.com/SuedLink Prysmian]
+Common project of [[TenneT TSO]] and Transnet BW
+
+highlight: first 525kV fully underground DC cable project
+|
+|- style="background:#efffbf;"
+|Tyrrhenian Link
+|Italy – [[Battipaglia]]
+|Italy – Sardinia
+|970
+|
+|1000
+|2028
+|
+|Connects mainland Italy to Sicily and Sardinia
+|<ref>{{Cite web |last=Latief |first=Yusuf |date=2024-02-12 |title=Tyrrhenian Link interconnection secures final financing |url=https://www.smart-energy.com/finance-investment/tyrrhenian-link-interconnection-secures-final-financing/ |access-date=2024-02-27 |website=Smart Energy International |language=en-ZA}}</ref>
+|- style="background:#bfbfff;"
+|Adriatic Link
+|Italy – Abruzzo
+|Italy – Marche
+|250
+|
+|1000
+|2028
+|
+|
+|<ref>{{Cite web |title=New connection: Adriatic Link {{!}} Terna Driving Energy - Terna spa |url=https://www.terna.it/en/projects/public-engagement/adriatic-link |access-date=2024-02-27 |website=www.terna.it |language=en}}</ref>
+|- style="background:#efffbf;"
+|[[LirlC]]
+|Belfast, Northern Ireland
+|Ayrshire, Scotland
+|142
+|
+|700
+|2032
+|
+|
+|<ref>{{Cite web |date=2025-01-10 |title=700 MW LirlC power line from Northern Ireland to Scotland (UK) wins approval {{!}} Enerdata |url=https://www.enerdata.net/publications/daily-energy-news/700-mw-lirlc-power-line-northern-ireland-scotland-uk-wins-approval.html |access-date=2025-01-13 |website=www.enerdata.net |language=en}}</ref>
+|- style="background:#efffbf;"
+|[[Estlink 3]]
+|Finland
+|Estonia
+|
+|
+|700–1000
+|2035
+|
+|
+|
+|- style="background:#efffbf;"
+|[[Fenno-Skan 3]]
+|Finland
+|Sweden
+|
+|
+|800<ref>[https://www.fingrid.fi/en/news/news/2025/fingrid-and-svenska-kraftnat-initiate-planning-for-fenno-skan-3-submarine-cable-between-finland-and-sweden/ Fingrid and Svenska kraftnät initiate planning for Fenno-Skan 3 submarine cable between Finland and Sweden]</ref>
+|2038
+|
+|
+|
+|}
+
+<sup>2</sup> As of 9 December 2015, LitPol Link started trial operations.<ref>{{cite web|title=News on trial operations of LitPol Link|url=http://www.litpol-link.com/news/litpol-link-starts-trial-operations-O5JnB3|website=LitPol Link News|publisher=LitPol-link.com|access-date=8 January 2016|archive-url=https://web.archive.org/web/20160111014543/http://www.litpol-link.com/news/litpol-link-starts-trial-operations-O5JnB3|archive-date=11 January 2016|url-status=usurped}}</ref><br />
+<sup>3</sup> Caithness Moray HVDC serves a number of renewable energy sources in the north of Scotland  - see map<ref name="SSE PD Scotland map">{{cite web|title=SSE PD in Scotland|url=https://www.ssepd.co.uk/WesternIsles/|website=Western Isles|publisher=SSE Power Distribution|access-date=3 January 2016|archive-date=5 March 2016|archive-url=https://web.archive.org/web/20160305155343/https://www.ssepd.co.uk/WesternIsles/|url-status=live}}</ref> <br />
+<sup>4</sup> Contracts due to be placed in 2016. <br />
+<sup>5</sup> Elia says construction expected to start in late 2017. <br />
+<sup>6</sup> Date is that quoted to support the Shetland Wind Farm that SSE is a part investor in.<ref>{{cite web|title=Shetland Windfarm|url=http://www.vikingenergy.co.uk/timeline|website=Viking Energy - Timeline|publisher=Viking Energy|access-date=31 December 2015|archive-date=3 March 2016|archive-url=https://web.archive.org/web/20160303225104/http://www.vikingenergy.co.uk/timeline|url-status=live}}</ref><br />
+<sup>7</sup> Decision on project expected in 2017 following consultation - see SSE PD reference.
+
+==North America==
+{| class="wikitable sortable"
+ ! style="background-color: #87CEEB" | {{tooltip|Name|System/Project}}<br/>
+ ! style="background-color: #87CEEB" | Converter<br/>station 1<br/>
+ ! style="background-color: #87CEEB" | Converter<br/>station 2<br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Total Length (Cable/Pole) <br/> (km)|Cable – undersea or underground cable; Pole – overhead line}}<br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Nominal<br/> Voltage<br/> (kV)|DC Voltage}}<br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Power (MW)|Power Rating}}<br/>
+ ! style="background-color: #87CEEB" | {{tooltip|Year|Year Commissioned}}<br/>
+ ! style="background-color: #87CEEB" | Type<br/>
+ ! style="background-color: #87CEEB" class="unsortable"| Remarks<br/>
+ ! style="background-color: #87CEEB" class="unsortable"| {{tooltip|Ref|Source}}<br/>
+|-<!-- to make sorting work -->style="display:none;" || !a || !a || !a || -9e99 || -9e99 || -9e99 || 1000-01-01 || !a || !a || !a
+|-<!-- to make sorting work -->style="display:none;" || ~z || ~z || ~z ||  9e99 || 9e99 || 9e99 || 9000-01-01 || ~z || ~z || ~z
+|- style="background:#efbfbf;"
+| [[HVDC Mechanicville–Schenectady]] || USA - Mechanicville, NY <br/>{{Coord|42|54|45|N|73|40|49|W|type:landmark|name=Mechanicville-Schenectaday Transmission -  Mechanicville Hydroelectric Power Plant}} || USA - Schenectady, NY || 37<br/>(0/37) || 12 || 5 || 1932 || Merc || Experimental, frequency conversion 40 to 60&nbsp;Hz
+Dismantled after WW II
+||<ref>James A. Besha, ''The historic Mechanicville Hydroelectric Station part 2'', ''IEEE INDUSTRY APPLICATIONS MAGAZINE'' Mar/Apr 2007, page 8</ref>
+|-
+| [[HVDC Vancouver Island|Vancouver Island]] 1 || Canada - Delta, BC <br/>{{Coord|49|5|31|N|123|2|31|W|type:landmark|name=Arnott Substation - Delta Static Inverter Plant}} || Canada - North Cowichan, BC <br/>{{Coord|48|49|39|N|123|42|55|W|type:landmark|name=Vancouver Island Transmission - North Cowichan Static Inverter Plant}} || 75<br/>(42/33) || 260 || 312 || 1968 - 2014 || Merc || Supplier: [[ASEA]] ||<ref name="List"/>
+|-
+| [[Pacific DC Intertie]] || USA - Celilo, OR <br/>{{Coord|45|35|39|N|121|6|51|W|type:landmark|name=Pacific DC Intertie - Celilo Static Inverter Plant}} || USA - Sylmar, CA {{Coord|34|18|39|N|118|29|21|W|type:landmark|name=Pacific DC Intertie - Sylmar Static Inverter Plant}}, <br/>{{Coord|34|18|42|N|118|28|53|W|type:landmark|name=Pacific DC Intertie - Sylmar A Static Inverter Plant}} || 1362<br/>(0/1362) || ±500 || 3100 || 1970 || Thyr || Transmission voltage ±400 kV until 1984<br/>Maximum transmission power 1440 MW until 1982 <br/>From 1982 to 1984 1600 MW <br/>From 1984 to 1989 2000 MW <br/>Merc replaced by Thyr in 2004 <br/>Original supplier: [[ASEA]], [[General Electric]] <br/>In 1989 upgraded by [[ABB]] <br/>In 2004 upgraded by [[ABB]] and [[Siemens]]||<ref name="List"/><ref>{{cite web|url=http://www.abb.com/cawp/seitp202/A719AD829B2496D085256FD4006BF446.aspx|title=ABB Rededicates Sylmar Converter Station|website=Abb.com|access-date=16 January 2018|archive-date=1 February 2009|archive-url=https://web.archive.org/web/20090201125328/http://www.abb.com/cawp/seitp202/A719AD829B2496D085256FD4006BF446.aspx|url-status=live}}</ref><ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/pacific-intertie|title=Pacific Intertie|website=Abb.com|access-date=2014-05-30|archive-date=2014-05-27|archive-url=https://web.archive.org/web/20140527212312/http://new.abb.com/systems/hvdc/references/pacific-intertie|url-status=live}}</ref>
+|-
+| [[Nelson River Bipole]] 1 || Canada - Gillam, Manitoba <br/>{{Coord|56|21|41|N|94|36|48|W|type:landmark|name=Nelson River Bipole 1 - Gillam Static Inverter Plant}} || Canada - Rosser, Manitoba <br/>{{Coord|49|59|39|N|97|25|39|W|type:landmark|name=Nelson River Bipole 1 - Rosser Static Inverter Plant}} || 895<br/>(0/895) || 463.5 || 1854 || 1971 || Thyr || Used the largest mercury arc rectifiers ever built <br/>Original supplier: [[English Electric]]. <br/>In 1992/1993, Pole 1 upgraded to Thyr by [[Alstom]]. <br/>In 2004, Pole 2 upgraded to Thyr by [[Siemens]]. ||<ref name="List"/><ref name="Siemens">[http://www.energy.siemens.com/hq/pool/hq/power-transmission/HVDC/HVDC-Classic/HVDC_Transmission_EN.pdf Siemens HVDC Reference List] {{Webarchive|url=https://web.archive.org/web/20140222015305/http://www.energy.siemens.com/hq/pool/hq/power-transmission/HVDC/HVDC-Classic/HVDC_Transmission_EN.pdf |date=2014-02-22 }}, Energy.siemens.com, accessed in February 2014.</ref>
+|-
+| [[HVDC Vancouver Island|Vancouver Island]] 2 || Canada - Delta, BC <br/>{{Coord|49|5|31|N|123|2|31|W|type:landmark|name=Arnott Substation - Delta Static Inverter Plant}} || Canada - North Cowichan, BC <br/>{{Coord|48|49|39|N|123|42|55|W|type:landmark|name=Vancouver Island Terminal - North Cowichan Static Inverter Plant}} || 75<br/>(33/42) || 280 || 370 || 1977 - 2016 || Thyr || Supplier: [[General Electric]] ||<ref name="List"/>
+|-
+| [[Square Butte (transmission line)|Square Butte]] || USA - Center, ND (Young) <br/>{{Coord|47|4|18|N|101|11|45|W|type:landmark|name=Square Butte - Center Static Inverter Plant}} || USA - Adolph, MN (Arrowhead) <br/>{{Coord|46|46|25|N|92|17|39|W|type:landmark|name=Square Butte - Arrowhead Static Inverter Plant}} || 749<br/>(0/749) || 250 || 500 || 1977 || Thyr || Supplier: [[General Electric]] In 2004 Control system upgrade by [[ABB]] ||<ref name="List"/><ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/square-butte|title=References - ABB|website=New.abb.com|access-date=16 January 2018|archive-date=2 July 2016|archive-url=https://web.archive.org/web/20160702202645/http://new.abb.com/systems/hvdc/references/square-butte|url-status=live}}</ref><ref>{{cite web|url=http://www.minnkota.com/Documents/AnnualReports/2004%20SBAR.pdf|title=Square Butte annual report 2004|access-date=25 September 2017|url-status=dead|archive-url=https://web.archive.org/web/20160120170439/http://www.minnkota.com/Documents/AnnualReports/2004%20SBAR.pdf|archive-date=20 January 2016}}</ref>
+|-
+| [[Nelson River Bipole]] 2 || Canada - Sundance, Manitoba <br/>{{Coord|56|30|14|N|94|8|24|W|type:landmark|name=Nelson River Bipole 2 - Sundance Static Inverter Plant}} || Canada - Rosser, Manitoba <br/>{{Coord|49|59|39|N|97|25|49|W|type:landmark|name=Nelson River Bipole 2 - Rosser Static Inverter Plant}} || 940<br/>(0/940) || 500 || 2000 || 1978-1985 || Thyr || Supplier: [[Siemens]] ||<ref name="List"/><ref name="Siemens"/>
+|-
+| [[CU (Powerline)|CU]] || USA - Underwood, ND <br/>(Coal Creek) <br/>{{Coord|47|22|24|N|101|9|23|W|type:landmark|name=CU - Coal Creek Static Inverter Plant}} || USA - Rockford, MN <br/>(Dickinson) <br/>{{Coord|45|6|40|N|93|48|36|W|type:landmark|name=CU - Rockford Static Inverter Plant}} || 687<br/>(0/687) || 400 || 1000 || 1979 || Thyr || Supplier: [[ABB]] In 2004, control system upgrade by [[ABB]] ||<ref name="List"/><ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/cu-hvdc-project|title=References - ABB|website=New.abb.com|access-date=16 January 2018|archive-date=31 May 2016|archive-url=https://web.archive.org/web/20160531170943/http://new.abb.com/systems/hvdc/references/cu-hvdc-project|url-status=live}}</ref>
+|-
+| [[Path 27]] || USA - Intermountain, UT <br/>{{Coord|39|30|2|N|112|34|51|W|type:landmark|name=Intermountain Transmission - Intermountain Static Inverter Plant}} || USA - Adelanto, CA <br/>{{Coord|34|33|4|N|117|26|14|W|type:landmark|name=Intermountain Transmission - Adelanto Static Inverter Plant}} || 785<br/>(0/785) || ±500 || 2400 || 1986 || Thyr || Supplier: [[ASEA|Asea]]||<ref>{{Cite web |title=2025 Path Rating Catalog Public {{!}} Western Electricity Coordinating Council |url=https://www.wecc.org/wecc-document/22101 |access-date=2026-03-01 |website=www.wecc.org}}</ref><ref>{{Cite web |title=Intermountain Power Project {{!}} Hitachi Energy |url=https://www.hitachienergy.com/us/en/news-and-events/customer-stories/intermountain-power-project |access-date=2026-03-01 |website=www.hitachienergy.com |language=en-US}}</ref>
+|-
+| [[Quebec - New England Transmission]] || Canada - [[Radisson, Quebec]]<br/>{{Coord|53|43|33|N|77|44|17|W|type:landmark|name=Quebec-New England Transmission - Radisson Static Inverter Plant}} || Canada - Nicolet, QC <br/>{{Coord|46|04|47|N|72|14|58|W|type:landmark|name=Quebec-New England Transmission - Nicolet Static Inverter Plant}};<br/> USA - Ayer, MA <br/>{{Coord|42|34|13|N|71|31|27|W|type:landmark|name=Quebec-New England Transmission - Sandy Pond Static Inverter Plant}} || 1105<br/>(5/1100) || 450 || 2250 || 1991 || Thyr || 3&nbsp;terminals<br/>Converter stations near [[Windsor, Quebec]] and [[Monroe, New Hampshire]] were decommissioned in 2007.
+Supplier: [[ABB]]
+||<ref name="List"/>
+|-
+| [[Cross Sound Cable]] || USA - [[New Haven, Connecticut]]<br/>{{Coord|41|17|12|N|72|54|8|W|type:landmark|name=Cross Sound Cable - New Haven Static Inverter Plant}} || USA - [[Shoreham, New York]] <br/>{{Coord|40|57|33|N|72|52|3|W|type:landmark|name=Cross Sound Cable - Shoreham Static Inverter Plant}} || 40<br/>(40/0) || 150 || 330 || 2002 || IGBT || Buried underwater cable<br/>Supplier: [[ABB]]
+||<ref>{{cite journal |last=Fairley |first=Peter |date=April 2005 |title=TransÉnergie: Playing Two Power Games |url=http://www.technologyreview.com/article/403882/trans-nergie-playing-two-power-games/page/2/ |journal=[[MIT Technology Review]] |access-date=2014-08-05 |archive-date=2014-08-08 |archive-url=https://web.archive.org/web/20140808055212/http://www.technologyreview.com/article/403882/trans-nergie-playing-two-power-games/page/2/ |url-status=live }}</ref>
+|-
+| [[Neptune Cable]] || USA - Long Island (Hicksville) NY <br/>{{Coord|40|45|38|N|73|33|4|W|type:landmark|name=Neptune - Hicksville Static Inverter Plant}} || USA -Sayreville, NJ <br/>{{Coord|40|28|25.38|N|74|21|11.1|W|type:landmark|name=Neptune - Sayreville Static Inverter Plant}} || 105<br/>(105/0) || 500 || 660 || 2007 || Thyr || Supplier: [[Siemens]]||<ref>{{cite web|url=http://www.neptunerts.com/default.asp?Ss=5&Pg=7 |title=What is Neptune RTS? |access-date=2008-12-19 |url-status=dead |archive-url=https://web.archive.org/web/20080526182930/http://www.neptunerts.com/default.asp?Ss=5&Pg=7 |archive-date=May 26, 2008 }}</ref>
+|-
+| [[Trans Bay Cable]] || USA - [[Pittsburg, California]]<br/>{{Coord|38|01|51|N|121|53|48|W|type:landmark|name=Trans Bay Cable - East Bay Converter Station}} || USA - San Francisco, CA <br/>{{Coord|37|45|17|N|122|23|09|W|type:landmark|name=Trans Bay Cable - San Francisco Converter Station}} || 85<br/>(85/0) || 200 || 400 || 2010 || IGBT || First HVDC system using Modular Multi-Level Converter 
+Supplier: [[Siemens]], Pirelli 
+||<ref>Westerweller T., Friedrich, K., Armonies, U., Orini, A., Parquet, D., Wehn, S., Trans Bay cable – world's first HVDC system using multilevel voltage-sourced converter, [[International Council on Large Electric Systems|CIGRÉ]] session, Paris, 2010, paper reference B4-101</ref><ref>{{cite web |title=IEEE PES; HVDC Systems and Trans-Bay Cable |url=https://www.ewh.ieee.org/r6/san_francisco/pes/pes_pdf/Transbay_Cable.pdf |date=16 March 2005 |access-date=16 September 2009 |archive-date=8 January 2010 |archive-url=https://web.archive.org/web/20100108064853/http://www.ewh.ieee.org/r6/san_francisco/pes/pes_pdf/Transbay_Cable.pdf |url-status=live }}</ref><ref>{{cite web|title=HDVC Plus Technology provided by Siemens|url=http://www.usa.siemens.com/energy-efficiency/energy-efficiency.html?tab=Transmission-and-distribution|year=2012|access-date=10 September 2012|archive-date=17 October 2021|archive-url=https://web.archive.org/web/20211017144312/https://www.siemens.com/us/en.html?tab=Transmission-and-distribution|url-status=live}}</ref>
+|- 
+| [[Eastern Alberta Transmission Line]] || Canada – Newell, AB {{Coord|50|30|41|N |112|01|02|W|type:landmark|name=Eastern Alberta Transmission Line - Newell Static Inverter Plant}} || Canada – Heathfield, AB {{Coord|53|51|28|N |113|13|52|W|type:landmark|name=Eastern Alberta Transmission Line - Heathfield Static Inverter Plant}} || 485 (0/485) || 500 || 1000 || 2015/2016 || Thyr || Supplier: [[Siemens]] ||<ref name="aeso">{{cite web |title= AESO 2013 Long-term Transmission Plan |publisher= Alberta Electric System Operator |date= January 2014 |pages= 77–78 |url= http://www.aeso.ca/downloads/AESO_2013_Long-termTransmissionPlan_Web.pdf |url-status= dead |archive-url= https://web.archive.org/web/20140402200548/http://www.aeso.ca/downloads/AESO_2013_Long-termTransmissionPlan_Web.pdf |archive-date= 2014-04-02 }}</ref>
+|- 
+| Western Alberta Transmission Line || Canada – Genesee, AB {{Coord|53|21|13|N|114|18|33|W|type:landmark|name=Western Alberta Transmission Line - Genesee Static Inverter Plant}} || Canada – Langdon, AB {{Coord|50|57|37|N|113|43|11|W|type:landmark|name=Western Alberta Transmission Line - Langdon Static Inverter Plant}}|| 350 (0/350) || 500 || 1000 || 2015 || Thyr || Supplier: [[Siemens]] ||<ref name="aeso" /><ref>{{cite news |last=Bachusky |first=Johnnie |date=2015-01-27 |title=Billion dollar transmission line is complete |url=http://www.mountainviewgazette.ca/article/20150127/MVG0801/301279995/-1/mvg |newspaper=Mountain View Gazette |location=Olds, AB |access-date=2015-02-02 |archive-url=https://web.archive.org/web/20150202220549/http://www.mountainviewgazette.ca/article/20150127/MVG0801/301279995/-1/mvg |archive-date=2015-02-02 |url-status=dead }}</ref>
+|-
+| [[Nelson River Bipole]] 3 || Canada - Keewatinohk, Manitoba <br/>{{coord|56|39|25|N|93|51|14|W|type:landmark|name=Nelson River Bipole 3 - Keewatinohk Static Inverter Plant}} || Canada - Riel, Manitoba <br/>{{coord|49|51|59|N|96|56|24|W|type:landmark|name=Nelson River Bipole 3 - Riel Static Inverter Plant}} || 1324<br/>(0/1324) || 500 || 2000 || 2018 || Thyr || Supplier: [[Siemens]] ||<ref name="List"/><ref name="Siemens"/>
+|-
+| [[Lower Churchill Project#Labrador-Island Link|Labrador-Island Link]] || Canada - [[Muskrat Falls]], NL || Canada - Soldiers Pond, NL  || 1135<br/>(35/1100) || 350 || 900 || 2017 || Thyr || Drilling for cable landfall began in 2014. <br/>Supplier: [[Alstom#Alstom Grid|Alstom Grid]] ||<ref>{{cite news|last=Roberts |first=Stephen |date=July 7, 2014 |title=Muskrat Falls work well underway in Forteau |url=http://www.northernpen.ca/News/Local/2014-07-07/article-3790223/Muskrat-Falls-work-well-underway-in-Forteau/1 |archive-url=https://archive.today/20140717161429/http://www.northernpen.ca/News/Local/2014-07-07/article-3790223/Muskrat-Falls-work-well-underway-in-Forteau/1 |url-status=dead |archive-date=July 17, 2014 |newspaper=Northern Pen |location=St. Anthony |publisher=Transcontinental Media G.P. |access-date=2014-07-14 }}</ref><ref>{{cite web|url=http://muskratfalls.nalcorenergy.com/procurement/awarded-contracts/muskrat-falls-hydroelectric-generating-facility-and-labrador-island-link/|title=Awarded Contracts: Muskrat Falls Generation and Labrador-Island Link|author=<!--Staff writer(s); no by-line.-->|publisher=Nalcor Energy|access-date=2014-07-26|quote=CD0501 Supply and Install Converter Stations and Transition Compounds 19-Jun-2014|archive-date=2014-08-10|archive-url=https://web.archive.org/web/20140810045913/http://muskratfalls.nalcorenergy.com/procurement/awarded-contracts/muskrat-falls-hydroelectric-generating-facility-and-labrador-island-link/|url-status=live}}</ref>
+|- 
+| [[Maritime Transmission Link|Maritime Link]] || Canada - Bottom Brook, NL {{Coord|48|31|52|N|58|15|39|W|type:landmark|name=Bottom Brook substation}}|| Canada - Woodbine, NS <br/>{{Coord|45|59|30|N|60|16|26|W|type:landmark|name=Woodbine Substation}}|| 360<br/>(170/190) || 200 || 500 || 2017 || IGBT || Right-of-way clearing began in 2014.<br/>Supplier: [[ABB]] ||<ref>{{cite press release |author=<!--Staff writer(s); no by-line.--> |title=ABB awarded $400 million order for Maritime Link power project in Canada |url=http://www.abb.com/cawp/seitp202/894be52ef97659c9c1257d10003d3807.aspx |location=Zurich, Switzerland |publisher=ABB |date=July 9, 2014 |access-date=2014-07-14 |archive-date=2014-07-13 |archive-url=https://web.archive.org/web/20140713020345/http://www.abb.com/cawp/seitp202/894be52ef97659c9c1257d10003d3807.aspx |url-status=live }}</ref><ref>{{cite web |url=http://www.emeranl.com/en/home/themaritimelink/infrastructure.aspx |title=Maritime Link Infrastructure |author=<!--Staff writer(s); no by-line.--> |date=2014 |publisher=Emera Newfoundland and Labrador |access-date=2014-07-14 |archive-date=2014-07-14 |archive-url=https://web.archive.org/web/20140714222627/http://www.emeranl.com/en/home/themaritimelink/infrastructure.aspx |url-status=live }}</ref><ref>{{Cite report| date       = January 10, 2013| title       = Maritime Link Environmental Assessment Report| url       = http://www.emeranl.com/site/media/emeranl/Documents/3_ENL_Section_4.0-5.0.pdf| publisher       = [[Emera]] Newfoundland and Labrador| section       = 4.1.3| access-date       = 2014-07-25| archive-date       = 2014-07-28| archive-url       = https://web.archive.org/web/20140728000752/http://www.emeranl.com/site/media/emeranl/Documents/3_ENL_Section_4.0-5.0.pdf| url-status       = live}}</ref><ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |title=Maritime Link construction underway in western Newfoundland |url=http://www.cbc.ca/news/canada/newfoundland-labrador/maritime-link-construction-underway-in-western-newfoundland-1.2851953 |website=CBC News |date=2014-11-27 |access-date=2014-11-27 |archive-date=2014-12-09 |archive-url=https://web.archive.org/web/20141209123146/http://www.cbc.ca/news/canada/newfoundland-labrador/maritime-link-construction-underway-in-western-newfoundland-1.2851953 |url-status=live }}</ref>
+|- style="background:#efffbf;"
+| New England Clean Power Link || USA - Alburgh, VT || USA - Ludlow, VT || 248<br/>(248/0) || 320 || 1000 || ? || ||  Connects to Quebec||<ref>{{Cite web |title=New England Clean Power Link |url=http://www.necplink.com/index.php |access-date=2023-06-15 |website=www.necplink.com}}</ref><ref>{{Cite web |title=Scott renews hope in billion-dollar underwater powerline {{!}} Vermont Business Magazine |url=https://vermontbiz.com/news/2023/february/16/scott-renews-hope-billion-dollar-underwater-powerline |access-date=2023-06-15 |website=vermontbiz.com}}</ref><ref>{{cite web |url=http://necplink.com/docs/announcements/symposium-presentations/Lake%20Symposium_Engineering%20Overview.pdf |title=NECPL Submarine Cable Installation |author=<!--Staff writer(s); no by-line.--> |date=2014-10-09 |website=New England Clean Power Link: Project Development Portal |publisher=TDI New England |access-date=2014-12-30 |archive-date=2016-01-20 |archive-url=https://web.archive.org/web/20160120170439/http://necplink.com/docs/announcements/symposium-presentations/Lake%20Symposium_Engineering%20Overview.pdf |url-status=live }}</ref><ref>{{Cite web |title=About the Project {{!}} New England Clean Power Link Project |url=https://necplinkeis.com/?page_id=8 |access-date=2024-07-29 |language=en-US}}</ref>
+|- style="background:#efffbf;"
+| [[TransWest Express]] || USA – Sinclair, WY || USA – Boulder City, NV ||1165<br/>(0/1165)  || 600 || 3000 ||2027 || || Ground breaking in 2023||<ref>{{cite press release |author=<!--Staff writer(s); no by-line.--> |title=BLM/Western publish fifth EIS update newsletter |url=http://www.transwestexpress.net/news/alerts/2014/112614-blm-newsletter.shtml |publisher=Transwest Express LLC |date=2014-11-26 |access-date=2014-12-30 |archive-date=2015-02-25 |archive-url=https://web.archive.org/web/20150225012809/http://transwestexpress.net/news/alerts/2014/112614-blm-newsletter.shtml |url-status=live }}</ref><ref>{{cite web |url=http://www.transwestexpress.net/index.shtml |title=Delivering Wyoming wind energy to the West |author=<!--Staff writer(s); no by-line.--> |date=2014 |website=TransWest Express Transmission Project |publisher=TransWest Express LLC |access-date=2014-08-05 |archive-date=2014-08-08 |archive-url=https://web.archive.org/web/20140808053848/http://www.transwestexpress.net/index.shtml |url-status=live }}</ref><ref>{{cite web|url=http://www.globaltransmission.info/archive.php?id=28400|title=Global Transmission Report : TransWest Express Project, US|date=6 January 2017|access-date=22 January 2017|archive-date=2 February 2017|archive-url=https://web.archive.org/web/20170202005442/http://www.globaltransmission.info/archive.php?id=28400|url-status=live}}</ref>
+|- style="background:#efffbf;"
+|Grain Belt Express
+|USA - Ford County, KS
+|USA - Sullivan County, IN
+|750
+(0/750)
+|600
+|5000
+|?
+|
+|
+|<ref>{{Cite news |last=Yamasaki |first=Parker |date=2025-02-18 |title=Interstate power lines threaten farmers' land in southeastern Colorado |url=https://coloradosun.com/2025/02/18/power-lines-southeastern-colorado-national-transmission-corridor/ |access-date=2025-02-19 |work=The Colorado Sun |language=en-US}}</ref><ref>{{Cite press release|last=Kuykendall |first=Dia |date=2023-06-14 |title=Grain Belt Express Approved by Kansas Corporation Commission |url=https://grainbeltexpress.com/grain-belt-express-approved-by-kansas-corporation-commission/ |access-date=2023-06-15 |publisher=Grain Belt Express |language=en-US}}</ref>
+|- style="background:#efffbf;"
+|SOO Green || USA - [[Mason City, Iowa]] || USA - [[Plano, Illinois]] || 563 || 525 || 2100 || 2023 || || Buried along railroad right-of-way<br/>Supplier: Siemens || <ref>{{cite web |url=http://www.soogreenrr.com |title=SOO Green HVDC Link |date=2020 |website=SOO Green HVDC Link |publisher=Direct Connect Development Company |access-date=2021-06-15 |archive-date=2021-06-27 |archive-url=https://web.archive.org/web/20210627034318/https://www.soogreenrr.com/ |url-status=live }}</ref>
+|- 
+|[[Champlain Hudson Power Express]]
+| Canada–New York border || USA - [[New York City]] || 545 || 400|| 1250 ||2025 || || 60% submarine under Lake Champlain and 40% underground|| <ref>{{Cite web|title=Home|url=https://chpexpress.com/|access-date=2021-12-17|website=TDI CHPExpress|language=en-US}}</ref>
+|- 
+| New England Clean Energy Connect || USA - Beattie Twp, ME || USA - Lewiston, ME || 314 || 320 || 1200 || 2026 || ||  ||<ref>{{Cite web |title=About the NECEC |url=https://www.necleanenergyconnect.org/about-the-project |access-date=2023-06-15 |website=New England Clean Energy Connect |language=en-US}}</ref><ref>{{Cite web |last=Wasser |first=Miriam |date=2026-01-16 |title=A decade in the making, clean energy power line for Mass. is up and running |url=https://www.wbur.org/news/2026/01/16/new-england-clean-energy-connect-cmp-corridor-avangrid-hydroquebec-massachusetts-maine |access-date=2026-10-05 |website=www.wbur.org |language=en}}</ref>
+|-
+|[[SunZia Wind and Transmission|SunZia Transmission]]
+|USA – Torrance County, NM
+|USA – Pinal County, AZ
+|880
+|525
+|3000
+|2026
+|
+|Project combined with 3,500 MW wind project
+|<ref>{{Cite web |title=SunZia Wind and Transmission |url=https://patternenergy.com/projects/sunzia/ |access-date=2023-06-15 |website=Pattern Energy |language=en}}</ref>
+|}
+
+==South America==
+{| class="wikitable sortable"
+ ! style="background-color: #87CEEB" | {{tooltip|Name|System/Project}}<br/>
+ ! style="background-color: #87CEEB" | Converter<br/>station 1<br/>
+ ! style="background-color: #87CEEB" | Converter<br/>station 2<br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Total Length (Cable/Pole) <br/> (km)|Cable – undersea or underground cable; Pole – overhead line}}<br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Nominal<br/> Voltage<br/> (kV)|DC Voltage}}<br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Power (MW)|Power Rating}}<br/>
+ ! style="background-color: #87CEEB" | {{tooltip|Year|Year Commissioned}}<br/>
+ ! style="background-color: #87CEEB" | Type<br/>
+ ! style="background-color: #87CEEB" class="unsortable"| Remarks<br/>
+ ! style="background-color: #87CEEB" class="unsortable"| {{tooltip|Ref|Source}}<br/>
+|-<!-- to make sorting work -->style="display:none;" || !a || !a || !a || -9e99 || -9e99 || -9e99 || 1000-01-01 || !a || !a || !a
+|-<!-- to make sorting work -->style="display:none;" || ~z || ~z || ~z || 9e99 || 9e99 || 9e99 || 9000-01-01 || ~z || ~z || ~z
+|-
+| [[HVDC Itaipu|Itaipu]] 1 || Brazil - Foz do Iguaçu, Paraná <br/>{{Coord|25|27|58|S|54|32|33|W|type:landmark|name=Itaipu DC Transmission - Foz do Iguaçu Static Inverter Plant}} || Brazil - São Roque, São Paulo <br/>{{Coord|23|40|2|S|47|6|19|W|type:landmark|name=Itaipu DC Transmission - Sao Roque Static Inverter Plant}} || 785 <br/> (0/785) || 600 || 3150 || 1984 || Thyr|| Supplier: [[ABB]]&nbsp;||<ref name="List"/>
+|-
+| [[HVDC Itaipu|Itaipu]] 2 || Brazil - Foz do Iguaçu, Paraná <br/>{{Coord|25|27|58|S|54|32|33|W|type:landmark|name=Itaipu DC Transmission - Foz do Iguaçu Static Inverter Plant}} || Brazil - São Roque, São Paulo <br/>{{Coord|23|40|2|S|47|6|19|W|type:landmark|name=Itaipu DC Transmission - Sao Roque Static Inverter Plant}} || 805 <br/> (0/805) || 600 || 3150 || 1987 || Thyr|| Supplier: [[ABB]]&nbsp;||<ref name="List"/>
+|-
+| [[Rio Madeira HVDC system|Rio Madeira]] || Brazil, Porto Velho <br/>{{coord|08|54|53|S|63|57|27|W|type:landmark|name=HVDC Rio Madeira - Porto Velho Static Inverter Plant}} || Brazil, Araraquara <br/>{{coord|21|49|59|S|48|20|52|W|type:landmark|name=HVDC Rio Madeira - Araraquara Static Inverter Plant}} || 2375 <br/> (0/2375) || 600 || 7100 || 2013 || Thyr ||The longest transmission link in the world <br/>Suppliers: [[ABB]], [[Alstom]]
+||<ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/rio-madeira|title=References - ABB|website=New.abb.com|access-date=16 January 2018|archive-date=5 January 2018|archive-url=https://web.archive.org/web/20180105102538/http://new.abb.com/systems/hvdc/references/rio-madeira|url-status=live}}</ref>
+|-
+| [[Xingu-Estreito HVDC transmission line|Xingu-Estreito]] (aka, Belo Monte 1)
+| Brazil - Anapu, Pará || Brazil - Ibiraci, Minas Gerais || 2077 (0/2077) || 800 || 4000 || 2017 || Thyr || Supplier: SIEMENS||<ref name=":0">{{Cite web|title=Technical benefits of HVDC lines and experience of HVDC projects: Brazil, China, and perspectives in Latin America|url=https://energia.gob.cl/sites/default/files/mini-sitio/07_stategrid_paulo_esmeraldo.pdf|url-status=live|access-date=2021-05-09|archive-date=2021-05-09|archive-url=https://web.archive.org/web/20210509154110/https://energia.gob.cl/sites/default/files/mini-sitio/07_stategrid_paulo_esmeraldo.pdf}}</ref>
+|-
+| [[Xingu-Rio HVDC transmission line|Xingu-Rio]] (aka, Belo Monte 2)
+|Brazil - Pará
+|Brazil - Rio de Janeiro
+|2550
+|800
+|4000
+|2019
+|Thyr
+|Supplier: NARI/XD/CET
+|<ref name=":0" />
+|}
+
+==Back to back==
+{| class="wikitable sortable"
+ ! style="background-color: #87CEEB" | {{tooltip|Name|System/Project}}<br/>
+ ! style="background-color: #87CEEB" | Location <br/>
+ ! style="background-color: #87CEEB" data-sort-type="number" | {{tooltip|Nominal<br/> Voltage<br/> (kV)|DC Voltage}}<br/>
+ ! style="background-color: #87CEEB" | {{tooltip|Power (MW)|Power Rating}}<br/>
+ ! style="background-color: #87CEEB" | {{tooltip|Year|Year Commissioned}}<br/>
+ ! style="background-color: #87CEEB" | Type<br/>
+ ! style="background-color: #87CEEB" class="unsortable"| Remarks<br/>
+ ! style="background-color: #87CEEB" class="unsortable"| {{tooltip|Ref|Source}}<br/>
+|-<!-- to make sorting work -->style="display:none;" || !a || !a || !a || -9e99 || -9e99 || -9e99 || -9e99 || 1000-01-01 || !a || !a || !a
+|-<!-- to make sorting work -->style="display:none;" || ~z || ~z || ~z || 9e99 || 9e99 || 9e99 || 9e99 || 9000-01-01 || ~z || ~z || ~z
+|-
+| Carnegie Steel Company B2B || USA -  Pittsburgh, Pennsylvania || ? || ? || ? || Merc || built for an interconnection between 60&nbsp;Hz-utility system and a 25&nbsp;Hz System, dismantled ||<ref>[http://www.ieee.org/organizations/pes/public/2005/may/peshistory.html] {{webarchive|url=https://web.archive.org/web/20110524013821/http://www.ieee.org/organizations/pes/public/2005/may/peshistory.html|date=May 24, 2011}}</ref>
+|- 
+| [[Sakuma Dam#HVDC Back-to-Back Station|Sakuma]] B2B || Japan - Sakuma <br/>{{Coord|35|04|57|N|137|47|56|E|type:landmark_region:JP|display=inline|name=Sakuma HVDC back-to-back Static Inverter Plant}} || 125 || 300 || 1965 || Merc || replaced in 1993 by new converter using light-triggered thyristors||
+|-
+| [[Eel River HVDC back-to-back station|Eel River B2B]] || Canada - Eel River, NB <br/>{{Coord|48|01|05|N|66|26|39|W|type:landmark|name=Eel River Static Inverter Plant}} || 80 || 320 || 1972 || Thyr || life extension project 2014&nbsp; ||<ref>{{cite web|url=http://www.abb.com/industries/ap/db0003db004333/48cedb687d11f105c1257a84004cf497.aspx|title=Eel River|work=abb.com|access-date=2013-12-06|archive-date=2013-12-12|archive-url=https://web.archive.org/web/20131212035406/http://www.abb.com/industries/ap/db0003db004333/48cedb687d11f105c1257a84004cf497.aspx|url-status=live}}</ref><ref>{{cite web|url=http://www.nbpower.com/html/en/about/media/media_release/pdfs/2013/EN_PR_QCInterconnectUpgrade.pdf|title=News|website=Nbpower.com|access-date=25 September 2017|archive-date=12 December 2013|archive-url=https://web.archive.org/web/20131212083049/http://www.nbpower.com/html/en/about/media/media_release/pdfs/2013/EN_PR_QCInterconnectUpgrade.pdf|url-status=live}}</ref>
+
+|- 
+| [[David A. Hamil HVDC back-to-back station|David A. Hamil B2B]] || USA - [[Stegall, Nebraska]] <br/>{{coord|41|49|15|N|103|56|32|W|type:landmark|name=David A. Hamil HVDC back-to-back Static Inverter Plant}} || ±50 || 100 || 1977 || Thyr || Supplier: GE|| &nbsp;
+|-
+| [[Shin Shinano]] B2B || Japan - Shin Shinano <br/>{{Coord|36|08|14|N|137|52|58|E|type:landmark_region:JP|display=inline|name=Shin Shinano HVDC back-to-back Static Inverter Plant}} || 125 || 600 || 1977 || Thyr || Supplier: [[Toshiba]], [[Hitachi]]||
+|-
+| [[Acaray Power Plant|Acaray]] B2B || Paraguay - Ciudad de Este <br/>{{Coord|25|27|26|S|54|37|26|W|type:landmark|name=Ciudad de Este HVDC back-to-back Static Inverter Plant}} || 25.6 || 50 || 1981 || Thyr || &nbsp;||
+|-
+| [[Vyborg HVDC-back-to-back station|Vyborg]] B2B || Russia - Vyborg <br/>{{Coord|60|40|49|N|28|55|7|E|type:landmark|name=Vyborg HVDC back-to-back Static Inverter Plant}} || ±85 || 1065 || 1982 || Thyr || extended up to 1420 MW in 2001||
+|-
+| [[GK Dürnrohr|Dürnrohr]] B2B || Austria - Dürnrohr <br/>{{Coord|48|19|46|N|15|52|48|E|type:landmark|name=GK Durnrohr}} ||145 || 550 || 1983 || Thyr || shut down in October 1996, dismantled in 2007||
+|-
+| [[Artesia, New Mexico]] (Eddy County HVDC B2B) B2B || USA - Artesia, NM <br/>{{Coord|32|48|51.7|N|104|14|29.6|W|type:landmark|name=Artesia HVDC back-to-back Static Inverter Plant}} ||82 || 200 || 1983 || Thyr || &nbsp;||
+|-
+| [[Châteauguay HVDC-back-to-back station|Chateauguay]] B2B || Canada – Châteauguay, QC <br/>{{Coord|45|15|11|N|73|52|11|W|type:landmark|name=Chateauguay HVDC back-to-back Static Inverter Plant}} || 140 || 1000 || 1984 || Thyr || &nbsp;Control system upgrade by [[ABB]] in 2009||<ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/chateauguay|title=Châteauguay|work=abb.com|access-date=2014-05-02|archive-date=2014-05-02|archive-url=https://web.archive.org/web/20140502202449/http://new.abb.com/systems/hvdc/references/chateauguay|url-status=live}}</ref><ref>{{cite web|url=http://www.abb.com/cawp/seitp202/059818f2be47a318c125742b003aed49.aspx|title=ABB to upgrade transmission control for vital North American power interconnector|work=abb.com|access-date=2014-05-02|archive-date=2014-05-02|archive-url=https://web.archive.org/web/20140502203805/http://www.abb.com/cawp/seitp202/059818f2be47a318c125742b003aed49.aspx|url-status=live}}</ref>
+|-
+| [[Oklaunion]] B2B || USA - Oklaunion, TX <br/>{{Coord|34|5|6|N|99|11|1|W|type:landmark|name=Oklaunion HVDC back-to-back Static Inverter Plant}} || 82 || 200 || 1984 || Thyr ||ABB replacement in 2014 ||<ref>{{cite web|url=http://www.abb.com/industries/ap/db0003db004333/3ab2736fa99b8203c1257a6100474870.aspx%7ctitle=Oklaunion%7cwork=abb.com|title=ABB Oklaunion - ABB HVDC Reference Projects in North America (HVDC References)|work=abb.com|access-date=2015-04-20|archive-url=https://web.archive.org/web/20160120170439/http://www.abb.com/industries/ap/db0003db004333/3ab2736fa99b8203c1257a6100474870.aspx%7ctitle=Oklaunion%7cwork=abb.com|archive-date=2016-01-20|url-status=dead}}</ref><ref>{{cite web|url=http://www.abb.com/cawp/seitp202/2b082f6ff71572adc1257a680037f649.aspx|title=ABB awarded $60 million HVDC order to support grid reliability in Texas|work=abb.com|access-date=2013-12-06|archive-date=2013-12-12|archive-url=https://web.archive.org/web/20131212033823/http://www.abb.com/cawp/seitp202/2b082f6ff71572adc1257a680037f649.aspx|url-status=live}}</ref>
+&nbsp;
+|-
+| Blackwater, New Mexico B2B || USA - Blackwater, NM <br/>{{Coord|34|18|3|N|103|10|27|W|type:landmark|name=Blackwater HVDC back-to-back Static Inverter Plant}} || 57 || 200 || 1984 || Thyr || &nbsp;Valve cooling and control systems upgrade by [[ABB]] in 2009||<ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/blackwater|title=Blackwater|work=abb.com|access-date=2014-05-02|archive-date=2014-05-02|archive-url=https://web.archive.org/web/20140502205929/http://new.abb.com/systems/hvdc/references/blackwater|url-status=live}}</ref><ref>{{cite web|url=http://www.abb.com/cawp/seitp202/e5bcb3c2cb013a0bc125726c005bce44.aspx|title=ABB to upgrade control and valve cooling system for HVDC station in New Mexico|work=abb.com|access-date=2014-05-02|archive-date=2014-05-02|archive-url=https://web.archive.org/web/20140502204202/http://www.abb.com/cawp/seitp202/e5bcb3c2cb013a0bc125726c005bce44.aspx|url-status=live}}</ref>
+|-
+| [[Madawaska HVDC|Madawaska, Quebec B2B]] || Canada - Dégelis, QC <br/>{{Coord|47|30|31|N|68|31|25|W|type:landmark|name=Deglis HVDC back-to-back Static Inverter Plant}} || 140 || 350 || 1985 || Thyr || &nbsp;||
+|-
+| [[Miles City, Montana]] B2B || USA - Miles City, MT <br/>{{Coord|46|24|31|N|105|47|36|W|type:landmark|name=Miles City HVDC back-to-back Static Inverter Plant}} || 82 || 200 || 1985 || Thyr || &nbsp;||
+|-
+| [[Highgate, VT]] B2B || USA - Highgate, VT <br/>{{Coord|44|56|17|N|73|3|15|W|type:landmark|name=Highgate HVDC back-to-back Static Inverter Plant}} || 56 || 200 || 1985 || Thyr ||Refurbishment by ABB in 2012, ||<ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/highgate|title=Highgate|work=abb.com|access-date=2014-05-02|archive-date=2014-05-02|archive-url=https://web.archive.org/web/20140502201340/http://new.abb.com/systems/hvdc/references/highgate|url-status=live}}</ref>&nbsp;
+|-
+| [[Uruguaiana]] B2B || Brazil - Uruguaiana <br/>{{Coord|29|48|22|S|57|0|17|W|type:landmark|name=Uruguaiana HVDC back-to-back Static Inverter Plant}} ||17.9
+|| 53.9 || 1986 || Thyr ||  || &nbsp;
+|-
+| [[Broken Hill]] B2B || Australia - Broken Hill <br/>{{Coord|31|59|10|S|141|25|9|E|type:landmark|name=Broken Hill HVDC back-to-back Static Inverter Plant}} || 8.33 || 40 || 1986 || Thyr || &nbsp; ||
+|-
+| [[Virginia Smith Converter Station|Virginia Smith]] B2B || USA - Sidney, NE <br/>{{Coord|41|9|51|N|102|59|15|W|type:landmark|name=Virginia Smith HVDC back-to-back Static Inverter Plant}} || 50 || 200 || 1988 || Thyr || &nbsp; ||<ref name=siemens01>{{cite web|url=https://www.energy-portal.siemens.com/static/hq/en/products_solutions/19024_163620_hvdc-transformers.html |title=HVDC Transformers- details |publisher=Siemens |access-date=2008-12-19 |url-status=dead |archive-url=https://archive.today/20110809030020/https://www.energy-portal.siemens.com/static/hq/en/products_solutions/19024_163620_hvdc-transformers.html |archive-date=August 9, 2011 }}</ref>
+|-
+| [[Vindhyachal]] B2B || India - Vindhyachal <br/>{{Coord|24|05|38|N|82|40|44|E|type:landmark|name=Vindhyachal HVDC back-to-back Static Inverter Plant}} || 176 || 500 || 1989 || Thyr || &nbsp;||
+|-
+| [[McNeill HVDC Back-to-back station|McNeill]] B2B || Canada - Mc Neill, AB <br/>{{Coord|50|35|56|N|110|01|25|W|type:landmark|name=McNeill HVDC back-to-back Static Inverter Plant}} ||42 || 150 || 1989 || Thyr || Supplier: [[Alstom]] ||
+|-
+| [[Wolmirstedt substation|Wolmirstedt]] B2B || Germany - Wolmirstedt <br/>{{Coord|52|16|21|N|11|38|10|E|type:landmark|name=GK Wolmirstedt ( never in use)}} || 160 || 600 || (1992) || Thyr || construction work was stopped after reunification, static inverter hall is today part of a recycling yard ||
+|-
+| [[GKK Etzenricht|Etzenricht]] B2B || Germany - Etzenricht <br/>{{Coord|49|37|52|N|12|6|56|E|type:landmark|name=GKK Etzenricht}} || 160 || 600 || 1993 || Thyr || shut down in October 1995, dismantled in 2009 ||
+|-
+| [[GK Wien-Southeast|Vienna-Southeast]] B2B || Austria - Vienna <br/>{{Coord|48|7|22|N|16|25|6|E|type:landmark|name=GK Wien-Sudost}} || 142 || 600 || 1993 || Thyr || shut down in October 1996, dismantled in 2007 ||
+|-
+| [[Chandrapur back to back HVDC converter station|Chandrapur B2B]] || India - Chandrapur <br/>{{Coord|20|5|21|N|79|8|36|E|type:landmark|name=Chandrapur HVDC back-to-back converter station}} || 205 || 2x500 || 1998 || Thyr || Supplier: [[Alstom]] ||
+|-
+| [[Welsh HVDC Converter Station]] B2B || USA - Titus County,  TX <br/>{{Coord|33|03|30.3|N|94|50|36.54|W|type:landmark|name=Welsh Power Plant}} || 162 || 600 || 1998 || Thyr || &nbsp; ||
+|-
+| [[Garabi HVDC B2B Station|Garabi HVDC]] || Brazil - Garabi <br/>{{Coord|28|15|19|S|55|40|18|W|type:landmark|name=Garabi HVDC back-to-back Static Inverter Plant}} || ±70 || 2200 || 1999 || Thyr || Brazil-Argentina Interconnection. Supplier: [[ABB]] In 2002, the second phase 'Garabi 2' was supplied by ABB . ||<ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/brazil-argentina-hvdc-interconnection|title=Brazil-Argentina HVDC Interconnection|work=abb.com|access-date=2013-12-19|archive-date=2013-12-19|archive-url=https://web.archive.org/web/20131219225501/http://new.abb.com/systems/hvdc/references/brazil-argentina-hvdc-interconnection|url-status=live}}</ref>
+|-
+| [[Vizag back to back HVDC converter station|Vizag 1]] || India - Visakhapatnam Gazuwaka <br/>{{Coord|17|38|33|N|83|7|57|E|type:landmark|name=Vizag I HVDC back-to-back converter station}} ||205 || 500 || 1999 || Thyr || Supplier: [[Alstom]]||
+|-
+| [[Minami-Fukumitsu]] B2B || Japan - Minami - Fukumitsu <br/>{{Coord|36|29|46|N|136|54|57|E|type:landmark_region:JP|display=inline|name=Minami-Fukumitsu HVDC back-to-back Static Inverter Plant}} || 125 || 300 || 1999 || Thyr || &nbsp; ||
+|-
+| [[Rivera HVDC Back-to-back station|Rivera B2B]] || Uruguay - Rivera<br/> {{Coord|30|56|29|S|55|33|34|W|type:landmark|name=Rivera HVDC back-to-back Static Inverter Plant}} || 22 || 70 || 2000 || Thyr || Supplier: [[Alstom]] ||
+|-
+| [[Eagle Pass, Texas]] B2B || USA - Eagle Pass, TX <br/>{{Coord|28|42|58.8|N|100|29|26.88 |W|type:landmark|name=Eagle Pass HVDC back-to-back Static Inverter Plant}} ||  15.9 || 36 || 2000 || IGBT || &nbsp; ||
+|-
+| [[Sasaram back to back HVDC converter station|Sasaram B2B]]|| India - Sasaram <br/>{{Coord|25|07|42|N|83|42|29|E|type:landmark|name=Sasaram HVDC back-to-back Static Inverter Plant}} || 205 || 500 || 2003 || Thyr || Supplier: [[Alstom]] ||
+|-
+| [[Rapid City DC Tie]] B2B || USA - Rapid City, SD <br/>{{Coord|44|00|37|N|103|9|54|W|type:landmark|name=Rapid City HVDC back-to-back Static Inverter Plant}} || 13 || 200 || 2003 || Thyr || ||<ref>[http://www.abb.com/cawp/gad02181/c1256d71001e0037c1256b830034ab10.aspx] {{webarchive|url=https://web.archive.org/web/20081121041057/http://www.abb.com/cawp/gad02181/c1256d71001e0037c1256b830034ab10.aspx|date=November 21, 2008}}</ref><ref>{{cite web|url=http://www.abb.com/cawp/gad02181/c1256d71001e0037c1256b830034ab10.aspx |title=ABB Group. Leading digital technologies for industry |access-date=2009-06-27 |url-status=bot: unknown |archive-url=https://web.archive.org/web/20090627142041/http://www.abb.com/cawp/gad02181/c1256d71001e0037c1256b830034ab10.aspx |archive-date=27 June 2009 }}</ref>
+|-
+| [[Vizag back to back HVDC converter station|Vizag 2]] || India - Visakhapatnam <br/>{{Coord|17|38|26|N|83|8|10|E|type:landmark|name=Vizag II HVDC back-to-back converter station}} || 176 || 500 || 2005 || Thyr || &nbsp; Installed at Gazuwaka. Supplier:[[ABB]]. This is similar in specs to Vizag I and connects the Eastern and Southern grids. ||<ref>{{cite web|url=http://library.abb.com/global/scot/scot221.nsf/veritydisplay/9eecf559e0334b5cc125708b00501cb5/$File/Cigree_VizagIIB-t-B%20d%20Rev.%2000.pdf |title=THE SECOND 1 x 500 MW HVDC BACK-TO-BACK INTERCONNECTION AT VIZAG |access-date=2008-12-20 |date=2005-09-29 |url-status=dead |archive-url=https://web.archive.org/web/20070221184434/http://library.abb.com/GLOBAL/SCOT/scot221.nsf/VerityDisplay/9EECF559E0334B5CC125708B00501CB5/%24File/Cigree_VizagIIB-t-B%20d%20Rev.%2000.pdf |archive-date=February 21, 2007 }}</ref>
+|-
+| [[Lingbao, Henan|Lingbao]] B2B || China - Lingbao <br/>{{Coord|34|32|56|N|110|50|49|E|type:landmark|name=Lingbao HVDC back-to-back Static Inverter Plant}} || 168 || 360 || 2005 || Thyr || &nbsp;Supplier: [[NR(Protection&Control)]], Extension project 2010: &nbsp;Supplier: [[ABB]];C-EPRI Electric Power Engineering Co., Ltd ||<ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/lingbao-ii|title=Lingbao II|work=abb.com|access-date=2014-05-02|archive-date=2014-05-02|archive-url=https://web.archive.org/web/20140502204955/http://new.abb.com/systems/hvdc/references/lingbao-ii|url-status=live}}</ref><ref>{{cite web|url=http://www.abb.com/cawp/seitp202/dcd95ecebaf34c1dc12574430047f120.aspx|title=ABB wins orders worth $8-million to upgrade HVDC station in China|work=abb.com|access-date=2014-05-02|archive-date=2014-05-02|archive-url=https://web.archive.org/web/20140502205902/http://www.abb.com/cawp/seitp202/dcd95ecebaf34c1dc12574430047f120.aspx|url-status=live}}</ref>
+|-
+| [[Lamar Co., Colorado]] B2B || USA - Lamar, CO <br/>{{Coord|38|12|25.08|N|102|31|43.92|W|type:landmark|name=Lamar HVDC back-to-back Static Inverter Plant}} ||63.6 || 210 || 2005 || Thyr || Supplier: Siemens; Combination of B2B HVDC & Grid Power Flow Controller (GPFC)||<ref>{{cite web|url=http://www.ptd.siemens.de/B4-202.pdf|title=APPLICATION OF THE GRID POWER FLOW CONTROLLER (GPFC) IN A BACK TO BACK PROJECT- details|publisher=Siemens|access-date=2009-09-29|archive-date=2011-07-19|archive-url=https://web.archive.org/web/20110719083808/http://www.ptd.siemens.de/B4-202.pdf|url-status=live}}</ref>
+|-
+| [[Higashi-Shimizu Frequency Converter|Higashi-Shimuzu]] B2B || Japan - Shimuzu <br/>{{Coord|35|03|24|N|138|29|58|E|type:landmark_region:JP|display=inline|name=Higashi-Shimuzu HVDC back-to-back Static Inverter Plant}} || 125 || 300 || 2006 || Thyr || &nbsp; ||
+|- 
+| [[Sharyland]] B2B || USA - Mission, TX <br/>{{Coord|26|10|01|N|98|19|25|W|type:landmark|name=Sharyland HVDC back-to-back Static Inverter Plant}} || 21 || 150 || 2007 || Thyr || &nbsp; ||
+|-
+| [[Al-Fadhili back to back HVDC converter station|Al Fadhili]] B2B || Saudi Arabia - Al Fadhili <br/>{{Coord|26|53|52|N|49|20|47|E|type:landmark|name=Al Fadhili HVDC back-to-back Static Inverter Plant}} || 222 || 3x600 || 2008 || Thyr ||Used mainly for Dynamic Reserve Power Sharing rather than economic energy transfer. Supplier: [[Alstom]] ||<ref>{{cite web |url=http://85.91.240.105/netprint/PDFfinal/areva/44883_Systems-L5-GCCIA-1839-V1-EN_loRes.pdf |title=Archived copy |access-date=2009-03-24 |url-status=dead |archive-url=https://web.archive.org/web/20110531090825/http://85.91.240.105/netprint/PDFfinal/areva/44883_Systems-L5-GCCIA-1839-V1-EN_loRes.pdf |archive-date=2011-05-31 }}</ref>
+|-
+| Outaouais B2B || Canada - Buckingham, QC <br/>{{Coord|45|36|01|N|75|26|47|W|type:landmark|name=Outaouais HVDC back-to-back station}}  || 315 || 2x625 || 2009 || Thyr || &nbsp; Expected completion 2009. Supplier:[[ABB]] ||<ref name=hvdcproj01 />
+|-
+| [[Heihe B2B]] || China - Heihe <br/>{{Coord|50|15|19|N|127|25|37|E|type:landmark|name=Heihe HVDC back-to-back station}} ||  ±125 || 750 || 2011 || Thyr || &nbsp;Supplier: [[NR(Protection&Control)]]<ref>[http://www.nari-relays.com/en/files/HVDC%20Control%20and%20Protection%20Solutions.pdf] {{dead link|date=September 2017|bot=InternetArchiveBot|fix-attempted=yes}}</ref>||
+|-
+| [[Gaoling B2B]] || China - Gaoling <br/>{{Coord|40|10|49|N|120|00|22|E|type:landmark|name=Gaoling HVDC back-to-back station}} || ±500 || 1500 || 2008 || Thyr ||  ||
+|-
+| Shandong - East B2B || China  ||  || 1200 || 2011 || Thyr
+||
+|-
+| [[Melo HVDC Back-to-back station|Melo B2B]] || Uruguay - Melo <br/>{{Coord|32|25|02|S|54|05|34|W|type:landmark|name=Melo HVDC back-to-back Static Inverter Plant}} ||  ±79 || 500 || 2011 || Thyr || Supplier:[[Alstom]] ||
+|-
+| North - Central B2B || China  ||  || 1000 || 2012 || Thyr
+||
+|-
+| [[Rio Madeira HVDC system|Rio Madeira]] B2B || Brazil – Porto Velho <br/>{{coord|8|54|46|S|63|57|27|W|type:landmark|name=Rio Madeira Porto Velho HVDC Back-to-back station}} || 100 || 600 || 2013 || Thyr ||  Supplier: [[ABB]]<ref>{{cite web|url=http://www.abb.com/industries/ap/db0003db004333/137155e51dd72f1ec125774b004608ca.aspx|title=Rio Madeira|work=abb.com|access-date=2012-07-24|archive-date=2011-12-06|archive-url=https://web.archive.org/web/20111206025325/http://www.abb.com/industries/ap/db0003db004333/137155e51dd72f1ec125774b004608ca.aspx|url-status=live}}</ref> ||<ref>{{cite web|url=http://www.abb.com/cawp/seitp202/06c9cd09d993758cc1257601003db274.aspx|title=ABB wins $540-million order in Brazil for world's longest power transmission link|work=abb.com|access-date=2013-12-06|archive-date=2013-12-12|archive-url=https://web.archive.org/web/20131212032143/http://www.abb.com/cawp/seitp202/06c9cd09d993758cc1257601003db274.aspx|url-status=live}}</ref><ref>{{cite web|url=http://tdworld.com/transmission/considering-dc-and-ac-transmission-options|title=Designing Madeira Transmission System - Transmission content from TDWorld|work=tdworld.com|access-date=2013-12-06|archive-date=2013-12-11|archive-url=https://web.archive.org/web/20131211060603/http://tdworld.com/transmission/considering-dc-and-ac-transmission-options|url-status=live}}</ref><ref>{{cite AV media|url=https://www.youtube.com/watch?v=OfAo76bo6VM |archive-url=https://ghostarchive.org/varchive/youtube/20211221/OfAo76bo6VM |archive-date=2021-12-21 |url-status=live|title=A remarkable journey - Transportation of the world's largest HVDC transformers|date=20 June 2012|work=YouTube}}{{cbignore}}</ref><ref>{{cite web|url=http://search-ext.abb.com/library/Download.aspx?DocumentID=9AKK105713A1117&LanguageCode=en&DocumentPartId=&Action=Launch|title=The Rio Madeira HVDC System – Design aspects of Bipole 1 and the connector to Acre-Rondônia|website=Search-ext.abb.com|access-date=25 September 2017|archive-date=12 December 2013|archive-url=https://web.archive.org/web/20131212033714/http://search-ext.abb.com/library/Download.aspx?DocumentID=9AKK105713A1117&LanguageCode=en&DocumentPartId=&Action=Launch|url-status=live}}</ref>
+|-
+| Ridgefield B2B ( [[Hudson Project]]) || USA - Ridgefield, NJ <br/>{{Coord|40|49|56|N|74|00|44|W|type:landmark|name=Ridgefield HVDC back-to-back Static Inverter Plant}} || 185 || 660 || 2013 || Thyr ||Supplier: [[Siemens]]<ref>{{Cite web|url=https://www.energy.gov/sites/prod/files/2013/05/f0/HVDC2013-Kohnstam_0.pdf|title=High Voltage Direct Current Transmission|last=Kohnstam|first=Peter|date=April 22, 2013|website=Energy.gov|access-date=October 31, 2019|archive-date=October 31, 2019|archive-url=https://web.archive.org/web/20191031133226/https://www.energy.gov/sites/prod/files/2013/05/f0/HVDC2013-Kohnstam_0.pdf|url-status=live}}</ref>
+|
+|-
+| Bheramara B2B || Bangladesh – Bheramara  {{Coord|24|04|03|N|89|0|04|E|type:landmark|name=Bheramara HVDC back-to-back Static Inverter Plant}} || 158 || 500 || 2013 || Thyr || ||
+|-
+| [[Black Sea Transmission Network|Akhaltsikhe]] B2B || Georgia - Akhaltsikhe <br/>{{Coord|41|42|26|N|43|06|35|E|type:landmark|name=Akhaltsikhe HVDC back-to-back Static Inverter Plant}} || 96 || 700 || 2013 || Thyr ||Supplier: [[Siemens]] ||<ref>{{cite web|url=http://www.energy.siemens.com/us/pool/hq/power-transmission/HVDC/HVDC-Classic/pm-pdf/EPT201008116e.pdf|title=Siemens HVDC technology to transmit eco-friendly electric power from Georgia to Turkey : Press release|website=Alstom.com|access-date=16 January 2018|archive-date=5 October 2011|archive-url=https://web.archive.org/web/20111005191125/http://www.energy.siemens.com/us/pool/hq/power-transmission/HVDC/HVDC-Classic/pm-pdf/EPT201008116e.pdf|url-status=dead}}</ref>
+|-
+| Mackinac B2B || USA - Saint Ignace, MI <br/>{{Coord|45|51|31|N|84|44|18|W|type:landmark|name=Mackinac HVDC back-to-back Static Inverter Plant}} ||70 || 200 || 2014 || IGBT || Supplier: [[ABB]] ||<ref>{{cite web|url=http://www.abb.com/industries/ap/db0003db004333/5A1B3D16C10B84F4C1257999004D28C8.aspx|title=Mackinac|work=abb.com|access-date=2013-03-30|archive-date=2013-02-21|archive-url=https://web.archive.org/web/20130221025801/http://www.abb.com/industries/ap/db0003db004333/5a1b3d16c10b84f4c1257999004d28c8.aspx|url-status=live}}</ref>
+|-
+| Railroad DC Tie || USA - Mission, TX <br/>{{Coord|26|10|01|N|98|19|25|W|type:landmark|name=Railroad DC Tie Static Inverter Plant}} ||  21 || 150 || 2014 || Thyr || &nbsp; ||
+|-
+| [[LitPol Link|Alytus]] B2B || Lithuania - Alytus <br/>{{Coord|54|26|19|N|23|58|02|E|type:landmark|name=Alytus HVDC back-to-back Static Inverter Plant}} || ±70 || 500 || 2015 || Thyr || || <ref>{{cite web|url=http://new.abb.com/systems/hvdc/references/litpol-link|title=References - ABB|website=New.abb.com|access-date=16 January 2018|archive-date=5 March 2018|archive-url=https://web.archive.org/web/20180305201347/http://new.abb.com/systems/hvdc/references/litpol-link|url-status=live}}</ref>
+|-
+| Mogocha B2B || Russia - Mogocha <br/>{{Coord|53|43|30|N|119|47|22|E|type:landmark|name=Mogocha HVDC back-to-back Static Inverter Plant}} ||  ±32 || 2x100 || 2017 || IGBT || &nbsp; ||<ref name="tdworld.com">{{cite web|url=http://tdworld.com/substations/hvdc-advances-russian-federation?page=3|title=HVDC Advances in the Russia - Substations content from TDWorld|website=Tdworld.com|access-date=2014-02-05|archive-date=2014-02-21|archive-url=https://web.archive.org/web/20140221150245/http://tdworld.com/substations/hvdc-advances-russian-federation?page=3|url-status=live}}</ref>
+|-
+| Yu - E B2B|| China-Chongqing, China-Hubei || ±420 || 4x1250 || 2017 || VSC-HVDC || Supplier: XJ Group Corporation(2x1250MW), C-EPRI Electric Power Engineering Co., Ltd(1x1250MW), Rongxin Power Electronic Co., Ltd. (1x1250MW)   ||
+|-
+| Khani B2B || Russia - Khani <br/>{{Coord|56|55|09|N|119|59|24|E|type:landmark|name=Khani HVDC back-to-back Static Inverter Plant}} ||  ±32 || 2x100 || 2019 || IGBT || &nbsp; ||<ref name="tdworld.com"/>
+|-
+| Van B2B || Turkiye - İran <br/>{{Coord|38|58|37|N|43|31|58|E|type:landmark|name=VAN 600MW HVDC back-to-back Converter Plant}} || 420 || 600 || 2021 || IGBT || Supplier:NR-TEIAS || &nbsp;
+|-
+| Bentwisch B2B || Germany - Bentwisch <br/>{{Coord|54|06|04|N|12|12|56|E|type:landmark|name=Bentwisch HVDC back-to-back Static Inverter Plant}} ||  ±140 || 410 || 2019 || IGBT || &nbsp; 
+|-
+| [[Tres Amigas SuperStation]] || USA - Clovis, NM || ? || 5000 || ? || IGBT || ||
+|}
+
+==Maps==
+
+===Africa===
+{{maplink |frame=yes |frame-width=450|frame-height=500
+|text=HVDC links in Africa (interactive map) {{legend|#f80e34|Existing}} {{legend|lime|Under construction}}{{legend|#0e1ef8|Proposed}}
+|zoom=3
+|frame-lat=1.2
+|frame-long=18.0
+|id1 =Q1563622  |type1 =line|title1 =[[Cahora Bassa (HVDC)|Cahora Bassa]]
+|id2 =Q586131   |type2 =line|title2 =[[Inga–Shaba HVDC]]
+|id3 =Q4129358  |type3 =line|title3 =Caprivi Link
+|id4 =Q55633427 |type4 =line|title4 =[[Sodo–Moyale–Suswa High Voltage Power Line]]
+}}
+{{clear}}
+
+===Australia and Oceania===
+{{maplink |frame=yes |frame-width=500|frame-height=400
+|text=HVDC links in Australia and Oceania (interactive map) {{legend|#f80e34|Existing}} {{legend|lime|Under construction}}{{legend|#0e1ef8|Proposed}}
+|zoom=3
+|frame-lat=-28.75
+|frame-long=146.43
+|id1 =Q16813    |type1 =line|title1 =[[HVDC Inter-Island]]
+|id2 =Q7703288  |type2 =line|title2 =[[Terranora interconnector]]
+|id3 =Q6939547  |type3 =line|title3 =[[Murraylink]]
+|id4 =Q810536   |type4 =line|title4 =[[Basslink]]
+
+}}
+{{clear}}
+
+===Europe===
+{{maplink |frame=yes |frame-width=650|frame-height=500
+|text=HVDC links in Europe (interactive map) {{legend|#f80e34|Existing}} {{legend|lime|Under construction}}{{legend|#0e1ef8|Proposed}}
+
+<!-- International links -->
+|id1 =Q918000   |type1 =line|title1 =[[BritNed]]
+|id2 =Q23041456 |type2 =line|title2 =[[Nemo Link]]
+|id3 =Q1563624  |type3 =line|title3 =[[HVDC Cross-Channel|HVDC Cross-Channel (IFA-2000)]]
+|id4 =Q85932728 |type4 =line|title4 =[[ElecLink]]
+|id5 =Q28231939 |type5 =line|title5 =[[IFA-2]]
+|id6 =Q85764561 |type6 =line|title6 =[[Greenlink]]
+|id7 =Q5331045  |type7 =line|title7 =[[East–West Interconnector]]
+|id8 =Q5636209  |type8 =line|title8 =[[North Sea Link]]
+|id9 =Q21208645 |type9 =line|title9 =[[Viking Link]]
+|id10=Q657166   |type10=line|title10=[[NorNed]]
+|id11=Q20962155 |type11=line|title11=[[COBRAcable]]
+|id12=Q1961296  |type12=line|title12=[[NordLink]] 
+|id13=Q264054   |type13=line|title13=[[Skagerrak (power transmission system)|Skagerrak]]  
+|id14=Q351845   |type14=line|title14=[[Konti–Skan]]
+|id15=Q314180   |type15=line|title15=[[Baltic Cable]]
+|id16=Q175924   |type16=line|title16=[[Kontek]]
+|id17=Q59795    |type17=line|title17=[[SwePol]]
+|id18=Q7050527  |type18=line|title18=[[NordBalt]]
+|id19=Q906852   |type19=line|title19=[[Fenno–Skan]]
+|id20=Q3735876  |type20=line|title20=[[Estlink|Estlink 1]]
+|id21=Q61404269 |type21=line|title21=[[Estlink|Estlink 2]]
+|id22=Q22949127 |type22=line|title22=ALEGrO
+|id23=Q2204736  |type23=line|title23=[[HVDC Italy–Corsica–Sardinia|Italy–Corsica–Sardinia (SACOI)]]
+|id24=Q23746774 |type24=line|title24=MON.ITA
+|id25=Q585906   |type25=line|title25=[[HVDC Italy–Greece|Italy–Greece]]
+|id26=Q16642975 |type26=line|title26=Electrical interconnection between Baixas - Santa Llogaia
+|id27=Q24283220 |type27=line|title27=Savoie–Piémont
+|id28=Q975279   |type28=line|title28=[[HVDC Volgograd–Donbass]]
+
+|id29=Q85788332 |type29=line|stroke-color29=#00ff00|title29=[[NeuConnect]]
+|id30=Q28224760 |type30=line|stroke-color30=#00ff00|title30=[[FAB Link]]
+|id31=Q28154456 |type31=line|stroke-color31=#00ff00|title31=[[Celtic Interconnector]]
+|id32=Q125698358|type32=line|stroke-color32=#00ff00|title32=Electrical interconnection across the Biscay Gulf
+
+<!-- National links -->
+|id33=Q7987887  |type33=line|title33=[[Western HVDC Link]]
+|id34=Q5636206  |type34=line|title34=[[Moyle Interconnector]]
+|id35 =Q7495663 |type35=line|title35=[[Shetland HVDC Connection]]
+|id36=Q84699868 |type36=line|title36=[[Caithness - Moray Link]]
+|id37=Q5598748  |type37=line|title37=[[Great Belt power link]]
+|id38=Q7659648  |type38=line|title38=[[SydVästlänken]]
+|id39=Q1563629  |type39=line|title39=[[HVDC Gotland]]
+|id40=Q5151636  |type40=line|title40=[[Cometa (HVDC)|Cometa]]
+|id41=Q3943420  |type41=line|title41=[[SAPEI]]
+|id42=Q18658655 |type42=line|title42=Ål-Link
+|id43=Q131715438|type43=line|title43=Crete-Attica interconnection
+
+|id44=Q117337813|type44=line|stroke-color44=#00ff00|title44=[[Eastern Green Links|Eastern Green Link 2]]
+|id45=Q117337803|type45=line|stroke-color45=#00ff00|title45=[[Eastern Green Links|Eastern Green Link 1]]
+
+<!-- Oil/gas -->
+|id46=Q1563637  |type46=line|title46=[[HVDC Troll|Kollsnes - Troll A]]
+|id47=Q131716936|type47=line|title47=Johan Sverdrup HVDC
+|id48=Q131716924|type48=line|title48=Valhall HVDC
+
+<!-- Offshore wind -->
+|id49=Q19599435 |type49=line|title49=[[HVDC SylWin1|SylWin 1]]
+|id50=Q5636200  |type50=line|title50=[[HVDC HelWin1|HelWin 1]]
+|id51=Q19599434 |type51=line|title51=[[HVDC HelWin2|HelWin 2]]
+|id52=Q631037   |type52=line|title52=[[HVDC BorWin1|BorWin 1]]
+|id53=Q23580988 |type53=line|title53=[[HVDC BorWin2|BorWin 2]]
+|id54=Q19599431 |type54=line|title54=[[HVDC BorWin3|BorWin 3]]
+|id55=Q5636198  |type55=line|title55=[[HVDC DolWin3|DolWin 1]]
+|id56=Q19599432 |type56=line|title56=[[HVDC DolWin3|DolWin 2]]
+|id57=Q19599433 |type57=line|title57=[[HVDC DolWin3|DolWin 3]]
+|id58=Q129015112|type58=line|title58=Dolwin 6
+|id59=Q131560736|type59=line|title59=[[Dogger Bank Wind Farm|Dogger Bank A Export Cable]]
+|id60=Q131560793|type60=line|title60=[[Dogger Bank Wind Farm|Dogger Bank B Export Cable]]
+
+|id61=Q134731332|type61=line|stroke-color61=#00ff00|title61=[[Dogger Bank Wind Farm|Dogger Bank C Export Cable]]
+|id62=Q131572485|type62=line|stroke-color62=#00ff00|title62=[[Dogger Bank Wind Farm|Sofia Wind Farm Export Cable]]
+|id63=Q131572524|type63=line|stroke-color63=#00ff00|title63=Dolwin 5
+|id64=Q131572617|type64=line|stroke-color64=#00ff00|title64=Borwin 5
+
+|id65=Q134730311|type65=line|stroke-color65=#0e1ef8|title65=IJmuiden Ver Alpha Export Cable
+|id66=Q134730439|type66=line|stroke-color66=#0e1ef8|title66=IJmuiden Ver Beta Export Cable
+
+}}
+{{clear}}
+
+===North America===
+{{maplink |frame=yes |frame-width=500|frame-height=400
+|text=HVDC links in North America (interactive map) {{legend|#f80e34|Existing}} {{legend|lime|Under construction}}{{legend|#0e1ef8|Proposed}}
+|zoom=3
+|frame-lat=44.45
+|frame-long=-90.87
+|id1 =Q14874607 |type1 =line|title1 =[[HVDC Vancouver Island]]
+|id2 =Q2045524  |type2 =line|title2 =[[Pacific DC Intertie]]
+|id3 =Q7582000  |type3 =line|title3 =[[Square Butte (transmission line)|Square Butte]]
+|id4 =Q5014737  |type4 =line|title4 =[[CU (power line)]]
+|id5 =Q7144627  |type5 =line|title5 =[[Path 27]]
+|id6 =Q1563634  |type6 =line|title6 =[[Quebec – New England Transmission]]
+|id7 =Q3003771  |type7 =line|title7 =[[Cross Sound Cable]]
+|id8 =Q6995654  |type8 =line|title8 =[[Neptune Cable]]
+|id9 =Q7833656  |type9 =line|title9 =[[Trans Bay Cable]]
+|id10=Q65560144 |type10=line|title10=Western Alberta Transmission Line
+|id11=Q17088782 |type11=line|title11=[[Eastern Alberta Transmission Line]]
+|id12=Q1627044  |type12=line|title12=[[Nelson River DC Transmission System]]
+|id13=Q134931367|type13=line|title13=Labrador-Island Link
+|id14=Q134931662|type14=line|title14=Maritime Link
+}}
+{{clear}}
+
+===South America===
+{{maplink |frame=yes |frame-width=400|frame-height=500
+|text=HVDC links in South America (interactive map) {{legend|#f80e34|Existing}} {{legend|lime|Under construction}}{{legend|#0e1ef8|Proposed}}
+|zoom=3
+|frame-lat=-25.7
+|frame-long=-58.8
+|id1 =Q5636202  |type1 =line|title1 =[[HVDC Itaipu]]
+|id2 =Q7335275  |type2 =line|title2 =[[Rio Madeira HVDC system]]
+|id3 =Q48970740 |type3 =line|title3 =[[Xingu-Estreito HVDC transmission line]]
+|id4 =Q110613108|type4 =line|title4 =[[Xingu-Rio HVDC transmission line]]
+}}
+{{clear}}
+
+==See also==
+{{Portal|Energy|Lists}}
+* [[Asian Super Grid]]
+* [[Desertec]]
+* [[Electrode line]]
+* [[European super grid]]
+* [[High-voltage direct current]]
+* [[List of high voltage underground and submarine cables]]
+* [[Lyon-Moutiers DC transmission scheme]]
+* [[Scotland-Norway interconnector]]
+* [[HVDC converter station]]
+* [[Super grid]]
+* [[Submarine power cable]]
+* [[Transmission tower]]
+* [[Uno Lamm]]
+* [[Valve hall]]
+
+==References==
+{{Reflist|30em}}
+
+==Sources==
+*{{cite book
+| title=HVDC and FACTS Controllers: Applications Of Static Converters In Power Systems
+| author=Vijay K. Sood
+| date=31 May 2004
+| page=2
+| publisher=Springer-Verlag
+| isbn=978-1-4020-7890-3
+}}
+
+{{Lists of high-voltage transmission links}}
+
+[[Category:HVDC transmission lines| ]]
+[[Category:Proposed electric power transmission systems|*HVDC]]
+[[Category:Electric power-related lists|HVDC projects]]

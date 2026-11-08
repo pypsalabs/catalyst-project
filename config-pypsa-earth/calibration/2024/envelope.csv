@@ -32,162 +32,162 @@ RU,nuclear,0.731,0.902,,ember_cf_2024 flat
 SE,nuclear,0.702,0.868,,ember_cf_2024 flat
 SI,nuclear,0.807,1.0,,ember_cf_2024 flat
 SK,nuclear,0.716,0.885,,ember_cf_2024 flat
-TW,nuclear,0.807,1.0,,ember_cf_2024 flat
+TW,nuclear,0.722,0.892,,ember_cf_2024 flat
 UA,nuclear,0.436,0.539,,ember_cf_2022 flat
 US,nuclear,0.783,0.968,,ember_cf_2024 flat
 ZA,nuclear,0.392,0.484,,ember_cf_2024 flat
-AE,biomass,0.807,1.0,,ember_cf_2024 flat
-AO,biomass,0.097,0.12,,ember_cf_2024 flat
-AR,biomass,0.672,0.83,,ember_cf_2024 flat
-AT,biomass,0.487,0.602,,ember_cf_2024 flat
-AU,biomass,0.309,0.381,,ember_cf_2024 flat
-AZ,biomass,0.425,0.525,,ember_cf_2024 flat
-BA,biomass,0.388,0.479,,ember_cf_2024 flat
-BE,biomass,0.807,1.0,,ember_cf_2024 flat
+AE,biomass,0.082,0.102,,ember_cf_2024 flat
+AO,biomass,0.095,0.118,,ember_cf_2024 flat
+AR,biomass,0.671,0.829,,ember_cf_2024 flat
+AT,biomass,0.355,0.439,,ember_cf_2024 flat
+AU,biomass,0.304,0.375,,ember_cf_2024 flat
+AZ,biomass,0.257,0.318,,ember_cf_2024 flat
+BA,biomass,0.38,0.47,,ember_cf_2024 flat
+BE,biomass,0.44,0.544,,ember_cf_2024 flat
 BF,biomass,0.425,0.525,,ember_cf_2024 flat
-BG,biomass,0.807,1.0,,ember_cf_2024 flat
-BI,biomass,0.425,0.525,,ember_cf_2024 flat
+BG,biomass,0.425,0.525,,ember_cf_2024 flat
+BI,biomass,0.243,0.3,,ember_cf_2024 flat
 BM,biomass,0.425,0.525,,ember_cf_2024 flat
-BO,biomass,0.151,0.186,,ember_cf_2024 flat
-BR,biomass,0.318,0.392,,ember_cf_2024 flat
-BY,biomass,0.534,0.659,,ember_cf_2024 flat
-BZ,biomass,0.388,0.479,,ember_cf_2024 flat
-CA,biomass,0.357,0.441,,ember_cf_2024 flat
-CD,biomass,0.425,0.525,,ember_cf_2024 flat
-CG,biomass,0.291,0.36,,ember_cf_2024 flat
-CH,biomass,0.807,1.0,,ember_cf_2024 flat
+BO,biomass,0.152,0.187,,ember_cf_2024 flat
+BR,biomass,0.317,0.392,,ember_cf_2024 flat
+BY,biomass,0.379,0.469,,ember_cf_2024 flat
+BZ,biomass,0.437,0.54,,ember_cf_2024 flat
+CA,biomass,0.352,0.435,,ember_cf_2024 flat
+CD,biomass,0.328,0.405,,ember_cf_2024 flat
+CG,biomass,0.239,0.295,,ember_cf_2024 flat
+CH,biomass,0.368,0.454,,ember_cf_2024 flat
 CI,biomass,0.425,0.525,,ember_cf_2024 flat
-CL,biomass,0.807,1.0,,ember_cf_2024 flat
+CL,biomass,0.425,0.525,,ember_cf_2024 flat
 CM,biomass,0.425,0.525,,ember_cf_2024 flat
-CN,biomass,0.807,1.0,,ember_cf_2024 flat
-CO,biomass,0.552,0.682,,ember_cf_2024 flat
-CR,biomass,0.073,0.09,,ember_cf_2024 flat
+CN,biomass,0.626,0.774,,ember_cf_2024 flat
+CO,biomass,0.555,0.685,,ember_cf_2024 flat
+CR,biomass,0.072,0.089,,ember_cf_2024 flat
 CU,biomass,0.077,0.095,,ember_cf_2024 flat
-CY,biomass,0.582,0.719,,ember_cf_2024 flat
-CZ,biomass,0.629,0.777,,ember_cf_2024 flat
-DE,biomass,0.558,0.689,,ember_cf_2024 flat
-DK,biomass,0.383,0.473,,ember_cf_2024 flat
-DO,biomass,0.255,0.315,,ember_cf_2024 flat
-EC,biomass,0.223,0.275,,ember_cf_2024 flat
-EE,biomass,0.133,0.164,,ember_cf_2024 flat
-ES,biomass,0.521,0.643,,ember_cf_2024 flat
+CY,biomass,0.427,0.527,,ember_cf_2024 flat
+CZ,biomass,0.636,0.785,,ember_cf_2024 flat
+DE,biomass,0.496,0.612,,ember_cf_2024 flat
+DK,biomass,0.348,0.43,,ember_cf_2024 flat
+DO,biomass,0.244,0.302,,ember_cf_2024 flat
+EC,biomass,0.231,0.286,,ember_cf_2024 flat
+EE,biomass,0.439,0.543,,ember_cf_2024 flat
+ES,biomass,0.466,0.575,,ember_cf_2024 flat
 ET,biomass,0.003,0.004,,ember_cf_2024 flat
-FI,biomass,0.276,0.341,,ember_cf_2024 flat
-FJ,biomass,0.166,0.205,,ember_cf_2024 flat
-FO,biomass,0.425,0.525,,ember_cf_2023 flat
-FR,biomass,0.628,0.776,,ember_cf_2024 flat
-GA,biomass,0.425,0.525,,ember_cf_2024 flat
-GB,biomass,0.555,0.685,,ember_cf_2024 flat
-GF,biomass,0.291,0.36,,ember_cf_2023 flat
-GH,biomass,0.194,0.24,,ember_cf_2024 flat
+FI,biomass,0.32,0.395,,ember_cf_2024 flat
+FJ,biomass,0.176,0.217,,ember_cf_2024 flat
+FO,biomass,0.571,0.705,,ember_cf_2023 flat
+FR,biomass,0.309,0.382,,ember_cf_2024 flat
+GA,biomass,0.807,0.999,,ember_cf_2024 flat
+GB,biomass,0.497,0.614,,ember_cf_2024 flat
+GF,biomass,0.374,0.462,,ember_cf_2023 flat
+GH,biomass,0.232,0.286,,ember_cf_2024 flat
 GL,biomass,0.425,0.525,,ember_cf_2024 flat
-GP,biomass,0.505,0.623,,ember_cf_2023 flat
-GR,biomass,0.459,0.567,,ember_cf_2024 flat
+GP,biomass,0.497,0.614,,ember_cf_2023 flat
+GR,biomass,0.41,0.506,,ember_cf_2024 flat
 GT,biomass,0.39,0.482,,ember_cf_2024 flat
-GY,biomass,0.049,0.06,,ember_cf_2024 flat
-HK,biomass,0.259,0.32,,ember_cf_2024 flat
-HN,biomass,0.37,0.458,,ember_cf_2024 flat
-HR,biomass,0.606,0.749,,ember_cf_2024 flat
-HU,biomass,0.286,0.354,,ember_cf_2024 flat
-ID,biomass,0.676,0.836,,ember_cf_2024 flat
-IE,biomass,0.606,0.749,,ember_cf_2024 flat
-IL,biomass,0.213,0.264,,ember_cf_2024 flat
-IN,biomass,0.198,0.244,,ember_cf_2024 flat
-IR,biomass,0.146,0.18,,ember_cf_2024 flat
-IT,biomass,0.577,0.712,,ember_cf_2024 flat
-JM,biomass,0.194,0.24,,ember_cf_2024 flat
-JP,biomass,0.807,1.0,,ember_cf_2024 flat
-KE,biomass,0.114,0.141,,ember_cf_2024 flat
-KH,biomass,0.111,0.137,,ember_cf_2024 flat
-KR,biomass,0.734,0.906,,ember_cf_2024 flat
-LA,biomass,0.032,0.04,,ember_cf_2024 flat
-LB,biomass,0.291,0.36,,ember_cf_2024 flat
-LK,biomass,0.485,0.599,,ember_cf_2024 flat
-LT,biomass,0.634,0.783,,ember_cf_2024 flat
-LU,biomass,0.534,0.659,,ember_cf_2024 flat
-LV,biomass,0.463,0.572,,ember_cf_2024 flat
-MA,biomass,0.388,0.479,,ember_cf_2024 flat
-MD,biomass,0.194,0.24,,ember_cf_2024 flat
+GY,biomass,0.043,0.054,,ember_cf_2024 flat
+HK,biomass,0.267,0.33,,ember_cf_2024 flat
+HN,biomass,0.362,0.448,,ember_cf_2024 flat
+HR,biomass,0.636,0.785,,ember_cf_2024 flat
+HU,biomass,0.285,0.353,,ember_cf_2024 flat
+ID,biomass,0.567,0.7,,ember_cf_2024 flat
+IE,biomass,0.425,0.525,,ember_cf_2024 flat
+IL,biomass,0.41,0.507,,ember_cf_2024 flat
+IN,biomass,0.192,0.237,,ember_cf_2024 flat
+IR,biomass,0.132,0.162,,ember_cf_2024 flat
+IT,biomass,0.496,0.613,,ember_cf_2024 flat
+JM,biomass,0.181,0.224,,ember_cf_2024 flat
+JP,biomass,0.708,0.875,,ember_cf_2024 flat
+KE,biomass,0.111,0.138,,ember_cf_2024 flat
+KH,biomass,0.106,0.131,,ember_cf_2024 flat
+KR,biomass,0.708,0.875,,ember_cf_2024 flat
+LA,biomass,0.032,0.039,,ember_cf_2024 flat
+LB,biomass,0.416,0.514,,ember_cf_2024 flat
+LK,biomass,0.395,0.488,,ember_cf_2024 flat
+LT,biomass,0.71,0.877,,ember_cf_2024 flat
+LU,biomass,0.455,0.562,,ember_cf_2024 flat
+LV,biomass,0.461,0.57,,ember_cf_2024 flat
+MA,biomass,0.524,0.648,,ember_cf_2024 flat
+MD,biomass,0.285,0.353,,ember_cf_2024 flat
 MG,biomass,0.425,0.525,,ember_cf_2024 flat
-MK,biomass,0.582,0.719,,ember_cf_2024 flat
-ML,biomass,0.17,0.21,,ember_cf_2024 flat
-MM,biomass,0.437,0.539,,ember_cf_2024 flat
+MK,biomass,0.444,0.549,,ember_cf_2024 flat
+ML,biomass,0.159,0.197,,ember_cf_2024 flat
+MM,biomass,0.446,0.551,,ember_cf_2024 flat
 MO,biomass,0.425,0.525,,ember_cf_2024 flat
-MQ,biomass,0.582,0.719,,ember_cf_2023 flat
-MT,biomass,0.425,0.525,,ember_cf_2024 flat
-MU,biomass,0.345,0.426,,ember_cf_2024 flat
-MW,biomass,0.243,0.3,,ember_cf_2024 flat
+MQ,biomass,0.506,0.625,,ember_cf_2023 flat
+MT,biomass,0.241,0.298,,ember_cf_2024 flat
+MU,biomass,0.343,0.423,,ember_cf_2024 flat
+MW,biomass,0.262,0.324,,ember_cf_2024 flat
 MX,biomass,0.653,0.807,,ember_cf_2024 flat
-MY,biomass,0.178,0.22,,ember_cf_2024 flat
-MZ,biomass,0.18,0.223,,ember_cf_2024 flat
-NG,biomass,0.291,0.36,,ember_cf_2024 flat
-NI,biomass,0.393,0.485,,ember_cf_2024 flat
-NL,biomass,0.807,1.0,,ember_cf_2024 flat
-NO,biomass,0.466,0.575,,ember_cf_2024 flat
-NZ,biomass,0.505,0.623,,ember_cf_2024 flat
-PA,biomass,0.049,0.06,,ember_cf_2024 flat
-PE,biomass,0.291,0.36,,ember_cf_2024 flat
-PG,biomass,0.049,0.06,,ember_cf_2024 flat
+MY,biomass,0.176,0.217,,ember_cf_2024 flat
+MZ,biomass,0.169,0.208,,ember_cf_2024 flat
+NG,biomass,0.277,0.342,,ember_cf_2024 flat
+NI,biomass,0.396,0.489,,ember_cf_2024 flat
+NL,biomass,0.742,0.916,,ember_cf_2024 flat
+NO,biomass,0.281,0.347,,ember_cf_2024 flat
+NZ,biomass,0.528,0.652,,ember_cf_2024 flat
+PA,biomass,0.047,0.058,,ember_cf_2024 flat
+PE,biomass,0.347,0.429,,ember_cf_2024 flat
+PG,biomass,0.053,0.065,,ember_cf_2024 flat
 PH,biomass,0.16,0.198,,ember_cf_2024 flat
-PK,biomass,0.158,0.195,,ember_cf_2024 flat
-PL,biomass,0.804,0.993,,ember_cf_2024 flat
-PR,biomass,0.425,0.525,,ember_cf_2024 flat
-PT,biomass,0.543,0.671,,ember_cf_2024 flat
-PY,biomass,0.807,1.0,,ember_cf_2024 flat
-QA,biomass,0.425,0.525,,ember_cf_2024 flat
-RE,biomass,0.336,0.416,,ember_cf_2023 flat
-RO,biomass,0.291,0.36,,ember_cf_2024 flat
-RS,biomass,0.66,0.815,,ember_cf_2024 flat
-RU,biomass,0.62,0.765,,ember_cf_2024 flat
-SD,biomass,0.053,0.066,,ember_cf_2024 flat
-SE,biomass,0.31,0.383,,ember_cf_2024 flat
-SG,biomass,0.807,1.0,,ember_cf_2024 flat
-SI,biomass,0.347,0.428,,ember_cf_2024 flat
-SK,biomass,0.451,0.557,,ember_cf_2024 flat
-SN,biomass,0.213,0.264,,ember_cf_2024 flat
-SR,biomass,0.425,0.525,,ember_cf_2024 flat
-SV,biomass,0.268,0.332,,ember_cf_2024 flat
-SY,biomass,0.291,0.36,,ember_cf_2024 flat
-SZ,biomass,0.185,0.229,,ember_cf_2024 flat
-TD,biomass,0.425,0.525,,ember_cf_2024 flat
-TH,biomass,0.321,0.397,,ember_cf_2024 flat
-TR,biomass,0.423,0.523,,ember_cf_2024 flat
-TW,biomass,0.807,1.0,,ember_cf_2024 flat
+PK,biomass,0.157,0.194,,ember_cf_2024 flat
+PL,biomass,0.656,0.81,,ember_cf_2024 flat
+PR,biomass,0.202,0.25,,ember_cf_2024 flat
+PT,biomass,0.513,0.634,,ember_cf_2024 flat
+PY,biomass,0.562,0.695,,ember_cf_2024 flat
+QA,biomass,0.664,0.82,,ember_cf_2024 flat
+RE,biomass,0.337,0.416,,ember_cf_2023 flat
+RO,biomass,0.298,0.369,,ember_cf_2024 flat
+RS,biomass,0.601,0.742,,ember_cf_2024 flat
+RU,biomass,0.617,0.762,,ember_cf_2024 flat
+SD,biomass,0.054,0.066,,ember_cf_2024 flat
+SE,biomass,0.27,0.334,,ember_cf_2024 flat
+SG,biomass,0.742,0.917,,ember_cf_2024 flat
+SI,biomass,0.423,0.522,,ember_cf_2024 flat
+SK,biomass,0.748,0.924,,ember_cf_2024 flat
+SN,biomass,0.218,0.269,,ember_cf_2024 flat
+SR,biomass,0.647,0.799,,ember_cf_2024 flat
+SV,biomass,0.265,0.328,,ember_cf_2024 flat
+SY,biomass,0.434,0.536,,ember_cf_2024 flat
+SZ,biomass,0.192,0.237,,ember_cf_2024 flat
+TD,biomass,0.485,0.599,,ember_cf_2024 flat
+TH,biomass,0.307,0.38,,ember_cf_2024 flat
+TR,biomass,0.42,0.519,,ember_cf_2024 flat
+TW,biomass,0.481,0.594,,ember_cf_2024 flat
 TZ,biomass,0.097,0.12,,ember_cf_2024 flat
-UA,biomass,0.28,0.346,,ember_cf_2022 flat
-UG,biomass,0.415,0.512,,ember_cf_2024 flat
-US,biomass,0.456,0.564,,ember_cf_2024 flat
-UY,biomass,0.393,0.486,,ember_cf_2024 flat
-VN,biomass,0.238,0.294,,ember_cf_2024 flat
+UA,biomass,0.275,0.34,,ember_cf_2022 flat
+UG,biomass,0.474,0.586,,ember_cf_2024 flat
+US,biomass,0.419,0.517,,ember_cf_2024 flat
+UY,biomass,0.395,0.488,,ember_cf_2024 flat
+VN,biomass,0.219,0.271,,ember_cf_2024 flat
 WS,biomass,0.425,0.525,,ember_cf_2024 flat
-ZA,biomass,0.175,0.217,,ember_cf_2024 flat
-ZM,biomass,0.194,0.24,,ember_cf_2024 flat
+ZA,biomass,0.172,0.213,,ember_cf_2024 flat
+ZM,biomass,0.181,0.224,,ember_cf_2024 flat
 ZW,biomass,0.116,0.144,,ember_cf_2024 flat
-CH,geothermal,0.505,0.623,,ember_cf_2024 flat
-CL,geothermal,0.637,0.788,,ember_cf_2024 flat
-CR,geothermal,0.637,0.788,,ember_cf_2024 flat
-DE,geothermal,0.02,0.025,,ember_cf_2024 flat
-ES,geothermal,0.007,0.009,,ember_cf_2024 flat
-ET,geothermal,0.097,0.12,,ember_cf_2024 flat
-FR,geothermal,0.074,0.091,,ember_cf_2024 flat
-GP,geothermal,0.637,0.788,,ember_cf_2023 flat
-GT,geothermal,0.637,0.788,,ember_cf_2024 flat
+CH,geothermal,0.638,0.788,,ember_cf_2024 flat
+CL,geothermal,0.522,0.645,,ember_cf_2024 flat
+CR,geothermal,0.591,0.73,,ember_cf_2024 flat
+DE,geothermal,0.485,0.599,,ember_cf_2024 flat
+ES,geothermal,0.202,0.25,,ember_cf_2024 flat
+ET,geothermal,0.399,0.493,,ember_cf_2024 flat
+FR,geothermal,0.243,0.3,,ember_cf_2024 flat
+GP,geothermal,0.736,0.909,,ember_cf_2023 flat
+GT,geothermal,0.671,0.828,,ember_cf_2024 flat
 HN,geothermal,0.637,0.788,,ember_cf_2024 flat
-HU,geothermal,0.049,0.06,,ember_cf_2024 flat
-ID,geothermal,0.807,1.0,,ember_cf_2024 flat
-IS,geothermal,0.637,0.788,,ember_cf_2024 flat
-IT,geothermal,0.807,1.0,,ember_cf_2024 flat
-KE,geothermal,0.638,0.788,,ember_cf_2024 flat
+HU,geothermal,0.323,0.4,,ember_cf_2024 flat
+ID,geothermal,0.617,0.762,,ember_cf_2024 flat
+IS,geothermal,0.686,0.848,,ember_cf_2024 flat
+IT,geothermal,0.713,0.881,,ember_cf_2024 flat
+KE,geothermal,0.62,0.765,,ember_cf_2024 flat
 LK,geothermal,0.638,0.788,,ember_cf_2024 flat
 MQ,geothermal,0.638,0.788,,ember_cf_2023 flat
-NI,geothermal,0.637,0.788,,ember_cf_2024 flat
-NZ,geothermal,0.637,0.788,,ember_cf_2024 flat
-PG,geothermal,0.637,0.788,,ember_cf_2024 flat
-PH,geothermal,0.638,0.788,,ember_cf_2024 flat
-PT,geothermal,0.485,0.599,,ember_cf_2024 flat
-SV,geothermal,0.638,0.788,,ember_cf_2024 flat
-TR,geothermal,0.807,1.0,,ember_cf_2024 flat
-US,geothermal,0.807,1.0,,ember_cf_2024 flat
+NI,geothermal,0.405,0.5,,ember_cf_2024 flat
+NZ,geothermal,0.679,0.839,,ember_cf_2024 flat
+PG,geothermal,0.19,0.235,,ember_cf_2024 flat
+PH,geothermal,0.519,0.641,,ember_cf_2024 flat
+PT,geothermal,0.667,0.824,,ember_cf_2024 flat
+SV,geothermal,0.732,0.904,,ember_cf_2024 flat
+TR,geothermal,0.571,0.705,,ember_cf_2024 flat
+US,geothermal,0.624,0.771,,ember_cf_2024 flat
 AF,oil,0.04,0.05,,ember_cf_2024 flat
 AG,oil,0.255,0.315,,ember_cf_2024 flat
 AO,oil,0.16,0.197,0.39,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
@@ -235,7 +235,7 @@ DO,oil,0.296,0.365,0.39,ember_cf_2024 flat; efficiency implied by Ember oil CO2 
 DZ,oil,0.021,0.025,,ember_cf_2024 flat
 EC,oil,0.237,0.292,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 EE,oil,0.304,0.375,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
-EG,oil,0.807,1.0,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
+EG,oil,0.255,0.315,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 EH,oil,0.255,0.315,,ember_cf_2009 flat
 ER,oil,0.185,0.228,,ember_cf_2024 flat
 ES,oil,0.289,0.357,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
@@ -270,7 +270,7 @@ IE,oil,0.127,0.157,0.388,ember_cf_2024 flat; efficiency implied by Ember oil CO2
 IL,oil,0.255,0.315,,ember_cf_2024 flat
 IN,oil,0.021,0.026,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 IQ,oil,0.659,0.813,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
-IR,oil,0.807,1.0,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
+IR,oil,0.255,0.315,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 IT,oil,0.3,0.37,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 JM,oil,0.164,0.202,0.39,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 JO,oil,0.616,0.761,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
@@ -299,7 +299,7 @@ MG,oil,0.175,0.216,0.392,ember_cf_2024 flat; efficiency implied by Ember oil CO2
 MK,oil,0.082,0.102,,ember_cf_2024 flat
 ML,oil,0.764,0.943,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 MM,oil,0.255,0.315,,ember_cf_2024 flat
-MN,oil,0.807,1.0,0.386,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
+MN,oil,0.255,0.315,0.386,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 MO,oil,0.018,0.022,,ember_cf_2024 flat
 MQ,oil,0.388,0.479,0.389,ember_cf_2023 flat; efficiency implied by Ember oil CO2 2023
 MR,oil,0.647,0.799,0.392,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
@@ -318,22 +318,22 @@ NL,oil,0.447,0.552,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2
 NO,oil,0.499,0.616,0.394,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 NR,oil,0.194,0.24,,ember_cf_2024 flat
 NZ,oil,0.255,0.315,0.395,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
-OM,oil,0.807,1.0,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
+OM,oil,0.255,0.315,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 PA,oil,0.124,0.154,0.39,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 PE,oil,0.014,0.017,,ember_cf_2024 flat
 PF,oil,0.207,0.256,,ember_cf_2024 flat
 PG,oil,0.535,0.66,0.39,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 PH,oil,0.031,0.038,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 PK,oil,0.049,0.06,0.392,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
-PL,oil,0.807,1.0,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
+PL,oil,0.255,0.315,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 PM,oil,0.162,0.2,,ember_cf_2023 flat
 PR,oil,0.244,0.301,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 PS,oil,0.255,0.315,0.396,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 PT,oil,0.283,0.349,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
-RE,oil,0.807,1.0,0.392,ember_cf_2023 flat; efficiency implied by Ember oil CO2 2023
+RE,oil,0.255,0.315,0.392,ember_cf_2023 flat; efficiency implied by Ember oil CO2 2023
 RO,oil,0.014,0.018,,ember_cf_2024 flat
 RS,oil,0.255,0.315,,ember_cf_2024 flat
-RU,oil,0.807,1.0,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
+RU,oil,0.255,0.315,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 RW,oil,0.243,0.3,,ember_cf_2024 flat
 SA,oil,0.537,0.664,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 SB,oil,0.162,0.2,,ember_cf_2024 flat
@@ -351,7 +351,7 @@ SR,oil,0.152,0.188,0.388,ember_cf_2024 flat; efficiency implied by Ember oil CO2
 SS,oil,0.267,0.33,0.393,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 ST,oil,0.259,0.32,,ember_cf_2023 flat
 SV,oil,0.106,0.131,0.396,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
-SY,oil,0.807,1.0,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
+SY,oil,0.255,0.315,0.391,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 TC,oil,0.252,0.312,,ember_cf_2024 flat
 TD,oil,0.212,0.262,,ember_cf_2024 flat
 TH,oil,0.255,0.315,,ember_cf_2024 flat
@@ -378,176 +378,70 @@ XK,oil,0.255,0.315,,ember_cf_2024 flat
 YE,oil,0.319,0.394,0.39,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 ZA,oil,0.078,0.096,0.39,ember_cf_2024 flat; efficiency implied by Ember oil CO2 2024
 ZM,oil,0.157,0.194,,ember_cf_2024 flat
-AE,CCGT,,0.92,0.293,efficiency implied by Ember gas CO2 2024
-AE,OCGT,,0.92,0.293,efficiency implied by Ember gas CO2 2024
-AM,CCGT,,0.92,0.337,efficiency implied by Ember gas CO2 2024
-AM,OCGT,,0.92,0.337,efficiency implied by Ember gas CO2 2024
-AO,CCGT,,0.92,0.338,efficiency implied by Ember gas CO2 2024
-AO,OCGT,,0.92,0.338,efficiency implied by Ember gas CO2 2024
 AR,coal,,0.9,0.386,efficiency implied by Ember coal CO2 2024
 AR,lignite,,0.9,0.386,efficiency implied by Ember coal CO2 2024
-AR,CCGT,,0.92,0.356,efficiency implied by Ember gas CO2 2024
-AR,OCGT,,0.92,0.356,efficiency implied by Ember gas CO2 2024
-AT,CCGT,,0.92,0.443,efficiency implied by Ember gas CO2 2024
-AT,OCGT,,0.92,0.443,efficiency implied by Ember gas CO2 2024
 AU,coal,,0.9,0.381,efficiency implied by Ember coal CO2 2024
 AU,lignite,,0.9,0.381,efficiency implied by Ember coal CO2 2024
-AU,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-AU,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-AZ,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-AZ,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
 BA,coal,,0.9,0.337,efficiency implied by Ember coal CO2 2024
 BA,lignite,,0.9,0.337,efficiency implied by Ember coal CO2 2024
 BD,coal,,0.9,0.414,efficiency implied by Ember coal CO2 2024
 BD,lignite,,0.9,0.414,efficiency implied by Ember coal CO2 2024
-BD,CCGT,,0.92,0.288,efficiency implied by Ember gas CO2 2024
-BD,OCGT,,0.92,0.288,efficiency implied by Ember gas CO2 2024
-BE,CCGT,,0.92,0.5,efficiency implied by Ember gas CO2 2024
-BE,OCGT,,0.92,0.5,efficiency implied by Ember gas CO2 2024
 BG,coal,,0.9,0.331,efficiency implied by Ember coal CO2 2024
 BG,lignite,,0.9,0.331,efficiency implied by Ember coal CO2 2024
-BG,CCGT,,0.92,0.487,efficiency implied by Ember gas CO2 2024
-BG,OCGT,,0.92,0.487,efficiency implied by Ember gas CO2 2024
-BH,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-BH,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-BJ,CCGT,,0.92,0.336,efficiency implied by Ember gas CO2 2024
-BJ,OCGT,,0.92,0.336,efficiency implied by Ember gas CO2 2024
 BN,coal,,0.9,0.389,efficiency implied by Ember coal CO2 2024
 BN,lignite,,0.9,0.389,efficiency implied by Ember coal CO2 2024
-BN,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-BN,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-BO,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-BO,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
 BR,coal,,0.9,0.385,efficiency implied by Ember coal CO2 2024
 BR,lignite,,0.9,0.385,efficiency implied by Ember coal CO2 2024
-BR,CCGT,,0.92,0.33,efficiency implied by Ember gas CO2 2024
-BR,OCGT,,0.92,0.33,efficiency implied by Ember gas CO2 2024
 BW,coal,,0.9,0.392,efficiency implied by Ember coal CO2 2024
 BW,lignite,,0.9,0.392,efficiency implied by Ember coal CO2 2024
-BY,CCGT,,0.92,0.389,efficiency implied by Ember gas CO2 2024
-BY,OCGT,,0.92,0.389,efficiency implied by Ember gas CO2 2024
 CA,coal,,0.9,0.374,efficiency implied by Ember coal CO2 2024
 CA,lignite,,0.9,0.374,efficiency implied by Ember coal CO2 2024
-CA,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-CA,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-CG,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-CG,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-CI,CCGT,,0.92,0.355,efficiency implied by Ember gas CO2 2024
-CI,OCGT,,0.92,0.355,efficiency implied by Ember gas CO2 2024
 CL,coal,,0.9,0.361,efficiency implied by Ember coal CO2 2024
 CL,lignite,,0.9,0.361,efficiency implied by Ember coal CO2 2024
-CL,CCGT,,0.92,0.337,efficiency implied by Ember gas CO2 2024
-CL,OCGT,,0.92,0.337,efficiency implied by Ember gas CO2 2024
-CM,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-CM,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
 CN,coal,,0.9,0.371,efficiency implied by Ember coal CO2 2024
 CN,lignite,,0.9,0.371,efficiency implied by Ember coal CO2 2024
-CN,CCGT,,0.92,0.446,efficiency implied by Ember gas CO2 2024
-CN,OCGT,,0.92,0.446,efficiency implied by Ember gas CO2 2024
 CO,coal,,0.9,0.384,efficiency implied by Ember coal CO2 2024
 CO,lignite,,0.9,0.384,efficiency implied by Ember coal CO2 2024
-CO,CCGT,,0.92,0.309,efficiency implied by Ember gas CO2 2024
-CO,OCGT,,0.92,0.309,efficiency implied by Ember gas CO2 2024
-CU,CCGT,,0.92,0.281,efficiency implied by Ember gas CO2 2024
-CU,OCGT,,0.92,0.281,efficiency implied by Ember gas CO2 2024
 CZ,coal,,0.9,0.334,efficiency implied by Ember coal CO2 2024
 CZ,lignite,,0.9,0.334,efficiency implied by Ember coal CO2 2024
-CZ,CCGT,,0.92,0.466,efficiency implied by Ember gas CO2 2024
-CZ,OCGT,,0.92,0.466,efficiency implied by Ember gas CO2 2024
 DE,coal,,0.9,0.347,efficiency implied by Ember coal CO2 2024
 DE,lignite,,0.9,0.347,efficiency implied by Ember coal CO2 2024
-DE,CCGT,,0.92,0.459,efficiency implied by Ember gas CO2 2024
-DE,OCGT,,0.92,0.459,efficiency implied by Ember gas CO2 2024
 DK,coal,,0.9,0.368,efficiency implied by Ember coal CO2 2024
 DK,lignite,,0.9,0.368,efficiency implied by Ember coal CO2 2024
-DK,CCGT,,0.92,0.53,efficiency implied by Ember gas CO2 2024
-DK,OCGT,,0.92,0.53,efficiency implied by Ember gas CO2 2024
 DO,coal,,0.9,0.385,efficiency implied by Ember coal CO2 2024
 DO,lignite,,0.9,0.385,efficiency implied by Ember coal CO2 2024
-DO,CCGT,,0.92,0.374,efficiency implied by Ember gas CO2 2024
-DO,OCGT,,0.92,0.374,efficiency implied by Ember gas CO2 2024
-DZ,CCGT,,0.92,0.31,efficiency implied by Ember gas CO2 2024
-DZ,OCGT,,0.92,0.31,efficiency implied by Ember gas CO2 2024
-EC,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-EC,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-EG,CCGT,,0.92,0.308,efficiency implied by Ember gas CO2 2024
-EG,OCGT,,0.92,0.308,efficiency implied by Ember gas CO2 2024
 ES,coal,,0.9,0.348,efficiency implied by Ember coal CO2 2024
 ES,lignite,,0.9,0.348,efficiency implied by Ember coal CO2 2024
-ES,CCGT,,0.92,0.402,efficiency implied by Ember gas CO2 2024
-ES,OCGT,,0.92,0.402,efficiency implied by Ember gas CO2 2024
 FI,coal,,0.9,0.362,efficiency implied by Ember coal CO2 2024
 FI,lignite,,0.9,0.362,efficiency implied by Ember coal CO2 2024
-FI,CCGT,,0.92,0.58,efficiency implied by Ember gas CO2 2024
-FI,OCGT,,0.92,0.58,efficiency implied by Ember gas CO2 2024
 FR,coal,,0.9,0.35,efficiency implied by Ember coal CO2 2024
 FR,lignite,,0.9,0.35,efficiency implied by Ember coal CO2 2024
-FR,CCGT,,0.92,0.455,efficiency implied by Ember gas CO2 2024
-FR,OCGT,,0.92,0.455,efficiency implied by Ember gas CO2 2024
-GA,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-GA,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
 GB,coal,,0.9,0.349,efficiency implied by Ember coal CO2 2024
 GB,lignite,,0.9,0.349,efficiency implied by Ember coal CO2 2024
-GB,CCGT,,0.92,0.413,efficiency implied by Ember gas CO2 2024
-GB,OCGT,,0.92,0.413,efficiency implied by Ember gas CO2 2024
-GE,CCGT,,0.92,0.316,efficiency implied by Ember gas CO2 2024
-GE,OCGT,,0.92,0.316,efficiency implied by Ember gas CO2 2024
-GH,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-GH,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-GQ,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-GQ,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
 GR,coal,,0.9,0.344,efficiency implied by Ember coal CO2 2024
 GR,lignite,,0.9,0.344,efficiency implied by Ember coal CO2 2024
-GR,CCGT,,0.92,0.371,efficiency implied by Ember gas CO2 2024
-GR,OCGT,,0.92,0.371,efficiency implied by Ember gas CO2 2024
 GT,coal,,0.9,0.385,efficiency implied by Ember coal CO2 2024
 GT,lignite,,0.9,0.385,efficiency implied by Ember coal CO2 2024
 HK,coal,,0.9,0.35,efficiency implied by Ember coal CO2 2024
 HK,lignite,,0.9,0.35,efficiency implied by Ember coal CO2 2024
-HK,CCGT,,0.92,0.37,efficiency implied by Ember gas CO2 2024
-HK,OCGT,,0.92,0.37,efficiency implied by Ember gas CO2 2024
 HR,coal,,0.9,0.349,efficiency implied by Ember coal CO2 2024
 HR,lignite,,0.9,0.349,efficiency implied by Ember coal CO2 2024
-HR,CCGT,,0.92,0.466,efficiency implied by Ember gas CO2 2024
-HR,OCGT,,0.92,0.466,efficiency implied by Ember gas CO2 2024
 HU,coal,,0.9,0.331,efficiency implied by Ember coal CO2 2024
 HU,lignite,,0.9,0.331,efficiency implied by Ember coal CO2 2024
-HU,CCGT,,0.92,0.429,efficiency implied by Ember gas CO2 2024
-HU,OCGT,,0.92,0.429,efficiency implied by Ember gas CO2 2024
 ID,coal,,0.9,0.396,efficiency implied by Ember coal CO2 2024
 ID,lignite,,0.9,0.396,efficiency implied by Ember coal CO2 2024
-ID,CCGT,,0.92,0.281,efficiency implied by Ember gas CO2 2024
-ID,OCGT,,0.92,0.281,efficiency implied by Ember gas CO2 2024
 IE,coal,,0.9,0.347,efficiency implied by Ember coal CO2 2024
 IE,lignite,,0.9,0.347,efficiency implied by Ember coal CO2 2024
-IE,CCGT,,0.92,0.44,efficiency implied by Ember gas CO2 2024
-IE,OCGT,,0.92,0.44,efficiency implied by Ember gas CO2 2024
 IL,coal,,0.9,0.392,efficiency implied by Ember coal CO2 2024
 IL,lignite,,0.9,0.392,efficiency implied by Ember coal CO2 2024
-IL,CCGT,,0.92,0.346,efficiency implied by Ember gas CO2 2024
-IL,OCGT,,0.92,0.346,efficiency implied by Ember gas CO2 2024
 IN,coal,,0.9,0.369,efficiency implied by Ember coal CO2 2024
 IN,lignite,,0.9,0.369,efficiency implied by Ember coal CO2 2024
-IN,CCGT,,0.92,0.286,efficiency implied by Ember gas CO2 2024
-IN,OCGT,,0.92,0.286,efficiency implied by Ember gas CO2 2024
-IQ,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-IQ,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
 IR,coal,,0.9,0.372,efficiency implied by Ember coal CO2 2024
 IR,lignite,,0.9,0.372,efficiency implied by Ember coal CO2 2024
-IR,CCGT,,0.92,0.283,efficiency implied by Ember gas CO2 2024
-IR,OCGT,,0.92,0.283,efficiency implied by Ember gas CO2 2024
 IT,coal,,0.9,0.368,efficiency implied by Ember coal CO2 2024
 IT,lignite,,0.9,0.368,efficiency implied by Ember coal CO2 2024
-IT,CCGT,,0.92,0.409,efficiency implied by Ember gas CO2 2024
-IT,OCGT,,0.92,0.409,efficiency implied by Ember gas CO2 2024
-JM,CCGT,,0.92,0.315,efficiency implied by Ember gas CO2 2024
-JM,OCGT,,0.92,0.315,efficiency implied by Ember gas CO2 2024
-JO,CCGT,,0.92,0.286,efficiency implied by Ember gas CO2 2024
-JO,OCGT,,0.92,0.286,efficiency implied by Ember gas CO2 2024
 JP,coal,,0.9,0.407,efficiency implied by Ember coal CO2 2024
 JP,lignite,,0.9,0.407,efficiency implied by Ember coal CO2 2024
-JP,CCGT,,0.92,0.364,efficiency implied by Ember gas CO2 2024
-JP,OCGT,,0.92,0.364,efficiency implied by Ember gas CO2 2024
 KG,coal,,0.9,0.352,efficiency implied by Ember coal CO2 2024
 KG,lignite,,0.9,0.352,efficiency implied by Ember coal CO2 2024
 KH,coal,,0.9,0.405,efficiency implied by Ember coal CO2 2024
@@ -556,164 +450,70 @@ KP,coal,,0.9,0.371,efficiency implied by Ember coal CO2 2024
 KP,lignite,,0.9,0.371,efficiency implied by Ember coal CO2 2024
 KR,coal,,0.9,0.409,efficiency implied by Ember coal CO2 2024
 KR,lignite,,0.9,0.409,efficiency implied by Ember coal CO2 2024
-KR,CCGT,,0.92,0.385,efficiency implied by Ember gas CO2 2024
-KR,OCGT,,0.92,0.385,efficiency implied by Ember gas CO2 2024
-KW,CCGT,,0.92,0.307,efficiency implied by Ember gas CO2 2024
-KW,OCGT,,0.92,0.307,efficiency implied by Ember gas CO2 2024
 KZ,coal,,0.9,0.365,efficiency implied by Ember coal CO2 2024
 KZ,lignite,,0.9,0.365,efficiency implied by Ember coal CO2 2024
-KZ,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-KZ,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
 LA,coal,,0.9,0.366,efficiency implied by Ember coal CO2 2024
 LA,lignite,,0.9,0.366,efficiency implied by Ember coal CO2 2024
 LK,coal,,0.9,0.389,efficiency implied by Ember coal CO2 2024
 LK,lignite,,0.9,0.389,efficiency implied by Ember coal CO2 2024
-LT,CCGT,,0.92,0.52,efficiency implied by Ember gas CO2 2024
-LT,OCGT,,0.92,0.52,efficiency implied by Ember gas CO2 2024
-LV,CCGT,,0.92,0.545,efficiency implied by Ember gas CO2 2024
-LV,OCGT,,0.92,0.545,efficiency implied by Ember gas CO2 2024
-LY,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-LY,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
 MA,coal,,0.9,0.403,efficiency implied by Ember coal CO2 2024
 MA,lignite,,0.9,0.403,efficiency implied by Ember coal CO2 2024
-MA,CCGT,,0.92,0.39,efficiency implied by Ember gas CO2 2024
-MA,OCGT,,0.92,0.39,efficiency implied by Ember gas CO2 2024
-MD,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-MD,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
 ME,coal,,0.9,0.331,efficiency implied by Ember coal CO2 2024
 ME,lignite,,0.9,0.331,efficiency implied by Ember coal CO2 2024
 MK,coal,,0.9,0.33,efficiency implied by Ember coal CO2 2024
 MK,lignite,,0.9,0.33,efficiency implied by Ember coal CO2 2024
-MK,CCGT,,0.92,0.405,efficiency implied by Ember gas CO2 2024
-MK,OCGT,,0.92,0.405,efficiency implied by Ember gas CO2 2024
 MM,coal,,0.9,0.388,efficiency implied by Ember coal CO2 2024
 MM,lignite,,0.9,0.388,efficiency implied by Ember coal CO2 2024
-MM,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-MM,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
 MN,coal,,0.9,0.369,efficiency implied by Ember coal CO2 2024
 MN,lignite,,0.9,0.369,efficiency implied by Ember coal CO2 2024
-MT,CCGT,,0.92,0.35,efficiency implied by Ember gas CO2 2024
-MT,OCGT,,0.92,0.35,efficiency implied by Ember gas CO2 2024
 MU,coal,,0.9,0.392,efficiency implied by Ember coal CO2 2024
 MU,lignite,,0.9,0.392,efficiency implied by Ember coal CO2 2024
 MX,coal,,0.9,0.389,efficiency implied by Ember coal CO2 2024
 MX,lignite,,0.9,0.389,efficiency implied by Ember coal CO2 2024
-MX,CCGT,,0.92,0.324,efficiency implied by Ember gas CO2 2024
-MX,OCGT,,0.92,0.324,efficiency implied by Ember gas CO2 2024
 MY,coal,,0.9,0.398,efficiency implied by Ember coal CO2 2024
 MY,lignite,,0.9,0.398,efficiency implied by Ember coal CO2 2024
-MY,CCGT,,0.92,0.313,efficiency implied by Ember gas CO2 2024
-MY,OCGT,,0.92,0.313,efficiency implied by Ember gas CO2 2024
-MZ,CCGT,,0.92,0.304,efficiency implied by Ember gas CO2 2024
-MZ,OCGT,,0.92,0.304,efficiency implied by Ember gas CO2 2024
 NC,coal,,0.9,0.391,efficiency implied by Ember coal CO2 2024
 NC,lignite,,0.9,0.391,efficiency implied by Ember coal CO2 2024
-NG,CCGT,,0.92,0.303,efficiency implied by Ember gas CO2 2024
-NG,OCGT,,0.92,0.303,efficiency implied by Ember gas CO2 2024
 NL,coal,,0.9,0.375,efficiency implied by Ember coal CO2 2024
 NL,lignite,,0.9,0.375,efficiency implied by Ember coal CO2 2024
-NL,CCGT,,0.92,0.492,efficiency implied by Ember gas CO2 2024
-NL,OCGT,,0.92,0.492,efficiency implied by Ember gas CO2 2024
-NO,CCGT,,0.92,0.441,efficiency implied by Ember gas CO2 2024
-NO,OCGT,,0.92,0.441,efficiency implied by Ember gas CO2 2024
 NZ,coal,,0.9,0.384,efficiency implied by Ember coal CO2 2024
 NZ,lignite,,0.9,0.384,efficiency implied by Ember coal CO2 2024
-NZ,CCGT,,0.92,0.368,efficiency implied by Ember gas CO2 2024
-NZ,OCGT,,0.92,0.368,efficiency implied by Ember gas CO2 2024
-OM,CCGT,,0.92,0.351,efficiency implied by Ember gas CO2 2024
-OM,OCGT,,0.92,0.351,efficiency implied by Ember gas CO2 2024
-PA,CCGT,,0.92,0.34,efficiency implied by Ember gas CO2 2024
-PA,OCGT,,0.92,0.34,efficiency implied by Ember gas CO2 2024
-PE,CCGT,,0.92,0.326,efficiency implied by Ember gas CO2 2024
-PE,OCGT,,0.92,0.326,efficiency implied by Ember gas CO2 2024
-PG,CCGT,,0.92,0.286,efficiency implied by Ember gas CO2 2024
-PG,OCGT,,0.92,0.286,efficiency implied by Ember gas CO2 2024
 PH,coal,,0.9,0.391,efficiency implied by Ember coal CO2 2024
 PH,lignite,,0.9,0.391,efficiency implied by Ember coal CO2 2024
-PH,CCGT,,0.92,0.447,efficiency implied by Ember gas CO2 2024
-PH,OCGT,,0.92,0.447,efficiency implied by Ember gas CO2 2024
 PK,coal,,0.9,0.394,efficiency implied by Ember coal CO2 2024
 PK,lignite,,0.9,0.394,efficiency implied by Ember coal CO2 2024
-PK,CCGT,,0.92,0.289,efficiency implied by Ember gas CO2 2024
-PK,OCGT,,0.92,0.289,efficiency implied by Ember gas CO2 2024
 PL,coal,,0.9,0.347,efficiency implied by Ember coal CO2 2024
 PL,lignite,,0.9,0.347,efficiency implied by Ember coal CO2 2024
-PL,CCGT,,0.92,0.485,efficiency implied by Ember gas CO2 2024
-PL,OCGT,,0.92,0.485,efficiency implied by Ember gas CO2 2024
 PR,coal,,0.9,0.369,efficiency implied by Ember coal CO2 2024
 PR,lignite,,0.9,0.369,efficiency implied by Ember coal CO2 2024
-PR,CCGT,,0.92,0.309,efficiency implied by Ember gas CO2 2024
-PR,OCGT,,0.92,0.309,efficiency implied by Ember gas CO2 2024
-PT,CCGT,,0.92,0.422,efficiency implied by Ember gas CO2 2024
-PT,OCGT,,0.92,0.422,efficiency implied by Ember gas CO2 2024
-QA,CCGT,,0.92,0.328,efficiency implied by Ember gas CO2 2024
-QA,OCGT,,0.92,0.328,efficiency implied by Ember gas CO2 2024
 RO,coal,,0.9,0.331,efficiency implied by Ember coal CO2 2024
 RO,lignite,,0.9,0.331,efficiency implied by Ember coal CO2 2024
-RO,CCGT,,0.92,0.381,efficiency implied by Ember gas CO2 2024
-RO,OCGT,,0.92,0.381,efficiency implied by Ember gas CO2 2024
 RS,coal,,0.9,0.332,efficiency implied by Ember coal CO2 2024
 RS,lignite,,0.9,0.332,efficiency implied by Ember coal CO2 2024
-RS,CCGT,,0.92,0.48,efficiency implied by Ember gas CO2 2024
-RS,OCGT,,0.92,0.48,efficiency implied by Ember gas CO2 2024
 RU,coal,,0.9,0.347,efficiency implied by Ember coal CO2 2024
 RU,lignite,,0.9,0.347,efficiency implied by Ember coal CO2 2024
-RU,CCGT,,0.92,0.342,efficiency implied by Ember gas CO2 2024
-RU,OCGT,,0.92,0.342,efficiency implied by Ember gas CO2 2024
-SA,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-SA,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
 SG,coal,,0.9,0.348,efficiency implied by Ember coal CO2 2024
 SG,lignite,,0.9,0.348,efficiency implied by Ember coal CO2 2024
-SG,CCGT,,0.92,0.39,efficiency implied by Ember gas CO2 2024
-SG,OCGT,,0.92,0.39,efficiency implied by Ember gas CO2 2024
 SI,coal,,0.9,0.346,efficiency implied by Ember coal CO2 2024
 SI,lignite,,0.9,0.346,efficiency implied by Ember coal CO2 2024
 SK,coal,,0.9,0.343,efficiency implied by Ember coal CO2 2024
 SK,lignite,,0.9,0.343,efficiency implied by Ember coal CO2 2024
-SK,CCGT,,0.92,0.453,efficiency implied by Ember gas CO2 2024
-SK,OCGT,,0.92,0.453,efficiency implied by Ember gas CO2 2024
-SY,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-SY,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
 TH,coal,,0.9,0.385,efficiency implied by Ember coal CO2 2024
 TH,lignite,,0.9,0.385,efficiency implied by Ember coal CO2 2024
-TH,CCGT,,0.92,0.346,efficiency implied by Ember gas CO2 2024
-TH,OCGT,,0.92,0.346,efficiency implied by Ember gas CO2 2024
 TJ,coal,,0.9,0.35,efficiency implied by Ember coal CO2 2024
 TJ,lignite,,0.9,0.35,efficiency implied by Ember coal CO2 2024
-TM,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-TM,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-TN,CCGT,,0.92,0.34,efficiency implied by Ember gas CO2 2024
-TN,OCGT,,0.92,0.34,efficiency implied by Ember gas CO2 2024
 TR,coal,,0.9,0.334,efficiency implied by Ember coal CO2 2024
 TR,lignite,,0.9,0.334,efficiency implied by Ember coal CO2 2024
-TR,CCGT,,0.92,0.39,efficiency implied by Ember gas CO2 2024
-TR,OCGT,,0.92,0.39,efficiency implied by Ember gas CO2 2024
-TT,CCGT,,0.92,0.29,efficiency implied by Ember gas CO2 2024
-TT,OCGT,,0.92,0.29,efficiency implied by Ember gas CO2 2024
 TW,coal,,0.9,0.366,efficiency implied by Ember coal CO2 2024
 TW,lignite,,0.9,0.366,efficiency implied by Ember coal CO2 2024
-TW,CCGT,,0.92,0.339,efficiency implied by Ember gas CO2 2024
-TW,OCGT,,0.92,0.339,efficiency implied by Ember gas CO2 2024
-TZ,CCGT,,0.92,0.405,efficiency implied by Ember gas CO2 2024
-TZ,OCGT,,0.92,0.405,efficiency implied by Ember gas CO2 2024
 UA,coal,,0.9,0.352,efficiency implied by Ember coal CO2 2022
 UA,lignite,,0.9,0.352,efficiency implied by Ember coal CO2 2022
-UA,CCGT,,0.92,0.329,efficiency implied by Ember gas CO2 2022
-UA,OCGT,,0.92,0.329,efficiency implied by Ember gas CO2 2022
 US,coal,,0.9,0.354,efficiency implied by Ember coal CO2 2024
 US,lignite,,0.9,0.354,efficiency implied by Ember coal CO2 2024
-US,CCGT,,0.92,0.369,efficiency implied by Ember gas CO2 2024
-US,OCGT,,0.92,0.369,efficiency implied by Ember gas CO2 2024
 UZ,coal,,0.9,0.353,efficiency implied by Ember coal CO2 2024
 UZ,lignite,,0.9,0.353,efficiency implied by Ember coal CO2 2024
-UZ,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-UZ,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-VE,CCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
-VE,OCGT,,0.92,0.28,efficiency implied by Ember gas CO2 2024
 VN,coal,,0.9,0.39,efficiency implied by Ember coal CO2 2024
 VN,lignite,,0.9,0.39,efficiency implied by Ember coal CO2 2024
-VN,CCGT,,0.92,0.356,efficiency implied by Ember gas CO2 2024
-VN,OCGT,,0.92,0.356,efficiency implied by Ember gas CO2 2024
 XK,coal,,0.9,0.332,efficiency implied by Ember coal CO2 2024
 XK,lignite,,0.9,0.332,efficiency implied by Ember coal CO2 2024
 ZA,coal,,0.9,0.397,efficiency implied by Ember coal CO2 2024

@@ -1,0 +1,27 @@
+# China's UHVDC lines in service, from Wikipedia, Ultra-high-voltage electricity transmission in China (read 2026-11-02); single source, used only for the check in model-doc/doc/sections/grid.tex
+name,voltage_kv,length_km,p_nom_gw,year
+Yunnan - Guangdong,800,1438,5,2010
+Xiangjiaba - Shanghai,800,1907,6.4,2010
+Jinping - Southern Jiangsu,800,2059,7.2,2012
+Hami - Zhengzhou,800,2210,8,2014
+Xiluodu - Zhejiang West,800,1680,8,2014
+Nuozhadu - Guangdong,800,1413,5,2015
+Lingzhou - Shaoxing,800,1720,8,2016
+Jiuquan - Hunan,800,2383,8,2017
+Shanxi North - Jiangsu,800,1119,8,2017
+Xilingol - Jiangsu,800,1620,10,2017
+Zhalute - Qingzhou,800,1234,10,2017
+Shanghaimiao - Linyi,800,1238,10,2017
+Dianxi - Guangdong,800,1959,5,2017
+Zhundong - South Anhui,1100,3293,12,2018
+Wudongde - Guangxi - Guangdong,800,1489,8,2020
+Qinghai - Henan,800,1587,8,2020
+Yazhong - Jiangxi,800,1711,8,2021
+Shanbei - Hubei,800,1127,8,2021
+Baihetan - Jiangsu,800,2087,8,2022
+Baihetan - Zhejiang,800,2193,8,2022
+Longdong - Shandong,800,926,8,2025
+Hami - Chongqing,800,2260,8,2025
+Ningxia - Hunan,800,1634,8,2025
+Jinshang - Hubei,800,1901,8,2025
+Shaanbei - Anhui,800,1069,8,2026

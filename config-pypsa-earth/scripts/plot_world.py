@@ -48,7 +48,7 @@ from matplotlib.transforms import blended_transform_factory  # noqa: E402
 HERE = os.path.dirname(os.path.abspath(__file__))
 CFG = os.path.dirname(HERE)
 sys.path.insert(0, CFG)
-from merge_config import solved_network  # noqa: E402
+from merge_config import BASELINE, solved_network  # noqa: E402
 
 warnings.filterwarnings("ignore")
 logging.getLogger("pypsa").setLevel(logging.ERROR)
@@ -78,6 +78,12 @@ SHORT = {"KP": "North Korea", "KR": "South Korea", "CD": "DR Congo", "CG": "Cong
 REGION_NAMES = {"NWE": "North-West Europe"}
 SCEN = ["ember", "now", "zero"]
 SCEN_LABEL = {"ember": "Ember", "now": "now", "zero": "zero"}
+HEAD_LABEL = {"ember": "Ember", "now": "model now", "zero": "model zero"}
+NOW = "model now"   # the `now` solve in axis labels and the header title
+if BASELINE:   # before/after comparison, BEFORE side: the `now` solve is the 2024 validation run of v0.9.0
+    SCEN_LABEL = {"ember": "Ember 2024", "now": "2024 validation", "zero": "zero"}
+    HEAD_LABEL = {"ember": "Ember 2024", "now": "2024 validation", "zero": "model zero"}
+    NOW = "2024 validation"
 
 
 # ----------------------------------------------------------------------------- data ---------------------
@@ -149,7 +155,7 @@ def collect(fork):
                 continue
             print(f"reading {path}", flush=True)
             n = pypsa.Network(path)
-            if not ((n.meta or {}).get("calibration") or {}).get("enable"):
+            if not BASELINE and not ((n.meta or {}).get("calibration") or {}).get("enable"):
                 missing.append(f"{r}-{scen} (out-of-the-box, not calibrated)")
             t = country_table(n)
             for c in ccs:
@@ -211,13 +217,13 @@ def draw_column(ax, block, col):
     for i, (c, g) in enumerate(block):
         y0 = i * step
         first = g.iloc[0]
-        ax.text(-0.155, y0 + 1, first["name"], transform=tr, ha="right",
+        ax.text(-0.155 - 0.035 * BASELINE, y0 + 1, first["name"], transform=tr, ha="right",
                 va="center", fontsize=6.6, color=INK)
         load = g.loc[g.scen == "now", "load"]
         dem = f"{first['demand']:.0f}" if pd.notna(first["demand"]) else "–"
         mod = f"{load.iloc[0]:.0f}" if len(load) and pd.notna(load.iloc[0]) else "–"
         yr = "" if first["year"] == MAX_YEAR or pd.isna(first["year"]) else f" ({int(first['year'])})"
-        ax.text(-0.155, y0 + 2.05, f"{c} · {first['region']} · {dem} | {mod} TWh{yr}", transform=tr, ha="right", va="center",
+        ax.text(-0.155 - 0.035 * BASELINE, y0 + 2.05, f"{c} · {first['region']} · {dem} | {mod} TWh{yr}", transform=tr, ha="right", va="center",
                 fontsize=4.8, color=MUTED)
         for j, scen in enumerate(SCEN):
             y = y0 + j
@@ -265,7 +271,7 @@ def draw_scatter(ax, df, groups, title):
         s.set_color(RULE)
     ax.set_title(title, fontsize=7, color=INK, loc="left")
     ax.set_xlabel("Ember %", fontsize=5.5, color=INK2, labelpad=1)
-    ax.set_ylabel("model now %", fontsize=5.5, color=INK2, labelpad=1)
+    ax.set_ylabel(f"{NOW} %", fontsize=5.5, color=INK2, labelpad=1)
 
 
 def draw_co2_scatter(ax, df):
@@ -289,7 +295,7 @@ def draw_co2_scatter(ax, df):
         s.set_color(RULE)
     ax.set_title("Fossil CO2, Mt", fontsize=7, color=INK, loc="left")
     ax.set_xlabel("Ember", fontsize=5.5, color=INK2, labelpad=1)
-    ax.set_ylabel("model now", fontsize=5.5, color=INK2, labelpad=1)
+    ax.set_ylabel(NOW, fontsize=5.5, color=INK2, labelpad=1)
 
 
 def page(df, world, missing, col, out):
@@ -302,14 +308,16 @@ def page(df, world, missing, col, out):
 
     # ---- header: title, aggregate bars, scatters, notes
     covered = df[df.scen == "ember"].drop_duplicates("country").demand.sum()
-    fig.text(0.02, 0.975, "Out-of-the-box PyPSA-Earth: current vs carbon-neutral power mix, all modelled countries",
+    fig.text(0.02, 0.975, "PyPSA-Earth 0.9.0: 2024 and carbon-neutral power mix" if BASELINE else
+             "Out-of-the-box PyPSA-Earth: current vs carbon-neutral power mix, all modelled countries",
              fontsize=15, color=INK, weight="bold", va="top")
     n_c = sum(len(cfg["countries"]) for cfg in stage_regions().values())
-    fig.text(0.02, 0.953, f"{n_c} countries in {df.country.nunique()} rows = {100 * covered / world:.2f} % of world electricity demand "
-             f"(Ember, latest year ≤ {MAX_YEAR}: {world:,.0f} TWh). Weather year 2013, 3-hourly. "
-             "Archetype regions multi-node (NWE = AT BE CH CZ DE DK FR GB IE LU NL PL as one row), all other countries one node "
-             "each and islanded (no trade).",
-             fontsize=8, color=INK2, va="top")
+    if not BASELINE:
+        fig.text(0.02, 0.953, f"{n_c} countries in {df.country.nunique()} rows = {100 * covered / world:.2f} % of world electricity demand "
+                 f"(Ember, latest year ≤ {MAX_YEAR}: {world:,.0f} TWh). Weather year 2013, 3-hourly. "
+                 "Archetype regions multi-node (NWE = AT BE CH CZ DE DK FR GB IE LU NL PL as one row), all other countries one "
+                 "node each and islanded (no trade).",
+                 fontsize=8, color=INK2, va="top")
     ax = fig.add_axes([0.07, 0.855, 0.25, 0.075])
     agg = df.groupby("scen")[ORDER].sum()
     for j, scen in enumerate(SCEN):
@@ -323,7 +331,7 @@ def page(df, world, missing, col, out):
                 ax.text(x + sh[k] / 2, j, f"{100 * sh[k]:.0f}", ha="center", va="center", fontsize=6.5,
                         color="white" if k in ("coal", "gas", "nuclear", "hydro", "wind", "shed") else INK)
             x += sh[k] if sh[k] > 0 else 0
-        ax.text(-0.01, j, {"ember": "Ember", "now": "model now", "zero": "model zero"}[scen], ha="right", va="center",
+        ax.text(-0.01, j, HEAD_LABEL[scen], ha="right", va="center",
                 fontsize=7.5, color=INK2, transform=blended_transform_factory(ax.transAxes, ax.transData))
         ax.text(1.01, j, f"{tot:,.0f} TWh", va="center", fontsize=6.5, color=INK2,
                 transform=blended_transform_factory(ax.transAxes, ax.transData))
@@ -331,8 +339,8 @@ def page(df, world, missing, col, out):
     ax.set_ylim(2.6, -0.6)
     ax.axis("off")
     co2 = df.groupby("scen").co2.sum()
-    ax.set_title("All modelled countries together (% of generation) · fossil CO2: Ember "
-                 f"{co2.get('ember', np.nan) / 1e3:.1f} Gt, model now {co2.get('now', np.nan) / 1e3:.1f} Gt, zero "
+    ax.set_title(("Aggregate" if BASELINE else "All modelled countries together") + " (% of generation) · fossil CO2: "
+                 f"{HEAD_LABEL['ember']} {co2.get('ember', np.nan) / 1e3:.1f} Gt, {NOW} {co2.get('now', np.nan) / 1e3:.1f} Gt, zero "
                  f"{co2.get('zero', 0) / 1e3:.1f} Gt", fontsize=7.5, color=INK, loc="left")
     for i, (grps, title) in enumerate([(FOSSIL, "Fossil share"), (["nuclear"], "Nuclear share"), (["hydro"], "Hydro share"),
                                        (["wind", "solar"], "Wind + solar share")]):
@@ -348,6 +356,12 @@ def page(df, world, missing, col, out):
              "on top of the same calibrated system). Right of the bars: fossil share and power-sector CO2 from coal, gas and "
              "oil in Mt (Ember 'Fossil', same year; model: direct emissions). Grey line: code · region run · Ember demand | "
              "model load (TWh)."]
+    if BASELINE:   # before/after comparison, BEFORE side (baseline/run_overnight.sh)
+        notes = ["PyPSA-Earth 0.9.0 as it comes (+ run-enabling patches only). Per country, top to bottom: Ember 2024 "
+                 "actual · 2024 validation (powerplantmatching fleet + IRENA 2023 wind/solar, brownfield expansion at 2025 costs, no "
+                 "CO2 cap, GEGIS SSP2-2.6 2030 demand, no calibration) · model zero (Co2L0, 2050 costs, same demand). Right of "
+                 "the bars: fossil share and power-sector CO2 from coal, gas and oil in Mt (Ember 'Fossil', same year; model: "
+                 "direct emissions). Grey line: code · region run · Ember demand | model load (TWh)."]
     sk = pd.read_csv(ROW, keep_default_na=False) if os.path.exists(ROW) else pd.DataFrame()
     if len(sk):
         s = sk[sk.status == "skipped"]

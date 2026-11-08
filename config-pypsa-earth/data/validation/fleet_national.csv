@@ -1,0 +1,38 @@
+# National capacity statistics, end of 2024, for check_fleet.py (compared with calibration/2024/capacity.csv); collected 2026-11-04.
+# group as in capacity.csv (coal = hard coal + lignite; biomass incl. waste where the source counts it). basis: net / gross / registered.
+# UK = DUKES (incl. Northern Ireland), compared with GB, which in the model holds Northern Ireland as well.
+country,group,national_gw,basis,source,url
+US,coal,174.18,net summer,EIA Electric Power Annual 2025 Table 4.2.A,https://www.eia.gov/electricity/annual/html/epa_04_02_a.html
+US,gas,506.37,net summer,EIA Electric Power Annual 2025 Table 4.2.A,https://www.eia.gov/electricity/annual/html/epa_04_02_a.html
+US,oil,28.65,net summer,EIA Electric Power Annual 2025 Table 4.2.A,https://www.eia.gov/electricity/annual/html/epa_04_02_a.html
+US,nuclear,98.39,net summer,EIA Electric Power Annual 2025 Table 4.2.A,https://www.eia.gov/electricity/annual/html/epa_04_02_a.html
+US,geothermal,2.70,net summer,EIA Electric Power Annual 2025 Table 4.2.B,https://www.eia.gov/electricity/annual/html/epa_04_02_b.html
+US,biomass,11.41,net summer,EIA Electric Power Annual 2025 Table 4.2.B (wood + other biomass),https://www.eia.gov/electricity/annual/html/epa_04_02_b.html
+CN,coal,1190,gross,CEC annual development report 2025 (via Sina Finance),https://finance.sina.cn/stock/relnews/hk/2025-07-10/detail-infeytki3691600.d.html?vt=4
+CN,gas,140,gross,CEC annual development report 2025 (via Sina Finance),https://finance.sina.cn/stock/relnews/hk/2025-07-10/detail-infeytki3691600.d.html?vt=4
+CN,nuclear,60.83,gross,CEC annual development report 2025 (via Sina Finance),https://finance.sina.cn/stock/relnews/hk/2025-07-10/detail-infeytki3691600.d.html?vt=4
+CN,biomass,45.97,gross,CEC annual development report 2025 (via Sina Finance),https://finance.sina.cn/stock/relnews/hk/2025-07-10/detail-infeytki3691600.d.html?vt=4
+IN,coal,219.03,utility,CEA installed capacity 31 Dec 2024 (coal + lignite),https://npp.gov.in/public-reports/cea/monthly/installcap/2024/DEC/capacity1-2024-12.pdf
+IN,gas,24.82,utility,CEA installed capacity 31 Dec 2024,https://npp.gov.in/public-reports/cea/monthly/installcap/2024/DEC/capacity1-2024-12.pdf
+IN,oil,0.59,utility,CEA installed capacity 31 Dec 2024 (diesel),https://npp.gov.in/public-reports/cea/monthly/installcap/2024/DEC/capacity1-2024-12.pdf
+IN,nuclear,8.18,utility,CEA installed capacity 31 Dec 2024,https://npp.gov.in/public-reports/cea/monthly/installcap/2024/DEC/capacity1-2024-12.pdf
+IN,biomass,11.35,utility,CEA installed capacity 31 Dec 2024 (biomass and cogeneration + waste-to-energy),https://npp.gov.in/public-reports/cea/monthly/installcap/2024/DEC/capacity1-2024-12.pdf
+BR,coal,3.09,registered,EPE Anuario Estatistico de Energia Eletrica 2025 Tabela 2.2,https://www.epe.gov.br/sites-pt/publicacoes-dados-abertos/publicacoes/PublicacoesArquivos/publicacao-160/topico-168/anuario-workbook-2025.xlsx
+BR,gas,17.91,registered,EPE Anuario Estatistico de Energia Eletrica 2025 Tabela 2.2,https://www.epe.gov.br/sites-pt/publicacoes-dados-abertos/publicacoes/PublicacoesArquivos/publicacao-160/topico-168/anuario-workbook-2025.xlsx
+BR,oil,6.57,registered,EPE Anuario Estatistico de Energia Eletrica 2025 Tabela 2.2,https://www.epe.gov.br/sites-pt/publicacoes-dados-abertos/publicacoes/PublicacoesArquivos/publicacao-160/topico-168/anuario-workbook-2025.xlsx
+BR,nuclear,1.99,registered,EPE Anuario Estatistico de Energia Eletrica 2025 Tabela 2.2,https://www.epe.gov.br/sites-pt/publicacoes-dados-abertos/publicacoes/PublicacoesArquivos/publicacao-160/topico-168/anuario-workbook-2025.xlsx
+BR,biomass,16.44,registered,EPE Anuario Estatistico de Energia Eletrica 2025 Tabela 2.2,https://www.epe.gov.br/sites-pt/publicacoes-dados-abertos/publicacoes/PublicacoesArquivos/publicacao-160/topico-168/anuario-workbook-2025.xlsx
+DE,coal,30.56,net incl. reserves,Fraunhofer ISE Energy-Charts (lignite 15.17 + hard coal 15.39),https://api.energy-charts.info/installed_power?country=de&time_step=yearly&installation_decommission=false
+DE,gas,35.68,net incl. reserves,Fraunhofer ISE Energy-Charts,https://api.energy-charts.info/installed_power?country=de&time_step=yearly&installation_decommission=false
+DE,oil,3.71,net incl. reserves,Fraunhofer ISE Energy-Charts,https://api.energy-charts.info/installed_power?country=de&time_step=yearly&installation_decommission=false
+DE,biomass,8.91,net,Fraunhofer ISE Energy-Charts,https://api.energy-charts.info/installed_power?country=de&time_step=yearly&installation_decommission=false
+GB,coal,0.02,net,DUKES 2026 Table 5.7 (UK; Ratcliffe closed Sept 2024),https://assets.publishing.service.gov.uk/media/6a6a3622cceb23e8678976bf/DUKES_5.7.xlsx
+GB,gas,36.28,net,DUKES 2026 Table 5.7 (UK),https://assets.publishing.service.gov.uk/media/6a6a3622cceb23e8678976bf/DUKES_5.7.xlsx
+GB,oil,1.40,net,DUKES 2026 Table 5.7 (UK),https://assets.publishing.service.gov.uk/media/6a6a3622cceb23e8678976bf/DUKES_5.7.xlsx
+GB,nuclear,5.88,net,DUKES 2026 Table 5.7 (UK),https://assets.publishing.service.gov.uk/media/6a6a3622cceb23e8678976bf/DUKES_5.7.xlsx
+GB,biomass,8.27,net,DUKES 2026 Table 5.7 (UK; bioenergy and waste),https://assets.publishing.service.gov.uk/media/6a6a3622cceb23e8678976bf/DUKES_5.7.xlsx
+FR,coal,1.81,net,RTE real-time statistics 2024,https://mg-ml.energethique.com/file/ARCEA/RTE/2024/Stat_RTE_2024.pdf
+FR,gas,13.13,net,RTE real-time statistics 2024 (Bilan electrique: 12.6),https://mg-ml.energethique.com/file/ARCEA/RTE/2024/Stat_RTE_2024.pdf
+FR,oil,3.04,net,RTE real-time statistics 2024,https://mg-ml.energethique.com/file/ARCEA/RTE/2024/Stat_RTE_2024.pdf
+FR,nuclear,61.37,net,RTE real-time statistics 2024 (without Flamanville 3),https://mg-ml.energethique.com/file/ARCEA/RTE/2024/Stat_RTE_2024.pdf
+FR,biomass,2.37,net,RTE real-time statistics 2024 (renewable thermal + waste),https://mg-ml.energethique.com/file/ARCEA/RTE/2024/Stat_RTE_2024.pdf

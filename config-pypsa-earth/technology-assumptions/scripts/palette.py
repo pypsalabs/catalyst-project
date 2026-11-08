@@ -6,7 +6,7 @@ with which fuel, availability and colour are columns of the CSV (see `MODEL_COLU
 palette list in a config file. This module reads those columns for
 
 - merge_config.py, which derives the stage config from them (`model_config`: extendable carriers, storage
-  durations, availability / minimum load through the fork's `conventional:` block, the calibration fuel map,
+  durations, availability / minimum load through the fork's `conventional:` block, the fuel map of the price table,
   colours and labels, the path of the per-year cost overrides), and
 - build_palette_costs.py, which writes the cost table rows of one year (`costs: overrides` of the fork).
 
@@ -79,7 +79,7 @@ def is_storage_unit(row):
 
 
 def fuel_map(rows):
-    """Carrier -> fuel of the calibration price tables (`calibration: fuel_map` of the fork)."""
+    """Carrier -> fuel of the per-country fuel price table (`costs: fuel_map` of the fork)."""
     return {c: r["fuel"] for r in rows if r.get("fuel") in PRICED_FUELS for c in carriers(r)}
 
 
@@ -118,8 +118,8 @@ def model_config(rows, countries, stage):
             "marginal_cost": {},  # the fork's defaults would override the CSV VOM
             "rooftop_share": 0.0,  # solar = the CSV's utility-scale row
             "output_currency": "USD",
+            "fuel_map": fuel_map(rows),  # carrier -> fuel of costs.fuel_prices (add_electricity)
         },
-        "calibration": {"fuel_map": fuel_map(rows)},
         "plotting": {"tech_colors": tech_colors(rows), "nice_names": nice_names(rows)},
     }
     return cfg

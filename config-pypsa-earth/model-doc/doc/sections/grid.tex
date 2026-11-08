@@ -1,0 +1,390 @@
+% Grid Data: map of the grid representation per country (scripts/plot_grid_map.py), then the standard procedure
+% (scripts/plot_grid_steps.py) and the adjustments (scripts/plot_hvdc_check.py, scripts/plot_osm_entries.py, scripts/plot_grid_check.py, scripts/plot_isolated.py).
+% The subsubsections are bullets on purpose: material to be turned into prose. The adjustments are one paragraph per commit of the fork.
+\newcommand{\commit}[1]{\href{https://github.com/pypsalabs/catalyst-pypsa-earth/commit/#1}{\texttt{#1}}}
+\subsection{Grid Data}\label{sec:grid}
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{grid_map.pdf}
+  \caption{
+  Spatial resolution per country.
+  Country borders from \citet{naturalearth}.
+}
+  \label{fig:gridmap}
+\end{figure}
+
+For the archetype country US, Brazil, North-West Europe, China and India the spatial ditribution of the power system, and therefore the grid, is modelled (\ref{fig:gridmap}).
+The 116 countries with one node skip this processing step.
+Of the spatially resolved regions, the (contiguous) United States and Brazil take their grid from the PyPSA-Earth method, apart from the commits of Section~\ref{sec:grid-adjust}.
+China, India and the twelve countries of North-West Europe also change the handling of isolated grid fragments, described in the same section.
+
+\subsubsection{Standard procedure}\label{sec:grid-standard}
+
+\begin{figure}[!tp]
+  \centering
+  \includegraphics[width=\textwidth]{grid_steps.pdf}
+  \caption{The standard procedure for Brazil.
+  (a) Power lines and cables in OpenStreetMap, coloured by their highest tagged voltage.
+  (b) Base network after cleaning and building the topology, from \SI{200}{kV}.
+  (c) Network of the optimisation: 50 buses, line width proportional to capacity, clustered regions in the background.
+  The bus without lines in Bahia is the merged node of Brazil's small grid islands (148\,MW mean load).
+  (d, e) The same close-up of São Paulo (boxes in a and b) on OpenStreetMap's own map, for direct comparison: (d) the lines and substations in OpenStreetMap, (e) the base network, with its lines drawn straight from bus to bus.
+  Map tiles \copyright{} OpenStreetMap contributors.}
+  \label{fig:gridsteps}
+\end{figure}
+
+\paragraph{Data Exctraction and Processing} (rules \texttt{download\_osm\_data, clean\_osm\_data, build\_osm\_network})
+
+\begin{itemize}[nosep,leftmargin=*]
+  \item Grid data is obtained using earth-osm \citep{earthosm} obtaining four OpenStreetMap features per country: \texttt{power=line}, \texttt{cable}, \texttt{substation} and \texttt{generator}.
+  \item Lines that are tagged with frequency 0 are classified as High Voltage Direct Current (HVDC).
+\end{itemize}
+
+\begin{itemize}[nosep,leftmargin=*]
+  \item Only lines with both ends inside the modelled area are kept, and each line gets the country it lies in.
+  \item Everything below \SI{200}{kV} is dropped (PyPSA-Earth default \SI{51}{kV}); this step de facto only leaves the transmission level in all countries where we model the power grid.
+  \item The São Paulo close-up is an example of this, 570 lines and 305 substations go in, and most of them belong to the city's grid below \SI{200}{kV} (Figure~\ref{fig:gridsteps}d).
+\end{itemize}
+
+\begin{itemize}[nosep,leftmargin=*]
+  \item OpenStreetMap does not connect lines to subtations and therefore does not offer the actual grid topology, which instead has to be estimated.
+  \item This estimation first aggregates substantion that are within 5km of each other to lower the burden on data precision.
+  \item Every line end is attached to the nearest bus of the same voltage and kind (AC or DC).
+  \item This topolog inference greatly reduces the complexity of the grid, e.g. São Paulo: 15 buses and 21 lines remain of the 305 substations and 570 lines in the close-up (Figure~\ref{fig:gridsteps}d, e).
+\end{itemize}
+
+\paragraph{Electrical parameters} (rule \texttt{base\_network}; Figure~\ref{fig:gridsteps}b)
+\begin{itemize}[nosep,leftmargin=*]
+    \item OpenStreetMap does not contain wire types per line, which are therefore assumed to be a standard conductor type depending on line voltage.
+  \item A conductor type is a wire design from PyPSA's line-type table, e.g.\ Al/St 240/40 4-bundle: four aluminium conductors with steel core of \SI{240}{mm^2} per phase, with a thermal current limit and resistance, reactance and capacitance per km.
+  \item The type sets the line's thermal capacity; its impedances are replaced by \SI{380}{kV} equivalents in the simplification step.
+\end{itemize}
+
+\begin{itemize}[nosep,leftmargin=*]
+  \item Its capacity is $s_\text{nom} = \sqrt{3}\, i_\text{nom}\, v\, n_\text{circuits}$, with $i_\text{nom}$ the current limit of one phase of the conductor type (kA), $v$ the line's voltage from OSM (kV, phase to phase), $n_\text{circuits}$ the number of three-phase circuits, and $\sqrt{3}$ from the three phases.
+  \item For example, one circuit at \SI{230}{kV} gets $\sqrt{3} \times \SI{1.29}{kA} \times \SI{230}{kV} = \SI{514}{MVA}$, with unit conversion 1 V $\cdot$ A = 1 J/C $\cdot$ 1 C/s = 1 J/s = 1 W and linear approximation is 514MW.
+  \item To reflect a simulate a security margin, only up to 70\,\% of that capacity can be used ($s_\text{max\_pu} = 0.7$).
+  \item Each HVDC line becomes a PyPSA link component, with its capacity set as described in Section~\ref{sec:grid-adjust}.
+  \item Transformers get \SI{2000}{MVA}.
+  \item Lines that are tagged \textit{under construction} get zero capacity.
+\end{itemize}
+
+
+\paragraph{Regions} (rule \texttt{build\_bus\_regions})
+\begin{itemize}[nosep,leftmargin=*]
+  \item Every bus gets the Voronoi cell around it, clipped to the country, onshore and in the exclusive economic zone.
+  \item These cells are the basis for renewable potentials, power plants and demand of the other layers.
+  \item The resulting stack of per-cell components is the unit that is then aggregated for computations feasibility.
+\end{itemize}
+
+\paragraph{Simplification} (rule \texttt{simplify\_network})
+\begin{itemize}[nosep,leftmargin=*]
+  \item To simplify spatial aggregation, all lines are mapped onto the voltage level \SI{380}{kV} with impedance rescaled to preserve thermal capacity.
+  \item Transformers are removed, and each bus of a lower voltage is merged into the higher-voltage bus of its station.
+  \item A chain of HVDC links between two branching points becomes one link (Section~\ref{sec:grid-adjust}).
+  \item Dead ends (buses with a single connection) are folded into their neighbour.
+  \item Isolated AC sub-networks below \SI{20}{MW} mean load are dropped, including their plants.
+  \item The remaining sub-networks below \SI{300}{MW} are merged, per country (Figure~\ref{fig:gridsteps}c).
+\end{itemize}
+
+\paragraph{Clustering} (rule \texttt{cluster\_network})
+\begin{itemize}[nosep,leftmargin=*]
+  \item In this step, the OSM-drive numbers of regional nodes are aggregated to a user-defined number which usually complies with the available computational resources, for the purpose of this exposition, we assume this number is 50.
+  \item The 50 nodes of a region are shared out over its countries and AC sub-networks in proportion to their mean load.
+  \item The step is executed as as a small integer programme and every sub-network gets at least one node.
+  \item Within each share, k-means on the bus coordinates places the nodes, with buses weighted by their load and conventional plant capacity.
+  \item Lines between two clusters are combined into one: capacities add up, and the length is the straight-line distance between the cluster centres times 1.25.
+  \item HVDC links are not combined; each keeps its own capacity between its two clusters.
+  \item The clustered regions are the unions of the Voronoi cells of their buses.
+  \item For Brazil this results in 50 buses, 88 lines and 9 HVDC links Figure~\ref{fig:gridsteps}c.
+\end{itemize}
+
+\FloatBarrier
+\subsubsection{Adjustments}\label{sec:grid-adjust}
+
+Each adjustment is one commit on the branch \texttt{catalyst} of our fork of PyPSA-Earth, named after what it does and linked to the commit, in the order of the workflow.
+Options are off by default in the fork and switched on in the configurations of the five regions, \texttt{dc\_ratings} in all stages; commits without an option always apply.
+Section~\ref{sec:grid-check} checks the result as a whole.
+
+\paragraph{Keep a way once across country extracts} (\commit{3f6c7865})
+
+A cable that crosses a border arrives once per country extract, for example way 117931185 of IFA 2000 in the French and in the British file.
+The cleaning step turned the copies into parallel lines by adding a suffix to their identifiers.
+
+Only one row per OpenStreetMap identifier is kept, the same idea as in PyPSA-Eur \citep{horsch2018pypsa} (see rule \texttt{clean\_osm\_data} and option \texttt{drop\_duplicate\_ids}).
+
+\paragraph{Count circuits, not cables, on ways with several voltages} (\commit{95faae14})
+
+When a way has several voltages and one total of cables, \texttt{fill\_circuits} writes the number of cables where the number of circuits belongs.
+A way tagged \texttt{voltage=230000;230000}, \texttt{cables=6}, \texttt{circuits=2} becomes two lines of three circuits each, six circuits instead of two, and with them three times the capacity.
+This concerns 1,404 ways in the US and 670 in North-West Europe: in the 1,061 and 569 of them with a \texttt{circuits} tag, the upstream code exceeds the tag in 99\,\% and 96\,\% (Table~\ref{tab:circuits}).
+
+Such a way now gets its circuits per voltage, in the example one per line and two in total.
+The model then exceeds the tag in 5 and 9 ways.
+It is the largest error found: AC circuit km fall by 21\,\% in the US and 22\,\% in North-West Europe with this commit and the one above, and by under 1\,\% in Brazil, India and China.
+Rule \texttt{clean\_osm\_data}, option \texttt{fix\_indirect\_circuits}.
+
+\begin{table}[htb]
+  \centering\small
+  \caption{Real ways (a \textit{Way} is an OSM data type consisting of an ordered list of nodes forming a polyline or closed shape) with several voltages and one total of cables, and the circuits per voltage they get without and with the commit.
+  The first is the Grand Coulee--Schultz line, tagged with two names and two circuits.
+  Lines below \SI{200}{kV} are dropped afterwards, so the values at \SI{115}{kV} and \SI{110}{kV} do not reach the network.
+  NWE: North-West Europe.
+  ``Ways alike'': ways of the base network in that region with the same number of voltages, cables and \texttt{circuits} tag.}
+  \label{tab:circuits}
+  \input{../build/circuit_ways.tex}
+\end{table}
+
+\paragraph{Measure line lengths on the ellipsoid} (\commit{4958d06c})
+
+\textit{What needed fixing.}
+Lengths were measured in Web Mercator (EPSG:3857), which stretches them by $1/\cos(\text{latitude})$.
+On HVDC lines that is a factor of 1.05 in Brazil, 1.08 in India, 1.18 in China, 1.33 in the US and 1.67 in North-West Europe.
+HVDC links keep this length through clustering, so it enters their costs; AC line lengths are recomputed in the clustering.
+
+\textit{What was done.}
+Lengths are now measured on the WGS84 ellipsoid.
+Rule \texttt{build\_osm\_network}, option \texttt{geodesic\_length}.
+
+\paragraph{Give HVDC lines a rated capacity} (\commit{6242a2ab})
+
+\textit{What needed fixing.}
+PyPSA-Earth reads only the voltage of an HVDC line from OpenStreetMap and gives every line the current of one \SI{500}{kV} cable (\SI{1.638}{kA}), so $p_\text{nom} = v \times \SI{1.638}{kA}$ and \SI{1.31}{GW} at $\pm$\SI{800}{kV}, where Chinese and Indian bipoles carry 6--\SI{8}{GW}.
+
+\textit{What was done.}
+A table holds ratings per country and pole voltage, the median design rating of all projects in Wikipedia's list of HVDC projects that are not decommissioned, plus Changji--Guquan ($\pm$\SI{1100}{kV}, \SI{12}{GW}), which the list lacks.
+A line takes the row of its country within 10\,\% of its voltage, else the world median of the nearest voltage.
+Converters take the summed rating of the HVDC lines they serve, instead of a flat \SI{2000}{MW}.
+In the five regions the next commit replaces these ratings.
+Rule \texttt{base\_network}, option \texttt{links: dc\_ratings}.
+
+\paragraph{Assign HVDC capacities per project, matched by way name} (\commit{003f0fd6})
+
+\textit{What needed fixing.}
+One rating per country and voltage keeps the rule ``one OpenStreetMap line is one bipole'' and guesses the rating instead of looking the project up.
+The France--Great Britain border is the clearest case, because its real capacity is not in doubt (Table~\ref{tab:hvdcfrgb}, Figure~\ref{fig:hvdccheck}a).
+
+\begin{table}[htb]
+  \centering\small
+  \caption{France--Great Britain HVDC: the three operating projects against one rating per country and voltage, in the clustered network.}
+  \label{tab:hvdcfrgb}
+  \begin{tabular}{@{}lrrp{0.5\textwidth}@{}}
+    \toprule
+    Project & Real, GW & Median rule, GW & What happens \\
+    \midrule
+    IFA 2000 ($\pm$\SI{270}{kV}) & 2.0 & 4.0 & drawn as parallel ways, each given the full \SI{2}{GW} of the project; the two landward ways set the limit \\
+    ElecLink ($\pm$\SI{320}{kV}) & 1.0 & 2.4 & the link appears twice, each with the \SI{1.2}{GW} median of Great Britain at that voltage \\
+    IFA-2 ($\pm$\SI{320}{kV}) & 1.0 & 1.0 & correct \\
+    \midrule
+    Total & 4.0 & 7.4 & \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{itemize}[nosep,leftmargin=*]
+  \item Separate ways: OpenStreetMap may draw each pole, cable pair or bipole as its own way, and each way then gets the rating of a whole project; German SuedLink, for example, has ways named \emph{Plus} and \emph{Minus}.
+  \item Lines not yet in service: the OpenStreetMap snapshot is from September 2026 and the fleet is calibrated to 2024; the Bornholm Energy Island cable, under construction, accounts for \SI{4}{GW} of the \SI{4.7}{GW} between Germany and Denmark.
+  \item Lines missing: BritNed and COBRA are in OpenStreetMap but almost none of their ways reach the base network, for a reason not yet traced, and Kontek and the Great Belt link are not found under their names, so these borders carry no capacity.
+  \item Medians: a correct line can still get another project's rating, such as ElecLink's \SI{1.2}{GW} instead of \SI{1.0}{GW}.
+  \item Stale list: the HVDC list shows many Chinese $\pm$\SI{800}{kV} lines at \SI{6.4}{GW} and under planning names, whereas the 20 UHVDC lines in service by 2024 total \SI{158.6}{GW}, with a typical rating of \SI{8}{GW} \citep{wikiuhv}.
+\end{itemize}
+
+\textit{What was done.}
+OpenStreetMap says where a line runs, and a project table how much it carries.
+Rule \texttt{base\_network}, option \texttt{links: dc\_projects}.
+\begin{itemize}[nosep,leftmargin=*]
+  \item The ways hold more than the voltage: names on 91--100\,\% of HVDC km in every region, and ratings on 63\,\% of it in North-West Europe but almost none elsewhere; earth-osm keeps most of these in a column of rare tags (\texttt{other\_tags}), which this commit reads.
+  \item The table takes ratings, lengths and years from the Wikipedia list, coordinates also from PyPSA-Eur's copy of it \citep{horsch2018pypsa}, and hand-curated corrections with a source per row, including all Chinese UHVDC lines.
+  \item A second hand-curated table links every OpenStreetMap name to its project, because the two often differ: \emph{HVDC Lingzhou - Shaoxing} is the list's Yinchuan--Zhuji, and some names are only in Chinese.
+  \item Matching by name comes first (Figure~\ref{fig:osmentries}a): a project takes the ways carrying its names, and its terminals pick one route through parallel ways, so that it follows its own line.
+  \item If the named ways do not connect its terminals, the route continues through unnamed ways (Figure~\ref{fig:osmentries}b), preferring the named ones.
+  \item Without terminals or a route, the project takes all its named ways, and if those cover under half its listed length, or it has none, it counts as missing.
+  \item Every bus pair on a route carries the project rating once, shared by its parallel links, so the number of ways no longer matters.
+  \item Projects entering service after 2024 get zero capacity, as do links matching no project.
+  \item A project in service with no usable route becomes one link between the AC buses of its countries at its terminals: BritNed, COBRA, Kontek and the Great Belt link in North-West Europe, and Hubei--Shanghai, Baihetan--Jiangsu, Baihetan--Zhejiang and two small links in China.
+  \item Converters again take the summed rating of their lines.
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{hvdc_check.pdf}
+  \caption{(a) The ways of the three France--Great Britain projects in OpenStreetMap.
+  (b) HVDC capacity per cross-border pair in North-West Europe: the clustered network without and with the corrections, and the operating projects of the list \citep{wikihvdc}, in service by 2024.
+  Greenlink (Great Britain--Ireland, \SI{0.5}{GW}) entered service in 2025 and is excluded.
+  The remainder between Germany and Denmark is exactly SylWin1 (\SI{0.864}{GW}), a German offshore wind link whose offshore bus falls in the Danish zone.}
+  \label{fig:hvdccheck}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{osm_entries.pdf}
+  \caption{Two $\pm$\SI{800}{kV} ways in China's OpenStreetMap data, with their tags, each highlighted among the country's HVDC lines.
+  (a) A way whose name can be looked up in the project table; panel (a) also highlights the second way of that line.
+  (b) A way without a name, tagged only as an unidentified line; it can be placed by voltage and geometry alone.
+  Tags in Chinese script are not shown.}
+  \label{fig:osmentries}
+\end{figure}
+
+\paragraph{Keep the capacity and length of a merged HVDC chain} (\commit{ed9fba7e})
+
+\textit{What needed fixing.}
+When the simplification merged a chain of HVDC segments, the upstream code summed the capacity and length of all segments and converters, so a link's capacity grew with the number of OpenStreetMap segments it was drawn in (one Chinese link reached \SI{29.8}{GW}).
+
+\textit{What was done.}
+Parallel segments add up, the weakest group limits the chain, and lengths add along the series.
+Rule \texttt{simplify\_network}.
+
+\paragraph{Absorb DC buses left after link simplification} (\commit{caa0f116})
+
+\textit{What needed fixing.}
+OpenStreetMap leaves DC buses that the merging of chains cannot fold: converter stations that also carry load or generators, cable stubs ending at a DC bus without a converter, and isolated substations tagged DC.
+Each is its own sub-network and claims a node in the clustering, 18 of 50 in North-West Europe.
+
+\textit{What was done.}
+Every remaining DC bus is mapped onto the AC bus of its converter, or else the nearest AC bus of its country.
+Converters that become self-loops are dropped, and the DC links then run between AC buses.
+Rule \texttt{simplify\_network}.
+
+\paragraph{Do not merge buses of different countries through transformers} (\commit{3d9ed567})
+
+\textit{What needed fixing.}
+Mapping all lines onto one voltage level merges the two buses of each transformer.
+At a border substation these can lie in two countries (Aldeadávila: a Portuguese \SI{220}{kV} and a Spanish \SI{400}{kV} bus \SI{100}{m} apart), so the low-voltage bus and everything on it changed country, which in a one-node run moved Portugal's \SI{56}{TWh} of load into Spain.
+
+\textit{What was done.}
+Transformers between countries are kept as \SI{1}{km} lines of the transformer's rating, and the buses stay in their countries.
+Rule \texttt{simplify\_network}.
+
+\paragraph{Never treat the backbone as an island} (\commit{d77128a8})
+
+\textit{What needed fixing.}
+The join of isolated fragments, an upstream option (\texttt{s\_\allowbreak threshold\_\allowbreak fetch\_\allowbreak isolated}), selects every AC bus whose sub-network holds less than the threshold of national load and removes its lines.
+It did not exclude the country's largest sub-network, so a threshold above the backbone's own share left every bus isolated: Russia at a threshold of 1.0 came out as 1,946 one-bus sub-networks.
+
+\textit{What was done.}
+The backbone is excluded from the selection.
+Rule \texttt{simplify\_network}.
+
+\paragraph{Tolerate an empty lines table} (\commit{064d1990})
+
+\textit{What needed fixing.}
+A country with no OpenStreetMap line above the voltage threshold imports zero lines, and the workflow then failed on a missing column; Singapore's cables are underground and unmapped.
+
+\textit{What was done.}
+Both accesses to the line table are guarded.
+Rule \texttt{base\_network}.
+
+\paragraph{Join isolated fragments to the backbone} (no commit: settings of upstream options)
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{isolated.pdf}
+  \caption{The AC sub-networks of the base networks and what the simplification does with them.
+  Grey: the backbone of each country.
+  Coloured: the fragments, by what happens to them.}
+  \label{fig:isolated}
+\end{figure}
+
+\textit{What needed fixing.}
+\begin{itemize}[nosep,leftmargin=*]
+  \item The grids in OpenStreetMap break into many AC sub-networks: 149 in India, 175 in China and 29 in North-West Europe (Figure~\ref{fig:isolated}).
+  \item Most are \SI{220}{kV} pockets whose connection runs below the \SI{200}{kV} threshold or is not mapped.
+  \item An area tied to the rest only by HVDC also counts as its own AC sub-network.
+  \item Under the default rules every fragment above \SI{300}{MW} stays an isolated sub-network and claims one of the 50 nodes, as does the merged node of the smaller ones.
+  \item Because these thresholds are absolute, the topology changes with the demand of the scenario: with 2050 demand, India had 54 isolated sub-networks above the thresholds, more than its 50 nodes, and the clustering failed.
+  \item The default merge also runs before any join: India's 118 fragments below \SI{300}{MW} (142 buses) would become one node of \SI{12.0}{GW} at their mean position in central India (\ang{78.9}\,E \ang{20.5}\,N), which at 5.2\,\% of India's load stays isolated.
+  \item In China the merged node (\SI{13.7}{GW}, 1.2\,\%) would be joined, but onto a single backbone bus in central China, far from where most of that demand is.
+\end{itemize}
+
+\textit{What was done.}
+\begin{itemize}[nosep,leftmargin=*]
+  \item China, India and North-West Europe set \texttt{s\_\allowbreak threshold\_\allowbreak fetch\_\allowbreak isolated: 0.05} and \texttt{p\_\allowbreak threshold\_\allowbreak merge\_\allowbreak isolated: false}.
+  \item The merge is off: fragments below \SI{20}{MW} are still dropped, and every other sub-network of a country except its backbone, below 5\,\% of the country's load, is joined to the backbone, each of its buses to the nearest backbone bus.
+  \item No new line is built for this: the fragments are treated as part of the bus they are joined to.
+  \item The share is relative to the country's load, so the scenarios with today's and with 2050 demand get the same topology.
+  \item Result: 131 of 149 sub-networks are joined and 17 dropped in India, 159 of 175 joined and 15 dropped in China, and 24 of 29 joined and 2 dropped in North-West Europe.
+  \item The largest joined fragment holds 0.45\,\% of national load in India and 0.22\,\% in China; in North-West Europe the largest are in Denmark (3.4\,\%) and Ireland (2.9\,\%).
+  \item Northern Ireland stays a sub-network of its own, because it is tied by AC to Ireland, and a sub-network spanning two countries is never joined.
+  \item India's 118 small fragments now spread over 124 backbone buses, the largest receiving \SI{0.4}{GW}, and China's 122 over 163 buses, the largest receiving \SI{0.3}{GW}.
+\end{itemize}
+
+\FloatBarrier
+\subsubsection{Check against real project metrics}\label{sec:grid-check}
+
+The script \texttt{check\_grid.py} applies the corrections in memory to the base networks and compares them with the project table.
+Summing link capacities is not a valid test, because a project crossing several clusters counts once per link, which is why China's \SI{467}{GW} against about \SI{175}{GW} on the Wikipedia list says little about transfer capacity.
+Capacity times true length avoids this (Table~\ref{tab:hvdcregions}, Figure~\ref{fig:gridcheck}a).
+
+\begin{table}[htb]
+  \centering\small
+  \caption{HVDC in the base networks against the listed projects in service by 2024, with their listed lengths.
+  ``Uncorrected'': one rating per country and voltage, with Web Mercator lengths.
+  ``Projects'': in service and found in the network, plus those added as new links, of all listed, including small links below the voltage threshold.
+  ``Routes'': matched projects whose route length lies within 10\,\% of the listed length.}
+  \label{tab:hvdcregions}
+  \begin{tabular}{@{}lrrrrrr@{}}
+    \toprule
+    & \multicolumn{3}{c}{GW\,km, thousand} & & & \\
+    \cmidrule(lr){2-4}
+    Region & Listed & Uncorrected & Corrected & Corrected / listed & Projects & Routes \\
+    \midrule
+    US & 8.0 & 12.1 & 7.9 & 0.98 & 7 of 7 & 6 of 7 \\
+    Brazil & 38.5 & 40.4 & 38.7 & 1.01 & 6 of 6 & 6 of 6 \\
+    India & 39.9 & 44.6 & 39.4 & 0.99 & 9 of 9 & 9 of 9 \\
+    China & 330.2 & 356.0 & 314.4 & 0.95 & 32 + 5 of 40 & 25 of 32 \\
+    North-West Europe & 5.4 & 19.7 & 4.2 & 0.76 & 20 + 4 of 27 & 7 of 20 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{grid_check.pdf}
+  \caption{(a) HVDC capacity times length relative to the listed projects (vertical line), without and with the corrections.
+  (b) AC circuit km against published totals: India May 2024, 220 kV and above without HVDC \citep{indiatransmission}, Germany about 37,000 km \citep{bmwkgrid}, Brazil 2020 with the diamond at the 28\,\% growth projected for 2024 \citep{ipeabrazil}.
+  ``Uncorrected'' carries the Web Mercator lengths, which the clustered AC lines do not use.}
+  \label{fig:gridcheck}
+\end{figure}
+
+\begin{itemize}[nosep,leftmargin=*]
+  \item Matching by name replaces an earlier version that used terminals alone: that one reached the right national totals, but put about a quarter of China's named km on the wrong parallel line, for example Baihetan--Jiangsu on ways named \emph{HVDC Jinping--Sunan}, with a length close enough that the route test did not notice.
+  \item By construction the name now agrees, so the remaining tests are route length, capacity times length, borders and rating tags, none of which the name match uses.
+  \item Route lengths hold where lines are mapped whole: all projects in Brazil and India, and for China \SI{3302}{km} against \SI{3293}{km} for Changji--Guquan, with 24 of 27 fully named lines within 10\,\%.
+  \item The US miss is the partial Quebec--New England section, whose length we took from OpenStreetMap, and we could not confirm that the way named \emph{Nexus} is the CU project, although its length agrees.
+  \item China's total lies 5\,\% below the list, mainly because four lines are only partly named or connected (65--86\,\% of their listed length), so their other sections are not counted: Northwest Yunnan--Guangdong, Wudongde, Yazhong--Jiangxi and Shanbei--Hubei.
+  \item Seven of eight cross-border pairs in North-West Europe come within 10\,\% of the list (Figure~\ref{fig:hvdccheck}b), and France--Great Britain falls from \SI{7.4}{GW} to \SI{4.0}{GW}.
+  \item North-West Europe's total stays low, and its route test fails, mainly because of German and British offshore wind links, whose export cables are only partly in OpenStreetMap, with two more (Dogger Bank A and B) dropped for that reason.
+  \item Where a way carries a rating, a tag the matching does not use, it agrees with the table on 22 of 26 links; the others are single cables of Moyle (\SI{225}{MW}, table \SI{500}{MW}) and the Spittal section of the Caithness link (\SI{800}{MW}, table \SI{1200}{MW}).
+  \item Unmatched links get zero capacity: 107 of 518 in China and 48 of 133 in North-West Europe, largely unnamed pieces of lines added separately, later lines and links outside the table; a real line missing from the table would be lost.
+  \item Series links remain: a matched project still touches a median of 3 clusters in China (at most 7), so each cluster on its way can exchange power with a line that has no converter station there; this is not fixed, and it does not change the capacity along the line.
+\end{itemize}
+
+\textbf{AC lines.}
+\begin{itemize}[nosep,leftmargin=*]
+  \item The HVDC defect does not carry over, because an AC line's capacity is computed per circuit and not taken from a project; the circuit defect above is its counterpart.
+  \item Published totals give a first, partial test (Figure~\ref{fig:gridcheck}b): India 461,800 against 466,560 circuit km, with 206,100 against 203,890 at \SI{400}{kV} and 59,100 against 54,797 at \SI{765}{kV}.
+  \item Germany comes to 32,600 km against about 37,000 km, against 79,800 km uncorrected, 50,800 km of them with true lengths.
+  \item Brazil's 173,500 km compares with about 157,000 km projected for 2024, from an older source.
+  \item The US falls from 476,500 to 295,200 circuit km; we found no national total to compare it with, and none for China.
+  \item These totals test line lengths and circuit counts only: thermal ratings still come from standard conductor types, and the limits of long lines are not tested.
+\end{itemize}
+
+\textbf{What stays unvalidated.}
+\begin{itemize}[nosep,leftmargin=*]
+  \item Any effect on model results: load shedding, flows, prices and the technology mix.
+  \item AC capacity as such, as distinct from circuit length, and the corridors of the Chinese projects that are only partly named or were added as straight links.
+  \item The hand-curated name table, including our reading of the Chinese names, and the two projects added from memory (Yongren--Funing, the Quebec--New England section).
+  \item The project table remains mostly one source, which also supplies the ratings, so the comparison tests the mapping and not the ratings themselves.
+\end{itemize}
+
+\subsubsection{One-node countries}
+
+\begin{itemize}[nosep,leftmargin=*]
+  \item The same raw data, cleaning and topology steps, with a threshold of \SI{100}{kV} (Canada and Russia \SI{200}{kV}), so that every country has at least one bus.
+  \item The region of every bus is the whole country (GADM level 0), and clustering maps all buses of a country onto one.
+  \item Isolated buses are kept with their plants instead of being dropped.
+  \item All lines and links between countries are removed before the optimisation, so countries do not trade.
+  \item Canada and Russia are too large for one whole-country region in the renewable potential calculation, so they take Voronoi regions at \SI{200}{kV}, every fragment is joined to the backbone, and the network is clustered to one node.
+  \item Singapore's substations are in OpenStreetMap but the underground cables between them are not, so every bus is isolated; all of them are merged into one bus.
+\end{itemize}

@@ -1,0 +1,148 @@
+name,country1,country2,voltage_kv,p_nom_mw,year,status,length_km,x1,y1,x2,y2,osm_names,source
+Zhou Shan,CN,CN,100,50,1982,existing,54,121.78,29.924,122.07,30.037,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Gezhouba - Shanghai,CN,CN,500,1200,1989,existing,1046,111.24,30.729,121.41,30.956,HVDC 葛洲坝-上海|HVDC Gezhouba–Shanghai|HVDC Gezhouba-Shanghai,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Sileru-Barsoor,IN,IN,200,100,1989,existing,196,81.656,17.867,81.396,19.139,HVDC Sileru–Barsoor,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Rihand-Delhi,IN,IN,500,1500,1990,existing,814,82.789,24.02,77.604,28.593,Rihand - Dadri HVDC Line,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Chandrapur-Padghe,IN,IN,500,1500,1999,existing,752,79.285,20.01,73.188,19.357,Chandrapur - Padghe HVDC line,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Tian-Guang,CN,CN,500,1800,2001,existing,960,105.1,24.916,113.25,23.316,HVDC Tianshengqiao–Guangzhou,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Shengsi,CN,CN,50,60,2002,existing,66.2,122.44,30.702,121.84,30.866,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Talcher-Kolar,IN,IN,500,2500,2003,existing,1450,85.064,21.1,78.117,13.178,HVDC Talcher - Kolar Line,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Three Gorges - Changzhou,CN,CN,500,3000,2003,existing,890,111.53,30.785,119.99,31.612,龙政线,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Guizhou - Guangdong I,CN,CN,500,3000,2004,existing,980,105.81,26.273,112.49,22.916,HVDC Guizhou-Guangdong I|禄劝至高坡至肇庆直流|HVDC Luquan-Gaopo-Zhaoqing,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Three Gorges - Guangdong,CN,CN,500,3000,2004,existing,940,112.14,30.457,114.2,23.271,HVDC Three Gorges-Guangdong,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Three Gorges - Shanghai,CN,CN,500,3000,2006,existing,1060,111.38,30.529,121.19,31.237,HVDC Three Gorges-Shanghai,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Guizhou - Guangdong II,CN,CN,500,3000,2007,existing,1200,105.25,25.466,113.99,22.75,HVDC Xingren-Baoan|HVDC Guizhou-Guangdong II,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Ballia - Bhiwadi,IN,IN,500,2500,2010,existing,800,83.713,26.071,76.816,28.183,HVDC Ballia - Bhiwadi Line,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Baoji - Deyang,CN,CN,500,3000,2010,existing,574,107.33,34.58,104.58,31.323,HVDC Baoji-Deyang|±500 kV Baoji – Deyang HVDC Line,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Hulunbeir - Liaoning,CN,CN,500,3000,2010,existing,920,119.73,48.518,122.78,41.124,HVDC Hulunbeir-Liaoning,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Xiangjiaba-Shanghai,CN,CN,800,6400,2010,existing,1907,104.42,28.546,121.77,30.926,HVDC Xiangjiaba-Shanghai,UHV page
+Yunnan - Guangdong,CN,CN,800,5000,2010,existing,1438,102.19,25.19,113.68,23.255,HVDC Chuxiong–Suidong|HVDC Yunnan–Guangdong,UHV page
+Hubei - Shanghai,CN,CN,500,3000,2011,existing,970,112.12,30.822,121.02,30.867,HVDC 湖北-上海|HVDC Hubei - Shanghai|HVDC Hubei-Shanghai,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Nanhui Wind Farm Integration,CN,CN,30,18,2011,existing,8.4,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Ningdong - Shandong,CN,CN,660,4000,2011,existing,1335,106.52,38.116,119.88,36.311,HVDC Ningxia-Shandong,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Qinghai - Tibet,CN,CN,400,1500,2011,existing,1038,95.185,36.356,91.196,29.878,HVDC Qinghai-Tibet,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Mundra - Haryana,IN,IN,500,2500,2012,existing,960,69.556,22.829,76.216,28.361,Mundra - Mahendragarh HVDC line,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Dalian City Infeed,CN,CN,320,1000,2013,existing,43,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Jinping - Sunan,CN,CN,800,7200,2012,existing,2059,102.14,27.836,120.62,31.062,HVDC Jinping–Sunan,UHV page
+Nanao Multi-terminal VSC HVDC,CN,CN,320,200,2013,existing,32,116.81,23.444,117.03,23.437,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Nuozhadu - Guangdong,CN,CN,800,5000,2015,existing,1413,100.67,22.656,112.87,22.709,HVDC Nuozhadu – Guangdong,UHV page
+Xiluodo - Guangdong,CN,CN,500,6400,2013,existing,1286,104.37,28.122,113.45,23.567,HVDC Xiluodu-Guangdong,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Hami - Zhengzhou,CN,CN,800,8000,2014,existing,2210,93.463,42.589,114.06,34.813,HVDC Southern Hami–Zhengzhou,UHV page
+Xiluodo - West Zhejiang,CN,CN,800,8000,2014,existing,1680,104.34,28.46,119.72,28.896,HVDC Xiluodo - West Zhejiang,UHV page
+Zhoushan Multi-terminal DC Interconnection,CN,CN,400,400,2014,existing,134,121.99,30.152,122.28,30.424,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Humeng - Shandong,CN,CN,800,10000,2017,existing,1234,120.9,44.6,118.5,36.7,±800kV扎鲁特-广固直流输电线|HVDC Zhalute–Qingzhou,UHV page: Zhalute - Qingzhou; approximate coordinates
+Champa-Kurukshetra,IN,IN,800,6000,2016,existing,1365,82.6,22,76.9,30,Champa-Kurukshetra HVDC line,approximate coordinates
+North-East Agra,IN,IN,800,6000,2016,existing,1728,78.073,27.084,93.219,26.74,Alipurdur to Agra HVDC Line|Agra HVDC Line|Biswanath Charai to Alipurdur HVDC Line,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Inner Mongolia - Linyi,CN,CN,800,10000,2017,existing,1238,106.87,38.778,118.62,35.552,HVDC Inner Mongolia - Linyi,UHV page: Shanghaimiao - Linyi
+Jiuquan- Xiangtan,CN,CN,800,8000,2017,existing,2383,96.723,40.601,112.79,27.649,HVDC Jiuquan- Xiangtan,UHV page: Jiuquan - Hunan
+North Shanxi - Nanjing,CN,CN,800,8000,2017,existing,1119,112.46,39.66,118.59,32.913,HVDC North Shanxi - Nanjing,UHV page: Shanxi North - Jiangsu
+Northwest Yunnan - Guangdong,CN,CN,800,5000,2017,existing,1959,99.82,26.415,113.87,22.738,HVDC Northwest Yunnan - Guangdong|滇西北至广东特高压直流,UHV page: Dianxi - Guangdong
+Xilin Hot - Taizhou,CN,CN,800,10000,2017,existing,1620,116.51,44.244,119.97,33.124,HVDC Xilin Hot - Taizhou,UHV page: Xilingol - Jiangsu
+Yinchuan - Zhuji,CN,CN,800,8000,2016,existing,1720,106.54,37.729,120.22,29.94,HVDC Lingzhou - Shaoxing,UHV page: Lingzhou - Shaoxing
+Rudong Offshore Wind Connector,CN,CN,400,1100,2022,under construction,100,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Sheyang Offshore Wind Connector,CN,CN,250,1100,2022,under construction,83,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Zhangbei DC Grid Project,CN,CN,500,3000,2021,existing,495,115.5,41.2,116.3,40.4,Zhangbei VSC-HVDC,approximate coordinates (Zhangbei - Beijing)
+Wudongde multi-terminal UHVDC demonstration project,CN,CN,800,8000,2020,existing,1489,102.5,26,114.3,23.7,昆北至柳北至龙门直流|昆柳龙800kV输电线路|昆柳龙直流,UHV page; approximate coordinates (Luquan - Longmen)
+Raigarh-Pugalur,IN,IN,800,6000,2019,existing,1830,83.35,21.856,77.537,10.826,HVDC Raigarh - Pugalur,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Konti-Skan 1,DK,SE,250,250,1965,existing,176,10.09,57.063,12.32,57.804,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Skagerrak 1 + 2,DK,NO,250,500,1977,existing,230,9.5669,56.479,7.8986,58.26,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Interconnexion France Angleterre (new),FR,GB,270,2000,1986,existing,72,1.7847,50.903,0.97556,51.106,IFA 2000|IFA 2000 bipole 1|IFA 2000 bipole 2,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Konti-Skan 2,DK,SE,285,300,1988,existing,147,10.09,57.063,12.111,57.607,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+SACOI 2,IT,FR,200,300,1992,existing,422,10.695,43.053,9.4497,42.528,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Skagerrak 3,DK,NO,350,440,1993,existing,230,9.5669,56.479,7.8986,58.26,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Baltic Cable,DE,SE,450,600,1994,existing,262,10.803,53.896,13.146,55.5,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Kontek,DK,DE,400,600,1996,existing,170,12.008,55.45,12.217,54.101,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+SwePol,PL,SE,450,600,2000,existing,245,16.891,54.502,14.841,56.153,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Tjæreborg,DK,DK,9,7,2000,existing,4.3,8.5928,55.448,8.56,55.469,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Moyle,GB,GB,250,500,2001,existing,63.5,-4.9806,55.069,-5.7697,54.843,Moyle Interconnector|Moyle Interconnector North|Moyle Interconnector South,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+NorNed,NL,NO,450,700,2008,existing,580,6.8658,53.434,6.8653,58.283,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+BritNed,GB,NL,450,1000,2010,existing,245,0.71667,51.44,4.0214,51.958,BritNed,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+StoreBælt,DK,DK,400,600,2010,existing,56,10.507,55.367,11.317,55.531,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+BorWin1,DE,DE,150,400,2012,existing,200,7.3,53.1,6,54.4,,approximate coordinates (Diele - offshore)
+East West Interconnector,IE,GB,200,500,2012,existing,130,-6.5675,53.471,-3.0728,53.227,East-West Interconnector,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+BorWin2,DE,DE,300,800,2015,existing,200,7.3081,53.125,6.025,54.355,HGÜ BorWin2,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+DolWin1,DE,DE,320,800,2015,existing,165,7.2572,52.983,6.4211,53.995,HVDC DolWin 1 & 2|HVDC DolWin 1,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+HelWin1,DE,DE,250,576,2015,existing,130,9.2319,53.917,7.7389,54.452,HelWin 1|HelWin 1 HVDC|HelWin 1; HelWin 2; SylWin 1|HelWin 1; SylWin 1,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+HelWin2,DE,DE,320,690,2015,existing,130,9.2319,53.917,7.7389,54.453,HelWin 2|HelWin 2 HVDC|HelWin 1; HelWin 2; SylWin 1,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+{{Interlanguage link|INELFE|fr|Interconnexion électrique France-Espagne}},FR,ES,320,2000,2015,existing,64,2.8039,42.732,2.9442,42.233,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Skagerrak 4,DK,NO,500,700,2015,existing,244,9.5669,56.479,7.8986,58.26,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+SylWin1,DE,DE,320,864,2015,existing,205,9.2319,53.917,7.2411,55.063,SylWin1|SylWin 1 HVDC|HelWin 1; HelWin 2; SylWin 1|HelWin 1; SylWin 1,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+DolWin2,DE,DE,320,900,2016,existing,135,7.2572,52.981,6.9231,53.978,HVDC DolWin 1 & 2|HVDC DolWin 2,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+DolWin3,DE,DE,320,900,2017,existing,160,7.2572,52.983,6.4211,53.995,HVDC DolWin 3,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Western HVDC Link,GB,GB,600,2200,2017,existing,422,-4.8853,55.721,-3.0328,53.232,Western HVDC Link,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Caithness - Moray Link<sup>3</sup>,GB,GB,320,1200,2018,existing,160,-3.4522,58.48,-2.9486,57.523,Caithness-Moray Link|Caithness/Spittal,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+BorWin3,DE,DE,320,900,2019,existing,200,7.25,53.3,6.5,54.2,HVDC BorWin 3,approximate coordinates (Emden - offshore)
+COBRAcable,DK,NL,320,700,2019,existing,325,8.7036,55.53,6.8672,53.435,COBRA cable,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+France-Italy via Fréjus Road Tunnel,FR,IT,320,2,2019,existing,190,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Nemo Link,BE,GB,400,1000,2019,existing,140,3.2,51.3,1.35,51.3,Nemo Link|Nemo Link UK onshore,approximate coordinates (Zeebrugge - Richborough)
+{{ill|ALEGrO|de}},BE,DE,320,1000,2020,existing,100,5.7,50.75,6.45,50.87,Aachen Lüttich Electricity Grid Overlay,approximate coordinates (Lixhe - Oberzier)
+IFA-2,FR,GB,320,1000,2021,existing,204,-0.2,49.2,-1.2,50.8,IFA2,approximate coordinates (Tourbe - Chilling)
+NORD.LINK,NO,DE,525,1400,2021,existing,623,6.7544,58.669,9.3447,53.922,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+North Sea Link,NO,GB,515,1400,2021,existing,730,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+ElecLink,FR,GB,320,1000,2022,existing,70,1.8,50.9,1.15,51.1,ElecLink,approximate coordinates (Peuplingues - Folkestone)
+Viking Link,DK,GB,525,1400,2023,existing,740,9.05,55.5,-0.2,52.95,Viking Link,approximate coordinates (Revsing - Bicker Fen)
+HVDC DolWin6 |DolWin6,DE,DE,320,900,2023,existing,90,7.25,53.3,7.1,53.9,HVDC DolWin 6,approximate coordinates (Emden - offshore)
+Dogger Bank A,GB,GB,320,1200,2023,existing,207,-0.4,53.85,1.9,54.9,Dogger Bank A Export Cable,approximate coordinates (Creyke Beck - offshore)
+Shetland HVDC Connection,GB,GB,320,600,2024,existing,260,-1.2708,60.293,-3.0811,58.464,Shetland HVDC Connection,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+HVDC DolWin5 |DolWin5,DE,DE,320,900,2024,under construction,130,7.25,53.3,6.6,53.9,,approximate coordinates (Emden - offshore)
+Dogger Bank B,GB,GB,320,1200,2024,under construction,207,-0.4,53.85,1.9,54.9,Dogger Bank B Export Cable,approximate coordinates (Creyke Beck - offshore)
+Greenlink,IE,GB,320,500,2025,existing,200,-7,52.25,-5,51.7,Greenlink,approximate coordinates (Great Island - Pembroke)
+BorWin5,DE,DE,320,900,2025,under construction,230,8,53,6.3,54.4,HVDC BorWin5|HVDC Borwin5,approximate coordinates (Garrel - offshore)
+Dogger Bank C,GB,GB,320,1200,2026,under construction,270,,,,,Dogger Bank C Wind Farm export cable onshore|Dogger Bank C Wind Farm export cable nearshore,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Sofia,GB,GB,320,1320,2026,under construction,227,,,,,Sofia Wind Farm export cable,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Celtic Interconnector,IE,FR,500,700,2028,under construction,575,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+East Anglia THREE,GB,GB,320,1400,2026,under construction,190,,,,,East Anglia THREE Grid Connection,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+SüdOstLink,DE,DE,525,2000,2027,under construction,500,,,,,SuedOstLink+,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Hornsea 3 Link 1,GB,GB,320,,2027,under construction,170,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Hornsea 3 Link 2,GB,GB,320,,2027,under construction,170,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+NeuConnect,DE,GB,525,1400,2028,under construction,725,8.1,53.6,0.7,51.45,,approximate coordinates; under construction
+Harmony Link,LT,PL,320,700,2028,planned,330,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+DolWin4,DE,DE,320,900,2028,planned,215,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+BorWin4,DE,DE,320,900,2029,planned,280,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+IJmuiden Ver Alpha,NL,NL,525,2000,2029,under construction,176,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+IJmuiden Ver Beta,NL,NL,525,2000,2029,planned,,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+IJmuiden Ver Gamma,NL,NL,525,2000,2029,planned,,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Eastern Green Link EGL1,GB,GB,400,2000,2029,under construction,196,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Eastern Green Link EGL2,GB,GB,400,2000,2029,under construction,505,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Western Isles HVDC connection,GB,GB,320,600,2030,planned,156,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+FAB Link,FR,GB,320,1400,2030,planned,210,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Nederwiek 1,NL,NL,525,2000,2030,planned,217,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Nederwiek 2,NL,NL,525,2000,2030,planned,,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+BalWin1,DE,DE,525,2000,2030,planned,360,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+BalWin2,DE,DE,525,2000,2031,planned,380,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+SuedLink DC3,DE,DE,525,2000,2028,planned,700,9.1944,53.897,9.1496,49.143,SuedLink|Südlink V2 Abschnitt A3 Minus|Südlink V3 Abschnitt A2 Plus|Südlink V3 Abschnitt A3 Minus|Südlink V3 Abschnitt A3 Plus|Südlink V3 Abschnitt A4 Plus|Südlink V3 Abschnitt B2 Minus|Südlink V3 Abschnitt B2 Plus|Südlink V3 Abschnitt B3 Minus|Südlink V3 Abschnitt B3 Plus|Südlink V3 Abschnitt C1 Minus|Südlink V3 Abschnitt C1 Plus|Südlink V3 Abschnitt D1 Minus|Südlink V3 Abschnitt D1 Plus,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+SuedLink DC4,DE,DE,525,2000,2028,planned,550,9.3408,53.921,10.149,49.99,Südlink V4 Abschnitt A2 Minus|Südlink V4 Abschnitt A2 Plus|Südlink V4 Abschnitt A3 Minus|Südlink V4 Abschnitt A3 Plus|Südlink V4 Abschnitt A4 Minus|Südlink V4 Abschnitt A4 Plus|Südlink V4 Abschnitt B2 Minus|Südlink V4 Abschnitt B2 Plus|Südlink V4 Abschnitt B3 Minus|Südlink V4 Abschnitt B3 Plus|Südlink V4 Abschnitt C1 Minus|Südlink V4 Abschnitt C1 Plus|Südlink V4 Abschnitt D1 Minus|Südlink V4 Abschnitt D1 Plus,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Pacific DC Intertie,US,US,500,3100,1970,existing,1362,-121.11,45.594,-118.49,34.311,Celilo - Sylmar (Path 65)|Celilo-Sylmar,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Square Butte,US,US,250,500,1977,existing,749,-101.2,47.072,-92.294,46.774,Square Butte HVDC 250kV,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+CU,US,US,400,1000,1979,existing,687,-101.16,47.373,-93.81,45.111,HVDC Nexus Line 400kV,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Path 27,US,US,500,2400,1986,existing,785,-112.58,39.501,-117.44,34.551,HVDC Intermountain,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Cross Sound Cable,US,US,150,330,2002,existing,40,-72.902,41.287,-72.867,40.959,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Neptune Cable,US,US,500,660,2007,existing,105,-73.551,40.761,-74.353,40.474,Neptune Cable,the list parser read the terminal cell as the country
+Trans Bay Cable,US,US,200,400,2010,existing,85,-121.9,38.031,-122.39,37.755,Trans Bay Cable,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+New England Clean Power Link,US,US,320,1000,,planned,248,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+TransWest Express,US,US,600,3000,2027,planned,1165,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Grain Belt Express,US,US,600,5000,,planned,750,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+SOO Green,US,US,525,2100,2030,planned,563,,,,,,the list has year 2023 but marks it planned; not built. Year ASSUMPTION
+Champlain Hudson Power Express,CA,US,400,1250,2025,existing,545,,,,,,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+New England Clean Energy Connect,US,US,320,1200,2026,existing,314,-69.9,45.5,-70.2,44.1,Appalaches-Maine HVDC Interconnection|Ligne d’interconnexion des Appalaches-Maine,approximate coordinates
+SunZia Transmission,US,US,525,3000,2026,existing,880,-105.7,34.2,-112.8,32.9,SunZia Transmission Project,approximate coordinates
+Itaipu 1,BR,BR,600,3150,1984,existing,785,-54.542,-25.466,-47.105,-23.667,HVDC Itaipu Bipole South|HVDC Itaipu - Bipole South,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Itaipu 2,BR,BR,600,3150,1987,existing,805,-54.542,-25.466,-47.105,-23.667,HVDC Itaipu Bipole North|HVDC Itaipu - Bipole North,"Wikipedia, List of HVDC projects (revision of 2026-10-19)"
+Rio Madeira,BR,BR,600,3150,2013,existing,2375,-63.958,-8.9147,-48.348,-21.833,HVDC Rio Madeira - Bipole 1,one of the two bipoles of 3150 MW; the list row of 7100 MW also holds the 800 MW back-to-back
+"Xingu-Estreito (aka, Belo Monte 1)",BR,BR,800,4000,2017,existing,2077,-52.2,-3.1,-47.3,-20.2,HVDC Belo Monte,approximate coordinates
+"Xingu-Rio (aka, Belo Monte 2)",BR,BR,800,4000,2019,existing,2550,-52.2,-3.1,-43.7,-22.6,HVDC Belo Monte,approximate coordinates
+Zhundong - South Anhui,CN,CN,1100,12000,2018,existing,3293,89.3,44.1,118.9,31,Changji – Guquan ±1100 kV UHVDC Transmission Line,UHV page: Changji - Guquan; approximate coordinates
+Qinghai - Henan,CN,CN,800,8000,2020,existing,1587,100.6,36.3,114,33,±800 kV Qingyu Line,UHV page; approximate coordinates
+Yazhong - Jiangxi,CN,CN,800,8000,2021,existing,1711,101.8,27.4,116,28.6,HVDC Yazhong-Jiangxi|雅湖直流,UHV page; approximate coordinates
+Shanbei - Hubei,CN,CN,800,8000,2021,existing,1127,109.7,38.3,114.6,30.5,HVDC Shanbei – Wuhan,UHV page; approximate coordinates
+Baihetan - Jiangsu,CN,CN,800,8000,2022,existing,2087,102.9,27.7,120.7,31.7,±800kV布托-虞城,UHV page; approximate coordinates
+Baihetan - Zhejiang,CN,CN,800,8000,2022,existing,2193,102.9,27.7,120.1,30.4,白浙线|白鹤滩-浙江800千伏特高压直流输变电线路,UHV page; approximate coordinates
+Longdong - Shandong,CN,CN,800,8000,2025,existing,926,107.6,35.7,116.3,35.9,Longdong – Shandong ±800 kV UHVDC Line,UHV page; approximate coordinates
+Hami - Chongqing,CN,CN,800,8000,2025,existing,2260,93.5,42.8,106.5,29.6,HVDC Hami-Chongqing,UHV page; approximate coordinates
+Ningxia - Hunan,CN,CN,800,8000,2025,existing,1634,105.2,37.5,112.6,26.9,HVDC Ningxia-Hunan|±800 kV Ningxiang Line,UHV page; approximate coordinates
+Jinshang - Hubei,CN,CN,800,8000,2025,existing,1901,99,31,114.9,30.1,金沙江上游至湖北特高压直流,UHV page; approximate coordinates
+Shaanbei - Anhui,CN,CN,800,8000,2026,existing,1069,109.7,38.3,117.2,31.8,,UHV page; approximate coordinates
+BEI Bornholm - Germany,DE,DK,525,2000,2033,under construction,,13.6,54.1,14.85,55.05,BEI-Interkonnektor Bornholm-Deutschland,not in the list; OSM way name BEI-Interkonnektor Bornholm-Deutschland; rating ASSUMPTION = median at 525 kV; year approximate
+Rio Madeira 2,BR,BR,600,3150,2014,existing,2375,-63.958,-8.9147,-48.348,-21.833,HVDC Rio Madeira - Bipole 2|HVDC Rio Madeira Bipole 2,second bipole; see Rio Madeira
+Yongren - Funing,CN,CN,500,3000,2016,existing,569,102,26.1,105.6,23.6,HVDC Yongren-Funing|金中直流|金沙江中游至广西直流,not in the list; OSM name; rating and length ASSUMPTION from memory of the project; approximate coordinates
+Quebec - New England (US section),US,US,450,2000,1990,existing,386,-72.5,42.7,-71.6,42.6,HVDC Quebec - New England|HVDC Quebec - New England Transmission Line,US part of the list row Quebec - New England Transmission; length = OSM; rating ASSUMPTION; approximate coordinates

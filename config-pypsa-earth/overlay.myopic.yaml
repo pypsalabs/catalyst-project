@@ -12,6 +12,7 @@
 foresight: myopic
 
 catalyst:
+  envelope: nofloor       # no must-run on emitting carriers in future years (merge_config.py)
   palette: true           # technology_assumptions.csv decides what the model may build (merge_config.py, technology-assumptions/scripts/palette.py)
   learning: true          # Wright's-law learning market of all <R>-myopic stages run as one pathway (run.sh pathway:myopic:<R1>,<R2>,...;
                           # scripts/clear_market.py writes results/learning/myopic/market_<year>.csv between horizons)
@@ -25,24 +26,20 @@ scenario:
 costs:
   year: 2025            # costs the network is built with; add_brownfield_elec moves new assets to the horizon's costs
 
-calibration:            # fork patch: scripts/calibrate_network.py; 2024 tables in prepare_network, horizon tables per year
+load_options:
+  horizon_totals: ../../config-pypsa-earth/calibration/{planning_horizons}/demand.csv   # demand profiles per horizon
+                                                                                       # (build_demand_profiles_horizon)
+co2:
+  emission_prices_by_country: ../../config-pypsa-earth/calibration/2024/co2_prices.csv   # 2024 CO2 prices, no path yet
+
+calibration:            # fork: scripts/calibrate_network.py, applied in prepare_network
   enable: true
   brownfield_only: false
   efficiency_spread: 0.15
   tranches: 3
   net_import_tolerance: 0.25
-  reference_year: 2024    # plants under construction (build year > 2024) are left out of the 2024 capacity calibration
   tables:
-    demand: ../../config-pypsa-earth/calibration/2024/demand.csv
-    capacity: ../../config-pypsa-earth/calibration/2024/capacity.csv
-    hydro: ../../config-pypsa-earth/calibration/2024/hydro.csv
-    generation: ../../config-pypsa-earth/calibration/2024/generation.csv
-    fuel_prices: ../../config-pypsa-earth/calibration/2024/fuel_prices.csv
-    co2_prices: ../../config-pypsa-earth/calibration/2024/co2_prices.csv
-    envelope: ../../config-pypsa-earth/calibration/2024/envelope_nofloor.csv   # no must-run on emitting carriers in future years
     net_imports: ../../config-pypsa-earth/calibration/2024/net_imports.csv
-  horizon_tables:
-    demand: ../../config-pypsa-earth/calibration/{planning_horizons}/demand.csv
 
 supply_curves:            # fork patch: site-specific supply curves, attached per cluster region (scripts/build_supply_curve.py);
   egs:                    # built only because technology_assumptions.csv has egs as `model: tranches` (merge_config.py drops the block otherwise)

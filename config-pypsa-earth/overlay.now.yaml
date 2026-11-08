@@ -1,10 +1,11 @@
 # SPDX-License-Identifier: CC0-1.0
 #
 # Catalyst screening scenario "now" = the 2024 power system, dispatched: the fleet, demand and hydro energy of
-# every country are calibrated to Ember 2024 (config-pypsa-earth/calibration/2024/, built by
-# scripts/build_calibration.py), fuel and CO2 prices are 2024 values per country, nuclear / biomass / geothermal
-# run flat at their observed capacity factors, thermal plant has an availability cap, and nothing is extendable
-# (calibration.brownfield_only: generators and stores are frozen; lines may be reinforced, ll=copt).
+# every country are Ember 2024 (config-pypsa-earth/calibration/2024/, built by scripts/build_calibration.py, entering
+# where each data vector enters the workflow: statistics.yaml), fuel and CO2 prices are 2024 values per country,
+# nuclear / biomass / geothermal run flat at their observed capacity factors, thermal plant has an availability cap,
+# and nothing is extendable (calibration.brownfield_only: generators and stores are frozen; lines may be reinforced,
+# ll=copt).
 # Applied by config-pypsa-earth/run.sh on top of config.<R>.yaml for a stage named <R>-now (run.sh sets run.name =
 # <R>-now and symlinks resources/<R>-now -> resources/<R>, so only add_electricity and everything downstream are
 # rebuilt). Before 2026-09-30 this overlay was the fork's default brownfield expansion at 2025 costs without a CO2
@@ -19,23 +20,21 @@ scenario:
 
 costs:
   year: 2025            # technology-data v0.13.2 costs_2025.csv: VOM, efficiencies, CO2 intensities (fuel prices are
-                        # replaced per country by the calibration table)
+                        # replaced per country by costs.fuel_prices, statistics.yaml)
 
-calibration:            # fork patch: scripts/calibrate_network.py, applied in prepare_network (paths relative to the fork root)
+co2:
+  emission_prices_by_country: ../../config-pypsa-earth/calibration/2024/co2_prices.csv   # 2024 CO2 prices (prepare_network)
+
+calibration:            # fork: scripts/calibrate_network.py, applied in prepare_network (paths relative to the fork root)
   enable: true
   brownfield_only: true
   efficiency_spread: 0.15   # 3 tranches per fuel-burning generator: x0.85, x1.0, x1.15 of the fleet efficiency
   tranches: 3
   net_import_tolerance: 0.25
   energy_bands: {coal: [0.9, 1.1], gas: [0.9, 1.1]}   # annual coal and gas generation within +-10 % of Ember (no floor for exporters)
-  tables:
+  tables:                   # the targets of the solve-time constraints
     demand: ../../config-pypsa-earth/calibration/2024/demand.csv
-    capacity: ../../config-pypsa-earth/calibration/2024/capacity.csv
-    hydro: ../../config-pypsa-earth/calibration/2024/hydro.csv
     generation: ../../config-pypsa-earth/calibration/2024/generation.csv
-    fuel_prices: ../../config-pypsa-earth/calibration/2024/fuel_prices.csv
-    co2_prices: ../../config-pypsa-earth/calibration/2024/co2_prices.csv
-    envelope: ../../config-pypsa-earth/calibration/2024/envelope.csv
     net_imports: ../../config-pypsa-earth/calibration/2024/net_imports.csv
 
 enable:
