@@ -88,13 +88,16 @@ if BASELINE:   # before/after comparison, BEFORE side: the `now` solve is the 20
 
 # ----------------------------------------------------------------------------- data ---------------------
 def stage_regions():
-    """{region: config dict} of every non-smoke config.<R>.yaml."""
+    """{region: config dict} of every non-smoke config.<R>.yaml (test regions with catalyst.world_page: false left out,
+    e.g. JP, which the ASI group already counts)."""
     out = {}
     for f in sorted(glob.glob(os.path.join(CFG, "config.*.yaml"))):
         r = os.path.basename(f)[len("config."):-len(".yaml")]
         if "-smoke" not in r:
             with open(f) as fh:
-                out[r] = yaml.safe_load(fh)
+                cfg = yaml.safe_load(fh)
+            if (cfg.get("catalyst") or {}).get("world_page", True):
+                out[r] = cfg
     return out
 
 

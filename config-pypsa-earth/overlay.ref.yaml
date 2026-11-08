@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Reference pathway (SOW §1.3 S1, no catalytic intervention) of the 24/7 CFE comparison: the myopic pathway
+# (overlay.myopic.yaml, inherited) with its own learning market results/learning/ref/, so it never mixes with other
+# myopic markets. Same palette, demand, fuel and CO2 prices as overlay.cfe.yaml, just without the buyer.
+# learning_spillover 1 = only the modelled builds learn (the secluded case); if the reference builds advanced
+# technologies itself, the midpoint / extrapolated cases need reference branches of their own.
+inherit: myopic
+
+catalyst:
+  learning_spillover: 1

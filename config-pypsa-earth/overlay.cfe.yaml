@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Catalyst scenario "cfe" (SOW §1.3 S2, 24/7 CFE catalyst) = the myopic pathway (overlay.myopic.yaml, inherited) with a
+# 24/7 carbon-free electricity buyer at every AC bus from the first expansion horizon on: a flat load of `share` of the
+# bus's demand, matched with carbon-free supply in every hour (annual sum of hourly matching, Riepin et al., Joule
+# 2025, github.com/PyPSA/247-cfe), choosing what to procure from the palette itself (technology choice and volume
+# endogenous, SOW §1.1). Implementation: fork scripts/cfe.py (buyer added in add_brownfield, constraints in
+# solve_network); README "24/7 CFE catalyst (overlay cfe)". Own learning market results/learning/cfe/.
+# Decided 2026-11-08: 10 % of demand, 100 % CFE, exports at most 20 % of the buyer's load (247-procurement-paper).
+inherit: myopic
+
+catalyst:
+  cfe:
+    share: 0.10
+    target: 1.0
+    excess_share: 0.20
+    start_year: 2030            # 2025 is a dispatch-only horizon: nothing can be procured
+    iterations: 2               # solves per horizon; each takes the grid CFE of the one before (247-cfe)
+    # what the buyer may procure (twins of the bus's extendable assets of these carriers) and the clean carriers
+    # of the grid CFE; sofc-cc counts as clean (2.2 % of the gas CO2 left, ASSUMPTION as in the toy model)
+    clean_carriers: [solar, onwind, offwind-ac, offwind-dc, egs, nuclear-gen4, sofc-cc, iron-air, vrfb, co2-battery, battery]
+    clean_threshold: 0.01       # tCO2/MWh_th: other grid carriers at or below count as clean (biomass, hydro, nuclear)

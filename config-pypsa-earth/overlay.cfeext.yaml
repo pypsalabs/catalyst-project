@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Learning sensitivity of the 24/7 CFE pathway (overlay.cfe.yaml, inherited): shares every horizon up to 2030 with
+# stage <R>-cfe and continues from its solved 2030 network with its own learning market results/learning/cfeext/.
+# What the rest of the world builds of the technologies the modelled regions build (clear_market.py,
+# catalyst.learning_spillover; share = the stages' share of 2024 world demand):
+#   extrapolated: modelled builds x 1 / share of world demand (the rest of the world builds as much per MWh of demand)
+inherit: cfe
+
+catalyst:
+  branch: {from: cfe, year: 2030}
+  learning_spillover: extrapolate

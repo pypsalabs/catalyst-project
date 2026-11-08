@@ -1283,3 +1283,103 @@ run.sh pathway:myopic:SG,CA,OCE
 - **Not yet**: no global build-rate limit (`max_build_rate_gw_yr`, Gen IV 1 GW/yr): once a technology is cheapest
   nothing limits how fast the regions build it, and a joint limit needs an allocation across independently
   solved regions. The no-learning results of 2026-10-12 are kept in `results/archive/<R>-myopic-nolearning/`.
+
+### Fixed: new fuel-burning plants without fuel or VOM cost (found and fixed 2026-11-08)
+
+The country fuel prices of `add_electricity` (calibration at the source, fork 3a136a31) passed the marginal cost
+of the extendable conventional generators as a Series indexed `<bus> <carrier>` to `n.madd(..., suffix=" <carrier>")`.
+PyPSA 0.30 aligns such a Series to the names *before* the suffix, so every new extendable conventional
+generator got NaN, i.e. 0 in the solve plus the CO2 price: OCGT, CCGT and the palette's SOFC, SOFC-CC and Gen IV
+(fuel and VOM free; the SG smoke test of the CFE buyer, SOFC-CC at 116 USD/MWh, was one of these). The screening clustering repaired it in the `-now` /
+`-zero` stages (no extendable fossil in `zero` anyway, so the validation pages are unaffected), but the myopic
+stages kept 0: the first JP-cfe solve of 2030 built 78 GW of new OCGT at 1 USD/MWh and ran it as baseload
+(load-weighted price 16.7 USD/MWh, coal idle). **The learning test of 2026-10-19 (SG, CA, OCE) had the same free
+new gas and is void**; the overnight re-run of 2026-11-08 rebuilds every network with the fix (fork
+`add_electricity.py`: the Series is indexed by bus). The free-gas JP trunk is kept in
+`results/archive/JP-cfe-freegas`.
+
+### Learning spillover and branches (2026-11-08)
+
+What the rest of the world builds is an assumption of the market, set per overlay:
+
+- **`catalyst.learning_spillover`** (`clear_market.py`, `multiplier()`): unset = only modelled builds count (the rule
+  above; the market files stay byte-identical, checked against the 2026-10-19 SG/CA/OCE files). Otherwise the
+  modelled builds are multiplied by m before they enter Q: a number as given, `midpoint` = √(1/share), `extrapolate`
+  = 1/share, share = the stages' share of 2024 world demand (header line 2). Exogenous deployment is not scaled. Extra
+  columns `multiplier` and `new_extrapolated` (= (m − 1) × modelled, the builds assumed elsewhere). Japan alone:
+  share 3.29 %, midpoint ×5.5, extrapolate ×30.4.
+- **Overlay inheritance**: `inherit: <scen>` merges `overlay.<scen>.yaml` first (`merge_config.load_overlay`), so a
+  sensitivity carries only what differs.
+- **Branches**: `catalyst.branch: {from: <scen>, year: Y}` makes `<R>-<x>` share every horizon up to Y with
+  `<R>-<scen>` (`catalyst.branch.parent_stage`). `merge_config.solved_horizon` returns the parent's file for those years
+  and `horizons` only the later ones; the fork's `solved_previous_horizon_elec` (Snakefile, catalyst patch) starts
+  the branch's first horizon from the parent's solved network of Y, wrapped in `ancient()`; `clear_market.py init`
+  copies the parent's `market_<Y>.csv` and steps over the parent's networks of Y with the branch's multiplier.
+  The trunk runs with `PATHWAY_UNTIL=Y` (run.sh stops after that horizon).
+- **Plots**: `scripts/plot_branches.py <R> <scen>...` (with `scripts/summarise_cfe.py`): advanced power and energy
+  capacity as stacked areas, learning factors, CFE premium, one panel or line per sensitivity, x = year →
+  `results/learning/<R>-branches/{power,energy,learning,premium}.{png,pdf}` and the tables behind them.
+
+## 24/7 CFE catalyst (overlay `cfe`; 2026-11-08)
+
+SOW §1.3 S2: a share of regional demand commits to 24/7 CFE and picks its portfolio, advanced technologies included,
+endogenously (SOW §1.1). After Riepin, Jenkins, Swezey & Brown (Joule 2025; `models/247-cfe`: `add_ci`,
+`cfe_constraints`, `excess_constraints`, `calculate_grid_cfe`). Fork `scripts/cfe.py` (catalyst patch):
+
+- **Buyer** (`add_cfe_buyer`, called in `add_brownfield.py` after the horizon's demand and before the vintages are named
+  and last horizon's assets carried over): at every AC bus with load, bus `<bus> CFE` (location = the bus) with a
+  flat load of `share` × the bus's mean load of the horizon, taken out of the bus's load; links `<bus> CFE import` /
+  `export` (fixed, 1 TW); extendable twins of the bus's extendable assets whose carrier is in `clean_carriers`
+  (generators incl. EGS tranches, storage units, the Li-ion store with charger / discharger), same carriers and
+  costs, so the learning market counts the buyer's builds without change. From `start_year` (2030; 2025 is
+  dispatch-only). Earlier buyer builds are carried over like any other asset.
+- **Constraints** (`add_cfe_constraints`, in `extra_functionality`): matching Σ_t w_t import_t (1 − grid_cfe_t) ≤
+  (1 − target) Σ_t w_t load_t (with the buyer bus's hourly balance this is 247-cfe's annual sum of hourly clean
+  supply ≥ target × load); excess Σ_t w_t export_t ≤ excess_share × load; shared potentials: buyer twin + grid
+  asset ≤ the grid asset's potential (VRE netted by location, EGS tranches by name, buyer builds included).
+- **Grid CFE** (`grid_cfe`): clean share of the generation at the bus, buyer assets and pure storage left out
+  (hydro reservoirs count as generation); clean = `clean_carriers` and carriers at or below `clean_threshold`
+  tCO2/MWh_th. The previous horizon's solved network seeds the first solve, `iterations` (2) solves per horizon,
+  each with the grid CFE of the one before (`solve_network`).
+- **Results** in `n.meta["cfe"]` of every solved network: `buyers`, `grid_cfe` (used in the last solve),
+  `grid_cfe_result`, `summary` per buyer: `cfe_score`, `cost_per_mwh` = (annualised CAPEX of all buyer assets incl.
+  earlier vintages + their marginal cost + imports at the bus price − export revenue) / buyer demand,
+  `grid_price_per_mwh` = load-weighted average price of the rest of the bus's demand, `premium_per_mwh` = the
+  difference (USD2024/MWh).
+- **Settings** (`overlay.cfe.yaml`, decided 2026-11-08): 10 % of demand, target 1.0, excess ≤ 20 % (as the
+  procurement paper), `clean_carriers` = the palette's clean rows; SOFC-CC counts as clean (2.2 % of the gas CO2
+  left; ASSUMPTION, as in the toy model).
+- **Caveats**: multi-node regions get one buyer per bus, each matched against its own bus's generation (imports into
+  the bus are not traced); grid CFE is a parameter of each solve, not a variable (two iterations, as 247-cfe).
+- **Smoke test** (2026-11-08, SG 2030 network of the myopic stage, 2 iterations): score 1.000, no imports, the
+  buyer builds 0.96 GW of SOFC-CC at 116 USD/MWh against a grid price of 26 (premium 90). Void: that network had
+  the free-fuel bug (section "Fixed: new fuel-burning plants without fuel or VOM cost").
+- **Fix found on the way** (fork `prepare_network.enforce_autarky`, upstream candidate): with `ATKc` (every
+  single-node rest-of-world group) the Li-ion charger / discharger links were removed as "cross-border", because the
+  battery bus has no country before `sanitize_locations`, so no single-node run could build Li-ion before
+  2026-11-08 (incl. the learning runs of 2026-10-16/19). The country of a bus without one is now its location's.
+
+Japan test (stage `JP`, `config.JP.yaml`, one node; overlays `cfe`, `cfesec`, `cfemid`, `cfeext`):
+```bash
+bash config-pypsa-earth/run.sh prestage:JP JP
+PATHWAY_UNTIL=2030 bash config-pypsa-earth/run.sh pathway:cfe:JP
+bash config-pypsa-earth/run.sh pathway:cfesec:JP pathway:cfemid:JP pathway:cfeext:JP
+cd models/pypsa-earth && pixi run python ../../config-pypsa-earth/scripts/plot_branches.py JP cfesec cfemid cfeext
+```
+Figures in `models/pypsa-earth/results/learning/JP-branches/` (power, energy, mix, learning, premium; tables
+summary / cfe / factors / mix .csv). No-CFE reference: overlay `ref` (`run.sh pathway:ref:JP`, own market
+`results/learning/ref/`).
+
+**Result (2026-11-08, with the fuel-cost fix; 3-hourly, 2013 weather, CO2 price flat at 2.2 USD/t, no cap):**
+- 2030: the buyer (105 TWh) builds 13.7 GW of EGS (tranches t0 + t1) plus 8.5 GW solar, 4.9 GW onshore and 2.1 GW
+  offshore wind; score 1.000, excess at the 20 % cap, 96.4 USD/MWh vs a grid price of 75.4 (premium 21.0); grid
+  CFE 0.49. Without the fix the same solve built 78 GW of new OCGT at 1 USD/MWh (grid price 16.7).
+- Learning on the buyer's 13.7 GW (EGS drilling 4.8 doublings over Q0 = 0.5 GW) makes EGS cheap enough for the
+  grid: EGS in Japan 2050 = 99 GW (secluded), 102 (midpoint), 102.5 (extrapolated), of which the buyer ~15;
+  drilling factor 2050 0.30 / 0.20 / 0.13 (plant 0.63 / 0.48 / 0.37). Coal falls from 327 TWh (2030) to almost nothing by 2050, nuclear
+  shrinks with dated retirements, EGS ~60 % of generation in 2050. No CO2 price path: this is learning economics
+  alone (new EGS ~50 USD/MWh in 2035 vs ~55 running cost of existing coal).
+- Premium rises to 41 (secluded) / 49 (midpoint, extrapolated) USD/MWh in 2050: the buyer keeps paying the
+  annuity of its 2030 EGS at the unlearnt cost (~100 USD/MWh) while the grid price falls to 51-59.
+- Generation 1,022 TWh in 2025 = Ember 2024 gross generation (1,016 TWh) x the demand pathway; Japanese
+  consumption statistics (~900 TWh) exclude plant own use and grid losses.

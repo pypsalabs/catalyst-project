@@ -35,6 +35,12 @@ at a time).
 Learning (catalyst.learning: true in the overlay, e.g. overlay.myopic.yaml): catalyst.learning_market =
 results/learning/<scen>/market_{year}.csv, the learning market of all <R>-<scen> stages (scripts/clear_market.py);
 assumptions.smk makes it an input of the palette costs of every year after costs.year.
+Overlay inheritance: `inherit: <scen>` in overlay.<x>.yaml merges overlay.<scen>.yaml first (recursively), so a
+sensitivity overlay carries only what differs (overlay.cfe.yaml inherits myopic, overlay.cfesec.yaml inherits cfe).
+Branches (catalyst.branch: {from: <scen>, year: <Y>}): stage <R>-<x> shares every horizon up to Y with <R>-<scen>
+(catalyst.branch.parent_stage): solved_horizon() of those years is the parent's file, `horizons` lists only the later
+years, and the fork's myopic chain starts the branch from the parent's solved network of Y (Snakefile,
+solved_previous_horizon_elec); clear_market.py init seeds the branch's market from the parent's (README "Branches").
 The first element of every scenario list is used for the target (run.sh runs one scenario per stage).
 """
 import os
@@ -77,6 +83,15 @@ def load(name):
         return yaml.safe_load(f) or {}
 
 
+def load_overlay(scen, seen=()):
+    """overlay.<scen>.yaml, with `inherit: <parent>` resolved (the parent merged first, recursively)."""
+    if scen in seen:
+        raise ValueError(f"overlay inheritance loop: {' -> '.join(seen + (scen,))}")
+    cfg = load(OVERLAY.format(scen=scen))
+    parent = cfg.pop("inherit", None)
+    return deep_merge(load_overlay(parent, seen + (scen,)), cfg) if parent else cfg
+
+
 def envelope_variant(cfg, variant):
     """Point the `conventional: <carrier>: existing:` tables at calibration/<year>/envelope/<variant>/; an attribute
     without a table in that variant (the floors of emitting carriers in nofloor) is dropped."""
@@ -94,10 +109,16 @@ def stage_config(kind, stage):
     """Merged config dict of one stage: statistics.yaml < config.<R>.yaml (< overlay.<scen>.yaml)."""
     if kind == "overlay":
         base_run, scen = stage.rsplit("-", 1)
-        cfg = deep_merge(deep_merge(load(STATISTICS), load(f"config.{base_run}.yaml")), load(OVERLAY.format(scen=scen)))
+        cfg = deep_merge(deep_merge(load(STATISTICS), load(f"config.{base_run}.yaml")), load_overlay(scen))
         cfg.setdefault("run", {})["name"] = stage
         cat = cfg.setdefault("catalyst", {})
         cat.update(base_run=base_run, scenario=scen)
+        if cat.get("branch"):
+            br = cat["branch"]
+            br["year"] = int(br["year"])
+            br["parent_stage"] = f"{base_run}-{br['from']}"
+            if br["year"] not in cfg["scenario"]["planning_horizons"][:-1]:
+                raise ValueError(f"{stage}: branch year {br['year']} must be a planning horizon before the last")
         if cat.get("extra_opts"):
             cfg["scenario"]["opts"] = [f"{cat['extra_opts']}-{o}" for o in cfg["scenario"]["opts"]]
         cfg.setdefault("costs", {})["output_currency"] = "USD"  # the study's currency (technology_assumptions.csv, price tables)
@@ -151,8 +172,20 @@ def solved_network(region, scen):
 
 
 def solved_horizon(stage, year):
-    """Path (relative to the fork root) of the solved network of a myopic stage <R>-<scen> in one horizon."""
-    return f"results/{stage}/networks/{network_stem(stage_config('overlay', stage))}_{year}.nc"
+    """Path (relative to the fork root) of the solved network of a myopic stage <R>-<scen> in one horizon; for a
+    branch, the parent's file in the shared horizons (up to catalyst.branch.year)."""
+    cfg = stage_config("overlay", stage)
+    br = cfg["catalyst"].get("branch")
+    if br and int(year) <= br["year"]:
+        return solved_horizon(br["parent_stage"], year)
+    return f"results/{stage}/networks/{network_stem(cfg)}_{year}.nc"
+
+
+def horizons(stage):
+    """Planning horizons a stage solves itself (a branch: only those after the branch year)."""
+    cfg = stage_config("overlay", stage)
+    br = cfg["catalyst"].get("branch")
+    return [y for y in cfg["scenario"]["planning_horizons"] if not br or y > br["year"]]
 
 
 def target_of(kind, stage, cfg, horizon=None):
@@ -175,7 +208,7 @@ def target_of(kind, stage, cfg, horizon=None):
 
 if __name__ == "__main__":
     if sys.argv[1] == "horizons":
-        print(" ".join(str(y) for y in stage_config("overlay", sys.argv[2])["scenario"]["planning_horizons"]))
+        print(" ".join(str(y) for y in horizons(sys.argv[2])))
         sys.exit()
     kind, stage, out = sys.argv[1:4]
     horizon = sys.argv[4] if len(sys.argv) > 4 else None

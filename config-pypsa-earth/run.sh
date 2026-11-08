@@ -25,6 +25,9 @@
 #                     read by the palette costs of that year); at the end scripts/plot_learning.py draws
 #                     results/learning/<scen>/learning.png. Resumable: a second call re-runs nothing that is up to date.
 #                     LEARNING_EXOGENOUS=<csv> (technology, year, gw) adds deployment outside the model (test hook).
+#                     PATHWAY_UNTIL=<year> stops after that horizon (the trunk of branched sensitivities). A branch
+#                     overlay (catalyst.branch, e.g. pathway:cfeext:JP) solves only the horizons after the branch year,
+#                     starting from the parent stage's solved network, with its market seeded from the parent's.
 #   Rest-of-world groups (config.<G>.yaml with catalyst.single_node, from scripts/select_countries.py) run as
 #   prestage:<G> <G> <G>-now <G>-zero; their overlay target is the solved network itself.
 # Constraints enforced here: no Snakemake parallelism (-c1 -j1), the whole process tree capped at MEM_MAX
@@ -192,7 +195,7 @@ run_pathway() {   # $1 = pathway:<scen>:<R1>,<R2>,... (see header)
   [ ${#horizons[@]} -gt 0 ] || { log "[pathway $scen] no planning horizons (merge_config.py horizons ${stages[0]}), see $slog"; return 1; }
   log "[pathway $scen] stages ${stages[*]}, horizons ${horizons[*]}${LEARNING_EXOGENOUS:+, exogenous $LEARNING_EXOGENOUS}"
   echo "######## [pathway $scen] $(date) ########" >> "$slog"
-  $RUN python "$HERE/scripts/clear_market.py" init "$scen" "${horizons[0]}" >> "$slog" 2>&1 \
+  $RUN python "$HERE/scripts/clear_market.py" init "$scen" "${horizons[0]}" "${stages[@]}" >> "$slog" 2>&1 \
     || { log "[pathway $scen] clear_market.py init FAILED, see $slog"; return 1; }
   for i in "${!horizons[@]}"; do
     y="${horizons[$i]}"
@@ -201,6 +204,8 @@ run_pathway() {   # $1 = pathway:<scen>:<R1>,<R2>,... (see header)
     done
     ynext="${horizons[$((i + 1))]:-}"
     [ -n "$ynext" ] || break
+    # PATHWAY_UNTIL=<year>: stop after that horizon (e.g. the trunk of branched sensitivities)
+    if [ -n "${PATHWAY_UNTIL:-}" ] && [ "$y" -ge "$PATHWAY_UNTIL" ]; then log "[pathway $scen] PATHWAY_UNTIL=$PATHWAY_UNTIL: stop after $y"; break; fi
     log "[pathway $scen] market step: builds of $y -> costs of $ynext"
     systemd-run --user --scope --quiet -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -- \
       $RUN python "$HERE/scripts/clear_market.py" step "$scen" "$y" "$ynext" "${stages[@]}" \
