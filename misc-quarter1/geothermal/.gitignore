@@ -4,3 +4,6 @@ __pycache__/
 # retrieved by the retrieve_ricks rule (28 MB)
 data/ricks2025/
 data/ricks2025_costing_and_supply_curves.zip
+# retrieved by retrieve_limberger (93 MB) and retrieve_ghfdb (56 MB unpacked)
+data/limberger_temperature_voxel.nc
+data/ghfdb2024/

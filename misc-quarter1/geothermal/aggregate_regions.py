@@ -7,7 +7,8 @@ Outputs  build/egs_supply_curves.csv   region x LCOE bin: capacity in the bin an
                                        cost of the cheapest tranche, depth, resource temperature
 
 Regions: every ISO3 with feasible cells, plus the composites in config.yaml
-(US West/East, Australia SWIS, North-West Europe, IEA comparison groups).
+(US West/East, Australia SWIS, North-West Europe, IEA comparison groups). Cells flagged `remote_territory`
+(islands without a link to the country's main grid, e.g. Jan Mayen, Svalbard, Hawaii) are left out.
 Standalone: python aggregate_regions.py
 """
 
@@ -45,7 +46,8 @@ def region_masks(df):
             m = ((df["iso3"] == spec["iso3"]) & df["admin1"].isin(spec["admin1_codes"])).values
         elif "admin1_complement_of" in spec:
             other = CFG["regions"][spec["admin1_complement_of"]]
-            m = ((df["iso3"] == spec["iso3"]) & ~df["admin1"].isin(other["admin1_codes"])).values
+            m = ((df["iso3"] == spec["iso3"]) & ~df["admin1"].isin(other["admin1_codes"])
+                 & ~df["admin1"].isin(spec.get("admin1_exclude", []))).values
         else:
             raise ValueError(key)
         masks[key] = m
@@ -59,6 +61,7 @@ def wavg(x, w):
 
 def main():
     df = pd.read_csv(POT, dtype={"admin1": str, "iso3": str})
+    df = df[~df["remote_territory"]].reset_index(drop=True)
     bins = CFG["egs"]["lcoe_bins"]
     masks, names = region_masks(df)
     curves, summary = [], []

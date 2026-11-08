@@ -1,7 +1,10 @@
 """Figures for the EGS dataset.
 
   figures/egs_maps.{png,pdf}            four global maps: reservoir temperature at 4.5 km,
-                                        LCOE-optimal depth, CAPEX, LCOE (cheapest feasible depth)
+                                        LCOE-optimal depth, CAPEX, LCOE (cheapest feasible depth); Equal Earth
+                                        projection (pyproj); CAPEX and LCOE in the cyclic twilight colormap from its
+                                        near-white end (cheapest) to 0.82, cut before it wraps back to white, with
+                                        no-data land in a darker grey so it cannot read as the cheapest class
   figures/egs_supply_curves.{png,pdf}   cumulative developable capacity vs LCOE for the modelled
                                         regions, plus the IEA/InnerSpace comparison groups
 Standalone: python plot_maps.py
@@ -18,6 +21,7 @@ import pandas as pd
 import xarray as xr
 import yaml
 from matplotlib.colors import BoundaryNorm, ListedColormap
+from pyproj import CRS, Transformer
 
 HERE = Path(__file__).parent
 if "snakemake" in globals():
@@ -36,6 +40,12 @@ else:
 CAT = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"]
 INK, MUTED, GRIDC, SURFACE = "#0b0b0b", "#52514e", "#dcdcdc", "#fcfcfb"
 LAND = "#efeeea"
+LAND_DARK = "#a6a6a6"      # no-data land under the twilight panels (their cheapest class is near white)
+TWILIGHT = (0.0, 0.82)     # slice of the cyclic twilight map: near white -> blue -> dark -> terracotta, never back to white
+EQEARTH = "+proj=eqearth +lon_0=0 +datum=WGS84 +units=m"
+TO_EQ = Transformer.from_crs(CRS.from_proj4("+proj=longlat +datum=WGS84"), CRS.from_proj4(EQEARTH), always_xy=True)
+LAT = (-58, 84)
+LCOE_BINS = [50, 75, 100, 125, 150, 200, 250, 300, 400, 600]   # USD/MWh classes of panel d (also plot_country_lcoe.py)
 
 
 def raster(df, col, step):
@@ -48,20 +58,24 @@ def raster(df, col, step):
     return lons, lats, arr
 
 
-def classed(name, n, reverse=False):
-    """n evenly spaced colours of a matplotlib colormap as a discrete ListedColormap."""
+def classed(name, n, reverse=False, span=(0.15, 0.95)):
+    """n evenly spaced colours of a matplotlib colormap (within `span`) as a discrete ListedColormap."""
     cm = matplotlib.colormaps[name]
-    cols = cm(np.linspace(0.15, 0.95, n))
+    cols = cm(np.linspace(*span, n))
     return ListedColormap(cols[::-1] if reverse else cols)
 
 
-def draw_map(ax, lons, lats, arr, cmap, norm, world, title, cbar_label, ticks=None, ticklabels=None):
-    world.plot(ax=ax, color=LAND, edgecolor="none")
+def draw_map(ax, lons, lats, arr, cmap, norm, world, title, cbar_label, ticks=None, ticklabels=None, land=LAND):
+    world.plot(ax=ax, color=land, edgecolor="none")          # world is already in Equal Earth
     step = lons[1] - lons[0]
-    im = ax.pcolormesh(np.append(lons - step / 2, lons[-1] + step / 2), np.append(lats - step / 2, lats[-1] + step / 2),
-                       np.ma.masked_invalid(arr), cmap=cmap, norm=norm, shading="flat", rasterized=True)
+    rows = (lats >= LAT[0] - step) & (lats <= LAT[1] + step)
+    X, Y = TO_EQ.transform(*np.meshgrid(np.append(lons - step / 2, lons[-1] + step / 2),
+                                        np.append(lats[rows] - step / 2, lats[rows][-1] + step / 2)))
+    im = ax.pcolormesh(X, Y, np.ma.masked_invalid(arr[rows]), cmap=cmap, norm=norm, shading="flat", rasterized=True)
     world.boundary.plot(ax=ax, color="white", linewidth=0.25)
-    ax.set_xlim(-180, 180); ax.set_ylim(-58, 84); ax.set_aspect("equal")
+    x0, x1 = TO_EQ.transform([-180, 180], [0, 0])[0]
+    y0, y1 = TO_EQ.transform([0, 0], list(LAT))[1]
+    ax.set_xlim(x0, x1); ax.set_ylim(y0, y1); ax.set_aspect("equal")
     ax.set_axis_off()
     ax.set_title(title, fontsize=10, color=INK, loc="left")
     cb = plt.colorbar(im, ax=ax, orientation="horizontal", fraction=0.04, pad=0.02, aspect=45)
@@ -79,8 +93,9 @@ def maps():
     g = xr.open_dataset(GRID)
     pot = pd.read_csv(POT, dtype={"admin1": str, "iso3": str})
     world = gpd.read_file((HERE / CFG["archetype_data_dir"] / "ne_50m_admin_0_countries" / "ne_50m_admin_0_countries.shp").resolve())
+    world = world[world["CONTINENT"] != "Antarctica"].to_crs(EQEARTH)
     cells = pd.DataFrame({"lon": g["lon"].values, "lat": g["lat"].values, "t45": g["t_c"].sel(depth=4.5).values})
-    fig, axes = plt.subplots(2, 2, figsize=(15, 9.2))
+    fig, axes = plt.subplots(2, 2, figsize=(15, 10.0))
     fig.patch.set_facecolor(SURFACE)
     axes = axes.ravel()
     e = CFG["egs"]
@@ -88,19 +103,20 @@ def maps():
 
     b = [50, 100, 150, 200, 250, 300, 400]
     draw_map(axes[0], *raster(cells, "t45", step), classed("inferno", len(b) - 1), BoundaryNorm(b, len(b) - 1),
-             world, "a  Rock temperature at 4.5 km depth", "°C (1-D conduction on Lucazeau heat flow; Stanford model over CONUS)")
+             world, "a  Rock temperature at 4.5 km depth", "°C (1-D conduction on Lucazeau heat flow; Stanford model over CONUS, Limberger model over Europe)")
     depths = CFG["grid"]["depths_km"]
     b = [d - 0.5 for d in depths] + [depths[-1] + 0.5]
     draw_map(axes[1], *raster(pot, "depth_km", step), classed("viridis", len(depths), reverse=True), BoundaryNorm(b, len(depths)),
              world, f"b  LCOE-optimal depth where the reservoir reaches {e['t_min_c']} °C", "km", ticks=depths)
     b = [3000, 4000, 5000, 6000, 8000, 10000, 12000, 15000, 20000, 30000]
-    draw_map(axes[2], *raster(pot, "capex_usd_per_kw", step), classed("viridis", len(b) - 1), BoundaryNorm(b, len(b) - 1),
-             world, f"c  EGS CAPEX at that depth (surface plant + wellfield, incl. interest during construction)",
-             f"USD{year}/kW", ticks=b, ticklabels=[f"{x / 1000:g}k" for x in b])
-    b = [50, 75, 100, 125, 150, 200, 250, 300, 400, 600]
-    draw_map(axes[3], *raster(pot, "lcoe_usd_per_mwh", step), classed("viridis", len(b) - 1), BoundaryNorm(b, len(b) - 1),
-             world, f"d  LCOE ({e['wacc']:.0%} real WACC, {e['lifetime_years']} y, CF {e['capacity_factor']:.0%}, no grid connection)",
-             f"USD{year}/MWh", ticks=b)
+    draw_map(axes[2], *raster(pot, "capex_usd_per_kw", step), classed("twilight", len(b) - 1, span=TWILIGHT),
+             BoundaryNorm(b, len(b) - 1), world, f"c  EGS CAPEX at that depth (surface plant + wellfield, incl. interest during construction)",
+             f"USD{year}/kW", ticks=b, ticklabels=[f"{x / 1000:g}k" for x in b], land=LAND_DARK)
+    b = LCOE_BINS
+    draw_map(axes[3], *raster(pot, "lcoe_usd_per_mwh", step), classed("twilight", len(b) - 1, span=TWILIGHT),
+             BoundaryNorm(b, len(b) - 1), world,
+             f"d  LCOE ({e['wacc']:.0%} real WACC, {e['lifetime_years']} y, CF {e['capacity_factor']:.0%}, no grid connection)",
+             f"USD{year}/MWh", ticks=b, land=LAND_DARK)
     fig.suptitle("Enhanced geothermal systems: cost model of Ricks & Jenkins (Joule 2025) on a global temperature-at-depth grid "
                  f"({step}°, {len(pot):,} feasible land cells)", fontsize=11, color=INK, x=0.01, ha="left")
     fig.tight_layout(rect=(0, 0, 1, 0.97))

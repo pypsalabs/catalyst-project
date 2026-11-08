@@ -2,15 +2,19 @@
 
   figures/egs_doc_gradient.pdf  mean geothermal gradient from the surface to 4.5 km, (T(4.5 km) - T_surface) / 4.5 km,
                                 in degC/km on every land cell (build/egs_grid.nc: conduction from Lucazeau 2019 heat flow,
-                                Stanford thermal model over CONUS); capped at 60 degC/km, the hotspot outliers of the
+                                Stanford thermal model over CONUS, Limberger model over Europe); capped at 60 degC/km, the hotspot outliers of the
                                 conduction model run above it
   figures/egs_doc_capex.pdf     EGS CAPEX in USD2024/kW at the cell's LCOE-optimal depth (build/egs_potential.csv,
                                 Ricks & Jenkins 2025 cost model, 2025 baseline, no learning); land without a feasible
                                 reservoir (< 150 degC down to 6.5 km) in grey
 
 Style follows the document's other maps (scripts/plot_resource_maps.py there): one PDF per panel at half the
-160 mm text width, serif 7 pt, colour bar below the map; the gradient in a single-hue colormap without its white end,
-the CAPEX in a multi-hue one (viridis, cheap = yellow) so that cost classes stay distinguishable. The CAPEX map marks
+160 mm text width, serif 7 pt, colour bar below the map, but in the Equal Earth projection (equal area, so the
+extent of cheap and expensive land reads true; projected with pyproj, no cartopy in the env). The gradient in a
+single-hue colormap without its white end, the CAPEX in a multi-hue one so that cost classes stay distinguishable:
+twilight from its near-white left end to 0.82 (near white = cheapest, through pale blue and deep purple, to
+terracotta = expensive); the right end is cut because the map is cyclic and both ends would look alike. Land
+without a feasible reservoir is a darker grey on the CAPEX map, so it cannot be read as the cheapest class. The CAPEX map marks
 the validation sites of config `site_checks` with a red ring and a legend (Fervo Cape Station; see site_check.py).
 The full description of the dataset is in README.md (sections "EGS" and "Figures").
 
@@ -29,6 +33,7 @@ import pandas as pd
 import xarray as xr
 import yaml
 from matplotlib.colors import LinearSegmentedColormap, LogNorm, Normalize
+from pyproj import CRS, Transformer
 
 HERE = Path(__file__).parent
 if "snakemake" in globals():
@@ -48,6 +53,10 @@ CBAR_IN = 0.42
 GRAD_RANGE, GRAD_TICKS = (15, 60), [15, 30, 45, 60]
 CAPEX_RANGE, CAPEX_TICKS = (7000, 26000), [7500, 15000, 25000]   # 1-99 % of cells: 7,100-25,300 per net kW
 NODATA = "#e6e6e6"   # land without a value (no feasible EGS reservoir)
+CAPEX_CMAP = ("twilight", 0.0, 0.82)    # cyclic map: cut before the right end, so that cheap and expensive ends differ
+NODATA_CAPEX = "#a6a6a6"                 # darker than twilight's near-white cheap end
+EQEARTH = "+proj=eqearth +lon_0=0 +datum=WGS84 +units=m"
+TO_EQ = Transformer.from_crs(CRS.from_proj4("+proj=longlat +datum=WGS84"), CRS.from_proj4(EQEARTH), always_xy=True)
 
 
 def raster(lon, lat, values, step):
@@ -60,31 +69,41 @@ def raster(lon, lat, values, step):
     return lons, lats, arr
 
 
-def tinted(name, start=0.15):
-    if start == 0:
+def tinted(name, start=0.15, stop=1.0):
+    if start == 0 and stop == 1:
         return plt.get_cmap(name)
     base = plt.get_cmap(name)
-    return LinearSegmentedColormap.from_list(f"{name}_tinted", base(np.linspace(start, 1, 256)))
+    return LinearSegmentedColormap.from_list(f"{name}_tinted", base(np.linspace(start, stop, 256)))
 
 
-def draw(lons, lats, arr, world, cmap, norm, label, ticks, out, extend, start=0.15, sites=()):
+def draw(lons, lats, arr, world, cmap, norm, label, ticks, out, extend, start=0.15, stop=1.0, sites=(), nodata=NODATA):
     plt.rcParams.update({"font.size": 7, "font.family": "serif", "axes.linewidth": 0.4,
                          "mathtext.fontset": "dejavuserif"})
-    map_h = WIDTH_IN * (LAT[1] - LAT[0]) / 360
+    x0, x1 = TO_EQ.transform([-180, 180], [0, 0])[0]
+    y0, y1 = TO_EQ.transform([0, 0], list(LAT))[1]
+    map_h = WIDTH_IN * (y1 - y0) / (x1 - x0)
     H = map_h + CBAR_IN
     fig = plt.figure(figsize=(WIDTH_IN, H))
     ax = fig.add_axes([0.0, CBAR_IN / H, 1.0, map_h / H])
-    world.plot(ax=ax, color=NODATA, edgecolor="none")
-    m = ax.pcolormesh(lons, lats, np.ma.masked_invalid(arr), cmap=tinted(cmap, start), norm=norm, shading="nearest",
-                      rasterized=True)
+    world.to_crs(EQEARTH).plot(ax=ax, color=nodata, edgecolor="none")
+    # cell edges projected: Equal Earth meridians curve, so the mesh is a 2-D grid of corners
+    step = lons[1] - lons[0]
+    rows = (lats >= LAT[0] - step) & (lats <= LAT[1] + step)
+    le = np.append(lons - step / 2, lons[-1] + step / 2)
+    ae = np.append(lats[rows] - step / 2, lats[rows][-1] + step / 2)
+    X, Y = TO_EQ.transform(*np.meshgrid(le, ae))
+    m = ax.pcolormesh(X, Y, np.ma.masked_invalid(arr[rows]), cmap=tinted(cmap, start, stop), norm=norm,
+                      shading="flat", rasterized=True)
     for lon, lat, name in sites:                       # validation sites: red ring, named in a small legend
+        lon, lat = TO_EQ.transform(lon, lat)
         ax.plot(lon, lat, marker="o", markersize=4.2, markerfacecolor="none", markeredgecolor="#d62728",
                 markeredgewidth=1.0, zorder=5, linestyle="", label=name)
     if sites:
         ax.legend(loc="lower left", bbox_to_anchor=(0.0, 0.02), frameon=True, framealpha=0.9, edgecolor="none",
                   fontsize=6, handletextpad=0.3, borderpad=0.3, borderaxespad=0.2)
-    ax.set_xlim(-180, 180)
-    ax.set_ylim(*LAT)
+    ax.set_xlim(x0, x1)
+    ax.set_ylim(y0, y1)
+    ax.set_aspect("equal")
     ax.axis("off")
     cax = fig.add_axes([0.2, 0.30 / H, 0.6, 0.055 / H])
     cb = fig.colorbar(m, cax=cax, orientation="horizontal", extend=extend, ticks=ticks)
@@ -111,8 +130,10 @@ def main():
     pot = pd.read_csv(POT, usecols=["lon", "lat", "capex_usd_per_kw"])
     lons, lats, arr = raster(pot["lon"], pot["lat"], pot["capex_usd_per_kw"].values, step)
     sites = [(v["lon"], v["lat"], v["name"]) for v in CFG.get("site_checks", {}).values()]
-    draw(lons, lats, arr, world, "viridis_r", LogNorm(*CAPEX_RANGE),
-         "EGS CAPEX at the cheapest depth (USD$_{2024}$/kW)", CAPEX_TICKS, OUT_CAPEX, "both", start=0, sites=sites)
+    name, lo, hi = CAPEX_CMAP
+    draw(lons, lats, arr, world, name, LogNorm(*CAPEX_RANGE),
+         "EGS CAPEX at the cheapest depth (USD$_{2024}$/kW)", CAPEX_TICKS, OUT_CAPEX, "both", start=lo, stop=hi,
+         sites=sites, nodata=NODATA_CAPEX)
     print(f"gradient median {np.nanmedian(grad):.1f} degC/km; CAPEX median {pot['capex_usd_per_kw'].median():,.0f} "
           f"USD/kW over {len(pot):,} feasible cells -> {OUT_GRAD.parent}")
 

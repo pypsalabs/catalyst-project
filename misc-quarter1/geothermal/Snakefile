@@ -1,15 +1,20 @@
 # Snakemake workflow: global EGS potential with CAPEX / OPEX / lifetime, plus a hydropower cost
 # companion (misc-quarter1/geothermal). See README.md.
 #
-#   temperature_grid  Lucazeau heat flow + WorldClim -> T at 2.5..6.5 km on a 0.25 deg land grid
-#                     (Stanford thermal model over CONUS)                      -> build/temperature_grid.nc
+#   heat_flow         Lucazeau map, and the same sharpened with the IHFC 2024 points (+ CV) -> build/heat_flow.nc
+#   temperature_grid  heat flow + WorldClim -> T at 2.5..6.5 km on a 0.25 deg land grid by conduction, replaced by the
+#                     Stanford model over CONUS and the Limberger model over Europe; remote territories flagged
+#                                                                              -> build/temperature_grid.nc
 #   land_availability onshore-wind land exclusions of PyPSA-Earth per cell     -> build/land_availability.nc
 #   egs_potential     Ricks & Jenkins (2025) cost model per cell and depth, cheapest feasible depth
 #                                                                              -> build/egs_grid.nc, build/egs_potential.csv
 #   aggregate         supply curves and summary per country / archetype region -> build/egs_supply_curves.csv, build/egs_region_summary.csv
-#   validate_conus    conduction model vs the Stanford CONUS temperatures       -> build/validation_conus.csv, figures/validation_conus.*
+#   validate_temperature  conduction model vs the Stanford and Limberger models, k calibration and transfer
+#                                                                              -> build/validation_temperature.csv, figures/validation_temperature.*
+#   cap_sensitivity   supply under temperature caps of the cost model 200..350 C -> build/t_max_sensitivity.csv
 #   cost_model_test   the vectorised port reproduces the source script          -> build/cost_model_regression.txt
 #   plots                                                                      -> figures/egs_maps.*, figures/egs_supply_curves.*
+#   country_lcoe      cheapest EGS LCOE of the 30 largest power systems         -> figures/egs_country_lcoe.*
 #   hydrothermal      GEM plants + USGS systems + volcanoes + ATB/IRENA costs   -> build/hydrothermal_*.csv, figures/hydrothermal_sites.*
 #   hydro             IRENA / technology-data / ANU PHES / GloHydroRes tables  -> build/hydro_*.csv, build/phes_potential_by_region.csv
 #
@@ -34,13 +39,15 @@ rule all:
     input:
         "build/egs_potential.csv",
         "build/egs_region_summary.csv",
-        "build/validation_conus.csv",
+        "build/validation_temperature.csv",
         "build/cost_model_regression.txt",
         expand("figures/egs_maps.{fmt}", fmt=FMT),
         expand("figures/egs_supply_curves.{fmt}", fmt=FMT),
         "figures/egs_doc_gradient.pdf",
         "figures/egs_doc_capex.pdf",
         "build/site_check.csv",
+        "build/t_max_sensitivity.csv",
+        "build/egs_country_lcoe.csv",
         "build/hydro_costs.csv",
         "build/hydrothermal_country.csv",
 
@@ -70,13 +77,50 @@ rule cost_model_test:
         "{PYTHON} egs_cost_model.py > {output}"
 
 
-rule temperature_grid:
+rule retrieve_limberger:
+    # 3-D subsurface temperature model of Europe (Limberger et al. 2014; Zenodo 22149195, CC-BY-4.0), the input of the
+    # TU Delft module_geothermal (Egberink, Limberger et al. 2026)
+    output:
+        config["thermal"]["references"]["limberger_europe"]["file"],
+    shell:
+        """
+        wget -q --tries=3 -U "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0" \
+          -O {output} "https://zenodo.org/records/22149195/files/temperature_voxel.nc?download=1"
+        echo "313097b377190da35b0c112cfa54b58c  {output}" | md5sum -c -
+        """
+
+
+rule retrieve_ghfdb:
+    # IHFC Global Heat Flow Database, Release 2024 v2026.03 (GFZ Data Services, doi:10.5880/fidgeo.2024.014, CC-BY-4.0)
+    output:
+        config["ghfdb"]["file"],
+    shell:
+        """
+        wget -q --tries=3 -U "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0" \
+          -O data/ghfdb2024/GHFDB-R2024.zip "https://datapub.gfz.de/download/10.5880.FIDGEO.2024.014-VEueRf/GHFBD-R2024_v.2026-03.zip"
+        unzip -q -o data/ghfdb2024/GHFDB-R2024.zip -d data/ghfdb2024
+        touch {output}
+        """
+
+
+rule heat_flow:
     input:
         hf=f"{config['archetype_data_dir']}/lucazeau2019_heat_flux_0p5deg.nc",
+        ghfdb=config["ghfdb"]["file"],
+    output:
+        nc="build/heat_flow.nc",
+        cv="build/heat_flow_cv.csv",
+    script:
+        "build_heat_flow.py"
+
+
+rule temperature_grid:
+    input:
+        heat_flow="build/heat_flow.nc",
         tavg=f"{config['archetype_data_dir']}/worldclim21_tavg_annual_10m.nc",
         countries=f"{config['archetype_data_dir']}/ne_50m_admin_0_countries/ne_50m_admin_0_countries.shp",
         states=f"{config['archetype_data_dir']}/ne_50m_admin_1_states_provinces/ne_50m_admin_1_states_provinces.shp",
-        conus=f"{RICKS}/geothermal_lcoe_conus_15_zone_geothermal_Stanford.csv",
+        references=[r["file"] for r in config["thermal"]["references"].values() if r.get("enabled", True)],
     output:
         "build/temperature_grid.nc",
     script:
@@ -125,15 +169,15 @@ rule aggregate:
         "aggregate_regions.py"
 
 
-rule validate_conus:
+rule validate_temperature:
     input:
         grid="build/temperature_grid.nc",
-        ref=f"{RICKS}/geothermal_lcoe_conus_15_zone_geothermal_Stanford.csv",
     output:
-        csv="build/validation_conus.csv",
-        figs=expand("figures/validation_conus.{fmt}", fmt=FMT),
+        csv="build/validation_temperature.csv",
+        figs=expand("figures/validation_temperature.{fmt}", fmt=FMT),
+        diff=expand("figures/europe_temperature_diff.{fmt}", fmt=FMT),
     script:
-        "validate_conus.py"
+        "validate_temperature.py"
 
 
 rule plots:
@@ -149,6 +193,20 @@ rule plots:
         "plot_maps.py"
 
 
+rule country_lcoe:
+    # bar chart: cheapest EGS LCOE in the largest power systems (US split into West, ERCOT, East), map colours
+    input:
+        potential="build/egs_potential.csv",
+        demand=config["country_lcoe"]["demand"],
+        eia=config["country_lcoe"]["eia_generation"],
+        maps="plot_maps.py",
+    output:
+        csv="build/egs_country_lcoe.csv",
+        figs=expand("figures/egs_country_lcoe.{fmt}", fmt=FMT),
+    script:
+        "plot_country_lcoe.py"
+
+
 rule site_check:
     # the cost model at real project sites (Fervo Cape Station): cell CAPEX and drilling cost per foot, read by
     # ../technology-costs for the Fervo drilling figure
@@ -160,6 +218,17 @@ rule site_check:
         "build/site_check.csv",
     script:
         "site_check.py"
+
+
+rule cap_sensitivity:
+    # cheapest LCOE / first 10 GW per region and the site cells under several temperature caps of the cost model
+    input:
+        grid="build/egs_grid.nc",
+        model="egs_cost_model.py",
+    output:
+        "build/t_max_sensitivity.csv",
+    script:
+        "cap_sensitivity.py"
 
 
 rule doc_maps:

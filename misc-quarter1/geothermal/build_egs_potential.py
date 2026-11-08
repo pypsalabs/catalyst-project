@@ -64,6 +64,7 @@ def _lookup(av, lat, lon):
 # relative output columns: air temperature offset from the design point, K
 AMBIENT = {"ambient_m20": -20.0, "ambient_m10": -10.0, "ambient_p10": 10.0, "ambient_p20": 20.0}
 
+
 def crf(rate, years):
     return rate / (1 - (1 + rate) ** (-years)) if rate > 0 else 1 / years
 
@@ -137,6 +138,7 @@ def main():
         "lon": g["lon"].values, "lat": g["lat"].values, "iso3": g["iso3"].values,
         "country": g["country"].values, "continent": g["continent"].values,
         "subregion": g["subregion"].values, "admin1": g["admin1"].values, "t_source": g["t_source"].values,
+        "remote_territory": g["remote_territory"].values.astype(bool),
         "area_km2": area, "heat_flow_mwm2": g["heat_flow_mwm2"].values,
         "t_surface_c": g["t_surface_c"].values,
         "depth_km": depths[jbest], "t_reservoir_c": g["t_c"].values[rows, jbest],
@@ -150,10 +152,10 @@ def main():
         "mw_per_km2": out["mw_per_km2"][rows, jbest],   # technical density, before the land share
         "available_fraction": avail,
         "capacity_mw": out["capacity_mw"][rows, jbest],
-    })
-    df = df[has].reset_index(drop=True)
         "t_design_c": air - 273.15,   # the air temperature the plant is designed (and costed) for
         **{col: out[col][rows, jbest] for col in AMBIENT},
+    })
+    df = df[has].reset_index(drop=True)
     print(f"land availability: area-weighted mean share {np.average(df['available_fraction'], weights=df['area_km2']):.1%} "
           f"of feasible cell area (was a flat 20 %)")
     df.to_csv(OUT_CSV, index=False, float_format="%.6g")   # 6 digits: lon/lat must survive the round trip
