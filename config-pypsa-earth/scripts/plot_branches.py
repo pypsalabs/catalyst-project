@@ -5,7 +5,7 @@ Learning sensitivities of one region side by side (branches of a common trunk, c
     cd models/pypsa-earth
     pixi run python ../../config-pypsa-earth/scripts/plot_branches.py <R> <branch scen> [<branch scen> ...] [--out <name>]
 
-e.g. plot_branches.py JP cfesec cfemid cfeext. Runs summarise_cfe.py for every stage <R>-<scen> and writes
+e.g. plot_branches.py JP ref cfesec cfemid cfeext (ref = the no-CFE reference, its own panel). Runs summarise_cfe.py for every stage <R>-<scen> and writes
 results/learning/<name>/ (default <R>-branches) power, energy, mix, learning and premium .png/.pdf (icon style):
   power     advanced power capacity in the region, stacked area by technology, one panel per sensitivity
   energy    advanced energy capacity (storage GWh), same layout
@@ -120,6 +120,8 @@ def plot_mix(stages, mix, out, region):
 
 def title_of(stage):
     cat = merge_config.stage_config("overlay", stage)["catalyst"]
+    if not cat.get("cfe"):
+        return "reference (no 24/7 CFE)", cat.get("branch")
     v = str(cat.get("learning_spillover"))
     return SPILLOVER.get(v, f"x{v}" if v != "None" else "only modelled builds"), cat.get("branch")
 
