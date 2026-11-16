@@ -52,10 +52,12 @@ def check(stage):
     n = pypsa.Network(f"networks/{stage}/base.nc")
     bus_country = n.buses.country
 
+    # the tables the rules read (written per run by tables.smk)
+    table_of = lambda name: f"{res}/statistics/{name}.csv"  # noqa: E731
+
     # demand
-    fn = cfg["load_options"].get("annual_totals")
-    if fn and os.path.exists(f"{res}/demand_profiles.csv"):
-        totals = pd.read_csv(fn, comment="#").set_index("country").demand_twh
+    if cfg["load_options"].get("annual_totals") and os.path.exists(f"{res}/demand_profiles.csv"):
+        totals = pd.read_csv(table_of("demand"), comment="#").set_index("country").demand_twh
         d = pd.read_csv(f"{res}/demand_profiles.csv", index_col=0)
         twh = d.sum().groupby(d.columns.map(lambda b: bus_country.get(b, b))).sum() / 1e6
         for c, v in twh.items():
@@ -64,8 +66,8 @@ def check(stage):
 
     # plant list
     stats = cfg["electricity"].get("powerplants_statistics") or {}
-    if stats.get("file") and os.path.exists(f"{res}/powerplants.csv"):
-        table = pd.read_csv(stats["file"], comment="#").set_index(["country", "group"]).gw
+    if stats.get("enable") and os.path.exists(f"{res}/powerplants.csv"):
+        table = pd.read_csv(table_of("capacity"), comment="#").set_index(["country", "group"]).gw
         ppl = pd.read_csv(f"{res}/powerplants.csv", index_col=0)
         ref = stats.get("reference_year")
         if ref:
@@ -87,7 +89,7 @@ def check(stage):
     norm = (cfg["renewable"].get("hydro") or {}).get("normalization") or {}
     fn = f"{res}/renewable_profiles/profile_hydro.nc"
     if norm.get("method") == "custom" and os.path.exists(fn):
-        target = pd.read_csv(norm["file"], comment="#").set_index("country").twh
+        target = pd.read_csv(table_of("hydro_generation"), comment="#").set_index("country").twh
         with xr.open_dataarray(fn) as inflow:
             if inflow.sizes.get("plant", 0):
                 ppl = pd.read_csv(f"{res}/powerplants.csv", index_col=0)
@@ -110,8 +112,8 @@ def check(stage):
         country = g.bus.map(e.buses.country)
         cft = dict(DEFAULTS["electricity"]["capacity_factor_targets"],
                    **(cfg["electricity"].get("capacity_factor_targets") or {}))
-        if cft.get("file"):
-            t = pd.read_csv(cft["file"], comment="#").set_index(["country", "group"]).cf
+        if cft.get("enable"):
+            t = pd.read_csv(table_of("generation"), comment="#").set_index(["country", "group"]).cf
             w = e.snapshot_weightings.generators
             for group, carriers in cft["groups"].items():
                 sel = g.index[g.carrier.isin(carriers) & (g.p_nom > 0)]

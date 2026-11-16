@@ -23,19 +23,14 @@ costs:
                         # replaced per country by costs.fuel_prices, statistics.yaml)
 
 co2:
-  emission_prices_by_country: ../../config-pypsa-earth/calibration/2024/co2_prices.csv   # 2024 CO2 prices (prepare_network)
+  emission_prices_by_country: true   # table co2_prices.csv: 2024 CO2 prices (prepare_network)
 
 calibration:            # fork: scripts/calibrate_network.py, applied in prepare_network (paths relative to the fork root)
   enable: true
   brownfield_only: true
-  efficiency_spread: 0.15   # 3 tranches per fuel-burning generator: x0.85, x1.0, x1.15 of the fleet efficiency
-  tranches: 3
   net_import_tolerance: 0.25
   energy_bands: {coal: [0.9, 1.1], gas: [0.9, 1.1]}   # annual coal and gas generation within +-10 % of Ember (no floor for exporters)
-  tables:                   # the targets of the solve-time constraints
-    demand: ../../config-pypsa-earth/calibration/2024/demand.csv
-    generation: ../../config-pypsa-earth/calibration/2024/generation.csv
-    net_imports: ../../config-pypsa-earth/calibration/2024/net_imports.csv
+  net_imports: true         # the targets of the solve-time constraints: tables net_imports.csv, generation.csv, demand.csv
 
 enable:
   build_cutout: false   # the base stage's cutout exists; never rebuild

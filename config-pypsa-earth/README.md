@@ -14,8 +14,8 @@ process tree, no Snakemake parallelism (`-c1 -j1`), and a bounded disk footprint
 
 The model code lives in `models/pypsa-earth` (gitignored here): a clone of the soft fork
 `pypsalabs/catalyst-pypsa-earth` (GitHub fork of `pypsa-meets-earth/pypsa-earth`; remote `origin`
-is the fork, `upstream` is pypsa-meets-earth), branch **`catalyst`** = tag v0.9.0 plus nineteen small
-patches (`git log v0.9.0..catalyst`). Commit subjects carry an upstream tag: `(upstream candidate)` marks a bug fix to
+is the fork, `upstream` is pypsa-meets-earth), branch **`catalyst`** = tag v0.9.0 plus 59
+patches (`git log v0.9.0..catalyst`; the table lists the early ones, later ones are described in their sections). Commit subjects carry an upstream tag: `(upstream candidate)` marks a bug fix to
 propose to pypsa-meets-earth, `(no relevance 4 upstream)` a fork-only change:
 
 | patch | why |
@@ -549,6 +549,20 @@ Caveats: stored lengths of split lines are right but in Mercator, while their ge
 `underwater_fraction` reads that same geometry and may be affected. Links added by `add_missing` have no geometry and get `underwater_fraction` 0. `reference_year` is one year, so myopic horizons would need more.
 Effects on results are unknown. Merge fix (`p_threshold_merge_isolated: false`): structurally no isolated India pocket; shedding untested.
 
+**India: how permissive the modelled grid is** (checked 2026-11-11 on the 50-node `IN-now` and `IN-zero` solves, which
+predate the corrections above; buses mapped to the five regional grids by GADM state). Inter-regional AC lines sum to
+475 GW of s_nom (333 GW after s_max_pu 0.7) plus 29 GW of inter-regional HVDC, against 120 GW of inter-regional
+transmission capacity reported by CEA / MoP for mid-2025 (143 GW planned for 2027, 168 GW for 2032). The operational
+limit is lower still: Grid-India's Northern Region import TTC was 20-26 GW in March 2025, while the model's corridors
+into the North carry about 180 GW. In the 2024 dispatch the North imports 105 TWh net (real FY25: 36 TWh) and the
+North-East imports 40 TWh (in reality an exporter); one of 118 lines is ever at its limit and nodal prices are equal
+(load shedding sets one price everywhere). In the zero-carbon 2050 solve regional net imports peak at 83-138 GW per
+region. Data on the real system: exchange congestion is small (CERC 2024-25: 0.48 % of cleared exchange volume lost to
+congestion, regional prices nearly equal), but exchanges trade only the ATC left after long-term schedules; Ember
+counts 2.3 TWh of solar curtailed May-Dec 2025, about 2-3 % of solar output, for system flexibility (coal minimum
+load), not transmission; transmission curtailment is local, e.g. about 4 GW of Rajasthan projects on temporary
+access, up to ~50 % at midday. So the model's inter-regional grid is 3x the rated and 5-9x the operational capacity.
+
 ## Screening solves (stages `<R>-now`, `<R>-zero`, `dashboard:<R>`; 2026-09-19/20)
 
 *This section describes the out-of-the-box definition of `now` and `zero` used until 2026-09-30 and the results it
@@ -824,6 +838,26 @@ per-country tables under **`config-pypsa-earth/calibration/2024/`**, which `scri
 Ember (`data/validation/yearly_full_release_long_format.csv`, latest year ≤ 2024 per country), IRENA (through
 powerplantmatching), GloHydroRes and three hand-curated tables. **`statistics.yaml`** wires them in;
 `merge_config.py` puts it under every stage config (`statistics.yaml` < `config.<R>.yaml` < `overlay.<scen>.yaml`).
+Since 2026-11-15 each option of the table is its own fork commit (`git log --grep 'calibration at the source'`:
+twelve option commits, the tranche marginal cost, and the removal of the superseded steps from
+`calibrate_network.py`); before, one commit held them all.
+
+**Options are switches, tables are rule inputs (2026-11-16).** No fork option carries a file path any more
+(`REFACTOR_LATER.md`, item 1). An option is `true` / `enable: true` / the keyword `statistics`, and its rule reads
+the table from **`resources/<run>/statistics/<name>.csv`** (`STATISTICS` in the fork's Snakefile; the fork's own rule
+`copy_statistics` fills it from `data/statistics/`). In this project **`tables.smk`** (custom rule
+`catalyst_statistics`, in every stage config) writes that directory: `demand`, `capacity`, `efficiency`,
+`generation`, `hydro_generation`, `hydro_max_hours`, `fuel_prices`, `co2_prices`, `net_imports` from
+`calibration/<year>/`, `demand_<horizon>` from `calibration/<horizon>/demand.csv`, `conventional_<carrier>_<attr>`
+from `calibration/<year>/envelope/<variant>/`, `dc_ratings` and `dc_projects` from `data/hvdc/`,
+`supply_curve_egs` from `misc-quarter1/geothermal/build/egs_potential.csv`; the palette's `cost_overrides_<year>`
+come from `technology-assumptions/assumptions.smk`. Year and variant are plain values of the stage config:
+`catalyst: tables: {year: 2024, demand_year: 2050}` (defaults 2024; `overlay.zero.yaml` sets the demand year) and
+`catalyst: envelope: nofloor`. Tables are copied with their modification time, so shared outputs of the base run
+do not look outdated, and `run.sh link_resources` never shares `statistics/` between stages. Checked on Singapore:
+the 2024 prenetworks and the pathway's prepared, brownfield and solved networks of 2025 and 2030 are identical with
+the old path-valued options and with the switches. In the table below, "fork option" is the switch and "table" the
+source of the table.
 
 | data vector | upstream source (first set) | where it now enters | fork option | table |
 |---|---|---|---|---|
@@ -833,7 +867,7 @@ powerplantmatching), GloHydroRes and three hand-curated tables. **`statistics.ya
 | wind and solar capacity | plant list, topped up to IRENA 2023 | `add_electricity` (`estimate_renewable_capacities`): IRENA **2024**, Ember's own source for them; plant list scaled **down** where above | `stats: irena`, `year: 2024`, `scale_down: true` | IRENASTAT (powerplantmatching) |
 | wind and solar capacity factor | atlite ERA5 2013 | `add_electricity`, where profile and fleet first meet: profiles × target / fleet CF per country and group, ×0.6-1.4 | `electricity.capacity_factor_targets` | `generation.csv` (Ember) |
 | hydro energy | atlite runoff, rescaled to IRENA 2023 × 1.1 | `build_renewable_profiles` hydro normalisation: Ember 2024 TWh, one capacity factor per country (each plant keeps its runoff profile; pumped storage left out); multiplier 1.0 | `normalization: {method: custom, distribute: capacity}` | `hydro_generation.csv` (Ember) |
-| reservoir hours | `data/hydro_capacities.csv` (Africa) or 6 h | `add_electricity.attach_hydro` | `hydro_max_hours: <csv>` | `hydro_max_hours.csv` (GloHydroRes) |
+| reservoir hours | `data/hydro_capacities.csv` (Africa) or 6 h | `add_electricity.attach_hydro` | `hydro_max_hours: statistics` | `hydro_max_hours.csv` (GloHydroRes) |
 | plant efficiency | technology-data per carrier (new-build values); the plant list's own value was dropped | `add_electricity.load_powerplants`: the plant's efficiency, else the table, else technology-data; group and cluster means capacity-weighted | `electricity.powerplants_efficiency` | `efficiency.csv` (fleet values; coal / oil implied by Ember CO2, gas per carrier) |
 | fuel prices | one global price per fuel (technology-data) | `add_electricity`, where the marginal cost is formed: VOM + fuel price of the plant's country / plant efficiency | `costs.fuel_prices`, `costs.fuel_map` | `fuel_prices.csv` |
 | operating envelope (floor, availability) of today's fleet | none (nuclear: IAEA availability) | `add_electricity` `conventional:` per-country tables under `existing:` (new builds keep the palette's values); must-run ≤ 90 % of the lowest load | `conventional: <carrier>: existing:`, `electricity.must_run_cap`, `nuclear_p_max_pu: false` | `envelope/{floor,nofloor}/<carrier>_<attr>.csv` |
@@ -841,7 +875,11 @@ powerplantmatching), GloHydroRes and three hand-curated tables. **`statistics.ya
 
 What remains in `scripts/calibrate_network.py` (`calibration:` block, `prepare_network` / `solve_network`) acts on the
 clustered network because it is a representation or a constraint, not data: the three efficiency tranches per
-fuel-burning generator (the fuel part of the marginal cost follows each tranche), the `brownfield_only` freeze of
+fuel-burning generator (the fuel part of the marginal cost follows each tranche; since 2026-11-16 the spread is
+per carrier and measured, `calibration: efficiency_spread: {coal: 0.08, lignite: 0.04, CCGT: 0.08, OCGT: 0.14, oil:
+0.14}` in `statistics.yaml` = the spread between the best and the worst third of the US fleet of 2024 from EIA-923 /
+EIA-860, `scripts/build_efficiency_spread.py [--check]`, `data/validation/efficiency_spread.csv`; before, 0.15 for
+every carrier, an assumption), the `brownfield_only` freeze of
 the `now` dispatch, the net-import band and the soft coal / gas energy bands of `now`.
 
 **Until 2026-10-19** all of this was one module that rewrote the clustered network in `prepare_network` (and the
@@ -987,11 +1025,16 @@ Output in `model-doc/build/fleet_check/`, written up in the model doc's Existing
   rebuilt (capacity, generation, envelope changed; the rest identical).
 - **No existing OCGT anywhere**: powerplantmatching's GEM loader labels gas turbines and engines "Steam Turbine", which
   `build_powerplants` maps to CCGT (US: 0 OCGT although GEM lists 150 GW of gas turbines). New fork option
-  `electricity: gas_technology_mapping` (fork working tree, **not committed**), set to `{Steam Turbine: OCGT}` in `statistics.yaml`:
+  `electricity: gas_technology_mapping` (fork commit 47e2cca4), set to `{Steam Turbine: OCGT}` in `statistics.yaml`:
   US 359 GW CCGT + 187 GW OCGT; EIA's tested heat rates match (CC 0.50, GT 0.345, steam 0.367 LHV).
 - Open, documented only: the `now` filter with filled decommissioning years drops operating plants (Salem, Amos, Gavin, Drax)
   as well as closed ones (US: 106 GW coal, 163 GW gas); the statistic restores the totals at the other sites. Coal efficiencies
   implied by Ember CO2 are 6 % high in the US (0.354 vs EIA 0.333) and 9 % low in China (0.371 vs CEC 0.406).
+
+Since 2026-11-11 the script also writes the inputs of the model doc's fleet figures (all read-only, about 1 min): `world.csv`
+(plant list against statistic for all 132 countries), `sources.csv` / `fields.csv` (the matched list by reporting database and
+the fields it fills), `retirements.csv` (the five regions' 2024 fleet in operation to 2050, reported against filled dates), and
+coordinates in `dropped_<R>.csv`.
 
 The new `capacity.csv` is newer than every `powerplants.csv`, so the next run of any stage rebuilds from `build_powerplants` on
 (`--rerun-triggers mtime input`); the gas mapping itself is a parameter and would not trigger a rebuild on its own.
@@ -1124,7 +1167,19 @@ The shared interface is the year. Demand, the myopic loop, the palette and the l
 
   `run.sh` targets the solved network of the last horizon (`results/<R>-myopic/networks/<stem>_2050.nc`);
   the earlier ones are solved on the way and sit next to it. There is no dashboard for these stages yet.
-  Retirement rule (2026-10-09, SOW: "keep existing power generation capacity, announced retirements where
+  **Retirement rule since 2026-11-16** (`REFACTOR_LATER.md`, item 3; supersedes the rule of 2026-10-09 described in
+  the rest of this paragraph): a reported retirement year is kept, a missing one is the commissioning year plus the
+  lifetime of the technology in the cost table, as in PyPSA-Eur's `add_existing_baseyear` (coal, lignite, nuclear
+  40 years, gas and oil 25, biomass and geothermal 30); hydro gets none and never retires. Fork option
+  `electricity: powerplants_lifetimes: costs` (default `powerplantmatching`), set in `overlay.myopic.yaml`; the `now`
+  and `zero` stages keep the default. A plant already past its lifetime is dropped by `powerplants_filter` and the
+  capacity statistic is scaled onto the remaining plants. The reasoning: never retiring undated plants is the
+  stronger policy assumption, and replacing retiring capacity is what the model is for. Consequence
+  (`scripts/check_fleet.py`, `model-doc/build/fleet_check/retirements.csv`): 33 % of the US fleet of 2024 is left in
+  2030 and 2 % in 2050 (gas 546 -> 194 GW, nuclear 97 -> 18 GW by 2030), 51 % / 2 % in NWE, 91 % / 34 % in China;
+  with powerplantmatching's lifetimes 68 % / 13 %, 77 % / 13 %, 95 % / 62 %. The fork commit of the old rule
+  (`fill_missing_dateout`) is gone from the history.
+  Retirement rule of 2026-10-09 (superseded; SOW: "keep existing power generation capacity, announced retirements where
   they are firm and dated"): only a retirement year reported by the power plant data retires a plant. Such
   years come mostly from GEM's trackers ("Retired year" / "Planned retire"), a few from GEO, none from GPD. By
   default pypsa-earth invents one for every other plant (powerplantmatching's
@@ -1286,7 +1341,7 @@ run.sh pathway:myopic:SG,CA,OCE
 
 ### Fixed: new fuel-burning plants without fuel or VOM cost (found and fixed 2026-11-08)
 
-The country fuel prices of `add_electricity` (calibration at the source, fork 3a136a31) passed the marginal cost
+The country fuel prices of `add_electricity` (calibration at the source, fork 0261b769) passed the marginal cost
 of the extendable conventional generators as a Series indexed `<bus> <carrier>` to `n.madd(..., suffix=" <carrier>")`.
 PyPSA 0.30 aligns such a Series to the names *before* the suffix, so every new extendable conventional
 generator got NaN, i.e. 0 in the solve plus the CO2 price: OCGT, CCGT and the palette's SOFC, SOFC-CC and Gen IV
@@ -1346,6 +1401,108 @@ endogenously (SOW §1.1). After Riepin, Jenkins, Swezey & Brown (Joule 2025; `mo
   earlier vintages + their marginal cost + imports at the bus price − export revenue) / buyer demand,
   `grid_price_per_mwh` = load-weighted average price of the rest of the bus's demand, `premium_per_mwh` = the
   difference (USD2024/MWh).
+- **Growing buyer share** (`catalyst.cfe.share: {2030: 0.01, 2050: 0.10}`, decided 2026-11-10; fork: `share` may be
+  a `{year: share}` pathway, interpolated linearly): 1 % of demand in 2030, 3.25 / 5.5 / 7.75 % in 2035 / 2040 /
+  2045, 10 % in 2050, instead of a flat 10 % from 2030. With a flat share the buyer bought once, in 2030, and its
+  cost per MWh stayed the annuity of that unlearnt portfolio; now every horizon adds a cohort at that horizon's
+  costs. Reported per horizon in `cfe.csv` (summarise_cfe.py): `demand_new_twh`, `cost_new_per_mwh` = annual cost
+  of the buyer assets built in the horizon / the load growth, minus the export revenue per MWh of the whole buyer
+  load (ASSUMPTION: every MWh of buyer load sells the same excess), `premium_new_per_mwh` = that minus the grid
+  price. The flat-10 % Japan runs of 2026-11-08 are archived: tables and figures in
+  `results/learning/JP-branches-flat10/`, solved networks in `results/archive/flat10/`; the result paragraph
+  below describes those runs.
+  Rerun 2026-11-10 (grid imports closed, one solve per horizon, 25 min for the trunk and three branches): 2030 the
+  buyer (10.5 TWh) builds 1.43 GW of EGS, premium 16 USD/MWh; EGS in Japan 2050 = 90 GW (secluded), 94
+  (midpoint), 99 (extrapolated), of which the buyer 16; EGS CAPEX factor 2050 0.42 / 0.30 / 0.21 (reference
+  0.46); from 2035 the newly contracted part costs about the grid price (midpoint premium_new -3, -1, -1, -7
+  USD/MWh; the sign depends on the export-revenue ASSUMPTION above); emissions 2040 midpoint 108 Mt vs 210 in
+  the reference.
+- **India as a second one-node test region** (stage `IN1`, `config.IN1.yaml`, 2026-11-10): India's 50-node inputs
+  (`resources/IN`, `networks/IN/base.nc`) through per-entry links, clustered to one node; no prenetwork stage of its
+  own. `run.sh pathway:ref:IN1`, `PATHWAY_UNTIL=2030 run.sh pathway:cfe:IN1`, `run.sh pathway:cfesec:IN1
+  pathway:cfemid:IN1 pathway:cfeext:IN1`, `plot_branches.py IN1 ref cfesec cfemid cfeext` (tables and figures in
+  `results/learning/IN1-branches/`): ~20 min for the reference, ~45 min for the trunk and branches; each stage
+  writes ~0.5 GB of demand profiles per horizon (15 GB for the five stages). Result: no EGS and no Gen IV in any
+  run (India's EGS is too dear); the buyers choose solar, wind and Li-ion, plus a little iron-air (0.02 GW in
+  2030; 1 GW by 2045 only in the extrapolated branch, where its energy CAPEX falls to 0.42); premium of the
+  newly contracted part 15 USD/MWh in 2030, 8 / 6 / 6 / 3 afterwards; emissions 2050 1,021 Mt against 1,035 in
+  the reference (coal stays, CO2 price 2.2 USD/t). Caveat: the 2025 dispatch-only horizon sheds 11.7 TWh of load
+  (0.5 %, up to 43 GW in 567 h: peak 336 GW against 215 GW of coal), so its average price is 8,400 USD/MWh.
+  Why India differs from Japan (solved networks, 2026-11-10): not seasonality (India's monsoon dip is deeper,
+  July solar / load 0.61 of the annual ratio against 0.74 in Japan's December, though India's wind is 2.2 x its
+  mean in July), but (1) land: Japan's solar potential is 273 GW (~290 TWh, 28 % of demand) and is used up in
+  2030, India builds 2,990 GW of ~10,000 by 2050; (2) cost: solar 36 USD/MWh (CF 0.166) against 48 (CF 0.123),
+  first EGS tranche 123 USD/MWh for 24 GW against 97 for 102 GW; (3) India's solar is steadier (worst week 0.60 of
+  the mean against 0.45), which one copper-plate node over a subcontinent flatters. India 2050: 1,680 TWh of
+  battery discharge (5.0 TWh of batteries, 830 GW), about 30 % of generation.
+- **Supply incl. storage** (`mix.csv` column `kind`, 2026-11-10): `summarise_cfe.py` writes the discharge of PHS,
+  batteries and iron-air as rows of kind `storage` next to the generation rows; `plot_branches.py` keeps drawing
+  generation only, the workflow artifact stacks both ("Supply", stored energy counted twice).
+- **One market per overlay name, not per region** (`results/learning/<scen>/`): two independent test regions
+  overwrite each other's market files. On 2026-11-10 Japan's were copied to `results/learning/_JP_2026-11-10/`
+  before the India runs, India's then moved to `results/learning/_IN1_2026-11-10/` and Japan's put back
+  (`cp -a`, mtimes kept), so `results/learning/{ref,cfe,cfesec,cfemid,cfeext}/` describe Japan again; rerunning
+  an IN1 pathway needs India's files back in place first. A market folder per pathway would remove this.
+- **Pooled learning over test regions** (overlays `cfepool` / `refpool`, `run_test_regions.sh`, 2026-11-10; run
+  in the night to 2026-11-11, all five regions solved): one pathway call over all regions, `run.sh pathway:cfepool:JP,IN1,NZ,ZA,MA`. After every
+  horizon `clear_market.py` adds up the advanced builds of all regions, extrapolates the sum to the rest of the world
+  (x 1 / joint share of 2024 world demand: JP 3.29 + IN 6.58 + ZA 0.80 + MA 0.15 + NZ 0.14 = 10.95 %, x9.13) and
+  every region takes the new costs into the next horizon. `cfepool` = `cfeext` under a name of its own (branch of
+  `<R>-cfe` at 2030), `refpool` = `ref` with the same rule, so the two differ by the buyers alone. New one-node test
+  regions `config.{NZ,ZA,MA}.yaml` (copies of `config.JP.yaml` on the Oceania / Africa cutouts, each still in its
+  group as well). `run_test_regions.sh`: prenetworks of the new regions, trunk `cfe` until 2030 for the pool,
+  `cfepool`, `refpool`, `plot_branches.py <R> refpool cfepool --out <R>-pool`. A region failing in any horizon stops
+  its pathway for all (the others need its builds). The trunk market `results/learning/cfe/` is rewritten for the
+  pool (same numbers, other header), so the 2030 trunk solves of JP and IN1 re-run once.
+  First run (22:24 to 01:51, 3.5 h: prenetworks NZ 88 min, ZA 5, MA 4; trunk 15 min, `cfepool` 42, `refpool` 52;
+  memory peak 15 GB in the prenetworks, 5 GB in the solves). EGS is the only technology that learns: 8,100 USD/kW falls to 4,603 by 2035 and 1,808 by 2050
+  with buyers, and stays at 8,100 until 2035 (6,578 in 2040, 2,134 in 2050) without. EGS in 2040, GW with / without
+  buyers: IN 113 / 0, JP 68 / 29, NZ 3.5 / 0, MA 1.0 / 0; South Africa builds no advanced technology in either. So
+  one-node India takes EGS once Japan's buyers have paid for the first doublings (none in its single-region runs).
+  Caveat: x9.13 with no global build-rate limit and no cost floor puts ~2,000 GW of EGS in the world by 2050 and the
+  wellfield at 14 % of its first cost; the size of the effect is an upper bound, the direction is the finding.
+- **Why EGS and no iron-air** (checked 2026-11-11 on Morocco, where the toy model
+  `misc-quarter1/toymodel-clean-procurement` builds 1.4 to 4.3 MW of iron-air per 10 MW of load in every weather year).
+  Iron-air costs the same in both models (75 USD/kWh, 100 h, 41 % round trip). Re-solves of the solved 2030 network
+  (reference costs, nothing learned yet; buyer load a flat 65 MW) give iron-air on the buyer's side: as run 0 MW;
+  excess sales closed 7.8 MW; the toy model's single-site wind and solar of 2020 / 2021 / 2015 instead of the
+  country-wide 2013 profiles 26 / 14 / 0 MW; both 27 / 22 / 3.6 MW, which is the toy model's range. So (1) the
+  one-node country pools wind and solar over all of Morocco in one weather year and has few multi-day gaps, (2) selling
+  20 % excess makes overbuilt wind, solar and Li-ion cheaper than long storage, and only then (3) learning: the first
+  buyers that pick an advanced technology are Japan's, they pick EGS, and 1.5 GW x 9.13 on a base of 0.5 GW is 4.8
+  doublings (-43 % in one step), while India's 1.9 GWh of iron-air x 9.13 on 40 GWh is half a doubling (-8 %). In 2035
+  EGS (x0.57) replaces wind, solar and Li-ion, not iron-air: with EGS switched off the buyer still builds no iron-air
+  (31 MW per 259 MW of load once excess sales are closed as well).
+  The same year with ten nodes (`config.MA10.yaml`, k-means on Voronoi regions, overlay `cfenode` = `cfe` with a
+  market of its own; `run.sh MA10` then `PATHWAY_UNTIL=2030 run.sh pathway:cfenode:MA10`, 14 min in all): every buyer
+  procures at its own node, and the ten buyers of 2030 build 12.6 MW of iron-air for the same 65 MW of load (1.9 MW
+  per 10 MW; 8 of 10 nodes, none at the node with a wind CF of 0.46), with 399 MW of solar, 24 MW of wind and
+  180 MW / 1.3 GWh of Li-ion; their cost is 107 USD/MWh against 93 at one node. Only 2025 and 2030 were solved.
+  This run found a multi-node bug in the fork's `scripts/cfe.py` (`add_cfe_buyer` indexed the grown load table with
+  the load list from before the first buyer; fixed, one-node runs unchanged).
+  Matching per node is stricter than 24/7 CFE accounting, which matches within a bidding zone (Google, EnergyTag,
+  the hydrogen hourly-matching rules), so the fork has `catalyst.cfe.matching: zone` since 2026-11-11 (buyers of a
+  country matched together hour by hour, import links open, power through the grid, excess limit on the zone's net
+  exports; overlay `cfezone`). MA10-cfezone 2030: no iron-air, 290 MW solar, 40 MW wind, 143 MW / 1.0 GWh Li-ion,
+  most of it at the windy Atlantic node; mean marginal price at the buyer buses 82 USD/MWh (node matching 107,
+  one node 93). So the iron-air of MA10-cfenode came from the per-node boundary, not from the grid.
+  That pull is an artefact of the boundary: one buyer per node that procures only there is stricter than 24/7 CFE
+  accounting, which matches within a bidding zone. Fork option `catalyst.cfe.matching: zone` (2026-11-11, overlay
+  `cfezone`; default `node`): buyers stay at their nodes, their import links are open, and the buyers of a country
+  together may not buy net from the grid in any hour (sum of exports >= sum of imports); the power goes through
+  the lines; the excess limit holds for the zone's net exports. `pathway:cfezone:MA10` to 2030: iron-air 0 MW (290 MW
+  solar, 40 MW wind, 143 MW / 1.0 GWh Li-ion), buyers' cost 82 USD/MWh (107 per node, 93 at one node: the buyers
+  now build at the best nodes, e.g. wind at CF 0.46 instead of the country's pooled 0.28). The grid hardly binds
+  (nodal mean prices 59.8 to 60.4). On a one-node country `zone` is the same as `node`. What the zone is remains a
+  choice for Japan (price areas), India and the US.
+- **No purchases from the grid** (`catalyst.cfe.grid_imports: false`, decided 2026-11-10; fork option, default
+  false): the import link is closed (`p_nom` 0), so the buyer's own portfolio covers every hour of its load; the
+  matching constraint is not added, the grid CFE is no longer in the problem and each horizon is solved once
+  (the grid CFE is still recorded for the summary). Neither grid purchases nor the iteration are in the SOW
+  (§1.1 leaves the implementation open); both came with the 247-cfe design. `grid_imports: true` restores it
+  (imports credited with the grid's hourly clean share, `iterations` solves). Sales of excess to the grid
+  (`excess_share`) are unchanged. In the Japan runs of 2026-11-08 (imports open) the buyer imported
+  ~0.0002 TWh/a of 105, so those results stand; `target` < 1 has no meaning without imports.
 - **Settings** (`overlay.cfe.yaml`, decided 2026-11-08): 10 % of demand, target 1.0, excess ≤ 20 % (as the
   procurement paper), `clean_carriers` = the palette's clean rows; SOFC-CC counts as clean (2.2 % of the gas CO2
   left; ASSUMPTION, as in the toy model).
@@ -1383,3 +1540,134 @@ summary / cfe / factors / mix .csv). No-CFE reference: overlay `ref` (`run.sh pa
   annuity of its 2030 EGS at the unlearnt cost (~100 USD/MWh) while the grid price falls to 51-59.
 - Generation 1,022 TWh in 2025 = Ember 2024 gross generation (1,016 TWh) x the demand pathway; Japanese
   consumption statistics (~900 TWh) exclude plant own use and grid losses.
+
+## Resource classes (fork option `renewable: <tech>: resource_classes`; 2026-11-12)
+
+**Why.** Without classes every clustered region offers ONE onshore-wind and ONE solar generator: the region's
+average profile on its whole potential (Japan: 553 GW of onshore wind, every MW at CF 0.221). Good sites are not
+scarce, and since `cluster_weight: capacity` new capacity in the multi-node regions even gets the fleet's profile on
+the full potential. PyPSA-Eur (>= v2025.04, and pypsalabs/spain-datacenter-decree with 5 classes) splits each
+region's potential into capacity-factor classes; this is the port.
+
+**How (fork, commit "resource classes").** PyPSA-Eur builds its profiles after clustering; the fork builds them on
+the base network and simplify / cluster merge every generator of a carrier at a bus, so the classes follow the route
+of the EGS supply curves:
+1. `build_resource_cells` (once per base run, `resources/<R>/renewable_profiles/cells_<tech>.nc`, shared with every
+   stage like the profiles): one atlite pass over the cutout window of `build_renewable_profiles`, hourly CF of every
+   cell with potential (and of every cell holding a plant). The eligible MW are the `potential (y, x)` of the profile
+   file, so the land-exclusion rasters are not redone. Japan: onwind 6 min / 2.2 GB, solar 27 min / 2.6 GB.
+2. `build_resource_classes` (per stage, `resources/<stage>/resource_classes/`, never shared, run.sh): cells split
+   between the stage's clustered regions by area share; per region n equal-width bins of the cells' mean CF over the
+   cells with potential (PyPSA-Eur bins over every touching cell, which can leave the top classes empty); class
+   profile = cells' hourly CF weighted by MW x mean CF (the atlite layout, so one class reproduces
+   `build_renewable_profiles` exactly, tested on Japan for onwind and solar: identical profile and potential); plants
+   of `powerplants.csv` (wind: all non-offshore incl. technology Unknown; solar: all non-CSP; in operation by 2024)
+   placed by coordinates in a region (nearest when outside all) and a class (by their cell's mean CF).
+3. `add_extra_components` replaces `"<bus> <carrier>"` by `"<bus> <carrier> c<k>"` (column `resource_class`, class 0 =
+   worst): the calibrated fleet in the shares of the located plants (no located plant: CF x potential, PyPSA-Eur's
+   rule for statistics-only capacity, ASSUMPTION), parts below 10.5 MW folded into the largest (the brownfield
+   threshold would drop them), potential split so the classes add up to the old one, and one factor per country on
+   all class profiles so that the fleet keeps the energy of the calibrated generator (2024 dispatch unchanged by
+   construction). Asserted in code: fleet, potential and fleet energy conserved per bus.
+4. Myopic: the land-use constraint nets earlier builds per location AND class; capacity without class at a location
+   with classes is an error (e.g. a branch whose parent ran without classes).
+
+Fixed on the way (fork, own commit): the CFE buyer bus had no `location` (PyPSA drops the attribute), so the
+buyer's wind and solar of earlier horizons were never netted from the grid's potential (JP-cfesec: 0.13 GW onwind in
+2035; solar 0.34 GW above its 273 GW potential by 2050). The runs before 2026-11-12 carry this small error.
+
+**Japan, five classes** (`scripts/check_resource_classes.py JP-nowrc --plot`; CF raw = from ERA5 / atlite, CF model =
+after the energy-neutral factor; old: one generator at 0.221 / 0.123):
+
+| class | onwind GW | CF raw | CF model | fleet GW | solar GW | CF raw | CF model | fleet GW |
+|---|---|---|---|---|---|---|---|---|
+| 0 | 260 | 0.091 | 0.078 | 0.72 | 37 | 0.121 | 0.112 | 3.3 |
+| 1 | 200 | 0.178 | 0.152 | 2.03 | 75 | 0.127 | 0.118 | 23.8 |
+| 2 | 55 | 0.290 | 0.248 | 1.54 | 100 | 0.133 | 0.123 | 38.3 |
+| 3 | 27 | 0.397 | 0.340 | 0.72 | 48 | 0.139 | 0.129 | 18.9 |
+| 4 | 10 | 0.502 | 0.430 | 0.56 | 12 | 0.145 | 0.134 | 5.3 |
+
+The located wind fleet stands on cells with a raw CF of 0.258 but delivers 0.221 (statistics), so the factor is 0.856
+for every class (before: 0.99 on the regional average): the best 10 GW are offered at 0.43, the bottom 260 GW at 0.08.
+Solar spreads only +-10 % around its mean.
+
+Caveats: classes resolve resource quality within a region, not connection distance or cost between sites; ERA5
+cells (~30 km) smooth the best sites, and equal-width bins depend on a region's extremes; one calibration factor
+per country scales all classes, the best one too (it corrects ERA5 + turbine model at the fleet's sites, whose
+turbines are older than new ones); the cell file follows the `resource` settings of the base run (an overlay that
+changes `resource` would need its own); offshore wind has no classes yet (per-class connection costs).
+
+**Default since 2026-11-12 (evening).** `statistics.yaml` sets `resource_classes: 5` for onwind and solar, so every
+stage built on it has classes. Switch them off per stage with `resource_classes: 1` (= no class rule in the DAG):
+overlays `refnorc` / `cfenorc` = `ref` / `cfe` without classes, the A/B partners. The test overlays of the afternoon
+(`nowrc`, `refrc`, `cferc`) were removed (they equal `now`, `ref`, `cfe` now); their stages
+`JP-{nowrc,refrc,cferc}`, `IN-nowrc` stay on disk as the record of the A/B below. Rebuild:
+`rerun_classes.sh` (pooled test-region pathways, then the global validation via `rerun_validation.sh` with
+`ARCHETYPES=""`, old `-now` / `-zero` in `results/archive/<stage>-20261109`). Not rebuilt, so still without classes
+and without the buyer fix: the `<G>-myopic` groups, the JP single-region branches (`JP-ref`, `JP-cfesec` / `cfemid` /
+`cfeext`), `MA10`. Note for the comparison with the archive: the archetype `-now` stages of 2026-11-09 ran on wind /
+solar profiles older than their `-zero` stages (the base runs re-built the profiles in between); the rebuild also
+re-runs add_electricity on the current profiles.
+
+**Pooled test regions with classes (2026-11-13, `rerun_classes.sh` step pool; also with the buyer fix).** The first
+attempt of 2026-11-12 failed on a DNS outage at DAG construction (Snakemake reads a file from raw.githubusercontent.com;
+run.sh now retries network errors); re-run 11:06-12:12. Against the run without classes of 2026-11-10/11
+("Pooled learning over test regions"), EGS GW with / without buyers:
+
+| | 2040 without classes | 2040 classes | 2050 classes |
+|---|---|---|---|
+| JP | 68 / 29 | 59 / 24 | 87 / 76 |
+| IN1 | 113 / 0 | 24 / 0 | 125 / 24 |
+| NZ | 3.5 / 0 | 2.0 / 0 | 4.1 / 3.1 |
+| MA | 1.0 / 0 | 0 / 0 | 0 / 0 |
+
+(ZA builds no advanced technology in either run.) EGS cost (drilling + plant, USD/kW) with buyers 4,665 in 2035 and
+1,872 in 2050 (before 4,603 / 1,808), without buyers 6,578 in 2040 and 2,166 in 2050 (before 6,578 / 2,134): the
+learning is nearly unchanged, because Japan's buyers build the same first GW. What changes is how much EGS the grids
+take at the learned cost: one-node India takes a fifth of the EGS of 2040 (presumably its best wind and solar classes
+fill the room, as in Japan; not yet checked class by class). The catalytic gap (with vs without buyers) stays, the ref pathway again one horizon
+behind; its size shrinks as in the Japan A/B. Tables and figures: `results/learning/<R>-pool/`.
+
+**Global validation with classes (2026-11-13 to 15, `rerun_classes.sh` step validation).** All 16 `-now` / `-zero`
+stages re-solved (results of 11-09 in `results/archive/<stage>-20261109`), six dashboards (those of 11-10 in
+`results/catalyst/archive-20261109/`), world page and before/after pages. Every stage's first run builds its cell
+files (rest-of-world groups up to ~2 h, NAM). Comparison against the world table rebuilt from the archived 11-09
+networks (`plot_world.py --fork <dir with results/ -> archive>`), 121 countries:
+- `-now` reproduces the 2024 dispatch: world totals within 3 TWh per fuel (wind 2,490 vs 2,487 TWh, CO2 12.45 Gt in
+  both), no country's fuel share moves by more than 0.2 pp. The classes are energy-neutral for the fleet as designed.
+- `-zero` changes: wind 11.6 -> 12.8 PWh, solar 35.6 -> 34.3 PWh; 51 of 120 countries move > 5 pp. Most wind gained in
+  China (2.8 -> 3.5 PWh), Saudi Arabia, Indonesia, Vietnam; Russia loses half (321 -> 152 TWh); US, India, Singapore
+  barely change. Load shedding 555 -> 679 TWh, nearly all in South Korea (210 -> 270) and Taiwan (166 -> 230), the
+  land-constrained cases: presumably the single profile weighted by MW x CF made the whole potential look more
+  productive than its cells are on average (not checked cell by cell).
+- before/after (v0.9.0 vs now, `figures/before-after/`): fossil-share MAE 1.46 pp, 104 of 121 countries within 10 pp.
+
+Two driver gaps found on the way, fixed on 11-15: a network outage before any rule (DNS, e.g. right after resume
+from suspend) cost NWE-now its three attempts on 11-13 (re-run after the others); run.sh now waits up to `NET_WAITS`
+(24 x 300 s) for such outages without counting attempts. And run.sh skips a stage whose target exists, so the
+dashboards of 11-10 had survived the archive step; rerun_validation.sh now archives `results/catalyst/validation_<R>.png`
+with the results.
+
+Checks:
+```bash
+cd config-pypsa-earth && ../models/pypsa-earth/.pixi/envs/default/bin/python scripts/check_resource_classes.py JP-cfepool --plot
+../models/pypsa-earth/.pixi/envs/default/bin/python scripts/plot_classes_ab.py JP ref:refrc cfenorc:cferc   # the A/B record
+```
+
+**Result, Japan to 2050 (2026-11-12; `scripts/plot_classes_ab.py JP` -> `results/learning/JP-classes/classes_ab.{png,csv}`).**
+A/B pairs: `ref` / `refrc` (no CFE) and `cfenorc` / `cferc` (24/7 CFE trunk to 2050, current `overlay.cfe.yaml`:
+share 1 % -> 10 %, no grid imports, secluded learning; `cfenorc` was added because `JP-cfe` / `JP-cfesec` predate
+parts of the 2026-11-10 changes of that overlay).
+- 2024 dispatch unchanged (Japan and India-50, `build_calibration.py --check`: every row within 0.05 TWh).
+- Bookkeeping (`check_resource_classes.py JP-cferc`): per class and horizon, fixed (grid + buyer) + remaining
+  potential = class potential, no class overbuilt.
+- Wind: without classes the reference builds 135 GW at CF 0.22; with classes 95 GW at CF 0.27-0.30 (classes 2-4,
+  92 GW, are full by 2035; the 460 GW of classes 0-1 at CF 0.08-0.15 are never touched). 2030: 76 instead of 52 GW,
+  gas -59 TWh, system cost of the horizon -8 %, grid price 72 instead of 78 USD/MWh.
+- EGS and the catalytic effect: the buyer builds the same EGS with and without classes (1.3 GW in 2030, 16 GW by
+  2050), so learning is about the same, but the grid follows less: EGS in Japan with CFE vs without CFE is +40 GW in
+  2040 and +23 GW in 2050 with one class per region, +17 GW in 2040 and +1.5 GW in 2050 with classes. Cheap
+  high-quality wind takes part of the room EGS filled when wind was only offered at the regional average. The
+  CFE premium in 2030 rises from 16 to 23 USD/MWh, because the grid price falls while the buyer's cost does not.
+- Run time: Japan pathway ~15 min either way; India-50 2024 dispatch 4 min with 497 instead of 100 wind / solar
+  generators.

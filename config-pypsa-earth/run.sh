@@ -49,6 +49,7 @@ CONTINUE_ON_FAIL=${CONTINUE_ON_FAIL:-0}
 # python / snakemake, default `pixi run`) and SNAKEMAKE_EXTRA (appended to every snakemake call): used by
 # baseline/run_overnight.sh to drive the v0.9.0 worktree with the main fork's environment and an --allowed-rules list
 export RUN="${CATALYST_RUN:-pixi run}" SNAKEMAKE_EXTRA="${SNAKEMAKE_EXTRA:-}"
+NET_WAITS=${NET_WAITS:-24}   # network outages before any rule ran: up to 24 x 300 s = 2 h of waiting, not counted as attempts
 NETWORK_RULES='retrieve_databundle_light|download_osm_data|build_cutout|retrieve_cost_data|build_shapes|build_powerplants|retrieve_validation_data'
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 export PATH="$HOME/.pixi/bin:$HOME/.local/bin:$PATH"
@@ -80,14 +81,16 @@ link_resources() {   # $1 = base run, $2 = scenario run: share the expensive res
   if [ -L "resources/$run" ]; then rm "resources/$run"; log "[$run] resources/$run was a directory symlink -> replaced by per-entry links"; fi
   # cost tables and demand profiles depend on stage settings (palette cost overrides, currency, demand year): every
   # stage builds its own (a linked base-run file looks up to date to Snakemake; 2026-10-17 US-myopic lacked `sofc`)
-  for e in resources/"$run"/costs_* resources/"$run"/demand_profiles*.csv; do
+  # resource_classes/ depends on the stage's clustered regions (like bus_regions/): never shared
+  # statistics/ holds the stage's tables (demand year, envelope variant, palette costs; tables.smk): never shared
+  for e in resources/"$run"/costs_* resources/"$run"/demand_profiles*.csv resources/"$run"/resource_classes resources/"$run"/statistics; do
     [ -L "$e" ] && rm "$e" && log "[$run] removed stage-specific link $e"
   done
   if [ ! -d "resources/$run" ]; then
     mkdir -p "resources/$run/bus_regions"
     for e in resources/"$base"/*; do
       e="$(basename "$e")"
-      case "$e" in bus_regions|costs_*|demand_profiles*.csv) continue ;; esac
+      case "$e" in bus_regions|costs_*|demand_profiles*.csv|resource_classes|statistics) continue ;; esac
       ln -s "../$base/$e" "resources/$run/$e"
     done
     for e in regions_onshore.geojson regions_offshore.geojson; do
@@ -100,7 +103,7 @@ link_resources() {   # $1 = base run, $2 = scenario run: share the expensive res
 }
 
 run_stage() {   # $1 = stage name (see header); HORIZON=<year> (pathway): target that horizon's solved network
-  local run="$1" kind tag target slog rc attempt wd rule
+  local run="$1" kind tag target slog rc attempt netwait wd rule
   kind=$(stage_kind "$run"); run="${run#dashboard:}"
   tag="$run"; [ "$kind" = dashboard ] && tag="dashboard_$run"
   slog="$LOGDIR/$tag.log"
@@ -111,7 +114,9 @@ run_stage() {   # $1 = stage name (see header); HORIZON=<year> (pathway): target
   # a document is re-edited, a pathway horizon may have a new market file: let Snakemake decide
   if [ -f "$target" ] && [ "$kind" != assumptions ] && [ -z "${HORIZON:-}" ]; then log "[$run] $target exists, skip"; return 0; fi
   if [ "$kind" = overlay ]; then link_resources "${run%-*}" "$run"; fi
-  for attempt in 1 2 3; do
+  attempt=0; netwait=0
+  while [ "$attempt" -lt 3 ]; do
+    attempt=$((attempt + 1))
     # pypsa-earth aborts at DAG construction if build_cutout is enabled while the
     # cutout file already exists (terminate_if_cutout_exists), so switch the rule
     # off as soon as this stage's cutout has been built.
@@ -131,12 +136,14 @@ run_stage() {   # $1 = stage name (see header); HORIZON=<year> (pathway): target
           echo "[$(date '+%F %T')] [$run] DISK LOW -> stopping snakemake" >> "$STATUS"
           pkill -TERM -f "snakemake $target" ; fi
       done ) & wd=$!
+    # --expand-environment=no: systemd-run >= 259 expands $VARIABLES in a scope's command line itself by default
+    # (the bash -c script below starts with $RUN: 'Invalid environment variable name', rc 127; seen 2026-11-10)
     # the scope caps snakemake + the job + any workers; memory.peak is read from
     # inside the scope before it disappears. --rerun-triggers mtime input: never re-run a rule only
     # because its params/code provenance changed (NWE: retrieve_databundle_light wanted to re-run
     # over the read-only, shared data/ files although the bundle list was identical to the earlier stages)
     timeout --signal=TERM --kill-after=5m "$STAGE_TIMEOUT" \
-      systemd-run --user --scope --quiet -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -p OOMPolicy=continue -- \
+      systemd-run --user --scope --quiet --expand-environment=no -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -p OOMPolicy=continue -- \
       bash -c '$RUN snakemake "$1" -c1 -j1 --rerun-incomplete --rerun-triggers mtime input --set-resources build_shapes:mem_mb=2000 $SNAKEMAKE_EXTRA; rc=$?
                cg=/sys/fs/cgroup$(cut -d: -f3 /proc/self/cgroup)
                echo "SCOPE memory.peak=$(( $(cat $cg/memory.peak 2>/dev/null || echo 0) / 1048576 )) MiB events: $(tr "\n" " " < $cg/memory.events 2>/dev/null)"
@@ -164,6 +171,13 @@ run_stage() {   # $1 = stage name (see header); HORIZON=<year> (pathway): target
     rule=$(attempt_log | grep -oP "Error in rule \K\w+" | tail -1)
     if echo "${rule:-}" | grep -qE "^($NETWORK_RULES)$"; then
       log "[$run] rule '$rule' failed (network/data rule) -> retry in 120 s"; sleep 120
+    elif attempt_log | grep -qE "NameResolutionError|Temporary failure in name resolution|ConnectionError|Max retries exceeded"; then
+      # Snakemake reads a remote file at DAG construction (raw.githubusercontent.com): a DNS outage fails the stage
+      # before any rule runs (2026-11-12 19:40, JP-cfepool / JP-refpool)
+      # an outage before any rule ran (no network at all, e.g. just after a resume from suspend) does not use up an
+      # attempt, up to NET_WAITS waits (2026-11-13 17:58-18:13: NWE-now lost its three attempts to one outage)
+      if [ -z "${rule:-}" ] && [ "$netwait" -lt "$NET_WAITS" ]; then netwait=$((netwait + 1)); attempt=$((attempt - 1)); fi
+      log "[$run] network error (${rule:-before any rule}) -> retry in 300 s (attempt $attempt of 3 used, network wait $netwait of $NET_WAITS)"; sleep 300
     else
       log "[$run] rule '${rule:-?}' failed -> no retry (deterministic failure), see $slog"; return 1
     fi
@@ -176,7 +190,7 @@ run_world() {   # world page over all solved networks, same memory scope as the 
   cd "$PE" || return 1
   log "[world] plot_world.py -> results/catalyst/validation_world.png (cap ${MEM_MAX})"
   echo "######## [world] $(date) ########" >> "$slog"
-  systemd-run --user --scope --quiet -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -- \
+  systemd-run --user --scope --quiet --expand-environment=no -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -- \
     $RUN python "$HERE/scripts/plot_world.py" -o results/catalyst/validation_world.png >> "$slog" 2>&1 \
     || { log "[world] FAILED, see $slog"; return 1; }
   log "[world] SUCCESS results/catalyst/validation_world.png"
@@ -207,7 +221,7 @@ run_pathway() {   # $1 = pathway:<scen>:<R1>,<R2>,... (see header)
     # PATHWAY_UNTIL=<year>: stop after that horizon (e.g. the trunk of branched sensitivities)
     if [ -n "${PATHWAY_UNTIL:-}" ] && [ "$y" -ge "$PATHWAY_UNTIL" ]; then log "[pathway $scen] PATHWAY_UNTIL=$PATHWAY_UNTIL: stop after $y"; break; fi
     log "[pathway $scen] market step: builds of $y -> costs of $ynext"
-    systemd-run --user --scope --quiet -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -- \
+    systemd-run --user --scope --quiet --expand-environment=no -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -- \
       $RUN python "$HERE/scripts/clear_market.py" step "$scen" "$y" "$ynext" "${stages[@]}" \
       ${LEARNING_EXOGENOUS:+--exogenous "$LEARNING_EXOGENOUS"} >> "$slog" 2>&1 \
       || { log "[pathway $scen] clear_market.py step $y FAILED, see $slog"; return 1; }

@@ -18,19 +18,18 @@ costs:
   year: 2050            # technology-data v0.13.2 costs_2050.csv
 
 load_options:
-  annual_totals: ../../config-pypsa-earth/calibration/2050/demand.csv   # the demand pathway's 2050 table
+  annual_totals: true   # the demand pathway's 2050 table (catalyst: tables: demand_year below)
 
 catalyst:
-  envelope: nofloor     # no must-run on emitting carriers under Co2L0 (merge_config.py)
+  envelope: nofloor     # no must-run on emitting carriers under Co2L0 (tables.smk, merge_config.py)
+  tables:
+    demand_year: 2050   # demand.csv = calibration/2050/demand.csv (tables.smk)
 
 calibration:            # fork: scripts/calibrate_network.py; expansion allowed
   enable: true
   brownfield_only: false
-  efficiency_spread: 0.15   # 3 tranches per fuel-burning generator: x0.85, x1.0, x1.15 of the fleet efficiency
-  tranches: 3
   net_import_tolerance: 0.25
-  tables:
-    net_imports: ../../config-pypsa-earth/calibration/2024/net_imports.csv
+  net_imports: true     # table net_imports.csv
 
 enable:
   build_cutout: false

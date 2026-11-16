@@ -11,8 +11,10 @@ kind = overlay    : stage <R>-<scen> = statistics.yaml < config.<R>.yaml < overl
 kind = dashboard  : stage <R> = statistics.yaml < config.<R>.yaml + the validation custom rule; target
                     results/catalyst/validation_<R>.png
 statistics.yaml carries the 2024 statistics (calibration at the source: plant list, demand, hydro, wind / solar,
-efficiencies, fuel prices, operating envelope); catalyst.envelope: nofloor in an overlay points the envelope tables at
-calibration/<year>/envelope/nofloor/ (no must-run floors on emitting carriers).
+efficiencies, fuel prices, operating envelope) as switches; the tables behind them are written per run by tables.smk
+(resources/<run>/statistics/). catalyst.envelope: nofloor in an overlay makes tables.smk take the envelope tables of
+calibration/<year>/envelope/nofloor/ (no must-run floors on emitting carriers); the attributes without a table there are
+dropped here.
 kind = assumptions: no network; the technology-assumptions custom rules only; target the assumptions PDF
                     ../../config-pypsa-earth/technology-assumptions/build/technology_assumptions.pdf
 Every merged config carries technology-assumptions/assumptions.smk in custom_rules, so the assumptions
@@ -21,7 +23,7 @@ Palette stages (catalyst.palette: true in the overlay, e.g. overlay.myopic.yaml)
 decides what the model may build (technology-assumptions/scripts/palette.py): its `model`, `carrier`, `regions`,
 `availability`, `min_load`, `fuel` and `color` columns become electricity.extendable_carriers (all four lists),
 extendable_carriers_buses: all, max_hours, the fork's `conventional:` block, costs.fuel_map, plotting, and
-costs.overrides = resources/<stage>/palette/costs_{year}.csv, written per year by assumptions.smk (palette_costs)
+costs.overrides = true: resources/<stage>/statistics/cost_overrides_<year>.csv, written per year by assumptions.smk (palette_costs)
 from the CSV. Supply-curve technologies (model tranches) take their dataset and binning from the overlay's
 supply_curves.<carrier> block (cutout filled in from the base config); without such a block they are not built.
 Every stage runs in USD (costs.output_currency), the currency of the CSV and of the calibration price tables.
@@ -53,6 +55,7 @@ sys.path.insert(0, os.path.join(HERE, "technology-assumptions", "scripts"))
 import palette  # noqa: E402
 
 SMK = "../../config-pypsa-earth/validation.smk"  # relative to the fork root, see custom_rules in the overlays
+TABLES_SMK = "../../config-pypsa-earth/tables.smk"  # writes resources/<run>/statistics/ for the fork's statistics options
 ASSUMPTIONS = "../../config-pypsa-earth/technology-assumptions"
 ASSUMPTIONS_SMK = ASSUMPTIONS + "/assumptions.smk"
 ASSUMPTIONS_PDF = ASSUMPTIONS + "/build/technology_assumptions.pdf"
@@ -93,15 +96,15 @@ def load_overlay(scen, seen=()):
 
 
 def envelope_variant(cfg, variant):
-    """Point the `conventional: <carrier>: existing:` tables at calibration/<year>/envelope/<variant>/; an attribute
-    without a table in that variant (the floors of emitting carriers in nofloor) is dropped."""
+    """Drop the `conventional: <carrier>: existing:` attributes that have no table in calibration/<year>/envelope/
+    <variant>/ (the floors of emitting carriers in nofloor); tables.smk takes the tables of the variant
+    (catalyst: envelope)."""
+    year = ((cfg.get("catalyst") or {}).get("tables") or {}).get("year", 2024)
     for carrier, attrs in (cfg.get("conventional") or {}).items():
         existing = attrs.get("existing") or {}
-        for attr, path in list(existing.items()):
-            new = path.replace("/envelope/floor/", f"/envelope/{variant}/")
-            if os.path.exists(os.path.join(PE, new)):
-                existing[attr] = new
-            else:
+        for attr, value in list(existing.items()):
+            table = os.path.join(HERE, "calibration", str(year), "envelope", variant, f"{carrier}_{attr}.csv")
+            if value == "statistics" and not os.path.exists(table):
                 del existing[attr]
 
 
@@ -140,7 +143,7 @@ def stage_config(kind, stage):
     if BASELINE:
         deep_merge(cfg, load("baseline/common.yaml"))
     else:
-        cfg["custom_rules"] = sorted(set(cfg.get("custom_rules", []) or []) | {ASSUMPTIONS_SMK})
+        cfg["custom_rules"] = sorted(set(cfg.get("custom_rules", []) or []) | {ASSUMPTIONS_SMK, TABLES_SMK})
     return cfg
 
 

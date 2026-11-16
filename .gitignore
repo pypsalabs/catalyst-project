@@ -47,3 +47,6 @@ __pycache__/
 *.shx
 *.grib
 *.grib2
+
+# EIA-923 / EIA-860 downloads of config-pypsa-earth/scripts/build_efficiency_spread.py
+config-pypsa-earth/data/validation/eia/

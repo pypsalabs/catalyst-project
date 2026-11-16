@@ -106,8 +106,8 @@ rule assumptions_resource_maps:
         "scripts/plot_resource_maps.py"
 
 
-# The palette in the fork: when the stage config sets `costs: overrides` (merge_config.py does for palette stages,
-# with {year} in the path), this rule writes the cost table rows of each year from the CSV; the fork's
+# The palette in the fork: when the stage config sets `costs: overrides` (merge_config.py does for palette stages),
+# this rule writes the cost table rows of each year from the CSV into the run's statistics directory; the fork's
 # process_cost_data merges them onto technology-data's table (scripts/build_palette_costs.py). In learning stages the
 # advanced rows of a year take the cost factors of the learning market file (config-pypsa-earth/scripts/clear_market.py).
 if config.get("costs", {}).get("overrides"):
@@ -128,7 +128,7 @@ if config.get("costs", {}).get("overrides"):
             techdata="resources/" + RDIR + "costs_{year}.csv",
             techdata_base="resources/" + RDIR + f"costs_{config['costs']['year']}.csv",
         output:
-            config["costs"]["overrides"],
+            STATISTICS + "cost_overrides_{year}.csv",
         params:
             countries=config["countries"],
             storage_techs=config["storage_techs"],
@@ -140,6 +140,8 @@ if config.get("costs", {}).get("overrides"):
             mem_mb=500,
         script:
             "scripts/build_palette_costs.py"
+
+    ruleorder: palette_costs > copy_statistics
 
 
 rule assumptions_doc:

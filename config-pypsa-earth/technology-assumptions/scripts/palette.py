@@ -114,7 +114,7 @@ def model_config(rows, countries, stage):
         },
         "conventional": conventional,
         "costs": {
-            "overrides": f"resources/{stage}/palette/costs_{{year}}.csv",  # written by assumptions.smk palette_costs
+            "overrides": True,  # the rows of resources/<stage>/statistics/cost_overrides_<year>.csv (assumptions.smk palette_costs)
             "marginal_cost": {},  # the fork's defaults would override the CSV VOM
             "rooftop_share": 0.0,  # solar = the CSV's utility-scale row
             "output_currency": "USD",

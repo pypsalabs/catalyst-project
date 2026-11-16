@@ -44,7 +44,7 @@ osm:
 
 links:
   dc_projects:                    # HVDC capacity per project, README "Grid corrections"; overrides dc_ratings of statistics.yaml
-    file: ../../config-pypsa-earth/data/hvdc/hvdc_project_table.csv
+    enable: true                  # table dc_projects.csv = data/hvdc/hvdc_project_table.csv (tables.smk)
     reference_year: 2024          # the calibration year; myopic horizons would need the table's years per horizon
     unmatched: zero               # links without a project: unnamed pieces of lines added separately, later lines, links outside the table
     add_missing: true             # BritNed, COBRA, Kontek, Baihetan-Jiangsu, ...: in service, but not routable in OSM

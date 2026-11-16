@@ -5,22 +5,25 @@
 # not as corrections of the finished network. merge_config.py puts this file under every stage config
 # (statistics.yaml < config.<R>.yaml < overlay.<scen>.yaml); README "Calibration at the source" lists vector by vector
 # where the upstream data enter and what replaces them.
+#
+# The options are switches; the tables they read lie in resources/<run>/statistics/, written by tables.smk (custom rule)
+# from calibration/<catalyst: tables: year, default 2024>/ and data/hvdc/. No option carries a file path.
 
 load_options:
   # build_demand_profiles: each country's load source series scaled to Ember 2024 before it is spread over the buses
-  annual_totals: ../../config-pypsa-earth/calibration/2024/demand.csv
+  annual_totals: true          # table demand.csv
 
 electricity:
   # build_powerplants: powerplantmatching's plant list scaled to Ember 2024 capacity per country and fuel group
   # (wind and solar below); missing groups added at the country's thermal sites; plants under construction kept apart
   powerplants_statistics:
-    file: ../../config-pypsa-earth/calibration/2024/capacity.csv
+    enable: true              # table capacity.csv
     reference_year: 2024
   # build_powerplants: gas units powerplantmatching labels "Steam Turbine" (GEM's gas turbines, internal combustion engines and
   # steam turbines, 0.33-0.36 efficient) become OCGT, not CCGT; with the default the model had no existing OCGT
   gas_technology_mapping: {Steam Turbine: OCGT}
   # add_electricity: fleet efficiency where the plant data have none (nearly all plants)
-  powerplants_efficiency: ../../config-pypsa-earth/calibration/2024/efficiency.csv
+  powerplants_efficiency: true # table efficiency.csv
   nuclear_p_max_pu: false   # nuclear availability from the envelope below (Ember capacity factor), not IAEA 2022-24
   must_run_cap: 0.9         # must-run floors <= 90 % of a country's lowest load (islanded countries cannot export it)
   # add_electricity: wind and solar from IRENA 2024 (Ember's own source for them), the plant list scaled down where above
@@ -35,61 +38,72 @@ electricity:
       CSP: [solar]          # Ember's solar includes CSP
   # add_electricity: wind and solar profiles scaled per country to Ember's 2024 fleet capacity factor (x0.6..1.4)
   capacity_factor_targets:
-    file: ../../config-pypsa-earth/calibration/2024/generation.csv
+    enable: true              # table generation.csv (column cf)
 
 renewable:
   # add_electricity -> simplify / cluster: profiles of merged buses averaged by installed capacity, so that the fleet keeps
   # the capacity factor set above (potential weights raised GB offshore wind from 0.32 to 0.41 in the 50-node network)
-  onwind: {cluster_weight: capacity}
+  # build_resource_cells / build_resource_classes -> add_extra_components (fork option, since 2026-11-12): onshore wind
+  # and solar split into five capacity-factor classes per clustered region, fleet placed by plant coordinates, fleet
+  # energy unchanged (README "Resource classes"); offshore wind has no classes yet. Overlays cfenorc / refnorc set 1 = off
+  onwind: {cluster_weight: capacity, resource_classes: 5}
   offwind-ac: {cluster_weight: capacity}
   offwind-dc: {cluster_weight: capacity}
-  solar: {cluster_weight: capacity}
+  solar: {cluster_weight: capacity, resource_classes: 5}
   hydro:
     # build_renewable_profiles: runoff normalised to Ember 2024 hydro generation, one capacity factor per country; the
     # statistic is generation: run-of-river inflow clipped at capacity, reservoir inflow / 0.9 (hydro efficiency of the
     # cost table; without both, Brazil generated 355 instead of 413 TWh)
     normalization:
-      method: custom
-      file: ../../config-pypsa-earth/calibration/2024/hydro_generation.csv
+      method: custom             # table hydro_generation.csv
       year: 2024
       distribute: capacity
       dispatch_efficiency: 0.9
     multiplier: 1.0
     # add_electricity: reservoir energy-to-power ratio from GloHydroRes
-    hydro_max_hours: ../../config-pypsa-earth/calibration/2024/hydro_max_hours.csv
+    hydro_max_hours: statistics  # table hydro_max_hours.csv
 
 links:
   # base_network: an OSM HVDC line is one bipole of the rating of its country and voltage (scripts/build_hvdc_ratings.py),
   # not v_nom x the current of one 500 kV cable type (1.31 GW at 800 kV)
-  dc_ratings: ../../config-pypsa-earth/data/hvdc/hvdc_ratings.csv
+  dc_ratings: true             # table dc_ratings.csv = data/hvdc/hvdc_ratings.csv
 
 costs:
   # add_electricity: marginal cost of conventional plants with the fuel price of their country (USD/MWh_th)
-  fuel_prices: ../../config-pypsa-earth/calibration/2024/fuel_prices.csv
+  fuel_prices: true            # table fuel_prices.csv
 
-# add_electricity: operating envelope of the existing fleet (floor and availability per country; the floor variant
-# for the dispatch of 2024, overlays of future years and CO2 caps use envelope/nofloor)
+# add_electricity: operating envelope of the existing fleet (floor and availability per country): the tables
+# conventional_<carrier>_<attr>.csv = calibration/<year>/envelope/<variant>/ (variant floor for the dispatch of 2024;
+# overlays of future years and CO2 caps set catalyst: envelope: nofloor)
 conventional:
-  coal: {existing: {p_max_pu: ../../config-pypsa-earth/calibration/2024/envelope/floor/coal_p_max_pu.csv}}
-  lignite: {existing: {p_max_pu: ../../config-pypsa-earth/calibration/2024/envelope/floor/lignite_p_max_pu.csv}}
-  CCGT: {existing: {p_max_pu: ../../config-pypsa-earth/calibration/2024/envelope/floor/CCGT_p_max_pu.csv}}
-  OCGT: {existing: {p_max_pu: ../../config-pypsa-earth/calibration/2024/envelope/floor/OCGT_p_max_pu.csv}}
+  coal: {existing: {p_max_pu: statistics}}
+  lignite: {existing: {p_max_pu: statistics}}
+  CCGT: {existing: {p_max_pu: statistics}}
+  OCGT: {existing: {p_max_pu: statistics}}
   oil:
     existing:
-      p_min_pu: ../../config-pypsa-earth/calibration/2024/envelope/floor/oil_p_min_pu.csv
-      p_max_pu: ../../config-pypsa-earth/calibration/2024/envelope/floor/oil_p_max_pu.csv
+      p_min_pu: statistics
+      p_max_pu: statistics
   nuclear:
     existing:
-      p_min_pu: ../../config-pypsa-earth/calibration/2024/envelope/floor/nuclear_p_min_pu.csv
-      p_max_pu: ../../config-pypsa-earth/calibration/2024/envelope/floor/nuclear_p_max_pu.csv
+      p_min_pu: statistics
+      p_max_pu: statistics
   biomass:
     existing:
-      p_min_pu: ../../config-pypsa-earth/calibration/2024/envelope/floor/biomass_p_min_pu.csv
-      p_max_pu: ../../config-pypsa-earth/calibration/2024/envelope/floor/biomass_p_max_pu.csv
+      p_min_pu: statistics
+      p_max_pu: statistics
   geothermal:
     existing:
-      p_min_pu: ../../config-pypsa-earth/calibration/2024/envelope/floor/geothermal_p_min_pu.csv
-      p_max_pu: ../../config-pypsa-earth/calibration/2024/envelope/floor/geothermal_p_max_pu.csv
+      p_min_pu: statistics
+      p_max_pu: statistics
+
+calibration:
+  # prepare_network (in the stages that set calibration: enable): every existing fuel-burning generator is split into three
+  # equal parts with efficiencies (1 - s), 1, (1 + s) x the fleet efficiency. s per carrier = the spread between the best
+  # and the worst third of the US fleet of 2024 (EIA-923 / EIA-860; scripts/build_efficiency_spread.py writes
+  # data/validation/efficiency_spread.csv and `--check` compares it with these values); applied to every region
+  efficiency_spread: {coal: 0.08, lignite: 0.04, CCGT: 0.08, OCGT: 0.14, oil: 0.14}
+  tranches: 3
 
 clustering:
   aggregation_strategies:
