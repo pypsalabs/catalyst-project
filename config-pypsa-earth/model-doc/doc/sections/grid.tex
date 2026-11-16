@@ -1,16 +1,15 @@
 % Grid Data: map of the grid representation per country (scripts/plot_grid_map.py), then the standard procedure
 % (scripts/plot_grid_steps.py) and the adjustments (scripts/plot_hvdc_check.py, scripts/plot_osm_entries.py, scripts/plot_grid_check.py, scripts/plot_isolated.py).
 % The subsubsections are bullets on purpose: material to be turned into prose. The adjustments are one paragraph per commit of the fork.
-\newcommand{\commit}[1]{\href{https://github.com/pypsalabs/catalyst-pypsa-earth/commit/#1}{\texttt{#1}}}
 \subsection{Grid Data}\label{sec:grid}
 
 \begin{figure}[htb]
   \centering
   \includegraphics[width=\textwidth]{grid_map.pdf}
-  \caption{
-  Spatial resolution per country.
-  Country borders from \citet{naturalearth}.
-}
+  \caption{How the transmission grid of each modelled country enters the model.
+  One node per country: the country is a single bus without an internal grid.
+  OpenStreetMap grid: lines and substations from OpenStreetMap, processed by PyPSA-Earth into a network of 50 buses (Section~\ref{sec:grid-standard}), with the corrections of Section~\ref{sec:grid-adjust}; where marked, small grid fragments without a connection to the main grid are also connected to its nearest bus.
+  Country borders from \citet{naturalearth}.}
   \label{fig:gridmap}
 \end{figure}
 
@@ -26,8 +25,8 @@ China, India and the twelve countries of North-West Europe also change the handl
   \includegraphics[width=\textwidth]{grid_steps.pdf}
   \caption{The standard procedure for Brazil.
   (a) Power lines and cables in OpenStreetMap, coloured by their highest tagged voltage.
-  (b) Base network after cleaning and building the topology, from \SI{200}{kV}.
-  (c) Network of the optimisation: 50 buses, line width proportional to capacity, clustered regions in the background.
+  (b) Base network: the lines of \SI{200}{kV} and above, joined at buses that stand for substations, after cleaning.
+  (c) Network of the optimisation: the base network merged into 50 buses, line width proportional to capacity, the region each bus represents in the background.
   The bus without lines in Bahia is the merged node of Brazil's small grid islands (148\,MW mean load).
   (d, e) The same close-up of São Paulo (boxes in a and b) on OpenStreetMap's own map, for direct comparison: (d) the lines and substations in OpenStreetMap, (e) the base network, with its lines drawn straight from bus to bus.
   Map tiles \copyright{} OpenStreetMap contributors.}
@@ -107,14 +106,16 @@ Each adjustment is one commit on the branch \texttt{catalyst} of our fork of PyP
 Options are off by default in the fork and switched on in the configurations of the five regions, \texttt{dc\_ratings} in all stages; commits without an option always apply.
 Section~\ref{sec:grid-check} checks the result as a whole.
 
-\paragraph{Keep a way once across country extracts} (\commit{3f6c7865})
+\paragraph{Keep a way once across country extracts} (\commit{4d1355aa})
 
 A cable that crosses a border arrives once per country extract, for example way 117931185 of IFA 2000 in the French and in the British file.
 The cleaning step turned the copies into parallel lines by adding a suffix to their identifiers.
 
-Only one row per OpenStreetMap identifier is kept, the same idea as in PyPSA-Eur \citep{horsch2018pypsa} (see rule \texttt{clean\_osm\_data} and option \texttt{drop\_duplicate\_ids}).
+Only one row per OpenStreetMap identifier is kept, the same idea as in PyPSA-Eur \citep{horsch2018pypsa}.
+The feature becomes active in rule \texttt{clean\_osm\_data}, depending on the option:
+\yamlblock{drop_duplicate_ids}
 
-\paragraph{Count circuits, not cables, on ways with several voltages} (\commit{95faae14})
+\paragraph{Count circuits, not cables, on ways with several voltages} (\commit{ea56f416})
 
 When a way has several voltages and one total of cables, \texttt{fill\_circuits} writes the number of cables where the number of circuits belongs.
 A way tagged \texttt{voltage=230000;230000}, \texttt{cables=6}, \texttt{circuits=2} becomes two lines of three circuits each, six circuits instead of two, and with them three times the capacity.
@@ -123,7 +124,8 @@ This concerns 1,404 ways in the US and 670 in North-West Europe: in the 1,061 an
 Such a way now gets its circuits per voltage, in the example one per line and two in total.
 The model then exceeds the tag in 5 and 9 ways.
 It is the largest error found: AC circuit km fall by 21\,\% in the US and 22\,\% in North-West Europe with this commit and the one above, and by under 1\,\% in Brazil, India and China.
-Rule \texttt{clean\_osm\_data}, option \texttt{fix\_indirect\_circuits}.
+The feature becomes active in rule \texttt{clean\_osm\_data}, depending on the option:
+\yamlblock{fix_indirect_circuits}
 
 \begin{table}[htb]
   \centering\small
@@ -136,7 +138,7 @@ Rule \texttt{clean\_osm\_data}, option \texttt{fix\_indirect\_circuits}.
   \input{../build/circuit_ways.tex}
 \end{table}
 
-\paragraph{Measure line lengths on the ellipsoid} (\commit{4958d06c})
+\paragraph{Measure line lengths on the ellipsoid} (\commit{1b5be765})
 
 \textit{What needed fixing.}
 Lengths were measured in Web Mercator (EPSG:3857), which stretches them by $1/\cos(\text{latitude})$.
@@ -145,9 +147,10 @@ HVDC links keep this length through clustering, so it enters their costs; AC lin
 
 \textit{What was done.}
 Lengths are now measured on the WGS84 ellipsoid.
-Rule \texttt{build\_osm\_network}, option \texttt{geodesic\_length}.
+The feature becomes active in rule \texttt{build\_osm\_network}, depending on the option:
+\yamlblock{geodesic_length}
 
-\paragraph{Give HVDC lines a rated capacity} (\commit{6242a2ab})
+\paragraph{Give HVDC lines a rated capacity} (\commit{1e98e55e})
 
 \textit{What needed fixing.}
 PyPSA-Earth reads only the voltage of an HVDC line from OpenStreetMap and gives every line the current of one \SI{500}{kV} cable (\SI{1.638}{kA}), so $p_\text{nom} = v \times \SI{1.638}{kA}$ and \SI{1.31}{GW} at $\pm$\SI{800}{kV}, where Chinese and Indian bipoles carry 6--\SI{8}{GW}.
@@ -157,9 +160,10 @@ A table holds ratings per country and pole voltage, the median design rating of 
 A line takes the row of its country within 10\,\% of its voltage, else the world median of the nearest voltage.
 Converters take the summed rating of the HVDC lines they serve, instead of a flat \SI{2000}{MW}.
 In the five regions the next commit replaces these ratings.
-Rule \texttt{base\_network}, option \texttt{links: dc\_ratings}.
+The feature becomes active in rule \texttt{base\_network}, depending on the option:
+\yamlblock{dc_ratings}
 
-\paragraph{Assign HVDC capacities per project, matched by way name} (\commit{003f0fd6})
+\paragraph{Assign HVDC capacities per project, matched by way name} (\commit{38420f22})
 
 \textit{What needed fixing.}
 One rating per country and voltage keeps the rule ``one OpenStreetMap line is one bipole'' and guesses the rating instead of looking the project up.
@@ -192,7 +196,8 @@ The France--Great Britain border is the clearest case, because its real capacity
 
 \textit{What was done.}
 OpenStreetMap says where a line runs, and a project table how much it carries.
-Rule \texttt{base\_network}, option \texttt{links: dc\_projects}.
+The feature becomes active in rule \texttt{base\_network}, depending on the option:
+\yamlblock{dc_projects}
 \begin{itemize}[nosep,leftmargin=*]
   \item The ways hold more than the voltage: names on 91--100\,\% of HVDC km in every region, and ratings on 63\,\% of it in North-West Europe but almost none elsewhere; earth-osm keeps most of these in a column of rare tags (\texttt{other\_tags}), which this commit reads.
   \item The table takes ratings, lengths and years from the Wikipedia list, coordinates also from PyPSA-Eur's copy of it \citep{horsch2018pypsa}, and hand-curated corrections with a source per row, including all Chinese UHVDC lines.
@@ -210,7 +215,7 @@ Rule \texttt{base\_network}, option \texttt{links: dc\_projects}.
   \centering
   \includegraphics[width=\textwidth]{hvdc_check.pdf}
   \caption{(a) The ways of the three France--Great Britain projects in OpenStreetMap.
-  (b) HVDC capacity per cross-border pair in North-West Europe: the clustered network without and with the corrections, and the operating projects of the list \citep{wikihvdc}, in service by 2024.
+  (b) HVDC capacity per pair of countries in North-West Europe: the model's network before and after the corrections of this section, and the projects in service by 2024 in the list of HVDC projects \citep{wikihvdc}.
   Greenlink (Great Britain--Ireland, \SI{0.5}{GW}) entered service in 2025 and is excluded.
   The remainder between Germany and Denmark is exactly SylWin1 (\SI{0.864}{GW}), a German offshore wind link whose offshore bus falls in the Danish zone.}
   \label{fig:hvdccheck}
@@ -226,7 +231,7 @@ Rule \texttt{base\_network}, option \texttt{links: dc\_projects}.
   \label{fig:osmentries}
 \end{figure}
 
-\paragraph{Keep the capacity and length of a merged HVDC chain} (\commit{ed9fba7e})
+\paragraph{Keep the capacity and length of a merged HVDC chain} (\commit{11f2f5f7})
 
 \textit{What needed fixing.}
 When the simplification merged a chain of HVDC segments, the upstream code summed the capacity and length of all segments and converters, so a link's capacity grew with the number of OpenStreetMap segments it was drawn in (one Chinese link reached \SI{29.8}{GW}).
@@ -280,9 +285,9 @@ Rule \texttt{base\_network}.
 \begin{figure}[htb]
   \centering
   \includegraphics[width=\textwidth]{isolated.pdf}
-  \caption{The AC sub-networks of the base networks and what the simplification does with them.
-  Grey: the backbone of each country.
-  Coloured: the fragments, by what happens to them.}
+  \caption{Connected AC networks (sub-networks) in the base networks of India, China and North-West Europe, and what the simplification step does with them.
+  Grey: the main grid of each country, its largest connected network (the backbone).
+  Coloured: the smaller fragments, by what happens to them; a fragment is kept as a separate network if it carries 5\,\% of the national load or more, or crosses a border.}
   \label{fig:isolated}
 \end{figure}
 
@@ -299,7 +304,8 @@ Rule \texttt{base\_network}.
 
 \textit{What was done.}
 \begin{itemize}[nosep,leftmargin=*]
-  \item China, India and North-West Europe set \texttt{s\_\allowbreak threshold\_\allowbreak fetch\_\allowbreak isolated: 0.05} and \texttt{p\_\allowbreak threshold\_\allowbreak merge\_\allowbreak isolated: false}.
+  \item China, India and North-West Europe set:
+  \yamlblock{isolated}
   \item The merge is off: fragments below \SI{20}{MW} are still dropped, and every other sub-network of a country except its backbone, below 5\,\% of the country's load, is joined to the backbone, each of its buses to the nearest backbone bus.
   \item No new line is built for this: the fragments are treated as part of the bus they are joined to.
   \item The share is relative to the country's load, so the scenarios with today's and with 2050 demand get the same topology.
@@ -341,9 +347,10 @@ Capacity times true length avoids this (Table~\ref{tab:hvdcregions}, Figure~\ref
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{grid_check.pdf}
-  \caption{(a) HVDC capacity times length relative to the listed projects (vertical line), without and with the corrections.
+  \caption{The model's grid before and after the corrections of this section, against real metrics.
+  (a) HVDC capacity times length relative to that of the operating projects in the list of HVDC projects (vertical line).
   (b) AC circuit km against published totals: India May 2024, 220 kV and above without HVDC \citep{indiatransmission}, Germany about 37,000 km \citep{bmwkgrid}, Brazil 2020 with the diamond at the 28\,\% growth projected for 2024 \citep{ipeabrazil}.
-  ``Uncorrected'' carries the Web Mercator lengths, which the clustered AC lines do not use.}
+  ``Before correction'' carries the line lengths measured in the Web Mercator projection, which overstate distances away from the equator; the lines of the optimisation do not use them.}
   \label{fig:gridcheck}
 \end{figure}
 

@@ -1,9 +1,11 @@
 """Tables of the Existing Fleet section: plant list against the capacity statistic, and the statistic rows too small for their generation.
 
 Reads build/fleet_check/{groups,ember_rows}.csv, written by ../scripts/check_fleet.py (read-only, no model rerun), and writes
-two tabulars:
+three tabulars:
     build/fleet_groups.tex   per region and fuel group: GW of the plant list as build_powerplants filters it, and of the statistic
-    build/fleet_ember.tex    the rows of Ember's capacity that cannot deliver Ember's generation, largest shortfall first
+    build/fleet_ember.tex    the rows of Ember 2024 whose capacity cannot deliver their generation, largest shortfall first
+    build/fleet_spread.tex   per carrier: efficiency of the worst, middle and best third of the US fleet and the tranche
+                             spread (../data/validation/efficiency_spread.csv, written by ../scripts/build_efficiency_spread.py)
 
 Standalone (from config-pypsa-earth/model-doc):
     ../../models/priam-myopic/.pixi/envs/default/bin/python scripts/table_fleet.py
@@ -47,7 +49,7 @@ def ember_table(fn, n=10):
     t = t[t.previous_cf > 1].sort_values("unreachable_twh", ascending=False)
     total, count = t.unreachable_twh.sum(), len(t)
     lines = [r"\begin{tabular}{@{}llrrrrl@{}}", r"\toprule",
-             r"Country & Group & TWh & Ember, GW & Capacity factor & Table, GW & Source \\", r"\midrule"]
+             r"Country & Group & TWh & \textit{Ember 2024}, GW & Capacity factor & Table, GW & Source \\", r"\midrule"]
     for r in t.head(n).itertuples():
         lines.append(f"{COUNTRIES.get(r.country, r.country)} & {GROUPS.get(r.group, r.group.capitalize())} & {r.twh:.1f} & {gw(r.ember_gw)} "
                      f"& {r.ember_cf:.1f} & {gw(r.table_gw)} & {FIX.get(r.group, 'back-filled')}" + r" \\")
@@ -59,19 +61,38 @@ def ember_table(fn, n=10):
     return "\n".join(lines) + "\n"
 
 
+SPREAD = {"coal": "Coal", "lignite": "Lignite", "CCGT": "CCGT", "OCGT": "OCGT", "oil": "Oil"}
+
+
+def spread_table(fn):
+    d = pd.read_csv(fn).set_index("carrier")
+    lines = [r"\begin{tabular}{@{}lrrrrrr@{}}", r"\toprule",
+             r" & & & \multicolumn{3}{c}{Efficiency of the third} & \\", r"\cmidrule(lr){4-6}",
+             r"Carrier & Plants & GW & worst & middle & best & Spread $s$ \\", r"\midrule"]
+    for c, label in SPREAD.items():
+        r = d.loc[c]
+        lines.append(f"{label} & {int(r.groups):,} & {r.gw:.0f} & {r.efficiency_low:.3f} & {r.efficiency_mid:.3f} & "
+                     f"{r.efficiency_high:.3f} & {r.spread:.2f} \\\\")
+    return "\n".join(lines + [r"\bottomrule", r"\end{tabular}"]) + "\n"
+
+
 def main():
     p = argparse.ArgumentParser(description=(__doc__ or "").split("\n")[0])
     p.add_argument("--groups", default=TOP / "build/fleet_check/groups.csv")
     p.add_argument("--ember", default=TOP / "build/fleet_check/ember_rows.csv")
     p.add_argument("--out-groups", default=TOP / "build/fleet_groups.tex")
     p.add_argument("--out-ember", default=TOP / "build/fleet_ember.tex")
+    p.add_argument("--spread", default=TOP.parent / "data/validation/efficiency_spread.csv")
+    p.add_argument("--out-spread", default=TOP / "build/fleet_spread.tex")
     if "snakemake" in globals():
         a = p.parse_args(["--groups", str(snakemake.input.groups), "--ember", str(snakemake.input.ember),
-                          "--out-groups", str(snakemake.output.groups), "--out-ember", str(snakemake.output.ember)])
+                          "--out-groups", str(snakemake.output.groups), "--out-ember", str(snakemake.output.ember),
+                          "--spread", str(snakemake.input.spread), "--out-spread", str(snakemake.output.spread)])
     else:
         a = p.parse_args()
     Path(a.out_groups).write_text(groups_table(a.groups))
     Path(a.out_ember).write_text(ember_table(a.ember))
+    Path(a.out_spread).write_text(spread_table(a.spread))
     print(f"-> {a.out_groups}, {a.out_ember}")
 
 

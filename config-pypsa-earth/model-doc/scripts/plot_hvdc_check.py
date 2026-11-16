@@ -4,6 +4,9 @@ Left: the France-Great Britain links as OpenStreetMap draws them, one colour per
 pair in North-West Europe: the clustered network without corrections, the corrections and the operating projects, the
 last two from build/grid_check/borders_NWE.csv (../scripts/check_grid.py, read-only). build/hvdc_check.csv holds the numbers
 per pair and the sums per region (the "before" networks are the archived solves of results/archive/<R>-now-oldcalib).
+The uncorrected networks are the `now` solves of 2026-10-20, archived before the rebuild of 2026-11-08
+(results/archive/<R>-now-20261020; links are not extendable there, so their capacity is the prenetwork's);
+networks/<R>/base.nc, read for the base-network columns of the region rows, is the rebuilt one.
 
 Standalone (from config-pypsa-earth/model-doc):
     ../../models/priam-myopic/.pixi/envs/default/bin/python scripts/plot_hvdc_check.py
@@ -27,11 +30,11 @@ import xarray as xr
 HERE = Path(snakemake.scriptdir) if "snakemake" in globals() else Path(__file__).resolve().parent
 TOP = HERE.parent
 sys.path.insert(0, str(next(p for p in TOP.parents if (p / "plotstyle").is_dir()) / "plotstyle"))
-import iconstyle as ic  # noqa: E402
+import studystyle as st  # noqa: E402
 
 FORK = TOP / "../../models/pypsa-earth"
 REGIONS = {"US": ["US"], "BR": ["BR"], "IN": ["IN"], "CN": ["CN"], "NWE": "IE GB FR BE NL LU DE DK CH AT CZ PL".split()}
-PROJECTS = {"IFA 2000": ic.AMBER, "ElecLink": ic.TEAL, "IFA2": ic.BLUE}
+PROJECTS = {"IFA 2000": st.ORANGE, "ElecLink": st.GREEN, "IFA2": st.BLUE}
 BOX = (-2.2, 3.0, 49.0, 51.6)
 
 
@@ -98,19 +101,19 @@ def main():
         a = p.parse_args()
 
     projects = pd.read_csv(a.projects, comment="#")
-    forks = {"after": {r: FORK / f"networks/{r}-now/elec_s_50.nc" for r in REGIONS},
+    forks = {"after": {r: FORK / f"results/archive/{r}-now-20261020/networks/elec_s_50_ec_lcopt_3h.nc" for r in REGIONS},
              "before": {r: FORK / f"results/archive/{r}-now-oldcalib/networks/elec_s_50_ec_lcopt_3h.nc" for r in REGIONS},
              "base": {r: FORK / f"networks/{r}/base.nc" for r in REGIONS}}
     pairs = pair_table(dc_links(forks["after"]["NWE"]), a.borders)
     regions = region_table(forks, projects)
     ways = channel_ways([FORK / f"resources/NWE/osm/raw/all_raw_{k}.csv" for k in ["cables", "lines"]])
 
-    ic.use()
-    fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(6.3, 2.75), gridspec_kw={"width_ratios": [1.0, 1.05]})
+    st.use()
+    fig, (ax0, ax1) = plt.subplots(1, 2, layout="none", figsize=(6.3, 2.75), gridspec_kw={"width_ratios": [1.0, 1.05]})
     plt.subplots_adjust(left=0.015, right=0.97, top=0.88, bottom=0.1, wspace=0.2)
 
     world = gpd.read_file(a.countries)
-    world.plot(ax=ax0, color=ic.PALE, edgecolor=ic.STEEL, linewidth=0.4, zorder=1)
+    world.plot(ax=ax0, color=st.LAND, edgecolor="#bdbdbd", linewidth=0.4, zorder=1)
     for name, xy in ways:
         ax0.plot(xy[:, 0], xy[:, 1], color=PROJECTS[name], lw=1.5, solid_capstyle="round", zorder=3)
     ax0.set_xlim(BOX[:2])
@@ -121,27 +124,25 @@ def main():
     ax0.grid(False)
     for s in ax0.spines.values():
         s.set_visible(True)
-        s.set_color(ic.INK)
-        s.set_linewidth(ic.MARK * 0.7)
-    ax0.set_title("(a) France-GB links in OpenStreetMap", loc="left", fontsize=7.5)
-    ic.legend_squares(ax0, [(c, n) for n, c in PROJECTS.items()], on_title_line=False, loc="upper left", anchor=(0.0, 1.0))
+        s.set_color("#bdbdbd")
+        s.set_linewidth(0.5)
+    ax0.set_title("(a) France–GB HVDC links in OpenStreetMap", loc="left", fontsize=7.5)
+    st.legend_squares(ax0, [(c, n) for n, c in PROJECTS.items()], loc="upper left", bbox_to_anchor=(0.0, 1.0), fontsize=6.5)
 
     y = np.arange(len(pairs))
     h = 0.27
-    for k, (col, colour) in enumerate([("list", ic.AMBER), ("corrected", ic.BLUE), ("now", ic.STEEL_L)]):
-        ax1.barh(y + (k - 1) * h, pairs[col], height=h, color=colour, edgecolor=ic.INK, linewidth=ic.MARK * 0.6, zorder=2)
+    for k, (col, colour) in enumerate([("list", st.ORANGE), ("corrected", st.BLUE), ("now", st.NEUTRAL)]):
+        ax1.barh(y + (k - 1) * h, pairs[col], height=h, color=colour, linewidth=0, zorder=2)
     for yi, (_, r) in zip(y, pairs.iterrows()):
-        ax1.text(max(r["now"], r["corrected"]) + 0.12, yi, f"{r['corrected']:.1f}", va="center", fontsize=6.2, color=ic.INK)
+        ax1.text(max(r["now"], r["corrected"]) + 0.12, yi, f"{r['corrected']:.1f}", va="center", fontsize=6.2, color=st.TEXT)
     ax1.set_yticks(y, [s.replace("-", "–") for s in pairs.index], fontsize=7)
     ax1.set_ylim(-0.6, len(pairs) - 0.4)
     ax1.set_xlim(0, 9)
-    ax1.grid(axis="x", color=ic.PALE)
+    ax1.grid(axis="x", visible=True)
     ax1.grid(axis="y", visible=False)
     ax1.set_title("(b) Cross-border HVDC capacity, GW", loc="left", fontsize=7.5)
-    ax1.legend(handles=[Patch(facecolor=c, edgecolor=ic.INK, linewidth=ic.MARK, label=l) for c, l in [(ic.STEEL_L, "uncorrected"), (ic.BLUE, "corrected"), (ic.AMBER, "project list")]],
+    ax1.legend(handles=[Patch(facecolor=c, linewidth=0, label=l) for c, l in [(st.NEUTRAL, "model, before correction"), (st.BLUE, "model, after correction"), (st.ORANGE, "operating projects")]],
                loc="center right", bbox_to_anchor=(1.0, 0.5))
-    ax1.spines["bottom"].set_visible(False)
-    ic.ground(ax1, axis="y")
 
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(a.out, dpi=300)

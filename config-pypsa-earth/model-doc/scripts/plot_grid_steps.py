@@ -37,7 +37,7 @@ from matplotlib.patches import Rectangle
 HERE = Path(snakemake.scriptdir) if "snakemake" in globals() else Path(__file__).resolve().parent
 TOP = HERE.parent
 sys.path.insert(0, str(next(p for p in TOP.parents if (p / "plotstyle").is_dir()) / "plotstyle"))
-import iconstyle as ic  # noqa: E402
+import studystyle as st  # noqa: E402
 
 FORK = TOP / "../../models/pypsa-earth"
 DEFAULTS = dict(
@@ -55,8 +55,8 @@ TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
 USER_AGENT = "catalyst-model-doc/0.1 (PyPSA Labs methods document)"
 R_EARTH = 6378137.0
 # voltage classes (kV, upper bound exclusive) -> colour: one hue, light -> dark with voltage
-CLASSES = [(300, "#8fb3d9", "200–299 kV"), (600, ic.BLUE, "300–599 kV"), (np.inf, "#123a63", "600 kV and above")]
-HVDC = ic.RED
+CLASSES = [(300, "#8fb3d9", "200–299 kV"), (600, st.BLUE, "300–599 kV"), (np.inf, "#123a63", "600 kV and above")]
+HVDC = st.VERMILLION
 LOW = "#8593a1"   # lines below the threshold: a darker steel, visible on the pale land
 
 
@@ -149,7 +149,7 @@ def raw_substations(fn):
 
 
 def frame(ax, shape, title):
-    shape.plot(ax=ax, color=ic.PALE, edgecolor=ic.MUTED, linewidth=0.4, zorder=0)
+    shape.plot(ax=ax, color=st.LAND, edgecolor=st.TICK, linewidth=0.4, zorder=0)
     ax.set_title(title, fontsize=7.6, loc="left", pad=2, linespacing=1.3)
     ax.set_axis_off()
     ax.set_aspect(1 / np.cos(np.deg2rad(12)))
@@ -167,10 +167,10 @@ def main():
     else:
         a = p.parse_args()
 
-    ic.use()
+    st.use()
     shape = gpd.read_file(a.shape)
     H = 6.35
-    fig = plt.figure(figsize=(6.3, H))
+    fig = plt.figure(layout="none", figsize=(6.3, H))
     top = 2.35 / H   # height of a top-row map
     axes = [fig.add_axes([k / 3 + 0.004, 1 - 0.42 / H - top, 1 / 3 - 0.008, top]) for k in range(3)]
     zaxes = [fig.add_axes([k / 2 + 0.01, 0.62 / H, 1 / 2 - 0.02, 2.75 / H]) for k in range(2)]
@@ -190,24 +190,24 @@ def main():
 
     # (b) base network
     ds, xy, seg = network(a.base)
-    frame(axes[1], shape, f"(b) base network\n{ds.sizes['buses_i']:,} buses, {ds.sizes['lines_i']:,} lines")
+    frame(axes[1], shape, f"(b) base network, from 200 kV\n{ds.sizes['buses_i']:,} buses, {ds.sizes['lines_i']:,} lines")
     axes[1].add_collection(LineCollection(seg("lines"), colors=[colour(v) for v in ds.lines_v_nom.values], linewidths=0.45, zorder=2))
     axes[1].add_collection(LineCollection(seg("links", ds.links_carrier.values == "DC"), colors=HVDC, linewidths=0.9, zorder=3))
-    axes[1].scatter(xy.x, xy.y, s=0.6, color=ic.INK, lw=0, zorder=4)
+    axes[1].scatter(xy.x, xy.y, s=0.6, color=st.TEXT, lw=0, zorder=4)
 
     # (c) clustered network
     ds, xy, seg = network(a.clustered)
     regions = gpd.read_file(a.regions)
-    frame(axes[2], shape, f"(c) clustered network\n{ds.sizes['buses_i']} buses, {ds.sizes['lines_i']} lines")
-    regions.boundary.plot(ax=axes[2], color=ic.STEEL, linewidth=0.35, zorder=1)
+    frame(axes[2], shape, f"(c) network of the optimisation\n{ds.sizes['buses_i']} buses, {ds.sizes['lines_i']} lines")
+    regions.boundary.plot(ax=axes[2], color="#bdbdbd", linewidth=0.35, zorder=1)
     s_nom = ds.lines_s_nom.values
-    axes[2].add_collection(LineCollection(seg("lines"), colors=ic.BLUE, linewidths=0.4 + 2.6 * np.sqrt(s_nom / s_nom.max()),
+    axes[2].add_collection(LineCollection(seg("lines"), colors=st.BLUE, linewidths=0.4 + 2.6 * np.sqrt(s_nom / s_nom.max()),
                                           capstyle="round", zorder=2))
     dcm = ds.links_carrier.values == "DC"
     p_nom = ds.links_p_nom.values[dcm]
     axes[2].add_collection(LineCollection(seg("links", dcm), colors=HVDC, linewidths=0.4 + 2.6 * np.sqrt(p_nom / s_nom.max()),
                                           capstyle="round", zorder=3))
-    axes[2].scatter(xy.x, xy.y, s=9, color="white", ec=ic.INK, lw=0.6, zorder=4)
+    axes[2].scatter(xy.x, xy.y, s=9, color="white", ec=st.TEXT, lw=0.6, zorder=4)
 
     x0, y0, x1, y1 = shape.total_bounds
     for ax in axes:
@@ -243,10 +243,10 @@ def main():
         if k == 0:
             zax.add_collection(LineCollection([raw_m[i] for i in hit], colors=[cols[i] for i in hit],
                                               linewidths=[0.7 if cols[i] == LOW else 1.3 for i in hit], zorder=2))
-            zax.scatter(sx[si], sy[si], s=9, marker="s", facecolor="none", ec=ic.VIOLET, lw=0.7, zorder=3)
+            zax.scatter(sx[si], sy[si], s=9, marker="s", facecolor="none", ec=st.PINK, lw=0.7, zorder=3)
         else:
             zax.add_collection(LineCollection(base_segs, colors=base_cols, linewidths=1.3, zorder=2))
-            zax.scatter(bpos.x[bi], bpos.y[bi], s=30, color="white", ec=ic.INK, lw=1.2, zorder=5)
+            zax.scatter(bpos.x[bi], bpos.y[bi], s=30, color="white", ec=st.TEXT, lw=1.2, zorder=5)
         zax.set_xlim(box[0], box[1])
         zax.set_ylim(box[2], box[3])
         zax.set_aspect("equal")
@@ -255,26 +255,26 @@ def main():
         zax.grid(False)
         for sp in zax.spines.values():
             sp.set_visible(True)
-            sp.set_color(ic.INK)
-            sp.set_linewidth(ic.MARK)
+            sp.set_color(st.TEXT)
+            sp.set_linewidth(0.6)
         zax.set_title(title, fontsize=7.6, loc="left", pad=3, linespacing=1.3)
         zax.text(0.99, 0.01, "\u00a9 OpenStreetMap contributors", transform=zax.transAxes, ha="right", va="bottom",
-                 fontsize=5.4, color=ic.MUTED, zorder=7, bbox=dict(fc="white", ec="none", alpha=0.7, pad=1))
+                 fontsize=5.4, color=st.TICK, zorder=7, bbox=dict(fc="white", ec="none", alpha=0.7, pad=1))
     # where the close-up sits, in (a) and (b)
     lon0, lat0 = np.rad2deg(box[0] / R_EARTH), np.rad2deg(2 * np.arctan(np.exp(box[2] / R_EARTH)) - np.pi / 2)
     lon1, lat1 = np.rad2deg(box[1] / R_EARTH), np.rad2deg(2 * np.arctan(np.exp(box[3] / R_EARTH)) - np.pi / 2)
     pad = 0.35
     for ax, label in zip(axes[:2], "de"):
         ax.add_patch(Rectangle((lon0 - pad, lat0 - pad), lon1 - lon0 + 2 * pad, lat1 - lat0 + 2 * pad, fc="none",
-                               ec=ic.INK, lw=0.9, zorder=6))
-        ax.text(lon0 - pad - 0.4, lat1 + pad, label, ha="right", va="top", fontsize=7, color=ic.INK, zorder=6)
+                               ec=st.TEXT, lw=0.9, zorder=6))
+        ax.text(lon0 - pad - 0.4, lat1 + pad, label, ha="right", va="top", fontsize=7, color=st.TEXT, zorder=6)
 
     lax = fig.add_axes([0, 0, 1, 0.5 / H])
     lax.set_axis_off()
     items = [(LOW, "below 200 kV (dropped)")] + [(c, lab) for _, c, lab in CLASSES] + [(HVDC, "HVDC")]
-    handles = [Rectangle((0, 0), 1, 1, fc=c, ec=ic.INK, lw=ic.MARK) for c, _ in items]
-    handles += [Line2D([], [], ls="", marker="o", ms=5, mfc="white", mec=ic.INK, mew=1.2),
-                Line2D([], [], ls="", marker="s", ms=4, mfc="none", mec=ic.VIOLET, mew=0.7)]
+    handles = [Rectangle((0, 0), 1, 1, fc=c, ec="none", lw=0) for c, _ in items]
+    handles += [Line2D([], [], ls="", marker="o", ms=5, mfc="white", mec=st.TEXT, mew=1.2),
+                Line2D([], [], ls="", marker="s", ms=4, mfc="none", mec=st.PINK, mew=0.7)]
     labels = [l for _, l in items] + ["base network bus", "OSM substation"]
     lax.legend(handles, labels, loc="center", ncol=4, frameon=False, fontsize=7, columnspacing=1.2, handletextpad=0.5)
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)

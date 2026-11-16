@@ -1,8 +1,9 @@
-"""What fill_circuits does with real ways that have several voltages and one total of cables (Grid Data, adjustments, 95faae14).
+"""What fill_circuits does with real ways that have several voltages and one total of cables (Grid Data, adjustments, ea56f416).
 
 Tags of five example ways from resources/<R>/osm/raw, circuits per voltage without and with clean_osm_data's fix_indirect_circuits,
 and the number of ways in the base network with the same number of voltages, cables and circuits tag. Without the fix a voltage gets
-cables / n circuits, the values the base network holds, which the script asserts; with it a third of that.
+cables / n circuits; with it a third of that. The script asserts that the base network holds one of the two (with the fix since
+the rebuild of 2026-11-08).
 Writes build/circuit_ways.tex (a tabular) and build/circuit_ways.csv.
 
 Standalone (from config-pypsa-earth/model-doc):
@@ -59,7 +60,8 @@ def main():
             cables = float(t["tags.cables"])
             before = [cables / len(volts)] * len(volts)
             kept = net[net.way == way].circuits
-            assert (abs(kept - before[0]) < 1e-6).all(), f"way {way}: the base network holds {kept.unique()}, not {before[0]}"
+            assert any((abs(kept - v) < 1e-6).all() for v in (before[0], before[0] / 3)), \
+                f"way {way}: the base network holds {kept.unique()}, neither {before[0]} nor {before[0] / 3}"
             tag = str(t["tags.circuits"])
             alike = ((pattern.n == len(volts)) & (pattern.cables == cables) & (pattern.tag == tag)).sum()
             rows.append(dict(region=region, way=way, voltage=";".join(str(int(v) // 1000) for v in volts), cables=int(cables),

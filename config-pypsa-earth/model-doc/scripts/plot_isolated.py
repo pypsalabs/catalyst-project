@@ -34,16 +34,16 @@ from scipy.sparse.csgraph import connected_components
 HERE = Path(snakemake.scriptdir) if "snakemake" in globals() else Path(__file__).resolve().parent
 TOP = HERE.parent
 sys.path.insert(0, str(next(p for p in TOP.parents if (p / "plotstyle").is_dir()) / "plotstyle"))
-import iconstyle as ic  # noqa: E402
+import studystyle as st  # noqa: E402
 
 FORK = TOP / "../../models/pypsa-earth"
 REGIONS = {"IN": "India", "CN": "China", "NWE": "North-West Europe"}
 DROP, MERGE, FETCH = 20.0, 300.0, 0.05
 FATES = [  # key, colour, legend label
-    ("backbone", ic.STEEL, "backbone"),
-    ("separate", ic.BLUE, "own sub-network (5 % of load or more, or across a border)"),
-    ("fetched", ic.AMBER, "joined to nearest backbone bus"),
-    ("dropped", ic.INK, "dropped (below 20 MW)"),
+    ("backbone", "#bdbdbd", "main grid (largest connected network)"),
+    ("separate", st.BLUE, "kept as its own network (≥ 5 % of load, or cross-border)"),
+    ("fetched", st.ORANGE, "joined to the nearest main-grid bus"),
+    ("dropped", st.TEXT, "dropped (below 20 MW mean load)"),
 ]
 COLOUR = {k: c for k, c, _ in FATES}
 
@@ -105,14 +105,14 @@ def main():
     else:
         a = p.parse_args()
 
-    ic.use()
-    fig, axes = plt.subplots(1, 3, figsize=(6.3, 2.7), gridspec_kw=dict(width_ratios=[1.0, 1.25, 0.95], wspace=0.06))
+    st.use()
+    fig, axes = plt.subplots(1, 3, layout="none", figsize=(6.3, 2.7), gridspec_kw=dict(width_ratios=[1.0, 1.25, 0.95], wspace=0.06))
     plt.subplots_adjust(left=0.0, right=1.0, top=0.86, bottom=0.17)
     summary = []
     for ax, (r, name), fn, shp in zip(axes, REGIONS.items(), a.networks, a.shapes):
         buses, lines, merged = fates(fn)
         shape = gpd.read_file(shp)
-        shape.plot(ax=ax, color=ic.PALE, edgecolor=ic.MUTED, linewidth=0.3, zorder=0)
+        shape.plot(ax=ax, color=st.LAND, edgecolor=st.TICK, linewidth=0.3, zorder=0)
         xy = buses[["x", "y"]]
         lines = lines[lines.bus0.isin(xy.index) & lines.bus1.isin(xy.index)]
         f0 = buses.fate.reindex(lines.bus0).values
@@ -132,7 +132,7 @@ def main():
         print(r, "separate", buses[buses.fate == "separate"].groupby("sub").agg(c=("country", "first"), n=("country", "size"), mw=("load", "sum")).round(0).to_dict("records"))
         pos = ax.get_position()
         fig.text(pos.x0 + 0.01, 0.97, f"{name}\n{buses['sub'].nunique()} AC sub-networks", fontsize=7.6, va="top",
-                 linespacing=1.3, color=ic.INK)
+                 linespacing=1.3, color=st.TEXT)
         x0, y0, x1, y1 = shape.total_bounds
         ax.set_xlim(x0, x1)
         ax.set_ylim(y0, y1)
@@ -141,7 +141,7 @@ def main():
         print(r, counts.to_dict())
     lax = fig.add_axes([0, 0, 1, 0.15])
     lax.set_axis_off()
-    squares = [plt.Rectangle((0, 0), 1, 1, fc=c, ec=ic.INK, lw=ic.MARK) for _, c, _ in FATES]
+    squares = [plt.Rectangle((0, 0), 1, 1, fc=c, ec="none", lw=0) for _, c, _ in FATES]
     lax.legend(handles=squares, labels=[lab for _, _, lab in FATES],
                loc="center", bbox_to_anchor=(0.5, 0.45), ncol=2, frameon=False, columnspacing=1.0, handletextpad=0.4, fontsize=6.6)
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)

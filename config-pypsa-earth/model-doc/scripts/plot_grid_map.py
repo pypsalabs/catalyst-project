@@ -31,16 +31,16 @@ import yaml
 TOP = Path(__file__).resolve().parents[1]
 STUDY = TOP.parent   # config-pypsa-earth
 sys.path.insert(0, str(next(p for p in TOP.parents if (p / "plotstyle").is_dir()) / "plotstyle"))
-import iconstyle as ic  # noqa: E402
+import studystyle as st  # noqa: E402
 
 COUNTRIES = STUDY / "../misc-quarter1/country-classification/data/ne_50m_admin_0_countries/ne_50m_admin_0_countries.shp"
 ALIASES = {"HK": "CN", "MO": "CN"}                       # GADM CHN includes Hong Kong and Macau
 NAMES = {"Somaliland": "SO", "N. Cyprus": "CY"}          # Natural Earth units without an ISO code
 CLASSES = [  # key, colour, legend label
-    ("one", ic.TEAL, "one node"),
-    ("pypsa-earth", ic.BLUE, "PyPSA-Earth grid"),
-    ("adjusted", ic.AMBER, "PyPSA-Earth grid, adjusted"),
-    ("none", "white", "not modelled"),
+    ("one", st.GREEN, "one node per country"),
+    ("pypsa-earth", st.BLUE, "OpenStreetMap grid"),
+    ("adjusted", st.ORANGE, "OpenStreetMap grid, isolated fragments reconnected"),
+    ("none", st.LAND, "not modelled"),
 ]
 
 
@@ -99,14 +99,14 @@ def main():
     grid, boxes = classify(a.row_countries, Path(a.configs))
     world = world_by_class(a.countries, grid, boxes)
 
-    ic.use()
-    fig = plt.figure(figsize=(6.3, 3.35))
+    st.use()
+    fig = plt.figure(layout="none", figsize=(6.3, 3.35))
     ax = fig.add_axes([0, 0.09, 1, 0.91])
     ax.set_axis_off()
     for key, colour, _ in CLASSES:
         part = world[world.grid == key]
         if len(part):
-            part.plot(ax=ax, color=colour, edgecolor=ic.INK if key != "none" else ic.STEEL, linewidth=0.32 if key != "none" else 0.25)
+            part.plot(ax=ax, color=colour if key != "none" else st.LAND, edgecolor="white", linewidth=0.3)
     ax.set_aspect("equal")
     x0, y0, x1, y1 = world.total_bounds
     ax.set_xlim(x0, x1)
@@ -115,7 +115,7 @@ def main():
     handles = [(c, f"{label} ({counts.get(k, 0)})" if k != "none" else label) for k, c, label in CLASSES]
     lax = fig.add_axes([0, 0, 1, 0.08])
     lax.set_axis_off()
-    ic.legend_squares(lax, handles, on_title_line=False, loc="center", anchor=(0.5, 0.5))
+    st.legend_squares(lax, handles, loc="center", bbox_to_anchor=(0.5, 0.5), fontsize=6.5)
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(a.out, dpi=300)
     fig.savefig(Path(a.out).with_suffix(".png"), dpi=200)

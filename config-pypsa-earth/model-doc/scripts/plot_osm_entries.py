@@ -24,7 +24,7 @@ import pandas as pd
 HERE = Path(snakemake.scriptdir) if "snakemake" in globals() else Path(__file__).resolve().parent
 TOP = HERE.parent
 sys.path.insert(0, str(next(p for p in TOP.parents if (p / "plotstyle").is_dir()) / "plotstyle"))
-import iconstyle as ic  # noqa: E402
+import studystyle as st  # noqa: E402
 
 FORK = TOP / "../../models/pypsa-earth"
 COUNTRIES = TOP / "../../misc-quarter1/country-classification/data/ne_50m_admin_0_countries/ne_50m_admin_0_countries.shp"
@@ -49,17 +49,17 @@ def card(ax, way, tags, verdict, ok):
     ax.set_axis_off()
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
-    ax.text(0, 0.98, f"way {way}", fontsize=7.5, color=ic.INK, va="top", fontweight=ic.EMPH)
+    ax.text(0, 0.98, f"way {way}", fontsize=7.5, color=st.TEXT, va="top", fontweight="semibold")
     y = 0.86
     for key, value in tags.items():
         strong = key == "name:en"
-        ax.text(0.0, y, key, fontsize=6.8, family="monospace", color=ic.MUTED if hasattr(ic, "MUTED") else ic.INK, va="top")
-        ax.text(0.24, y, value, fontsize=6.8, family="monospace", color=ic.INK, va="top", fontweight="bold" if strong else "normal")
+        ax.text(0.0, y, key, fontsize=6.8, family="monospace", color=st.TICK, va="top")
+        ax.text(0.24, y, value, fontsize=6.8, family="monospace", color=st.TEXT, va="top", fontweight="bold" if strong else "normal")
         y -= 0.1
     if not ok:
-        ax.text(0.0, y, "name:en", fontsize=6.8, family="monospace", color=ic.RED, va="top")
-        ax.text(0.24, y, "(none)", fontsize=6.8, family="monospace", color=ic.RED, va="top", fontweight="bold")
-    ax.text(0, 0.0, verdict, fontsize=7, color=ic.INK, va="bottom", linespacing=1.3)
+        ax.text(0.0, y, "name:en", fontsize=6.8, family="monospace", color=st.VERMILLION, va="top")
+        ax.text(0.24, y, "(none)", fontsize=6.8, family="monospace", color=st.VERMILLION, va="top", fontweight="bold")
+    ax.text(0, 0.0, verdict, fontsize=7, color=st.TEXT, va="bottom", linespacing=1.3)
 
 
 def main():
@@ -78,19 +78,19 @@ def main():
     china = gpd.read_file(a.countries)
     china = china[china.ISO_A2_EH == "CN"]
 
-    ic.use()
-    fig = plt.figure(figsize=(6.3, 4.0))
+    st.use()
+    fig = plt.figure(layout="none", figsize=(6.3, 4.0))
     grid = fig.add_gridspec(2, 2, height_ratios=[1.15, 1], left=0.02, right=0.98, top=0.93, bottom=0.02, wspace=0.1, hspace=0.04)
-    cases = [(MATCHED, ic.BLUE, "(a) The name can be matched", True,
+    cases = [(MATCHED, st.BLUE, "(a) The name can be matched", True,
               "Name found in the project table:\nXilin Hot - Taizhou, 10 GW, 1,620 km"),
-             (UNMATCHED, ic.AMBER, "(b) The name cannot be matched", False,
+             (UNMATCHED, st.ORANGE, "(b) The name cannot be matched", False,
               "No name, so no row to look up:\nonly voltage and geometry are known")]
     for k, (ids, colour, title, ok, verdict) in enumerate(cases):
         ax = fig.add_subplot(grid[0, k])
-        china.plot(ax=ax, color=ic.PALE, edgecolor=ic.STEEL, linewidth=0.4, zorder=1)
+        china.plot(ax=ax, color=st.LAND, edgecolor="#bdbdbd", linewidth=0.4, zorder=1)
         for _, row in dc.iterrows():
             xy = path(row)
-            ax.plot(xy[:, 0], xy[:, 1], color=ic.STEEL, lw=0.35, zorder=2)
+            ax.plot(xy[:, 0], xy[:, 1], color="#bdbdbd", lw=0.35, zorder=2)
         for _, row in dc[dc.id.isin(ids)].iterrows():
             xy = path(row)
             ax.plot(xy[:, 0], xy[:, 1], color=colour, lw=2.0, solid_capstyle="round", zorder=3)

@@ -54,6 +54,21 @@
 \usepackage[colorlinks=true,linkcolor=reflink,citecolor=reflink,urlcolor=reflink]{hyperref}
 % placeholder of a section not written yet
 \newcommand{\tbd}{\textcolor{gray}{\emph{To be written.}}}
+% options quoted from the config files: YAML code blocks, generated from the files themselves by
+% scripts/yaml_snippets.py into ../build/yaml/<name>.yaml
+\usepackage{listings}
+\lstdefinelanguage{yaml}{morecomment=[l]{\#},sensitive=true}
+\lstdefinestyle{yaml}{language=yaml,basicstyle=\ttfamily\footnotesize,commentstyle=\color{black!55},
+  backgroundcolor=\color{black!4},frame=none,columns=fullflexible,keepspaces=true,showstringspaces=false,
+  breaklines=true,xleftmargin=0.6em,framexleftmargin=0.6em,aboveskip=0.6\baselineskip,belowskip=0.4\baselineskip}
+\newcommand{\yamlblock}[1]{\lstinputlisting[style=yaml]{../build/yaml/#1.yaml}}
+% a commit of the fork: its hash as a link, followed by the lines it adds and removes in GitHub's green and red
+% (from ../build/commit_stats.tex, written by scripts/commit_stats.py; without that file only the link)
+\definecolor{gitadd}{HTML}{1A7F37}
+\definecolor{gitdel}{HTML}{CF222E}
+\newcommand{\commitstat}[3]{\expandafter\def\csname commitstat-#1\endcsname{\ {\small\textcolor{gitadd}{+#2}\,\textcolor{gitdel}{\textminus#3}}}}
+\InputIfFileExists{../build/commit_stats.tex}{}{}
+\newcommand{\commit}[1]{\href{https://github.com/pypsalabs/catalyst-pypsa-earth/commit/#1}{\texttt{#1}}\ifcsname commitstat-#1\endcsname\csname commitstat-#1\endcsname\fi}
 \setcounter{tocdepth}{2}
 \pagestyle{plain}
 

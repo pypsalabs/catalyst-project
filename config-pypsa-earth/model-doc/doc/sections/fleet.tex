@@ -1,192 +1,369 @@
 % Existing Fleet: the standard procedure (rules build_powerplants, add_electricity), the adjustments (one paragraph per commit
 % of the fork, plus the capacity table of the project repository) and the check (../scripts/check_fleet.py, read-only;
-% tables from scripts/table_fleet.py, figure from scripts/plot_fleet_check.py).
+% tables from scripts/table_fleet.py, figures from scripts/plot_fleet_*.py, most of them from the tables of check_fleet.py).
 \subsection{Existing Fleet}\label{sec:fleet}
 
-The existing fleet is every coal, lignite, gas, oil, nuclear, biomass and geothermal plant in operation: its capacity, location, vintage, efficiency and operating limits.
-Wind and solar capacity is set in Section~\ref{sec:renewables}, hydropower in Section~\ref{sec:hydro}, and fuel and CO$_2$ prices in Section~\ref{sec:fuel}.
-All stages build the fleet in the same way; the myopic stages differ only in which plants retire, and when (last two adjustments).
+The modelling needed for the catalyst project starts in the present/near-term (2025/2030), and then projects various future scenarios towards mid-century.
+As such, to capture electricity prices in this setting, the existing fleet has to be included since its sunk costs meaningfully affect how electricity prices form, and the economics of new assets.
+We also need to represent in which year these assets retire so the model can fill the supply gap.
+In the following, overlaying an existing fleet with an investment optimisation is referred to as \textit{brownfield} (in contrast to \textit{greenfield} where all assets are newly built).
+
+This section discusses the \textit{existing fleet} of coal, lignite, gas, oil, nuclear, biomass and geothermal plants that are in operation in the modelled countries.
+The scope is to include each plant by capacity, location, vintage, efficiency and operating limits.
+Note that wind and solar capacity is set in Section~\ref{sec:renewables}, hydropower in Section~\ref{sec:hydro}, and fuel and CO$_2$ prices in Section~\ref{sec:fuel}.
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{fleet_map.pdf}
+  \caption{Installed capacities of coal, gas, oil, nuclear, biomass and geothermal plants in out-of-the-box by pypsa-earth, and their adjustment to national-level statistics for the present project.
+    The out-of-the-box plant database uses the python package \textit{powerplantmatching} to merge four public databases, with the plants in operation in 2022--2023 (Section~\ref{sec:fleet-standard}).
+  The adjustments use the installed capacity per country and fuel at the end of 2024 from Ember's Yearly Electricity Data (\textit{Ember 2024}, \citealp{ember2025}) and IRENA's statistics \citep{irenastat}, to which the model scales the database (Section~\ref{sec:fleet-adjust}).
+  Left: database over statistics per modelled country, hydropower excluded.
+  Right: totals over the 132 modelled countries per fuel.
+  Country borders from \citet{naturalearth}.}
+  \label{fig:fleetmap}
+\end{figure}
+
+Two sources build the fleet: the plant database of out-of-the-box pypsa-earth (powerplantmatching's list of individual plants, sets where the fleet stands and how old it is), and a national capacity statistic that scales the installed capacity of these plants (Figure~\ref{fig:fleetmap}).
+In many countries this adjustment leads to a 10\% change of the fleet capacity seen by the model.
 
 \subsubsection{Standard procedure}\label{sec:fleet-standard}
 
 \paragraph{Plant list} (rule \texttt{build\_powerplants})
 \begin{itemize}[nosep,leftmargin=*]
-  \item powerplantmatching \citep{powerplantmatching} merges four databases into one list with one row per plant: the Global Energy Observatory, WRI's Global Power Plant Database (v1.3.0), the trackers of Global Energy Monitor \citep{gem} (coal July 2025, oil and gas August 2025, nuclear July 2024, bioenergy version 3, geothermal March 2025, hydropower April 2025) and, for storage, the European Energy Storage Inventory.
-  \item A row holds the fuel type, technology, capacity, coordinates, commissioning and decommissioning year, and only rarely an efficiency.
-  \item A missing commissioning year is the mean of the plants of the same country and fuel type.
-  \item A missing decommissioning year is the commissioning (or retrofit) year plus a lifetime per fuel type: 45 years for coal and lignite, 40 for gas and oil, 50 for nuclear, 20 for solid biomass and biogas, 25 for waste and 15 for geothermal.
+  \item powerplantmatching \citep{powerplantmatching} merges four databases into one list with one row per plant: the Global Energy Observatory \citep{geo}, WRI's Global Power Plant Database (v1.3.0, \citealp{gppd}), the trackers of Global Energy Monitor \citep{gem} (coal July 2025, oil and gas August 2025, nuclear July 2024, bioenergy version 3, geothermal March 2025, hydropower April 2025) and, for storage, the European Energy Storage Inventory \citep{eesi}.
+  \item For the 132 modelled countries the list has 92,700 plants with a cumulative capacity of \SI{10.0}{TW}.
+  \item In total, 19,400 of the plants are coal, gas, oil, nuclear, biomass or geothermal with \SI{6.2}{TW} (Figure~\ref{fig:fleetsources}a).
+  \item Global Energy Monitor is the main source, reporting 82\,\% of this thermal capacity, and 63\,\% is reported by more than one database.
+\end{itemize}
+
+\begin{itemize}[nosep,leftmargin=*]
+  \item Typically, the dataset includes for each plant the fuel type, technology, capacity, coordinates and commissioning year.
+  \item Missing for most plants are decommissioning year (present 22\% for coal, 16\% for nuclear, 10\% for gas) and efficiency (present for 5\% of gas and oil capacity, see Figure~\ref{fig:fleetsources}b).
+  \item A missing commissioning year is filled by the mean of the plants of the same country and fuel type.
+  \item A missing decommissioning year is filled by the commissioning (or retrofit) year plus a lifetime per fuel type: 45 years for coal and lignite, 40 for gas and oil, 50 for nuclear, 20 for solid biomass and biogas, 25 for waste and 15 for geothermal.
   \item Plants decommissioned before 2022 or commissioned after 2023 are dropped (option \texttt{powerplants\_\allowbreak filter}).
-  \item A gas plant becomes CCGT or OCGT by its technology label; steam turbines and plants without a label count as CCGT.
+  \item A gas plant is classified as CCGT or OCGT depending on its technology label; steam turbines and plants without a label count as CCGT.
+\end{itemize}
+
+\begin{itemize}[nosep,leftmargin=*]
   \item Every plant is attached to the nearest substation bus of its country.
 \end{itemize}
 
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{fleet_sources.pdf}
+  \caption{The plant database for the 132 modelled countries: every plant powerplantmatching merges, operating or closed.
+    (a) Capacity per fuel by the source databases that list each plant: Global Energy Monitor's trackers (GEM, \citealp{gem}), WRI's Global Power Plant Database (GPD, \citealp{gppd}) and the Global Energy Observatory (GEO, \citealp{geo}); the number of plants at the end of each bar.
+  (b) Share of each fuel's capacity whose entry reports a commissioning year, a decommissioning year or an efficiency.}
+  \label{fig:fleetsources}
+\end{figure}
+
 \paragraph{Generators} (rule \texttt{add\_electricity})
 \begin{itemize}[nosep,leftmargin=*]
-  \item Fuel types map onto the carriers coal, lignite, CCGT, OCGT, oil, nuclear, biomass and geothermal.
-  \item The plants of one carrier at a bus are grouped by five-year commissioning bands into one generator each, with the lifetime from the commissioning to the decommissioning year.
-  \item The plant's own efficiency is dropped: every generator takes the new-build efficiency of technology-data \citep{techdata}, CCGT 0.57, OCGT 0.405, coal 0.356, lignite 0.33, oil 0.35 and biomass 0.468.
+  \item Fuel types map onto the carriers (carriers are the attribute by which pypsa distinguishes components) coal, lignite, CCGT, OCGT, oil, nuclear, biomass and geothermal.
+  \item The plants of one carrier at a bus are grouped by five-year commissioning bands into one generator each, with the lifetime from the commissioning to the decommissioning year (Figure~\ref{fig:fleetvintage}).
+  \item The plant's own efficiency is dropped and instead every generator takes the new-build efficiency of the python package technology-data \citep{techdata}, CCGT 0.57, OCGT 0.405, coal 0.356, lignite 0.33, oil 0.35 and biomass 0.468.
   \item The marginal cost is the variable operation and maintenance cost plus the fuel price divided by that efficiency, with one fuel price for the whole world.
-  \item Nuclear plants run at most at their country's IAEA load factor of 2022--24 (\texttt{data/\allowbreak nuclear\_\allowbreak p\_max\_pu.csv}); every other plant can run between zero and full output at any hour.
+  \item Nuclear plants run at most at their country's energy availability factor of 2022--24 from the Power Reactor Information System of the International Atomic Energy Agency (IAEA, \citealp{pris}) (\texttt{data/\allowbreak nuclear\_\allowbreak p\_max\_pu.csv}); every other plant can run between zero and full output at any hour.
   \item Simplification and clustering add up the capacities of a carrier at the merged buses, and take plain means of efficiency and marginal cost.
 \end{itemize}
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{fleet_vintage.pdf}
+  \caption{Installed capacity of the five spatially resolved regions by commissioning year and fuel, in the five-year periods by which the model groups plants into generators (a period is named by its last year; plants before 1960 are in the first).
+  As modelled for 2024, after all adjustments of Section~\ref{sec:fleet-adjust}; hydropower, wind and solar excluded.}
+  \label{fig:fleetvintage}
+\end{figure}
+
+The inclusion of plant age is extremely important here (Figure~\ref{fig:fleetvintage}).
+For instance, China's and India's coal was mostly built after 2005, the US gas fleet around 2000--2005, and North-West Europe's nuclear in the 1980s.
+
+Plant age also decides when the fleet retires.
+In a pathway run a generator leaves the model in the first horizon after its decommissioning year, and since few plants report one (Figure~\ref{fig:fleetsources}b), the assumed lifetimes decide how fast today's fleet disappears (Figure~\ref{fig:fleetretirements}).
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{fleet_retirements.pdf}
+  \caption{Capacity of today's fossil, nuclear, biomass and geothermal plants still in operation from 2024 to 2050 in the five spatially resolved regions, without new plants.
+  A plant leaves in its reported decommissioning year, or else after a lifetime from its commissioning year.
+  Stacked: with the lifetime of the technology in the cost table, as in the model's pathway runs (Section~\ref{sec:fleet-adjust}).
+  Dashed: with powerplantmatching's lifetime of the fuel type, PyPSA-Earth's default.
+  Both are scaled to the capacity statistic of 2024.
+  Percentages: share of the 2024 capacity left in 2050.}
+  \label{fig:fleetretirements}
+\end{figure}
 
 \FloatBarrier
 \subsubsection{Adjustments}\label{sec:fleet-adjust}
 
-As in the grid, each adjustment is one commit on the branch \texttt{catalyst} of the fork, in the order of the workflow.
-Commit \commit{3a136a31} adds several options, one paragraph each.
-The statistics they read are tables of the project repository, built by \texttt{build\_calibration.py} from Ember's yearly data of 2024 \citep{ember2025} (the latest year before for the few countries without 2024 data) and the hand-curated tables named below.
+As in the grid, each adjustment is one commit, and here discussed in the order of the workflow.
+An earlier version applied these adjustments to the clustered network after the fact; that code was removed once each adjustment entered at its source (\commit{78e8af42}).
+Where an adjustment reads a table, its option is only a switch: the rule takes the table as an input from the directory \texttt{resources/<run>/statistics/}, which a rule of the project repository (\texttt{tables.smk}) fills from the calibration tables (\commit{8bb075de}); the code blocks below name the table of each option.
+Most commits rely on the values for 2024 in Ember's Yearly Electricity Data \citep{ember2025}, called \textit{Ember 2024} in this document (the latest year before 2024 for the few countries without 2024 data), and on the hand-curated tables named below.
 Section~\ref{sec:fleet-check} checks the result as a whole.
 
-\paragraph{Count gas turbines as OCGT, not CCGT} (fork working tree, not yet committed)
+\paragraph{Count gas turbines as OCGT instead of CCGT} (\commit{47e2cca4})
 
-\textit{What needed fixing.}
-powerplantmatching labels the gas turbines and internal combustion engines of Global Energy Monitor's oil and gas tracker \emph{Steam Turbine}, as it labels steam turbines, and \texttt{build\_powerplants} maps \emph{Steam Turbine} to CCGT.
-Of all 132 countries, \SI{0.15}{GW} of existing gas plants became OCGT, and every other open-cycle unit ran at the efficiency of a combined cycle.
-Global Energy Monitor lists \SI{150}{GW} of gas turbines and \SI{82}{GW} of steam turbines among the \SI{561}{GW} of oil and gas units operating in the US; all gas-fired ones came out as CCGT.
+PyPSA-Earth has two carriers for gas plants: CCGT for combined cycles and OCGT for every other gas unit.
+powerplantmatching gives combined cycles their own label, CCGT, and puts the other three unit types of Global Energy Monitor's oil and gas tracker (gas turbines, internal combustion engines and boilers driving a steam turbine) under one label, \emph{Steam Turbine}.
+None of these three recovers the exhaust heat in a second cycle, and all convert 0.33--0.37 of the fuel into electricity (Section~\ref{sec:fleet-check}), close to OCGT's 0.405 and far from CCGT's 0.57, so the most suitable assignment in PyPSA-Earth would be \textit{OCGT}.
+However, \texttt{build\_powerplants} maps \emph{Steam Turbine} to \textit{CCGT}.
+This misclassifies \SI{765}{GW} of gas capacity, a third of the \SI{2225}{GW} that the plant database lists in operation in the modelled countries, \SI{237}{GW} of it in the US (before the filter and the scaling to the capacity statistic described next).
+Of existing gas plants in 132 countries only \SI{0.15}{GW} became OCGT, and every other single-cycle unit ran at the efficiency of a combined cycle.
 
-\textit{What was done.}
-An option replaces entries of the mapping; the stages set \emph{Steam Turbine} to OCGT, since gas turbines and gas steam turbines are both 0.33--0.37 efficient (Section~\ref{sec:fleet-check}).
-The US fleet becomes \SI{359}{GW} of CCGT and \SI{187}{GW} of OCGT, North-West Europe 105 and \SI{22}{GW}, China 125 and \SI{14}{GW}; the capacity-weighted efficiency of US gas falls from 0.50 to 0.45.
-Rule \texttt{build\_powerplants}, option \texttt{electricity: gas\_\allowbreak technology\_\allowbreak mapping}.
+A new option overrides single entries of the mapping from technology label to carrier, and every model run of this project maps \emph{Steam Turbine} to OCGT.
+Together with the adjustments discussed next, this commit results in a US gas fleet of \SI{359}{GW} of CCGT and \SI{187}{GW} of OCGT, North-West Europe's \SI{105}{GW} and \SI{22}{GW}, and China's \SI{125}{GW} and \SI{14}{GW}.
+The capacity-weighted efficiency of US gas falls from 0.50 to 0.45, in line with the tested heat rates of the US Energy Information Administration (EIA) per turbine type \citep{eiaepa} (Section~\ref{sec:fleet-check}).
+The feature becomes active in rule \texttt{build\_powerplants}, depending on the option:
+\yamlblock{gas_mapping}
 
-\paragraph{Scale the plant list to national capacity statistics} (\commit{3a136a31})
+\paragraph{Scale the plant list to national capacity statistics} (\commit{101acf0e})
 
-\textit{What needed fixing.}
-The plant list misses the fleet of 2024 in both directions (Table~\ref{tab:fleetgroups}).
-It still lists plants that have closed: Great Britain keeps \SI{7.9}{GW} of coal although its last coal plant closed in September 2024, Germany \SI{9.6}{GW} of nuclear against none, India \SI{51}{GW} of oil against 19.
-It lacks plants that operate: \SI{471}{GW} of gas in the US against 546, \SI{1.4}{GW} of biomass in Germany against 10.
-And the filled decommissioning years remove plants that still run, together with some that have really closed (Section~\ref{sec:fleet-check}).
+The plant list produced by PyPSA-Earth v0.9.0 misses fleet additions and removals that are highly relevant as of 2024 (Table~\ref{tab:fleetgroups}).
+For instance, Great Britain keeps \SI{7.9}{GW} of coal although its last coal plant closed in September 2024, Germany \SI{9.6}{GW} of nuclear against none, India \SI{51}{GW} of oil against 19.
+Conversely, it also underestimates existing capacity in other regions, e.g. \SI{471}{GW} of gas in the US against 546, \SI{1.4}{GW} of biomass in Germany against 10.
+Some of this results from the filled decommissioning years that removes plants that still run, together with some that have really closed (Section~\ref{sec:fleet-check}).
 
 \begin{table}[htb]
   \centering\small
-  \caption{Capacity per fuel group in GW: the plant list after the filter of the standard procedure $\to$ the statistic it is scaled to.
+  \caption{Capacity per fuel group in GW: the plant list of PyPSA-Earth v0.9.0 after the filter of the standard procedure $\to$ the capacity statistic it is scaled to.
   Hydropower is scaled in the same way and described in Section~\ref{sec:hydro}.
   NW Europe: the twelve countries of the region.}
   \label{tab:fleetgroups}
   \input{../build/fleet_groups.tex}
 \end{table}
 
-\textit{What was done.}
-\begin{itemize}[nosep,leftmargin=*]
-  \item Per country and fuel group (coal and lignite; CCGT and OCGT; oil; nuclear; biomass; geothermal; hydropower without pumped storage), the plants are scaled by one factor to the statistic, so that they keep their location, vintage and decommissioning year.
-  \item A statistic of zero removes the group.
-  \item A group with a statistic but no plant is added at the country's thermal plant sites, in proportion to their capacity, with the site's commissioning year and no decommissioning year; hydropower is never added this way.
-  \item Plants commissioned after 2024 are not part of the statistic and keep their capacity.
-  \item Countries or groups without a statistic keep the plant list.
-  \item Rule \texttt{build\_powerplants}, option \texttt{electricity: powerplants\_\allowbreak statistics}.
-\end{itemize}
-
-The statistic is Ember's capacity per country and fuel, which Ember takes from Global Energy Monitor for coal and gas and from IRENA for the rest; Ember's \emph{Other Fossil} is the group oil, its \emph{Other Renewables} the group geothermal.
-Biomass and geothermal come from IRENA directly (next paragraph).
+To resolve this, the capacities are scaled to installed capacities per country and fuel at the end of 2024 from two open datasets.
+The first is \textit{Ember 2024} \citep{ember2025}: generation, net imports, demand, installed capacity and power-sector emissions per country and fuel, compiled by the think tank Ember from Eurostat, the Energy Institute's Statistical Review, the EIA and national statistics into one consistent annual table \citep{embermethod}.
+\textit{Ember 2024} takes the capacity of coal and gas from Global Energy Monitor's trackers \citep{gem} and that of the other fuels from IRENA \citep{embermethod}; its \emph{Other Fossil} is the group oil here, its \emph{Other Renewables} the group geothermal.
+The second is IRENA's capacity statistics by country and technology \citep{irenastat}, from which biomass and geothermal are taken directly (next paragraph).
+In the following, the resulting table of capacity per country and fuel group (\texttt{calibration/\allowbreak 2024/\allowbreak capacity.csv} of the project repository) is called the \emph{capacity statistic}.
 Where the fuel generates but its capacity is missing, zero or too small to deliver the generation at full output, the capacity is back-filled from the generation at a typical capacity factor: geothermal 0.75, nuclear 0.85, coal and biomass 0.5, gas and oil 0.3.
+
+\begin{itemize}[nosep,leftmargin=*]
+  \item Per country and fuel group (that is coal and lignite, CCGT and OCGT, oil, nuclear, biomass, geothermal, hydropower without pumped storage), the plants are scaled by one factor to the capacity statistic, so that they keep their location, vintage and decommissioning year.
+  \item A capacity statistic of zero removes the group.
+  \item A group with a capacity statistic but no plant is added at the country's thermal plant sites, in proportion to their capacity, with the site's commissioning year and no decommissioning year; hydropower is never added this way.
+  \item Plants commissioned after 2024 are not part of the capacity statistic and keep their capacity.
+  \item Countries or groups without a capacity statistic keep the plant list.
+\end{itemize}
+The feature becomes active in rule \texttt{build\_powerplants}, depending on the option:
+\yamlblock{plant_statistics}
+
 
 \paragraph{Take biomass and geothermal capacity from IRENA, and back-fill capacities too small for their generation} (no commit: \texttt{build\_calibration.py} of the project repository)
 
-\textit{What needed fixing.}
-Ember's capacity of a fuel did not always match its generation (Table~\ref{tab:fleetember}).
-Its \emph{Other Renewables} capacity holds IRENA's renewable municipal waste in every country that has some, so the US had \SI{0.89}{GW} of geothermal against IRENA's \SI{2.7}{GW}, Indonesia \SI{0.02}{GW} against 2.6, and Germany, the Netherlands, Poland and Belgium had geothermal plants they do not have.
-The same waste is missing from Ember's bioenergy capacity although its generation is counted there: China generated \SI{208.5}{TWh} from \SI{18.6}{GW}, a capacity factor of 1.3.
+\textit{Ember 2024} ships with some inconsistencies: in some rows generation and capacity do not match and imply a capacity factor (much) larger than 1 (Table~\ref{tab:fleetember}).
+One reason for this is that the \emph{Other Renewables} capacity of \textit{Ember 2024}, which the model reads as geothermal, is really IRENA's capacity of renewable municipal waste (waste incineration), while the generation of the same category is geothermal.
+As a result, the US had \SI{0.89}{GW} of geothermal instead of IRENA's \SI{2.7}{GW}, Indonesia \SI{0.02}{GW} instead of 2.6, and Germany, the Netherlands, Poland and Belgium received geothermal capacity equal to their waste incineration although they have almost no geothermal plants.
+The same waste is missing from its bioenergy capacity although its generation is counted there: China generated \SI{208.5}{TWh} from \SI{18.6}{GW}, a capacity factor of 1.3.
 Dual-fuel plants counted as gas leave the oil fleet too small for its generation in Iran, Egypt and Syria.
-In 29 rows the statistic could not deliver Ember's generation even at full output, \SI{148}{TWh} in total.
+In 29 rows of \textit{Ember 2024}, the capacity could not deliver the generation even at full output, \SI{148}{TWh} in total.
 
 \begin{table}[htb]
   \centering\small
-  \caption{Rows of Ember's capacity statistic too small for Ember's generation, largest shortfall first, and the capacity the table now carries; TWh: Ember's generation of 2024.
+  \caption{Rows of Ember's Yearly Electricity Data for 2024 (\textit{Ember 2024}, \citealp{ember2025}) whose capacity is too small for their generation, largest shortfall first, and the value the capacity statistic now carries; TWh: generation of 2024.
   Rows with zero capacity were already back-filled before and are not listed.}
   \label{tab:fleetember}
   \input{../build/fleet_ember.tex}
 \end{table}
 
-\textit{What was done.}
-Biomass is IRENA's solid biofuels, renewable municipal waste, biogas and liquid biofuels, and geothermal is IRENA's geothermal and marine energy, as Ember counts tidal generation under Other Renewables \citep{irenastat}.
-Every row whose capacity factor exceeds 1 is back-filled like a missing row, which removes all 29.
+To solve this, where a row's capacity could not deliver the generation of \textit{Ember 2024} even at full output all year (capacity factor above 1), the capacity is replaced by the generation divided by a typical capacity factor, as for rows without any capacity; after this and the IRENA groups, none of the 29 rows remains.
+This adjustment has no commit in the fork because it changes no code there: the capacity statistic is an input table, written by \texttt{build\_calibration.py} of the project repository and read through the option of the previous paragraph.
 
 \paragraph{Keep Solid Biomass, Biogas and Waste plants as biomass} (\commit{2a79edbf})
 
-\textit{What needed fixing.}
-Recent versions of powerplantmatching label bioenergy plants \emph{Solid Biomass}, \emph{Biogas} and \emph{Waste}, while \texttt{add\_electricity} mapped only the old label \emph{Bioenergy} to the carrier biomass.
-Every bioenergy plant fell out of the model, \SI{13.8}{GW} in Brazil, \SI{9.6}{GW} in North-West Europe and \SI{6.0}{GW} in the US, and no country generated any electricity from biomass.
+Recent versions of powerplantmatching label bioenergy plants \emph{Solid Biomass}, \emph{Biogas} and \emph{Waste}.
+However, \texttt{add\_electricity} mapped only the old label \emph{Bioenergy} to the carrier biomass.
+As a result, every bioenergy plant fell out of the model, \SI{13.8}{GW} in Brazil, \SI{9.6}{GW} in North-West Europe and \SI{6.0}{GW} in the US, and no country generated any electricity from biomass.
 
-\textit{What was done.}
-The three labels map to biomass.
-Rule \texttt{add\_electricity}.
+This commit maps the three labels to biomass, in rule \texttt{add\_electricity}.
 
-\paragraph{Use fleet efficiencies, not new-build efficiencies} (\commit{3a136a31})
+\paragraph{Replacing efficiencies of new plants with fleet efficiencies} (\commit{cf1f4a14})
 
-\textit{What needed fixing.}
-With the efficiency of a new plant for every plant, the fleet burns too little fuel, and all plants of a carrier share one efficiency.
-The plain mean over merged buses also gives a small plant the weight of a large one.
+PyPSA-Earth v0.9.0 gives every plant of a carrier one efficiency, the value of the cost table from technology-data \citep{techdata}.
+Experiments show the out-of-the-box model struggles to replicate the ordering in which fossil electricity is sold in markets (Figure~\ref{fig:mixbeforeafter}).
+Part of the problem are unrealistic fossil plant efficiencies.
+This commit improves on the values through two separate approaches.
 
-\textit{What was done.}
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{mix_before_after.pdf}
+  \caption{Electricity mix of 2024 by fuel, as a share of generation: the statistics of Ember's Yearly Electricity Data for 2024 (\textit{Ember 2024}, \citealp{ember2025}) against a 2024 run of PyPSA-Earth v0.9.0 out of the box, for the total over the 121 modelled countries and for ten large countries (North-West Europe: the twelve countries of that model region).
+  The v0.9.0 run may build new plants at 2025 costs, has no CO$_2$ price or cap and meets the demand of 2030, so part of its solar is new builds.}
+  \label{fig:mixbeforeafter}
+\end{figure}
+
 \begin{itemize}[nosep,leftmargin=*]
-  \item A plant keeps its own efficiency where the plant list has one; this is under 3\,\% of the thermal capacity in the US, Brazil, India and China, and 9\,\% in North-West Europe, all of it gas and oil plants.
-  \item Every other plant takes the fleet efficiency of its country and carrier from a table.
-  \item Coal, lignite and oil take the efficiency that reproduces Ember's CO$_2$ emissions with the model's emission factors: $\eta = e \cdot E / M$, with $e$ the emission factor of the fuel (coal \SI{0.336}{t/MWh_{th}}, oil \SI{0.2571}{t/MWh_{th}}), $E$ Ember's generation and $M$ its emissions, for fuels above \SI{0.5}{TWh}, clipped to 0.25--0.45: coal and lignite 0.354 in the US, 0.371 in China, 0.369 in India, 0.347 in Germany and Poland.
-  \item Gas is left out of this, because Ember's emission factors of gas are life-cycle factors that include methane upstream, which reads the upstream emissions as fuel burnt in the plant (0.37 in the US); CCGT fleets take 0.50 and OCGT fleets 0.35 everywhere.
-  \item Countries without a row take 0.38 for coal and lignite, 0.35 for oil.
-  \item The marginal cost is recomputed with the plant's efficiency (and the fuel price of its country, Section~\ref{sec:fuel}).
-  \item Grouping, simplification and clustering weight efficiency, marginal cost and minimum output by capacity (aggregation strategy \texttt{capacity\_\allowbreak weighted\_\allowbreak average}, added with the memory-lean aggregation \commit{402ff2bd}).
-  \item Rule \texttt{add\_electricity}, option \texttt{electricity: powerplants\_\allowbreak efficiency}.
+  \item The first approach leverages that for some plants, individual plant efficiencies are carried by the plant dataset.
+  \item If available, this commit inserts them.
+  \item However, only a minority of plants have an assigned efficiency: Under 3\,\% of the thermal capacity in the US, Brazil, India and China, and 9\,\% in North-West Europe.
 \end{itemize}
 
-\paragraph{Set the operating envelope of today's fleet per country} (\commit{3a136a31})
+\begin{itemize}[nosep,leftmargin=*]
+  \item Therefore, the other approach assigns to the remaining plants one efficiency per country and carrier, such that for each fuel the model's emissions equal those of \textit{Ember 2024} at the generation of \textit{Ember 2024}.
+  \item Generation and emissions come from \textit{Ember 2024} \citep{ember2025}; the fuel burnt is the model's own, the generation divided by the efficiency, and the emissions follow from it with the model's emission factor of the fuel (coal \SI{0.336}{t/MWh_{th}}, oil \SI{0.2571}{t/MWh_{th}}).
+  \item In particular, efficiency sets the fuel a generator burns per MWh of electricity, and its CO$_2$ emissions.
+  \item By the same token, it affects the price of electricity from that generator and therefore its position in the merit order (Figure~\ref{fig:fleetmerit}).
+  % \item Ember reports, per country and fuel, two numbers: the generation $E$ and the emissions $M$.
+  % \item Coal, lignite and oil take the efficiency at which the model emits exactly $M$.
+  % With efficiency $\eta$, the model burns $E/\eta$ of fuel and emits $e \cdot E/\eta$, where $e$ is the model's emission factor of the fuel (coal \SI{0.336}{t/MWh_{th}}, oil \SI{0.2571}{t/MWh_{th}}).
+  % Setting this equal to $M$ gives $\eta = e \cdot E / M$, applied for fuels above \SI{0.5}{TWh} and clipped to 0.25--0.45: coal and lignite 0.354 in the US, 0.371 in China, 0.369 in India, 0.347 in Germany and Poland.
+\item Note that \textit{Ember 2024} does not include measured emissions per fuel and country.
+  Instead, it calculates them via generation times a life-cycle emission factor per MWh of electricity \citep{embermethod}.
+  % Hence $M/E = f$, and the formula reduces to $\eta = e/f$.
+  % \item The efficiency therefore contains no information about the plants: it is the emission factor of \textit{Ember 2024}, inverted.
+  \item These emission factors are therefore a highly relevant quantity.
+  \item For coal, they are UNECE's life-cycle factors for plants of 2020 per world region \citep{gibon2021}, blended per country and year by the coal grades and technologies in Global Energy Monitor's Global Coal Plant Tracker \citep{gcpt}; their upstream part (mine methane, transport) is small, and the implied efficiencies lie at 0.33--0.41.
+  \item For oil (Other Fossil in \textit{Ember 2024}), one global life-cycle factor of \SI{700}{g/kWh} \citep{ipcc2014annex3} is used, so the implied efficiency is 0.37--0.40 in every country, in effect one global value.
+  \item Gas is left out.
+  This is because the gas factors of \textit{Ember 2024} are life-cycle factors per country for 2017 \citep{jordaan2022}, in which upstream methane from production, pipelines and LNG is a large and country-specific part, and part of the emissions of combined heat and power plants is allocated to heat.
+  The implied efficiency would read both as fuel burnt in the plant: 0.29 in Poland and India, 0.37 in the US, 0.46 in Germany and China.
+  CCGT fleets take 0.50 and OCGT fleets 0.35 everywhere instead.
+  \item The emissions of \textit{Ember 2024} are CO$_2$ equivalents of all greenhouse gases, the model's emission factors CO$_2$ from combustion alone; the implied efficiency absorbs this difference as well.
+\end{itemize}
 
-\textit{What needed fixing.}
+Countries without data in \textit{Ember 2024} for a fuel, or with less than \SI{0.5}{TWh} of it, take default values.
+For oil this is 0.35, technology-data's value for a diesel engine farm \citep{techdata}, the same as in PyPSA-Earth v0.9.0.
+For coal and lignite it is 0.38, an assumption of this project for an average fleet: it lies above technology-data's values for new plants (hard coal 0.356, lignite 0.33) and close to the capacity-weighted mean of the implied coal efficiencies (0.371).
+The defaults apply to \SI{2.8}{GW} of the \SI{2172}{GW} of coal and \SI{17.5}{GW} of the \SI{355}{GW} of oil of the fleet in the model.
+
+Figure~\ref{fig:fleetefficiency} compares the fuel burnt per MWh of electricity before and after this commit.
+In total, gas burning is increased and coal and oil generation is lowered, overall balancing out to a 0.1\% change.
+
+\begin{itemize}[nosep,leftmargin=*]
+  \item Finally, the marginal cost is recomputed with the plant's efficiency (and the fuel price of its country, Section~\ref{sec:fuel}).
+\end{itemize}
+
+The commit's functionality is executed in rule \texttt{add\_electricity} as soon as the options name the file from which the efficiencies are taken [but this will be changed to follow more closely the general philosophy of the repo's design]
+\yamlblock{plant_efficiency}
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{fleet_efficiency.pdf}
+  \caption{Fuel burnt per MWh of electricity by the existing fleet, in PyPSA-Earth v0.9.0 and with the fleet efficiencies of this commit.
+  (a) Per carrier: v0.9.0's one value per carrier from technology-data (grey bars), and the fleet efficiency of every modelled country with capacity of the carrier (dots, area proportional to the country's capacity of the carrier on one scale for all rows, with a small minimum size); CCGT and OCGT take one value everywhere.
+  The capacity statistic has one coal group, split here into hard coal and lignite by the lignite share of the country's plant list, as in the model; both take the same fleet efficiency.
+  (b) Per region: the fuel burnt for the generation of 2024 from coal, gas and oil in \textit{Ember 2024}, divided by that generation; gas at the CCGT values, coal split into hard coal and lignite as in (a).
+  Plant-level efficiencies and the efficiency tranches described below are left out.
+  From the tables \texttt{calibration/2024/\{efficiency,generation,capacity\}.csv} of the project repository.}
+  \label{fig:fleetefficiency}
+\end{figure}
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{fleet_merit.pdf}
+  \caption{Merit order of Germany's fossil and biomass plants; the capacity per fuel is the same in both panels.
+  (a) PyPSA-Earth's default: one generator per fuel, new-plant efficiencies from technology-data, one world price per fuel, no CO$_2$ price.
+  (b) With the adjustments of this section: fleet efficiencies (\commit{cf1f4a14}), Germany's fuel prices (\commit{0261b769}), the EU CO$_2$ price of \SI{70.4}{USD/t} (\commit{84825e58}, Section~\ref{sec:fuel}) and three efficiency tranches per generator (\commit{25c6e095}); taken from the solved 2024 network.
+  Biomass runs at a fixed output whatever its cost (Figure~\ref{fig:fleetenvelope}).}
+  \label{fig:fleetmerit}
+\end{figure}
+
+\paragraph{Reflect operational nuances of generator types in the model} (\commit{5f9023b0})
+
 Nuclear, biomass, geothermal and the Other Fossil group do not follow the merit order: nuclear runs as baseload where it is available, biomass and Other Fossil (refinery and industrial gases, oil-fired combined heat and power) follow heat and process demand.
-Under the standard procedure they ran on price, and the IAEA load factor describes reactors that run, not a fleet with idled reactors: Japan generated 24\,\% of its electricity from nuclear in the model against 8\,\% in 2024.
+Under the standard procedure they run on price alone.
 
-\textit{What was done.}
 \begin{itemize}[nosep,leftmargin=*]
   \item Per country and carrier, tables under \texttt{conventional: <carrier>: existing:} set the minimum and maximum output of the existing generators; new builds keep the values of the technology palette.
   \item Nuclear, biomass, geothermal and oil run flat at the country's capacity factor of 2024 (generation over the capacity statistic): at least 0.85 times it (capped at 0.95) and at most 1.05 times it (capped at 1); the IAEA table is switched off (\texttt{nuclear\_\allowbreak p\_max\_pu: false}).
   \item Coal and lignite are available at 0.90 of capacity, CCGT and OCGT at 0.92, for planned and forced outages, with no minimum output.
   \item Oil in countries without generation data is available at 0.90 and dispatched on price.
   \item The must-run output of a country is capped at 90\,\% of its lowest hourly load (\texttt{must\_\allowbreak run\_cap: 0.9}), because an islanded country cannot export the surplus.
-  \item Stages of future years and with a CO$_2$ cap take the same tables without the minimum output of emitting carriers.
-  \item Rule \texttt{add\_electricity}, options \texttt{conventional:} and \texttt{electricity: nuclear\_\allowbreak p\_max\_pu, must\_\allowbreak run\_cap}.
+  \item Runs of future years and with a CO$_2$ cap take the same tables without the minimum output of emitting carriers.
+\end{itemize}
+The feature becomes active in rule \texttt{add\_electricity}, depending on the options:
+\yamlblock{envelope}
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{fleet_envelope.pdf}
+  \caption{The output limits of existing plants per modelled country in the 2024 run, as a share of installed capacity.
+  (a) Nuclear: the band between minimum and maximum output, derived from the country's 2024 capacity factor.
+  (b) Maximum output of biomass, geothermal and oil, one dot per country, dot area proportional to the country's capacity; coal, lignite and gas plants have one availability for all countries and no minimum output.
+  From the tables \texttt{calibration/2024/envelope/floor/} of the project repository.}
+  \label{fig:fleetenvelope}
+\end{figure}
+
+Nuclear runs between 0.81 and 1.0 of its capacity in Slovenia and Romania, and between 0.25 and 0.31 in Japan, where most reactors stood idle in 2024 (Figure~\ref{fig:fleetenvelope}).
+Biomass and oil spread over the whole range, because their capacity factor of 2024 does.
+
+\paragraph{Split the fleet into efficiency tranches} (\commit{25c6e095}, \commit{428dcd20}, \commit{fd2f4ba8})
+
+If the generators of one fuel in a country have one efficiency, the merit order of that country has one step per fuel.
+A small change in fuel or CO$_2$ prices can then move a whole fleet at once.
+Real fleets are spread in efficiency: a new combined cycle burns less gas per MWh than one built twenty years earlier.
+
+Through these commits, every existing fuel-burning generator is split into three parts of equal capacity, with $(1-s)$, 1 and $(1+s)$ times the fleet efficiency; the fuel part of the marginal cost follows each part.
+The spread $s$ is set per carrier and measured on the US fleet of 2024 (Table~\ref{tab:fleetspread}).
+\begin{itemize}[nosep,leftmargin=*]
+  \item The fuel a plant burnt for electricity and the electricity it generated in 2024 give its efficiency \citep{eia923}; its capacity comes from the generator inventory \citep{eia860}.
+  \item The plants of a carrier are sorted by efficiency and cut into three thirds of equal capacity; the efficiency of a third is its generation over its fuel.
+  \item $s$ is half the difference between the best and the worst third, relative to the middle one.
+  \item Plants with a capacity factor below 0.05 are left out, because start-ups dominate their annual efficiency.
+  \item OCGT holds gas turbines, engines and gas-fired steam turbines, as in the model (see the first adjustment of this section).
 \end{itemize}
 
-\paragraph{Split the fleet into efficiency tranches} (\commit{25c6e095})
+\begin{table}[htb]
+  \centering
+  \small
+  \caption{Efficiency spread of the US fleet of 2024 per carrier, from plant-level fuel use and generation \citep{eia923,eia860}; efficiencies on a higher-heating-value basis.
+  The spread $s$ sets the efficiency of the model's three tranches relative to the fleet efficiency of each country.}
+  \label{tab:fleetspread}
+  \input{../build/fleet_spread.tex}
+\end{table}
 
-\textit{What needed fixing.}
-One generator per bus and carrier with one efficiency makes the merit order of a country one step per fuel.
-A small change in fuel or CO$_2$ prices then moves a whole fleet at once: with the EU's CO$_2$ price alone, coal in Germany and Poland ran at a capacity factor of 0.01.
+The spread is 8\,\% for coal and combined cycles and 14\,\% for open-cycle gas and oil.
+Lignite rests on nine plants.
+No other region has open plant-level data of this coverage, so the US values are applied to every region.
 
-\textit{What was done.}
-Every fixed fuel-burning generator is split into three equal parts with 0.85, 1.0 and 1.15 times its efficiency; the fuel part of the marginal cost follows each part.
-Rule \texttt{prepare\_network}, options \texttt{calibration: efficiency\_\allowbreak spread: 0.15} and \texttt{tranches: 3}, in the stages \texttt{now}, \texttt{zero} and \texttt{myopic}.
+The feature becomes active in rule \texttt{prepare\_network}, depending on the options below, in the 2024 run and in the runs of future years:
+\yamlblock{tranches}
 
-\paragraph{Retire plants only at reported dates} (\commit{bb4119cc})
+Together with the fleet efficiencies and the country prices, the tranches turn Germany's merit order from six steps into one that interleaves the carriers (Figure~\ref{fig:fleetmerit}).
+The figure is drawn from the 2024 run of November 2026, which still used a spread of 15\,\% for every carrier.
 
-\textit{What needed fixing.}
-Filling every missing decommissioning year from a lifetime invents retirements, which in a myopic run cannot be told apart from announced ones.
-The SOW asks for firm, dated retirements only.
+\paragraph{Fill missing retirement years from the cost table's lifetimes} (\commit{086769e8})
 
-\textit{What was done.}
-With the option off, both fillings of the decommissioning year are skipped, in powerplantmatching and in \texttt{add\_electricity}, and a plant without a reported year is never retired.
-Dated plants are grouped by their retirement year as well, so that simplification and clustering do not merge them with undated plants.
-Rules \texttt{build\_powerplants} and \texttt{add\_electricity}, option \texttt{existing\_\allowbreak capacities: fill\_\allowbreak missing\_\allowbreak dateout: false}, in the myopic stages, which also keep plants commissioned after 2023.
+PyPSA-Earth fills a missing decommissioning year with powerplantmatching's lifetime of the fuel type (Section~\ref{sec:fleet-standard}).
+A new plant in the model, however, lives as long as the cost table says, so an existing and a new plant of the same technology would retire after different lifetimes.
+PyPSA-Eur's pathway code takes the cost table for both.
 
-\paragraph{Let plants under construction enter at their build year} (\commit{e571f6cf})
+This commit adds that as an option.
+\begin{itemize}[nosep,leftmargin=*]
+  \item A reported decommissioning year is kept.
+  \item A missing one becomes the commissioning year plus the lifetime of the technology in the cost table: 40 years for coal, lignite and nuclear, 25 for gas and oil, 30 for biomass and geothermal.
+  \item As under the standard procedure, a plant whose year lies before 2022 is dropped from the plant list, and the scaling to the capacity statistic places its capacity on the remaining plants of its country and fuel.
+  \item Hydropower gets no decommissioning year and is never retired, as in PyPSA-Eur.
+\end{itemize}
+The feature becomes active in rule \texttt{build\_powerplants}, depending on the first option below, which is set in the pathway runs; with the second, these runs also keep plants commissioned after 2023:
+\yamlblock{retirements}
 
-\textit{What needed fixing.}
-A plant under construction is in the plant list with its planned commissioning year, but PyPSA honours a build year only in multi-period optimisations, so in a myopic run it would operate from the first horizon on.
+With these lifetimes, 33\,\% of the US fleet of 2024 is left in 2030 and 2\,\% in 2050, 51\,\% and 2\,\% in North-West Europe, and 91\,\% and 34\,\% in China (Figure~\ref{fig:fleetretirements}).
+With PyPSA-Earth's default lifetimes it would be 68\,\% and 13\,\% in the US, 77\,\% and 13\,\% in North-West Europe, and 95\,\% and 62\,\% in China.
+By 2030, US gas falls from 546 to \SI{194}{GW} and US nuclear from 97 to \SI{18}{GW}; the model has to replace this capacity.
+The 2024 run keeps PyPSA-Earth's default lifetimes.
 
-\textit{What was done.}
-An existing asset whose build year lies after the planning horizon is left out of that horizon's network, and enters in the first horizon on or after its build year.
-Rule \texttt{add\_brownfield\_elec}.
+\paragraph{Let plants under construction enter at their build year} (\commit{0d137fd3})
+
+A plant that is currently under construction is in the plant list with its planned commissioning year, but the model does considers this in myopic multi-period optimisations, so it would operate from the first horizon on.
+
+An existing asset whose build year lies after a myopic planning horizon is left out of that horizon's network, and enters in the first horizon on or after its build year.
+The feature becomes active in rule \texttt{add\_brownfield\_elec}.
 
 \FloatBarrier
 \subsubsection{Check against real metrics}\label{sec:fleet-check}
 
-The script \texttt{check\_fleet.py} rebuilds the plant list of each region in memory from powerplantmatching's stored list, scales it with the fork's own function, and compares the result with the statistics.
+The script \texttt{check\_fleet.py} rebuilds the plant list of each region in memory from powerplantmatching's stored list, scales it with the fork's own function, and compares the result with the capacity statistic.
 It reproduces the capacities that \texttt{build\_powerplants} logged for the existing networks to the last digit.
 
-\textbf{The statistic against its own generation.}
+\textbf{The capacity statistic against the generation of \textit{Ember 2024}.}
 \begin{itemize}[nosep,leftmargin=*]
-  \item No row of the capacity table now has a capacity factor above 1; before the last adjustment, 29 rows could not deliver \SI{148}{TWh} of Ember's generation (Table~\ref{tab:fleetember}).
-  \item IRENA's geothermal capacities agree with Ember's generation: capacity factors of 0.61--0.81 in the Philippines, New Zealand, Kenya, Iceland, Indonesia, the US and Türkiye.
+  \item No row of the capacity table now has a capacity factor above 1; before the last adjustment, 29 rows could not deliver \SI{148}{TWh} of generation in \textit{Ember 2024} (Table~\ref{tab:fleetember}).
+  \item IRENA's geothermal capacities agree with the generation in \textit{Ember 2024}: capacity factors of 0.61--0.81 in the Philippines, New Zealand, Kenya, Iceland, Indonesia, the US and Türkiye.
 \end{itemize}
 
 \textbf{The plant list against the plants that run.}
@@ -194,23 +371,35 @@ It reproduces the capacities that \texttt{build\_powerplants} logged for the exi
   \item The filled decommissioning years drop plants whose sources give no date: in the US \SI{106}{GW} of coal, \SI{163}{GW} of gas, \SI{40}{GW} of oil and \SI{7.6}{GW} of nuclear, in North-West Europe \SI{22}{GW} of coal and \SI{18}{GW} of gas.
   \item Some of them have closed, such as Cottam, Eggborough and Fiddlers Ferry in Great Britain, but others still run, such as Salem nuclear (\SI{2.4}{GW}), the coal plants Amos and Gavin (\SI{2.9}{GW} and \SI{2.6}{GW}) and Drax (\SI{2.6}{GW}, biomass).
   \item Without the filled years the list overshoots instead, \SI{319}{GW} of coal in the US against \SI{193}{GW}, because the older databases also keep closed plants without a date.
-  \item Either way the statistic sets the totals, and the date treatment decides only at which sites the capacity stands.
-  \item Plants added at thermal sites for groups without plants are \SI{0.6}{GW} in the five regions, nearly all in Switzerland: \SI{0.27}{GW} of oil and \SI{0.16}{GW} for Ember's Other Renewables.
+  \item The dropped plants lie in the same areas as those that remain (Figure~\ref{fig:fleetdropped}).
+  \item Either way the capacity statistic sets the totals, and the date treatment decides only at which sites the capacity stands.
+  \item Plants added at thermal sites for groups without plants are \SI{0.6}{GW} in the five regions, nearly all in Switzerland: \SI{0.27}{GW} of oil and \SI{0.16}{GW} for Other Renewables of \textit{Ember 2024}.
 \end{itemize}
 
 \begin{figure}[htb]
   \centering
+  \includegraphics[width=\textwidth]{fleet_dropped.pdf}
+  \caption{Coal and gas plants of the contiguous US.
+  Dots: plants in the 2024 model, scaled to the capacity statistic.
+  Rings: plants left out of the 2024 model because their retirement year is not reported and the assumed one (commissioning year plus a typical lifetime) lies before 2022; capacity as listed in the plant database.
+  Some of them have closed, others still run.
+  Area proportional to capacity.}
+  \label{fig:fleetdropped}
+\end{figure}
+
+\begin{figure}[htb]
+  \centering
   \includegraphics[width=\textwidth]{fleet_check.pdf}
-  \caption{(a) Capacity of the statistic the plant list is scaled to, relative to national statistics for the end of 2024: EIA net summer capacity \citep{eiaepa}, CEC \citep{cec2025}, CEA utility capacity \citep{cea2024}, EPE \citep{epe2025}, Energy-Charts \citep{energycharts}, DUKES \citep{dukes2026} and RTE \citep{rte2024}; shaded: within 10\,\%.
-  Ratios above 1.6 sit at the edge with their value.
-  (b) Fleet efficiency of the model against EIA heat rates (coal: operating 2024; gas: full-load tested by prime mover, weighted by capacity) and China's standard coal consumption for power supply in 2024 (all thermal plants), as net efficiency on the lower heating value (EIA's higher heating value $\times$ 1/0.95 for coal and 1/0.90 for gas).
+  \caption{The model's existing fleet against independent national statistics.
+  (a) Installed capacity per fuel in the model over that of an independent national statistic for the end of 2024: EIA net summer capacity \citep{eiaepa}, CEC \citep{cec2025}, CEA utility capacity \citep{cea2024}, EPE \citep{epe2025}, Energy-Charts \citep{energycharts}, DUKES \citep{dukes2026} and RTE \citep{rte2024}; shaded: within 10\,\%; ratios above 1.6 are drawn at the edge with their value.
+  (b) Average net efficiency on the lower heating value, model against EIA heat rates (coal: as operated in 2024; gas: full-load tests by turbine type, weighted by capacity) and China's coal consumption per kWh supplied in 2024 (all thermal plants); EIA's higher-heating-value rates are converted with factors 1/0.95 for coal and 1/0.90 for gas.
   The model's gas steam turbines are OCGT with the gas mapping above.}
   \label{fig:fleetcheck}
 \end{figure}
 
 \textbf{Capacity against national statistics} (Figure~\ref{fig:fleetcheck}a).
 \begin{itemize}[nosep,leftmargin=*]
-  \item Nuclear lies within 2\,\% of the national statistic in all six countries that have nuclear plants, coal and gas within 1\,\% in China and Brazil.
+  \item Nuclear lies within 2\,\% of the independent statistic in all six countries that have nuclear plants, coal and gas within 1\,\% in China and Brazil.
   \item In the US coal is 11\,\%, gas 8\,\% and oil 15\,\% above EIA; Global Energy Monitor counts nameplate capacity, which lies above EIA's net summer capacity.
   \item India's coal is 10\,\% and its gas 26\,\% above CEA, which counts utility plants only.
   \item India's oil is \SI{19.2}{GW} against \SI{0.59}{GW} of diesel plants in CEA; it generated \SI{4.1}{TWh} and runs flat at that, so the energy is right but the capacity is not.
@@ -223,17 +412,19 @@ It reproduces the capacities that \texttt{build\_powerplants} logged for the exi
 \begin{itemize}[nosep,leftmargin=*]
   \item US gas plants match EIA's tested heat rates: combined cycle 0.50 against 0.502, gas turbines 0.35 against 0.345 and gas steam turbines 0.35 against 0.367, where the default mapping gave them 0.50.
   \item US coal is 0.354 in the model against 0.333 from EIA's operating heat rate, so its fuel costs 6\,\% too little; China's is 0.371 against 0.406, so its fuel costs 9\,\% too much.
-  \item Both come from Ember's emissions, so the efficiency carries the difference between Ember's emission factors for the country's coal and the model's single factor.
+  \item Both come from the emission factor of \textit{Ember 2024} for the country's coal, not from the plants (Section~\ref{sec:fleet-adjust}).
   \item India publishes no fleet heat rate (CEA), so India's 0.369 is not checked.
 \end{itemize}
 
 \textbf{What stays unvalidated.}
 \begin{itemize}[nosep,leftmargin=*]
   \item Which plants carry the capacity, and where, as distinct from the national totals per fuel.
-  \item The availability of coal (0.90) and gas (0.92), and one efficiency per country and carrier for gas.
-  \item Nuclear, biomass, geothermal and oil reproduce Ember's generation by construction, within $-15$ and $+5$\,\%, so their generation is no test of the model.
-  \item Coal and gas are dispatched on price, but in the \texttt{now} stage their annual generation is held within 10\,\% of Ember's by a soft constraint (Section~\ref{sec:validation}), so their split is not tested by the 2024 dispatch either.
+  \item The availability of coal (0.90) and gas (0.92), and the gas efficiencies outside the US (one value per carrier everywhere).
+  \item Nuclear, biomass, geothermal and oil reproduce the generation of \textit{Ember 2024} by construction, within $-15$ and $+5$\,\%, so their generation is no test of the model.
+  \item The spread of the efficiency tranches outside the US: it is measured on the US fleet (Table~\ref{tab:fleetspread}) and applied to every region, and lignite rests on nine plants.
+  \item The lifetimes that fill missing retirement years: they are those of new plants in the cost table, so nuclear retires after 40 years although many reactors hold licences for 60, and gas after 25.
+  \item Coal and gas are dispatched on price, but in the 2024 run their annual generation is held within 10\,\% of \textit{Ember 2024} by a soft constraint (Section~\ref{sec:validation}), so their split is not tested by the 2024 dispatch either.
   \item Combined heat and power, ramping and minimum stable output of coal.
   \item The coal and gas statistics share Global Energy Monitor with the plant list, so they are not an independent source for each other.
-  \item Ember's Other Fossil and Other Renewables enter as oil and geothermal whatever they hold, such as Switzerland's \SI{1.0}{TWh} of Other Renewables.
+  \item Other Fossil and Other Renewables of \textit{Ember 2024} enter as oil and geothermal whatever they hold, such as Switzerland's \SI{1.0}{TWh} of Other Renewables.
 \end{itemize}

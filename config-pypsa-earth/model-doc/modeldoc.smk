@@ -25,7 +25,24 @@
 #   modeldoc_fleet_tables  plant list against the capacity statistic, and Ember rows too small for their generation
 #                       (scripts/table_fleet.py -> build/fleet_{groups,ember}.tex)
 #   modeldoc_fleet_check   capacity and fleet efficiency against national statistics (scripts/plot_fleet_check.py); the inputs
-#                       of both, build/fleet_check/*, come from ../scripts/check_fleet.py, run by hand (read-only, 10 s, no model rerun)
+#                       of both, build/fleet_check/*, come from ../scripts/check_fleet.py, run by hand (read-only, 1 min, no model rerun)
+#   modeldoc_fleet_map  world map of the statistic over the plant list per country (scripts/plot_fleet_map.py; build/fleet_check/world.csv)
+#   modeldoc_fleet_sources  the matched plant list by fuel and reporting databases, and the fields it fills
+#                       (scripts/plot_fleet_sources.py; build/fleet_check/{sources,fields}.csv)
+#   modeldoc_fleet_vintage  commissioning years of the five regions' `now` plant lists (scripts/plot_fleet_vintage.py)
+#   modeldoc_fleet_dropped  US coal and gas plants, kept and dropped by filled retirement dates (scripts/plot_fleet_dropped.py)
+#   modeldoc_fleet_merit    Germany's thermal merit order, standard procedure against the solved `now` network (scripts/plot_fleet_merit.py)
+#   modeldoc_fleet_envelope minimum and maximum output of the existing fleet per country (scripts/plot_fleet_envelope.py)
+#   modeldoc_fleet_retirements  the 2024 fleet in operation 2024-2050, with the cost table's and with powerplantmatching's lifetimes
+#                       (scripts/plot_fleet_retirements.py; build/fleet_check/retirements.csv)
+#   modeldoc_fleet_efficiency  fuel burnt per MWh of electricity, PyPSA-Earth v0.9.0 against the fleet efficiencies
+#                       (scripts/plot_fleet_efficiency.py; calibration tables only)
+#   modeldoc_mix_before_after  2024 electricity mix per country, Ember against out-of-the-box v0.9.0 (scripts/plot_mix_before_after.py;
+#                       the validation_world.csv tables of the baseline worktree and of the fork, no network read)
+#   modeldoc_yaml       the options the document quotes, cut out of the config files as YAML code blocks
+#                       (scripts/yaml_snippets.py -> build/yaml/<name>.yaml, \\yamlblock in doc/main.tex)
+#   modeldoc_commit_stats  lines added / removed per cited fork commit, printed by \commit (scripts/commit_stats.py
+#                       -> build/commit_stats.tex); reruns when a section changes
 #   modeldoc_pdf        latexmk over doc/main.tex -> build/model_doc.pdf
 #
 # Paths are relative to this file's directory, like assumptions.smk, so the file can later be included in the fork.
@@ -122,6 +139,7 @@ rule modeldoc_hvdc_check:
         countries=COUNTRIES,
         borders=os.path.join(BUILD, "grid_check/borders_NWE.csv"),
         networks=[os.path.join(FORK, f"networks/{r}/base.nc") for r in ["US", "BR", "IN", "CN", "NWE"]],
+        uncorrected=[os.path.join(FORK, f"results/archive/{r}-now-20261020/networks/elec_s_50_ec_lcopt_3h.nc") for r in ["US", "BR", "IN", "CN", "NWE"]],
     output:
         fig=os.path.join(FIG, "hvdc_check.pdf"),
         table=os.path.join(BUILD, "hvdc_check.csv"),
@@ -185,9 +203,11 @@ rule modeldoc_fleet_tables:
     input:
         groups=os.path.join(BUILD, "fleet_check/groups.csv"),
         ember=os.path.join(BUILD, "fleet_check/ember_rows.csv"),
+        spread=P("../data/validation/efficiency_spread.csv"),
     output:
         groups=os.path.join(BUILD, "fleet_groups.tex"),
         ember=os.path.join(BUILD, "fleet_ember.tex"),
+        spread=os.path.join(BUILD, "fleet_spread.tex"),
     resources:
         mem_mb=500,
     script:
@@ -206,14 +226,164 @@ rule modeldoc_fleet_check:
         "scripts/plot_fleet_check.py"
 
 
+rule modeldoc_fleet_map:
+    input:
+        world=os.path.join(BUILD, "fleet_check/world.csv"),
+        row_countries=P("../data/row_countries.csv"),
+        configs=sorted(glob(P("../config.*.yaml"))),
+        countries=COUNTRIES,
+        helper=P("scripts/plot_grid_map.py"),
+    output:
+        os.path.join(FIG, "fleet_map.pdf"),
+    resources:
+        mem_mb=1000,
+    script:
+        "scripts/plot_fleet_map.py"
+
+
+rule modeldoc_fleet_sources:
+    input:
+        sources=os.path.join(BUILD, "fleet_check/sources.csv"),
+        fields=os.path.join(BUILD, "fleet_check/fields.csv"),
+    output:
+        os.path.join(FIG, "fleet_sources.pdf"),
+    resources:
+        mem_mb=500,
+    script:
+        "scripts/plot_fleet_sources.py"
+
+
+rule modeldoc_fleet_vintage:
+    input:
+        plants=[os.path.join(FORK, f"resources/{r}-now/powerplants.csv") for r in ["US", "CN", "IN", "NWE", "BR"]],
+    output:
+        os.path.join(FIG, "fleet_vintage.pdf"),
+    resources:
+        mem_mb=1000,
+    script:
+        "scripts/plot_fleet_vintage.py"
+
+
+rule modeldoc_fleet_dropped:
+    input:
+        plants=os.path.join(FORK, "resources/US-now/powerplants.csv"),
+        dropped=os.path.join(BUILD, "fleet_check/dropped_US.csv"),
+        shape=os.path.join(FORK, "resources/US/shapes/country_shapes.geojson"),
+    output:
+        os.path.join(FIG, "fleet_dropped.pdf"),
+    resources:
+        mem_mb=1000,
+    script:
+        "scripts/plot_fleet_dropped.py"
+
+
+rule modeldoc_fleet_merit:
+    input:
+        network=os.path.join(FORK, "results/NWE-now/networks/elec_s_50_ec_lcopt_3h.nc"),
+        costs=os.path.join(FORK, "resources/NWE-now/costs_2025_elec.csv"),
+    output:
+        os.path.join(FIG, "fleet_merit.pdf"),
+    resources:
+        mem_mb=2000,
+    script:
+        "scripts/plot_fleet_merit.py"
+
+
+rule modeldoc_fleet_envelope:
+    input:
+        tables=sorted(glob(P("../calibration/2024/envelope/floor/*.csv"))),
+        capacity=P("../calibration/2024/capacity.csv"),
+        row_countries=P("../data/row_countries.csv"),
+    output:
+        os.path.join(FIG, "fleet_envelope.pdf"),
+    resources:
+        mem_mb=500,
+    script:
+        "scripts/plot_fleet_envelope.py"
+
+
+rule modeldoc_fleet_retirements:
+    input:
+        os.path.join(BUILD, "fleet_check/retirements.csv"),
+    output:
+        os.path.join(FIG, "fleet_retirements.pdf"),
+    resources:
+        mem_mb=500,
+    script:
+        "scripts/plot_fleet_retirements.py"
+
+
+rule modeldoc_fleet_efficiency:
+    input:
+        efficiency=P("../calibration/2024/efficiency.csv"),
+        generation=P("../calibration/2024/generation.csv"),
+        capacity=P("../calibration/2024/capacity.csv"),
+        costs=os.path.join(FORK, "resources/US-now/costs_2025.csv"),
+        row_countries=P("../data/row_countries.csv"),
+        world=os.path.join(BUILD, "fleet_check/world.csv"),
+    output:
+        os.path.join(FIG, "fleet_efficiency.pdf"),
+    resources:
+        mem_mb=500,
+    script:
+        "scripts/plot_fleet_efficiency.py"
+
+
+rule modeldoc_mix_before_after:
+    input:
+        before=P("../../models/pypsa-earth-baseline/results/catalyst/validation_world.csv"),
+        after=os.path.join(FORK, "results/catalyst/validation_world.csv"),
+    output:
+        os.path.join(FIG, "mix_before_after.pdf"),
+    resources:
+        mem_mb=500,
+    script:
+        "scripts/plot_mix_before_after.py"
+
+YAML_SNIPPETS = ["gas_mapping", "plant_statistics", "plant_efficiency", "envelope", "tranches", "retirements",
+                 "drop_duplicate_ids", "fix_indirect_circuits", "geodesic_length", "dc_ratings", "dc_projects", "isolated"]
+
+
+rule modeldoc_yaml:
+    input:
+        P("../statistics.yaml"),
+        [P(f"../overlay.{s}.yaml") for s in ["now", "zero", "myopic"]],
+        [P(f"../config.{r}.yaml") for r in ["US", "BR", "IN", "CN", "NWE"]],
+    output:
+        [os.path.join(BUILD, "yaml", f"{n}.yaml") for n in YAML_SNIPPETS],
+    params:
+        configs=P(".."),
+    resources:
+        mem_mb=200,
+    script:
+        "scripts/yaml_snippets.py"
+
+
+rule modeldoc_commit_stats:
+    input:
+        sections=sorted(glob(os.path.join(DOC, "sections", "*.tex"))),
+    output:
+        os.path.join(BUILD, "commit_stats.tex"),
+    params:
+        repo=FORK,
+    resources:
+        mem_mb=200,
+    script:
+        "scripts/commit_stats.py"
+
+
 rule modeldoc_pdf:
     input:
         circuits=os.path.join(BUILD, "circuit_ways.tex"),
-        fleet=[os.path.join(BUILD, f) for f in ["fleet_groups.tex", "fleet_ember.tex"]],
+        commits=os.path.join(BUILD, "commit_stats.tex"),
+        yaml=rules.modeldoc_yaml.output,
+        fleet=[os.path.join(BUILD, f) for f in ["fleet_groups.tex", "fleet_ember.tex", "fleet_spread.tex"]],
         tex=os.path.join(DOC, "main.tex"),
         bib=os.path.join(DOC, "references.bib"),
         sections=sorted(glob(os.path.join(DOC, "sections", "*.tex"))),
-        figures=[os.path.join(FIG, f) for f in ["coverage.pdf", "layers.pdf", "grid_map.pdf", "grid_steps.pdf", "hvdc_check.pdf", "osm_entries.pdf", "grid_check.pdf", "isolated.pdf", "fleet_check.pdf"]],
+        figures=[os.path.join(FIG, f) for f in ["coverage.pdf", "layers.pdf", "grid_map.pdf", "grid_steps.pdf", "hvdc_check.pdf", "osm_entries.pdf", "grid_check.pdf", "isolated.pdf", "fleet_check.pdf",
+                                                   "fleet_map.pdf", "fleet_sources.pdf", "fleet_vintage.pdf", "fleet_dropped.pdf",
+                                                   "fleet_merit.pdf", "fleet_envelope.pdf", "fleet_retirements.pdf", "fleet_efficiency.pdf", "mix_before_after.pdf"]],
     output:
         os.path.join(BUILD, "model_doc.pdf"),
     params:
