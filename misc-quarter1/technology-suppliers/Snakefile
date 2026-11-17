@@ -1,0 +1,53 @@
+# Advanced-technology supplier pipelines: who builds Gen IV nuclear, EGS, SOFC, iron-air, VRFB and CO2
+# batteries, and how much is operating / under construction / announced / promised when.
+#
+#   ../../models/priam-myopic/.pixi/envs/default/bin/snakemake -c1
+#
+# rules
+#   build_pipeline   data/*.csv + GEM Gen IV units -> cumulative MW per tech, company, layer, year
+#   plot_pipeline    one stacked-area chart per technology + overview grid -> figures/
+
+configfile: "config.yaml"
+
+PY = "../../models/priam-myopic/.pixi/envs/default/bin/python"
+TECHS = list(config["technologies"])
+
+
+rule all:
+    input:
+        expand("figures/{tech}.png", tech=TECHS),
+        "figures/overview.png",
+
+
+rule build_pipeline:
+    input:
+        "config.yaml",
+        "data/projects.csv",
+        "data/targets.csv",
+        "data/companies.csv",
+        "data/gen4_vendor_map.csv",
+        config["gem_units"],
+        config["technology_assumptions"],
+        script="scripts/build_pipeline.py",
+    output:
+        "build/pipeline.csv",
+        "build/companies.csv",
+        "build/summary.csv",
+        "build/crosscheck.csv",
+        "build/projects_tidy.csv",
+    shell:
+        "{PY} {input.script}"
+
+
+rule plot_pipeline:
+    input:
+        "build/pipeline.csv",
+        "build/companies.csv",
+        "build/summary.csv",
+        script="scripts/plot_pipeline.py",
+    output:
+        expand("figures/{tech}.{ext}", tech=TECHS, ext=["png", "pdf"]),
+        "figures/overview.png",
+        "figures/overview.pdf",
+    shell:
+        "{PY} {input.script}"

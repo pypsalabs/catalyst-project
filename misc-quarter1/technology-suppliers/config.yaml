@@ -1,0 +1,45 @@
+# Advanced-technology supplier pipelines: who builds the six advanced technologies of
+# config-pypsa-earth/technology-assumptions/technology_assumptions.csv, and how much could be online when.
+
+years: [2010, 2040]          # x-axis of every chart; capacity online before 2010 enters at 2010
+today: 2026                  # projects still under construction / announced with an online year before
+                             # `today + 1` are moved to `today + 1` (they are late, not cancelled)
+top_n: 8                     # companies with their own colour (the icon style allows six; the user asked for one
+                             # colour per company, so two extra hues); the rest fold into one "Rest of suppliers" band
+
+technology_assumptions: ../../config-pypsa-earth/technology-assumptions/technology_assumptions.csv
+
+technologies:                # order of the overview grid; unit = what power_mw measures
+  nuclear-gen4: {label: "Gen IV nuclear", storage: false}
+  egs: {label: "Enhanced geothermal", storage: false}
+  sofc: {label: "Solid-oxide fuel cells", storage: false}
+  iron-air: {label: "Iron-air battery", storage: true, duration_h: 100}
+  vrfb: {label: "Vanadium flow battery", storage: true}         # duration = capacity-weighted mean of the projects
+  co2-battery: {label: "CO2 battery", storage: true}
+
+# Gen IV units come from the GEM tracker already parsed in ../nuclear-projects; the vendor of each unit from
+# data/gen4_vendor_map.csv (project, model -> vendor). Water-cooled microreactors and the old UK / North
+# Korean gas-cooled reactors are mapped include = no there.
+gem_units: ../nuclear-projects/build/nuclear_units.csv
+gen4_families: [fast, htgr, fhr, msr, microreactor, gcr]
+gem_status:                  # GEM status -> layer; everything else (paused, ended) is dropped
+  operating: operating
+  construction: construction
+  pre-construction: announced
+  announced: announced
+
+# project rows whose note starts with one of these are kept in data/projects.csv for reference but not
+# counted (outside the technology: conventional hydrothermal, research tests without commercial output)
+exclude_note_prefixes: [CONVENTIONAL, HYDROTHERMAL, RESEARCH, EXCLUDE]
+
+# stated factory capacity (MW/yr) is run at nameplate from its first year until this year; that is the
+# manufacturing ceiling, no growth assumed
+factory_until: 2040
+
+continents:
+  NAM: North America
+  SAM: South America
+  EUR: Europe
+  ASI: Asia
+  AFR: Africa
+  OCE: Oceania

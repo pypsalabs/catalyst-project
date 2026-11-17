@@ -1,0 +1,42 @@
+project,model,vendor,include,reason
+Aalo Atomics Idaho nuclear power plant,Aalo-1,Aalo Atomics,yes,sodium-cooled fast microreactor (Aalo-1 / Aalo Pod)
+Aalo Atomics Texas A&M nuclear power plant,Aalo-1,Aalo Atomics,yes,sodium-cooled fast microreactor (Aalo-1 / Aalo Pod)
+Aurora nuclear power plant,Aurora,Oklo,yes,liquid-metal fast reactor; Aurora-INL; under construction since Sept 2025 groundbreaking (see projects.csv correction)
+Bangka Belitung Islands nuclear power plant,Thorcon,ThorCon,yes,molten salt reactor (ThorCon 500)
+Beloyarsk nuclear power plant,BN-1200M,Rosatom,yes,sodium fast reactor
+Beloyarsk nuclear power plant,BN-600,Rosatom,yes,sodium fast reactor (operating since 1980/81)
+Beloyarsk nuclear power plant,BN-800,Rosatom,yes,sodium fast reactor
+Blykalla nuclear power plant,unknown,Blykalla,yes,lead-cooled fast reactor (SEALER-55) inferred from owner
+Cascade SMR nuclear power plant,Xe-100,X-energy,yes,pebble-bed HTGR; Energy Northwest / Amazon project
+Chalk River nuclear power plant,unknown,USNC / NANO Nuclear (MMR),yes,HTGR microreactor (USNC MMR by Global First Power); shelved; MMR design now owned by NANO Nuclear as KRONOS MMR
+Eielson Air Force Base nuclear power plant,Aurora,Oklo,yes,liquid-metal fast microreactor
+Green River nuclear power plant,BANR,BWXT,yes,BWXT Advanced Nuclear Reactor (HTGR microreactor) for Tata Chemicals
+Hartlepool nuclear power plant,AGR,EDF Energy (legacy AGR),no,AGR is a legacy UK gas-cooled reactor not Gen IV
+Haskell County Last Energy nuclear power plant,PWR-20,Last Energy,no,water-cooled PWR microreactor
+Hermes nuclear power plant,KP-FHR,Kairos Power,yes,fluoride salt-cooled pebble reactor (Hermes 1 non-power; Hermes 2 50 MWe; see projects.csv corrections)
+Heysham nuclear power plant,AGR,EDF Energy (legacy AGR),no,AGR is a legacy UK gas-cooled reactor not Gen IV
+Jiangsu Xuwei nuclear power plant,HTR-PM,CNNC / INET (HTR-PM),yes,HTR-PM600 pebble-bed HTGR (six modules one turbine) coupled with Hualong One for process steam
+Kairos Power Texas A&M nuclear power plant,KP-FHR,Kairos Power,yes,fluoride salt-cooled pebble reactor
+Kalpakkam nuclear power plant,Prototype,IGCAR / BHAVINI,yes,PFBR sodium fast breeder; first criticality 6 Apr 2026; grid injection planned from Dec 2026
+Kalpakkam nuclear power plant,unknown,IGCAR / BHAVINI,yes,FBR 1 and 2 twin sodium fast breeders (successors of PFBR) inferred from site
+Katowice nuclear power plant,PWR-20,Last Energy,no,water-cooled PWR microreactor
+Kemmerer nuclear power plant,unknown,TerraPower,yes,Natrium sodium fast reactor with molten-salt storage; unit 1 under construction since 23 Apr 2026
+Llynfi nuclear power plant,PWR-20,Last Energy,no,water-cooled PWR microreactor
+Long Mott nuclear power plant,Xe-100,X-energy,yes,pebble-bed HTGR for Dow Seadrift
+Maoming nuclear power plant,unknown,CNNC / INET (HTR-PM),yes,HTGR family; 200 MW units match HTR-PM-type modules; vendor inferred (CNNC owner; INET/Chinergy design) - uncertain
+Natura Permian Basin nuclear power plant,MSR-100,Natura Resources,yes,molten salt reactor
+Natura Resources Texas A&M nuclear power plant,MSR-100,Natura Resources,yes,molten salt reactor
+Nyongbyon nuclear power plant,MAGNOX,DPRK (legacy Magnox),no,Magnox-type gas-graphite reactor not Gen IV
+Oklo nuclear power plant,Aurora,Oklo,yes,liquid-metal fast reactor
+Philippines nuclear power plant,STGR20,Southern Infrastructure / Kaizen ANZ (STGR20),yes,thorium-fuelled simple high-temperature gas reactor (HTGR) proposal; shelved
+Point Lepreau nuclear power plant,ARC-100,ARC Clean Technology,yes,sodium fast reactor
+Point Lepreau nuclear power plant,SSR-W,Moltex Energy,yes,stable salt reactor - wasteburner (MSR)
+Prodigy nuclear power plant,unknown,Westinghouse (eVinci),yes,Prodigy transportable plant designed around Westinghouse eVinci heat-pipe microreactor (5 MWe) - inferred from Prodigy/Westinghouse partnership
+Project Pele nuclear power plant,unknown,BWXT,yes,BWXT HTGR (TRISO) transportable microreactor for DoD
+Seversk nuclear power plant,BREST-OD-300,Rosatom,yes,lead-cooled fast reactor
+Shidao Bay nuclear power plant,HTR-PM,CNNC / INET (HTR-PM),yes,HTR-PM demonstration (two reactor modules one turbine; Huaneng-led owner)
+Southern Ohio Diversification Initiative nuclear power plant,Aurora,Oklo,yes,liquid-metal fast reactor; probably the same Pike County land as the Oklo-Meta 1.2 GW campus (see projects.csv)
+Texas A&M University IMSR nuclear power plant,IMSR-400,Terrestrial Energy,yes,integral molten salt reactor (Project Tetra)
+Torness nuclear power plant,AGR,EDF Energy (legacy AGR),no,AGR is a legacy UK gas-cooled reactor not Gen IV
+Xiapu nuclear power plant,unknown,CNNC / INET (HTR-PM),yes,HTR unit at Xiapu listed by GEM under Huaneng; HTR-PM600 feasibility site; vendor inferred - uncertain
+Xin'an nuclear power plant,unknown,CNNC / INET (HTR-PM),yes,HTGR family; listed as HTR-PM600 in WNA reactor database (Xin'an HTR-PM 600-1); CNNC owner
