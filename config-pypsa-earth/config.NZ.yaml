@@ -1,0 +1,88 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Catalyst / test region NZ (New Zealand), ONE NODE, power-only, weather year 2013. Written from config.JP.yaml
+# (2026-11-10): a standalone test region of the learning pipeline (24/7 CFE overlay `cfe` and its learning branches,
+# README "24/7 CFE catalyst"; run_test_regions.sh). New Zealand stays in the OCE group as well, so:
+#   - catalyst.world_page: false keeps NZ off the world page (plot_world.py), where OCE already counts it;
+#   - never put NZ and OCE into one learning market (its builds would count twice).
+# Ember demand 44 TWh (0.14 % of the world). Same settings as OCE (100 kV, GADM level 0 + alternative
+# clustering, excluder 1000 m, ATKc), the OCE cutout cropped by clip_bbox. clip_bbox ends at 179.5 E: the Chatham Islands (176.5 W) are left out, so no antimeridian box.
+
+countries: ["NZ"]
+
+run:
+  name: NZ
+  shared_cutouts: true
+
+scenario:
+  simpl: [""]
+  clusters: [1]
+  ll: [copt]
+  opts: [Co2L]
+
+snapshots:
+  start: "2013-01-01"
+  end: "2014-01-01"
+  inclusive: left
+
+enable:
+  retrieve_databundle: true
+  retrieve_cost_data: true
+  retrieve_cutout: false
+  build_cutout: false     # cutouts/cutout-2013-era5-oceania.nc: hardlink made by prestage.sh
+  download_osm_data: true
+  build_natura_raster: false
+  progress_bar: false
+
+download_osm_data_nprocesses: 1
+
+osm:
+  clean_osm_data:
+    threshold_voltage: 100000
+
+atlite:
+  nprocesses: 1
+  default: cutout-2013-era5-oceania
+  cutouts:
+    cutout-2013-era5-oceania:
+      module: era5
+      dx: 0.3
+      dy: 0.3
+      x: [80.1, 179.7]
+      y: [-49.8, 19.8]
+
+load_options:
+  fallback_source: demcast
+
+electricity:
+  renewable_carriers: [solar, onwind, offwind-ac, offwind-dc, hydro]
+
+renewable:
+  onwind:
+    excluder_resolution: 1000
+  offwind-ac:
+    excluder_resolution: 1000
+  offwind-dc:
+    excluder_resolution: 1000
+  solar:
+    excluder_resolution: 1000
+
+build_shape_options:
+  nprocesses: 1
+  gdp_method: standard
+  gadm_layer_id: 0
+  clip_bbox: [165.5, -48.0, 179.5, -33.5]
+
+clustering:
+  alternative_clustering: true
+  simplify_network:
+    p_threshold_drop_isolated: false
+
+solving:
+  solver:
+    name: gurobi
+
+catalyst:
+  single_node: true
+  extra_opts: ATKc
+  world_page: false

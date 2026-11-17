@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# 24/7 CFE pathway with learning pooled over all modelled regions (decided 2026-11-10). Run as ONE pathway over all
+# regions, `run.sh pathway:cfepool:JP,IN1,NZ,ZA,MA`: every region solves a horizon, then clear_market.py adds up the
+# advanced-technology builds of all of them, extrapolates the sum to the rest of the world (x 1 / the regions' joint
+# share of 2024 world demand; JP + IN + ZA + MA + NZ = 11.0 %, x9.1) and the resulting costs apply to every region in
+# the next horizon. Same settings as overlay.cfeext.yaml (inherits cfe, branches from <R>-cfe at 2030, where nothing
+# has been learned yet); a name of its own so that its stages <R>-cfepool and its market results/learning/cfepool/
+# stand next to the single-region branches cfesec / cfemid / cfeext. Reference without buyers: overlay.refpool.yaml.
+inherit: cfe
+
+catalyst:
+  branch: {from: cfe, year: 2030}
+  learning_spillover: extrapolate  # m = 1 / share of world demand of ALL stages of the pathway call (clear_market.py coverage())

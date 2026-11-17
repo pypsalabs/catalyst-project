@@ -62,6 +62,8 @@ def plot_mix(stages, mix, out, region):
     """Generation per horizon, stacked bars per sensitivity; the 24/7 CFE buyers' own plants on top, hatched."""
     from matplotlib.patches import Patch
 
+    if "kind" in mix:   # generation only: storage discharge would count energy twice
+        mix = mix[mix.kind != "storage"]
     mix = mix.assign(group=mix.carrier.map(mix_group), grid=mix.twh - mix.twh_buyer)
     years = sorted(mix.year.unique())
     order = [g for g, _, _ in MIX_GROUPS]

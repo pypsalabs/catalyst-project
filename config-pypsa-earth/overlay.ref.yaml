@@ -8,4 +8,11 @@
 inherit: myopic
 
 catalyst:
-  learning_spillover: 1
+  learning_spillover: 1            # what the unmodelled rest of the world builds of the advanced technologies the modelled regions build:
+                                   # clear_market.py multiplies the modelled builds by m before they enter Wright's law (cumulative capacity),
+                                   # share = the modelled regions' share of 2024 world demand (JP 3.29 %); values:
+                                   #   1 (or unset)  secluded: only the modelled builds count                              (JP x1)  <- this overlay
+                                   #   midpoint      m = sqrt(1/share), the geometric middle of the two extremes           (JP x5.5)
+                                   #   extrapolate   m = 1/share: the rest of the world builds as much per MWh of demand   (JP x30.4)
+                                   #   <number>      m as given, e.g. 2
+                                   # exogenous deployment (LEARNING_EXOGENOUS) is not scaled; all stages of one market need the same value

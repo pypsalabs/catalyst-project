@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Catalyst scenario "cfenode" = overlay.cfe.yaml under a name of its own (2026-11-11), so that a side test (MA10, the
+# ten-node Morocco) gets its own learning market results/learning/cfenode/ and leaves the pooled trunk market
+# results/learning/cfe/ alone.
+inherit: cfe

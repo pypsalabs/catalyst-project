@@ -1,0 +1,88 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Catalyst / test region MA (Morocco), ONE NODE, power-only, weather year 2013. Written from config.JP.yaml
+# (2026-11-10): a standalone test region of the learning pipeline (24/7 CFE overlay `cfe` and its learning branches,
+# README "24/7 CFE catalyst"; run_test_regions.sh). Morocco stays in the AFR group as well, so:
+#   - catalyst.world_page: false keeps MA off the world page (plot_world.py), where AFR already counts it;
+#   - never put MA and AFR into one learning market (its builds would count twice).
+# Ember demand 45 TWh (0.15 % of the world). Same settings as AFR (100 kV, GADM level 0 + alternative
+# clustering, excluder 1000 m, ATKc), the AFR cutout cropped by clip_bbox. Western Sahara is in or out as GADM's MAR shape has it (the box would hold it).
+
+countries: ["MA"]
+
+run:
+  name: MA
+  shared_cutouts: true
+
+scenario:
+  simpl: [""]
+  clusters: [1]
+  ll: [copt]
+  opts: [Co2L]
+
+snapshots:
+  start: "2013-01-01"
+  end: "2014-01-01"
+  inclusive: left
+
+enable:
+  retrieve_databundle: true
+  retrieve_cost_data: true
+  retrieve_cutout: false
+  build_cutout: false     # cutouts/cutout-2013-era5-africa.nc: hardlink made by prestage.sh
+  download_osm_data: true
+  build_natura_raster: false
+  progress_bar: false
+
+download_osm_data_nprocesses: 1
+
+osm:
+  clean_osm_data:
+    threshold_voltage: 100000
+
+atlite:
+  nprocesses: 1
+  default: cutout-2013-era5-africa
+  cutouts:
+    cutout-2013-era5-africa:
+      module: era5
+      dx: 0.3
+      dy: 0.3
+      x: [-19.5, 67.5]
+      y: [-37.5, 39.3]
+
+load_options:
+  fallback_source: demcast
+
+electricity:
+  renewable_carriers: [solar, onwind, offwind-ac, offwind-dc, hydro]
+
+renewable:
+  onwind:
+    excluder_resolution: 1000
+  offwind-ac:
+    excluder_resolution: 1000
+  offwind-dc:
+    excluder_resolution: 1000
+  solar:
+    excluder_resolution: 1000
+
+build_shape_options:
+  nprocesses: 1
+  gdp_method: standard
+  gadm_layer_id: 0
+  clip_bbox: [-17.5, 20.5, -0.5, 36.5]
+
+clustering:
+  alternative_clustering: true
+  simplify_network:
+    p_threshold_drop_isolated: false
+
+solving:
+  solver:
+    name: gurobi
+
+catalyst:
+  single_node: true
+  extra_opts: ATKc
+  world_page: false

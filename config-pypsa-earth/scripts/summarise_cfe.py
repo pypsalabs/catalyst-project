@@ -10,10 +10,15 @@ Writes results/learning/<scen>/summary.csv per stage <R>-<scen> (one row per hor
     year, stage, scen, technology, gw, gw_buyer, gwh, gwh_buyer          (advanced rows of technology_assumptions.csv;
                                                                          all vintages in the solved network)
 and results/learning/<scen>/cfe.csv (one row per horizon x buyer: fork scripts/cfe.py summary(): cfe_score,
-cost_per_mwh, grid_price_per_mwh, premium_per_mwh, ... in USD2024/MWh) and results/learning/<scen>/factors.csv
+cost_per_mwh, grid_price_per_mwh, premium_per_mwh, ... in USD2024/MWh; plus the newly acquired part of the
+horizon: demand_new_twh = the buyer's load growth since the horizon before, cost_new_per_mwh = annual cost of the
+buyer assets built in this horizon / that growth, minus the buyer's export revenue per MWh of its whole load
+(ASSUMPTION: every MWh of buyer load sells the same excess), premium_new_per_mwh = that minus the grid price) and results/learning/<scen>/factors.csv
 (year, pool, component, factor, cumulative_capacity, unit) from the market files of the stage's horizons
-(the parent market's for the shared ones), and results/learning/<scen>/mix.csv (year, carrier, twh, twh_buyer: annual
-generation incl. hydro reservoir dispatch, storage left out; twh_buyer = the 24/7 CFE buyers' own plants).
+(the parent market's for the shared ones), and results/learning/<scen>/mix.csv (year, carrier, kind, twh, twh_buyer:
+kind "generation" = annual generation incl. hydro reservoir dispatch, kind "storage" = annual discharge of PHS,
+batteries, iron-air, ... into the AC bus, energy that was generated before and so is counted twice in a sum over
+both kinds; twh_buyer = the 24/7 CFE buyers' own plants).
 """
 import os
 import re
@@ -53,18 +58,28 @@ def capacities(n, rows):
 
 
 def generation(n):
-    """Annual generation per carrier (TWh), split into the 24/7 CFE buyers' own plants and the rest of the system:
-    generators plus the dispatch of hydro reservoirs; pure storage (PHS, batteries, iron-air, ...) is left out."""
+    """Annual supply per carrier (TWh), split into the 24/7 CFE buyers' own plants and the rest of the system.
+    kind "generation": generators plus the dispatch of hydro reservoirs. kind "storage": what pure storage feeds
+    back into an AC bus (storage units other than hydro; links from a store's bus to an AC bus, named after the
+    store's bus carrier, e.g. battery)."""
     w = n.snapshot_weightings.generators
     g = n.generators
     e = n.generators_t.p.reindex(columns=g.index, fill_value=0.0).mul(w, axis=0).sum() / 1e6
-    d = pd.DataFrame(dict(carrier=g.carrier, buyer=g.bus.str.endswith(BUYER), twh=e))
-    su = n.storage_units[n.storage_units.carrier == "hydro"]
+    d = [pd.DataFrame(dict(carrier=g.carrier, kind="generation", buyer=g.bus.str.endswith(BUYER), twh=e))]
+    su = n.storage_units
     if len(su):
         es = n.storage_units_t.p.reindex(columns=su.index, fill_value=0.0).clip(lower=0).mul(w, axis=0).sum() / 1e6
-        d = pd.concat([d, pd.DataFrame(dict(carrier=su.carrier, buyer=su.bus.str.endswith(BUYER), twh=es))])
-    t = d.groupby(["carrier", "buyer"]).twh.sum().unstack(fill_value=0.0).reindex(columns=[False, True], fill_value=0.0)
-    return [dict(carrier=c, twh=float(r[False] + r[True]), twh_buyer=float(r[True])) for c, r in t.iterrows()]
+        kind = su.carrier.eq("hydro").map({True: "generation", False: "storage"})
+        d.append(pd.DataFrame(dict(carrier=su.carrier, kind=kind, buyer=su.bus.str.endswith(BUYER), twh=es)))
+    ln = n.links[(n.links.bus0.map(n.buses.carrier) != "AC") & (n.links.bus1.map(n.buses.carrier) == "AC")]
+    if len(ln):
+        el = -n.links_t.p1.reindex(columns=ln.index, fill_value=0.0).clip(upper=0).mul(w, axis=0).sum() / 1e6
+        d.append(pd.DataFrame(dict(carrier=ln.bus0.map(n.buses.carrier), kind="storage",
+                                   buyer=ln.bus1.str.endswith(BUYER), twh=el)))
+    t = (pd.concat(d).groupby(["carrier", "kind", "buyer"]).twh.sum().unstack(fill_value=0.0)
+         .reindex(columns=[False, True], fill_value=0.0))
+    return [dict(carrier=c, kind=k, twh=float(r[False] + r[True]), twh_buyer=float(r[True]))
+            for (c, k), r in t.iterrows()]
 
 
 def cfe_module():
@@ -105,6 +120,17 @@ def summarise(stage):
         if os.path.exists(m):
             d = pd.read_csv(m, comment="#")[["pool", "component", "unit", "factor", "cumulative_capacity"]]
             fac.append(d.assign(year=y, stage=stage, scen=scen))
+    # the newly acquired part of each horizon (a buyer share that grows over the horizons, catalyst.cfe.share)
+    prev = {}
+    for r in sorted(cfe, key=lambda r: r["year"]):
+        if r.get("cost_own_new") is None:
+            continue   # solved before the fork recorded it
+        grown = r["demand_twh"] - prev.get(r["buyer"], 0.0)
+        prev[r["buyer"]] = r["demand_twh"]
+        r["demand_new_twh"] = grown
+        if grown > 1e-6:
+            r["cost_new_per_mwh"] = r["cost_own_new"] / (grown * 1e6) - r["revenue_per_mwh"]
+            r["premium_new_per_mwh"] = r["cost_new_per_mwh"] - r["grid_price_per_mwh"]
     out = os.path.join("results", "learning", scen)
     os.makedirs(out, exist_ok=True)
     tables = dict(summary=pd.DataFrame(caps), cfe=pd.DataFrame(cfe), mix=pd.DataFrame(mix),

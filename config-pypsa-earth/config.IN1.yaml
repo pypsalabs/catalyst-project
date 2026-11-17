@@ -1,0 +1,93 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Catalyst / test region IN1: India as ONE NODE, power-only, weather year 2013 (2026-11-10). The India analogue of
+# config.JP.yaml: a standalone test region of the learning pipeline (24/7 CFE overlay `cfe` and its learning
+# branches, README "24/7 CFE catalyst"). Same settings as config.IN.yaml (the 50-node archetype stage) except the run
+# name, clusters: 1 and the catalyst block; it has no prenetwork stage of its own: resources/IN1/ are per-entry
+# symlinks to resources/IN/ (shapes, OSM, base network, renewable profiles, plant list; own bus_regions/) and
+# networks/IN1/base.nc is a hardlink of networks/IN/base.nc, so every <IN1>-<scen> stage starts from India's base
+# network and clusters it to one node (k-means with one cluster, not alternative_clustering: India's GADM shapes
+# are at state level).
+#   - catalyst.world_page: false keeps IN1 off the world page (plot_world.py), where IN already counts India;
+#   - never put IN1 and IN into one learning market (India's builds would count twice).
+# Ember demand 2034 TWh (6.6 % of the world).
+
+countries: [IN]
+
+run:
+  name: IN1
+  shared_cutouts: true
+
+scenario:
+  simpl: [""]            # empty: simplify_network skips its pre-clustering (no solver call)
+  clusters: [1]
+  ll: [copt]
+  opts: [Co2L]
+
+snapshots:
+  start: "2013-01-01"
+  end: "2014-01-01"
+  inclusive: left
+
+enable:
+  retrieve_databundle: true
+  retrieve_cost_data: true
+  retrieve_cutout: false  # no prebuilt cutout; build an India one via CDS
+  build_cutout: false     # cutouts/cutout-2013-era5-india.nc exists (built by the IN stage)
+  download_osm_data: true
+  build_natura_raster: false
+  progress_bar: false
+
+download_osm_data_nprocesses: 1   # fork patch: earth-osm single process
+
+osm:
+  clean_osm_data:
+    threshold_voltage: 200000   # [V] keeps 765 / 400 / 220 kV; 220 kV is the top intra-state level, same threshold as US and BR.
+                                # 132 / 110 / 66 kV subtransmission is left out.
+    drop_duplicate_ids: true      # a cross-border way arrives once per country extract and became parallel lines
+    fix_indirect_circuits: true   # voltage=230000;230000, cables=6 became 3 circuits per voltage instead of 1
+  build_osm_network:
+    geodesic_length: true         # Web Mercator stretches lengths by 1 / cos(latitude)
+
+links:
+  dc_projects:                    # HVDC capacity per project, README "Grid corrections"; overrides dc_ratings of statistics.yaml
+    enable: true                  # table dc_projects.csv = data/hvdc/hvdc_project_table.csv (tables.smk)
+    reference_year: 2024          # the calibration year; myopic horizons would need the table's years per horizon
+    unmatched: zero               # links without a project: unnamed pieces of lines added separately, later lines, links outside the table
+    add_missing: true             # BritNed, COBRA, Kontek, Baihetan-Jiangsu, ...: in service, but not routable in OSM
+
+atlite:
+  nprocesses: 1
+  default: cutout-2013-era5-india
+  cutouts:
+    cutout-2013-era5-india:
+      module: era5
+      dx: 0.3
+      dy: 0.3
+      x: [65.5, 98.0]      # GADM India (68.1..97.4 E, 6.7..37 N incl. Andaman & Nicobar and Lakshadweep) plus the
+      y: [4.5, 37.5]       # mainland EEZ (65.6 E, 4.8 N); the Andaman EEZ has no ISO_TER1 and is dropped by build_shapes anyway
+
+electricity:
+  renewable_carriers: [solar, onwind, offwind-ac, offwind-dc, hydro]
+
+build_shape_options:
+  nprocesses: 1
+  gdp_method: standard    # GDP_PPP raster ships in bundle_data_earth (data/GDP); used with population to distribute demand to buses
+  clip_bbox: [65.5, 4.5, 98.0, 37.5]   # fork patch: same box as the cutout (nothing to drop for India; kept for the invariant)
+
+cluster_options:
+  simplify_network:
+    p_threshold_merge_isolated: false  # no merge before the fetch: every fragment joins its own nearest backbone bus
+    s_threshold_fetch_isolated: 0.05   # isolated AC fragments below 5 % of the national load join the nearest backbone bus
+                                       # (2026-10-20): the absolute drop / merge thresholds (20 / 300 MW mean load) left 41
+                                       # more single-bus islands at the 2050 demand of IN-zero than at 2024's, 54 sub-networks
+                                       # for 50 clusters; a share of the load keeps `now` and `zero` on the same topology
+
+solving:
+  solver:
+    name: gurobi          # only cluster_network's MIQP uses it before prepare_network; scip is the fallback
+
+catalyst:
+  single_node: true       # one node: the overlay target is the solved network, no validation dashboard
+  extra_opts: ATKc        # as the rest-of-world groups and JP (no cross-border exchange; nothing to cut at one node)
+  world_page: false       # test region: India is on the world page through config.IN.yaml

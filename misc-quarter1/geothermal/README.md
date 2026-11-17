@@ -369,3 +369,15 @@ profitable unused potential, two thirds Himalayan).
 - `limberger_temperature_voxel.nc` — Limberger 3-D temperature model of Europe (`retrieve_limberger` rule, Zenodo 22149195, md5 checked).
 - `ghfdb2024/` — IHFC Global Heat Flow Database Release 2024 v2026.03 with its data description (`retrieve_ghfdb` rule, datapub.gfz.de).
 - Heat flow, WorldClim and Natural Earth are read from `../country-classification/data/`.
+
+## EGS as the model sees it in one region (`plot_model_egs.py`, 2026-11-10)
+
+`figures/egs_model_<R>.{png,pdf}` (Japan: `egs_model_JP`): maps of reservoir temperature at the cost-optimal depth,
+that depth, the developable capacity per cell, and the supply-curve tranche of every cell, plus the supply curve
+itself with the tranches split into power plant and wellfield. The tranches are rebuilt with the binning of the
+fork's `scripts/build_supply_curve.py` from the `supply_curves: egs:` block of
+`config-pypsa-earth/overlay.myopic.yaml` and checked against the stage's `supply_curve_egs_*.nc` (the script stops
+if they differ). Standalone, in the fork's environment (geopandas):
+`cd models/pypsa-earth && pixi run python ../../misc-quarter1/geothermal/plot_model_egs.py JP-cfe Japan`.
+Japan: 475 cells, 289 GW developable in five tranches (0.1 / 102 / 64 / 42 / 81 GW at 5,900 / 7,100 / 8,900 /
+10,900 / 15,100 USD2024 per kW, LCOE 82 / 97 / 121 / 146 / 199 USD/MWh before learning).

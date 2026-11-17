@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Catalyst scenario "cfezone" = overlay.cfe.yaml with the matching boundary widened from the node to the country
+# (2026-11-11; fork scripts/cfe.py `matching: zone`): the buyers of a country are matched together hour by hour, so a
+# buyer may balance its solar with wind contracted at another node; the power goes through the grid. Only differs
+# from `cfe` on networks with more than one node per country (side test MA10). Own learning market
+# results/learning/cfezone/.
+inherit: cfe
+
+catalyst:
+  cfe:
+    matching: zone

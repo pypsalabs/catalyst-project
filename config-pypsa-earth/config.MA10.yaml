@@ -1,0 +1,90 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Catalyst / test region MA10: Morocco with TEN nodes, power-only, weather year 2013 (2026-11-11). A side test to
+# config.MA.yaml (one node): does the 24/7 CFE buyer take iron-air once it can only procure at its own node instead
+# of from wind and solar pooled over the whole country? (README "Why EGS and no iron-air".) Same settings as MA except
+# the run name, clusters: 10 and k-means on Voronoi bus regions (alternative_clustering: false; with GADM level 0
+# the one-node stage has a single region). Built from scratch in resources/MA10/ (OSM extract, cutout, bundle shared
+# with MA). Run with its own learning market: overlay `cfenode` (= cfe), never in a pathway with MA.
+#   - catalyst.world_page: false keeps MA10 off the world page; no single_node: the grid inside Morocco stays, ATKc
+#     only cuts cross-border exchange.
+
+countries: ["MA"]
+
+run:
+  name: MA10
+  shared_cutouts: true
+
+scenario:
+  simpl: [""]
+  clusters: [10]
+  ll: [copt]
+  opts: [Co2L]
+
+snapshots:
+  start: "2013-01-01"
+  end: "2014-01-01"
+  inclusive: left
+
+enable:
+  retrieve_databundle: true
+  retrieve_cost_data: true
+  retrieve_cutout: false
+  build_cutout: false     # cutouts/cutout-2013-era5-africa.nc: hardlink made by prestage.sh
+  download_osm_data: true
+  build_natura_raster: false
+  progress_bar: false
+
+download_osm_data_nprocesses: 1
+
+osm:
+  clean_osm_data:
+    threshold_voltage: 100000
+
+atlite:
+  nprocesses: 1
+  default: cutout-2013-era5-africa
+  cutouts:
+    cutout-2013-era5-africa:
+      module: era5
+      dx: 0.3
+      dy: 0.3
+      x: [-19.5, 67.5]
+      y: [-37.5, 39.3]
+
+load_options:
+  fallback_source: demcast
+
+electricity:
+  renewable_carriers: [solar, onwind, offwind-ac, offwind-dc, hydro]
+
+renewable:
+  onwind:
+    excluder_resolution: 1000
+  offwind-ac:
+    excluder_resolution: 1000
+  offwind-dc:
+    excluder_resolution: 1000
+  solar:
+    excluder_resolution: 1000
+
+build_shape_options:
+  nprocesses: 1
+  gdp_method: standard
+  gadm_layer_id: 0
+  clip_bbox: [-17.5, 20.5, -0.5, 36.5]
+
+clustering:
+  alternative_clustering: false      # k-means on Voronoi bus regions
+  simplify_network:
+    p_threshold_drop_isolated: false
+    p_threshold_merge_isolated: false
+    s_threshold_fetch_isolated: 0.05   # isolated fragments below 5 % of the national load join the nearest backbone bus (as IN)
+
+solving:
+  solver:
+    name: gurobi
+
+catalyst:
+  extra_opts: ATKc
+  world_page: false
