@@ -8,15 +8,151 @@ Pointer to this file: `CLAUDE.md` (Conventions), so every agent session in this 
 
 ## Open items
 
-None. Add new items here (problem, target, what has to change with it, why it belongs in a sweep), and put anything
-an item leaves undecided under "Questions to ask before a sweep is planned".
+Add new items here (problem, target, what has to change with it, why it belongs in a sweep), and put anything an item
+leaves undecided under "Questions to ask before a sweep is planned".
+
+### A. Tranche factors come from a table, not from numbers in the config (noted 2026-11-16)
+
+**Problem.** `calibration: efficiency_spread` in `statistics.yaml` holds five numbers typed in by hand from
+`data/validation/efficiency_spread.csv` (rounded to two digits; only `scripts/build_efficiency_spread.py --check`,
+run by hand, notices a drift). It is the only adjustment of the fleet whose data sits in the config; every other one
+is a switch whose rule reads `resources/<run>/statistics/<name>.csv`.
+Second defect, same code: the model spreads the tranches symmetrically, `(1 - s), 1, (1 + s)`, but the measured
+thirds are not symmetric (worst / best third relative to the middle one: CCGT 0.92 / 1.08, coal 0.91 / 1.08,
+OCGT 0.89 / 1.18, oil 0.84 / 1.12, lignite 0.97 / 1.05; the model uses 0.86 / 1.14 for OCGT and oil).
+
+**Target.** The spread is always per carrier: there is no single value for all carriers, neither as a number in the
+config nor as a fallback in the code (decided 2026-11-16). The option becomes a plain switch (`efficiency_spread:
+true`); a carrier without a row in the table is not split. `prepare_network` takes
+`resources/<run>/statistics/efficiency_spread.csv` as an input; `tables.smk` writes it from
+`data/validation/efficiency_spread.csv`. The table carries one factor per tranche and carrier (`factor_low`,
+`factor_high`, the middle one), so the measured asymmetry enters and nothing is rounded by hand.
+
+**The commit "efficiency spread of the tranches per carrier" (`fd2f4ba8`) is removed with it** (asked 2026-11-16):
+it is redundant as a commit of its own, because the split should have been per carrier from the start. No commit of
+the final history introduces a single spread for all carriers and then generalises it; the tranche paragraph of the
+model doc loses its third commit and the sentence on it.
+
+**History (decided 2026-11-16): folded into the first tranche commit (`25c6e095`)**, so that commit is per carrier
+and table-driven from the start. This rewrites the 40 commits after it (third rewrite of the fork history: backup
+branch, old-to-new hash map, new hashes in the model doc and README, force-push on an explicit go).
+
+**Changes with it.** Fork: `split_tranches` in `scripts/calibrate_network.py`, `Snakefile`, `config.default.yaml`,
+`doc/configtables/calibration.csv` (which still calls the option a float, wrong since the per-carrier commit).
+Project: `tables.smk`, `statistics.yaml`, `scripts/build_efficiency_spread.py` (`--check` goes), `check_sources.py`.
+Model doc: tranche paragraph, Table `tab:fleetspread`, YAML block `tranches`, the three commit sentences.
+
+**Why in a sweep.** Changes every `now`, `zero` and pathway network (prepare_network and everything after it) and
+touches the tranche commits of the fork.
+
+### B. Model doc: remove the subsection "Check against real metrics" of Existing Fleet (noted 2026-11-16)
+
+**Problem / target.** The subsubsection `sec:fleet-check` at the end of `model-doc/doc/sections/fleet.tex` (plant
+list against the capacity statistic, plants dropped by filled retirement years, national capacity and heat-rate
+statistics, "What stays unvalidated") is to be removed. Asked for by the maintainer; reason not recorded.
+
+**Decided 2026-11-16.**
+- "What stays unvalidated", the list at the end of the subsection, goes too.
+- The two figures (`fig:fleetcheck`, `fig:fleetdropped`) and their scripts and rules are deleted
+  (`model-doc/scripts/plot_fleet_check.py`, `plot_fleet_dropped.py`, rules `modeldoc_fleet_check`,
+  `modeldoc_fleet_dropped`, their `modeldoc_pdf` inputs). `scripts/check_fleet.py` itself stays: it also writes the
+  tables of other figures (sources, vintage, retirements, plant-list tables).
+- The four sentences earlier in the section that point to `sec:fleet-check` for their evidence (intro of
+  "Adjustments", gas-mapping paragraph twice, plant-list scaling) get the one number each needs written into the
+  sentence; the references go.
+- The grid section's twin, "Check against real project metrics" (`sec:grid-check`), stays.
+
+**Changes with it.** `fleet.tex` and `modeldoc.smk` as above; bibliography entries cited only in the subsection;
+the two "unvalidated" bullets written on 2026-11-16 (US tranche spread, nuclear 40-year lifetime) go with the list.
+
+**Why here.** A change of the document only (no fork change, no rerun); listed here by request so it is done together
+with the sweep, whose item A rewrites the same section.
+
+### C. `scale_down` of the wind and solar plant list does not reach the network (found 2026-11-16)
+
+**Problem.** Fork commit `d040060e` (`electricity: estimate_renewable_capacities: scale_down`) scales the plants of a
+country down to the IRENA total where the list exceeds it, but in `attach_wind_and_solar`
+(`scripts/add_electricity.py`) the capacities handed to the generators (`caps_final`) are copied from the plant list
+*before* the scaling, so only the logged number and the gap fill see the scaled values. Found by
+`scripts/check_renewables.py` (table `model-doc/build/renewables_check/capacity.csv`) and visible in the rule's own
+log ("plant list scaled to the statistics (x0.84) ... gap filled = 18.16 GW" for India's solar, where no gap exists).
+Effect in the networks of 2026-11-13: China onshore wind 510.9 GW against IRENA's 480.0, China offshore 55.5 against
+41.3, India solar 115.7 against 97.6, GB offshore 18.9 against 15.9, NL offshore 6.8 against 4.7; about 69 GW in all.
+The one-node runs are not affected (their fleet is the statistic). The observed capacity factors of these countries
+are generation over the *statistic's* capacity, so the model generates more wind and solar there than observed.
+
+**Target.** Hand the scaled capacities on (take the copy after the scaling, or scale both). Two lines.
+
+**Changes with it.** Fork: `attach_wind_and_solar`. Model doc: the paragraph "Take installed wind and solar from
+IRENA 2024 and scale the plant list down to it" in `model-doc/doc/sections/renewables.tex` states the defect and its
+numbers; they go once it is fixed, and `check_renewables.py capacity` must then show no country above the statistic.
+
+**Why in a sweep.** Changes `elec.nc` and everything after it for US (since 2026-11-17: USW, USE), CN, IN and NWE.
+
+### D. Onshore wind counts every forest as eligible land, rainforest included (noted 2026-11-16)
+
+**Problem.** `renewable: onwind: copernicus: grid_codes` of v0.9.0 holds all twelve forest classes of the Copernicus
+map (111-126), at the full 3 MW/km2. Brazil's onshore potential is 17,100 GW, about half of it on forest and 5,300 GW
+on closed evergreen broadleaf forest (code 112); no law bans wind in the Amazon biome outright, but the 80 % legal
+reserve of the Forest Code, the conservation units and the indigenous lands leave no room for such a figure, and no
+wind farm stands in a state of the North region (ABEEolica 2024).
+
+**Measured effect (2026-11-16, read-only, from the `zero` screening networks and the cells files).** Small where the
+forest is rainforest, because rainforest is not windy: 99.5 % of Brazil's code-112 potential lies in weather cells
+with a capacity factor below 0.2, and the 2050 screening run builds only in classes above 0.3 (68 GW new, 0.6 % of
+the potential used). With potential-weighted cluster profiles (v0.9.0) the forest pulled the profile of every
+northern cluster down; the capacity weights and the resource classes of the fork removed that. Where the effect is
+real is temperate forest: in NWE 40 % of the onshore potential stands on forest (18 % in the cells above 0.3), and
+the 2050 screening run uses 42 % of the region's potential with 120 of 246 class generators at their limit. There,
+wind in managed forest is common practice (Germany 11 % of capacity, Sweden, Finland, Scotland), so a blanket
+exclusion would be wrong in the other direction. The same pattern holds for mountains (the Alps are eligible).
+
+**Target (to be decided).** In rising order of effort: (1) drop code 112 (and 122) from `grid_codes` of onshore wind,
+a config line, which also takes out non-tropical evergreen broadleaf forest; (2) a share per land-cover class instead
+of all-or-nothing (Eurek et al. 2017 use 10 % for every forest class), a new fork option; (3) exclude primary /
+unmanaged forest from a second raster: the forest-management map of Lesiv et al. 2022 (100 m, on the Copernicus grid,
+class 11 = no signs of management; Zenodo 5115984, CC BY 4.0) or Intact Forest Landscapes; as an input of the rule
+with a switch, not a path option.
+
+**Why in a sweep.** Changes `build_renewable_profiles` for every stage (hours per multi-node region) and every
+network after it. Model doc: the bullet on Brazil's potential in "Eligible land" of
+`model-doc/doc/sections/renewables.tex` goes or changes with it.
+
+### E. One hourly demand shape for US West and US East (noted 2026-11-17)
+
+**Problem.** The fork has one synthetic hourly demand series per country (GEGIS, DemandCast as fallback), spread over
+the buses by population and GDP. Since 2026-11-17 the US is two stages, `USW` and `USE` (README "US West / US East"),
+both `countries: [US]`: each gets the national series, scaled to its annual demand
+(`calibration/<year>/regions/<R>/demand.csv`). The US series is a blend of four time zones; the West's real load runs
+2-3 hours behind the East's, and its evening peak falls later against its solar output than the model has it. The
+former single `US` stage had the same error for its western buses.
+
+**Target (to be decided).** A demand shape per half: (1) shift the national series by the half's mean offset to UTC
+(no new data; keeps the blended shape); (2) hourly demand per interconnection or balancing authority from EIA-930
+(public, from 2015, so not the model's weather year 2013: needs a rule for mapping it); (3) a regional run of the
+synthetic demand model, if its inputs allow one. Whichever it is enters as a statistics table of the run and a switch
+in `build_demand_profiles`, not as a path option.
+
+**Changes with it.** Fork: `build_demand_profiles` (and `build_demand_profiles_horizon`). Parent:
+`scripts/build_region_tables.py`, `tables.smk`, README, model doc (Demand).
+
+**Why in a sweep.** Changes the demand profiles and every network after them for both US stages.
 
 ## Questions to ask before a sweep is planned
 
 **To the agent that plans a sweep: put the open questions listed here to the maintainer in the planning step, before the plan
 is finalised. Do not pick an answer yourself and do not bury them in the plan.**
 
-No open questions at the moment.
+- **Item A, what the asymmetric factors are relative to.** The measured factors are relative to the middle third of
+  the US fleet; the model applies them to each country's fleet efficiency (a mean over the whole fleet). With
+  asymmetric factors the three tranches no longer average to the fleet efficiency (OCGT: (0.89 + 1 + 1.18) / 3 =
+  1.02), so the fuel burnt at equal dispatch shifts. Either rescale the factors per carrier so that the fleet
+  efficiency is kept, or accept the shift.
+- **Item A, number of tranches.** Three equal thirds as now, or more (the table could carry quintiles)?
+- **Item D, which rule for forest.** Drop the rainforest codes only, a reduced share on all forest, or a raster of
+  unmanaged forest (see the three targets of item D)? And should a slope or elevation limit come with it?
+- **Item E, which demand shape for the two US stages.** A time shift of the national series, EIA-930 data of another
+  year, or a regional run of the demand model?
 
 ## Done: sweep of 2026-11-16
 
