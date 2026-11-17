@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# The no-CFE reference pathway (overlay ref, S1) WITHOUT resource classes, with its own learning market
+# results/learning/refnorc/. The A/B partner of the classes, which are on by default since 2026-11-12
+# (statistics.yaml; README "Resource classes").
+inherit: ref
+
+renewable:
+  onwind:
+    resource_classes: 1   # 1 = off: no class rules in the DAG
+  solar:
+    resource_classes: 1

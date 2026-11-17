@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# 24/7 CFE trunk (overlay cfe) to 2050 WITHOUT resource classes (one onshore-wind and one solar generator per
+# region, as before 2026-11-12), with its own learning market results/learning/cfenorc/ (secluded learning). The A/B
+# partner of the classes, which are on by default since 2026-11-12 (statistics.yaml; README "Resource classes").
+inherit: cfe
+
+renewable:
+  onwind:
+    resource_classes: 1   # 1 = off: no class rules in the DAG
+  solar:
+    resource_classes: 1
