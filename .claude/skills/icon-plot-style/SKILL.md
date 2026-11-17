@@ -1,9 +1,12 @@
 ---
 name: icon-plot-style
-description: The DEFAULT style for every matplotlib chart in this repo (bar, stacked bar, line, stacked area, scatter, ...), from plotstyle/ - ink outlines, steel greys, icon accent colours, a ground strip as baseline, square corners, derived from the technology icons. Use whenever you write or change plotting code here, unless the user asks for another look.
+description: SUPERSEDED as the repo default on 2026-11-10 by study-plot-style. The icon plot style from plotstyle/ (ink outlines, steel greys, icon accent colours, ground strip), kept for figures already made with it. Use ONLY when the user asks for the icon look or when touching a figure that must stay in it.
 ---
 
-# Icon plot style for matplotlib (repo default)
+# Icon plot style for matplotlib (superseded 2026-11-10)
+
+**No longer the repo default: new and reworked charts use the study style (`study-plot-style` skill,
+`plotstyle/studystyle.py`). What follows describes the icon style for the figures that keep it.**
 
 Every new or reworked matplotlib chart in this repository uses this style unless the user asks otherwise
 (decided 2026-10-07). Maps keep their own colormaps but take the fonts, ink, and outline weights from here.
