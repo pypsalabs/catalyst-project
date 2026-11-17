@@ -1,2 +1,327 @@
+% Renewables & Weather: the standard procedure (rules build_cutout, build_renewable_profiles, add_electricity, cluster_network)
+% and the adjustments (one paragraph per commit of the fork). Numbers from ../scripts/check_renewables.py (read-only; tables
+% in ../build/renewables_check/); figures from scripts/plot_renew_*.py.
 \subsection{Renewables \& Weather}\label{sec:renewables}
-\tbd
+
+Renewables are increasingly becoming the backbone of bulk power generation.
+Their inclusion in the model revolves around the volume and location of existing installations, regional limits on further expansion, and regional and temporal generation potential per MW installed.
+
+This section covers all three for onshore and offshore wind and solar photovoltaics.
+Hydropower inflow (Section~\ref{sec:hydro}) and the ambient temperature of geothermal plants (Section~\ref{sec:costs}) are derived from the same weather data and are described there.
+The 2024 networks of the 132 modelled countries hold \SI{1881}{GW} of solar, \SI{1081}{GW} of onshore and \SI{105}{GW} of offshore wind (Figure~\ref{fig:renewfleet}) [delete this sentence and put the reference to the figure somewhere else where it fits. it should keep its position].
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{renew_fleet.pdf}
+  \caption{Installed solar, onshore wind and offshore wind capacity in the 2024 networks, for the twelve countries with the largest sum of the three.
+  They hold 85\,\% of the wind and solar capacity of all modelled countries.}
+  \label{fig:renewfleet}
+\end{figure}
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{renew_map.pdf}
+  \caption{Model capacity factor of the installed wind and solar fleets relative to the observed capacity factor, per modelled country.
+  The model capacity factor is that of PyPSA-Earth before the adjustments of this section: the mean of the profiles from the ERA5 weather of 2013, weighted by the installed capacity at each bus (Section~\ref{sec:renewables-standard}).
+  The observed capacity factor is the generation of 2024 over the capacity of 2024 in \textit{Ember 2024} \citep{ember2025}.
+  Right: the fleet capacity and the number of countries per class.
+  In the two outer classes the scaling of Section~\ref{sec:renewables-adjust} reaches its limit.
+  Country borders from \citet{naturalearth}.}
+  \label{fig:renewmap}
+\end{figure}
+
+Out of the box, the capacity factors of the model come from one weather year alone, and the installed capacity from the plant list and from country totals of 2023.
+Over all countries the model capacity factor of the fleets is close to the observed one (wind 0.238 against 0.251, solar 0.144 against 0.130), but single countries are far off (Figure~\ref{fig:renewmap}): Great Britain's wind fleet reaches 0.44 against an observed 0.30, Türkiye's 0.12 against 0.32 [This paragraph is not good. Make the central message more obvious: the main issues that the adjustments are meant to address. otherwise this is random sharin of information].
+
+\subsubsection{Standard procedure}\label{sec:renewables-standard}
+
+This subsection describes what PyPSA-Earth 0.9.0 does without any change of the catalyst project.
+
+Fundamentally, the model's workflow transforms weather data into renewable potential through a sequence of functions. 
+
+\paragraph{Weather data} (rules \texttt{retrieve\_cutout}, \texttt{build\_cutout})
+\begin{itemize}[nosep,leftmargin=*]
+  \item The initial weather data comes from the ERA5 reanalysis \citep{hersbach2020}, read through the package atlite \citep{atlite}.
+  \item The output of atlite is a \textit{cutout} which is a file with the hourly fields a region needs (wind speed at \SI{100}{m}, solar radiation, temperature, runoff) on a grid of 0.3 degrees, which is about \SI{30}{km}.
+  \item By default, that data is from 2013 in every run and for every model year: the model of 2050 sees the weather of 2013.
+  \item PyPSA-Earth downloads one prebuilt cutout per continent, or builds one for the modelled countries from the Copernicus Climate Data Store [add reference].
+\end{itemize}
+Figure~\ref{fig:renewcutouts} shows the extent of the cutouts used in this project.
+The two European runs read the cutout of PyPSA-Eur \citep{horsch2018pypsa}, in which the solar radiation comes from the satellite data set SARAH-3 \citep{sarah3} instead of ERA5.
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{renew_cutouts.pdf}
+  \caption{The weather cutouts read by the runs.
+  All hold the year 2013, hourly, on a 0.3 degree grid.
+  Country borders from \citet{naturalearth}.}
+  \label{fig:renewcutouts}
+\end{figure}
+
+\needspace{5\baselineskip}
+\paragraph{Eligible land} (rule \texttt{build\_renewable\_profiles})
+\begin{itemize}[nosep,leftmargin=*]
+  \item Renewable buildout is upper bounded by the availability of free space for the generation assets.
+  \item Where a technology may be built is decided on a \SI{100}{m} grid from the Copernicus land-cover map of 2019 \citep{copernicuslc}.
+  \item Onshore wind can be built on shrubland, grassland, cropland, bare land and in every type of forest.
+  \item It is excluded from regions within \SI{1}{km} of built-up land.
+  \item Solar may stand on shrubland, grassland, cropland, bare land, wetland and built-up land.
+  \item Offshore wind may stand in water up to \SI{50}{m} deep \citep{gebco}: within \SI{30}{km} of the coast as the carrier with an AC connection, beyond it as the carrier with a DC connection.
+  \item Protected areas \citep{wdpa} are excluded for all three and are represented at a spatial resolution of roughly \SI{5}{km}.
+  \item The eligible area of a weather cell is multiplied with a fixed density gives the total potential: \SI{3}{MW/km^2} for onshore wind, 2 and \SI{3}{MW/km^2} for the two offshore carriers, \SI{4.6}{MW/km^2} for solar.
+  \item Because forest counts as eligible, Brazil's onshore wind potential is \SI{17100}{GW}, most of it in the Amazon basin outside the protected areas [marked for future reference, some kind of fix should be included at some point].
+\end{itemize}
+Figure~\ref{fig:reneweligibility} gives an example of how the model processes land cover to estimate regional limits on renewable buildout.
+In the region shown, protected areas take a third of the land and the distance to built-up land another fifth for onshore wind, and three quarters of the sea are deeper than the limit of offshore wind.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{renew_eligibility.pdf}
+  \caption{Land cover and land eligibility in a region of north-east Scotland (260 by \SI{230}{km}), computed as the rule computes it and drawn on a \SI{200}{m} grid.
+  (a) Land cover of the Copernicus map \citep{copernicuslc} with its share of the land; protected areas \citep{wdpa} hatched.
+  (b) Onshore wind and (c) solar: where the technology may be built, and the reason where it may not.
+  (d) Offshore wind: the sea depth \citep{gebco} that the rule reads.
+  No offshore wind may be built in the hatched sea, which is deeper than \SI{50}{m} or protected.
+  Within \SI{30}{km} of the coast (dashed line) the carrier with an AC connection is built, beyond it the carrier with a DC connection.}
+  \label{fig:reneweligibility}
+\end{figure}
+
+\paragraph{Profiles} (rule \texttt{build\_renewable\_profiles})
+\begin{itemize}[nosep,leftmargin=*]
+  \item atlite converts the weather of each cell into the hourly output of one plant per unit of capacity: for wind through the power curve of a \SI{3}{MW} onshore and a \SI{5}{MW} offshore turbine, for solar through a model of a crystalline silicon panel tilted at the optimal angle of its latitude.
+  \item Solar output is multiplied by 0.854.
+  PyPSA-Earth sets this factor so that the full-load hours of the panel model match those published by \citet{pietzcker2014}.
+  In this project the factor matters only for a country without a solar fleet, or one beyond the limit of the scaling: everywhere else the profiles are afterwards scaled to the observed capacity factor (Section~\ref{sec:renewables-adjust}).
+  \item Wind output is not corrected.
+  \item Every bus of the base network (Section~\ref{sec:grid}) is assigned one profile per technology: the mean over the cells of its region, each weighted by its eligible area times its mean capacity factor, on the assumption that better cells are built first.
+  \item The potential of the bus is the sum over its cells.
+\end{itemize}
+Figure~\ref{fig:renewsteps} shows these steps for onshore wind in north-west Europe.
+See Figure~\ref{fig:renewtimeseries} for example time series.
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{renew_steps.pdf}
+  \caption{The standard procedure for onshore wind in north-west Europe.
+  (a) Share of each weather cell on which onshore wind may be built; the box is the region of Figure~\ref{fig:reneweligibility}.
+  (b) Mean capacity factor of 2013 of the cells with eligible land.
+  (c) The generators handed to the model, one per bus of the base network: potential as marker area, mean of the profile as colour.}
+  \label{fig:renewsteps}
+\end{figure}
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{renew_timeseries.pdf}
+  \caption{Hourly profiles of solar, onshore wind and offshore wind for one week of June 2013, as built in pypsa-earth 0.9.0.
+}
+  \label{fig:renewtimeseries}
+\end{figure}
+
+\paragraph{Installed capacity} (rule \texttt{add\_electricity})
+\begin{itemize}[nosep,leftmargin=*]
+  \item Each bus with a profile gets one generator per technology; all four carriers may be expanded up to the potential of the bus.
+  \item The installed capacity of the generator is that of the wind and solar plants of the plant list (Section~\ref{sec:fleet-standard}) attached to the bus.
+  \item A wind plant is placed only if the list tags it as onshore or offshore; \SI{69}{GW} of wind in the modelled countries carry neither tag (\SI{23}{GW} in the US, \SI{14}{GW} in China).
+  \item All offshore plants go to the carrier with an AC connection.
+  \item Where IRENA's country total \citep{irenastat} of 2023 exceeds the placed plants, the gap is spread in equal parts over all buses of the country, whatever their resource.
+  \item In the runs of the one-node countries the plants are attached to buses that carry no profile, so nearly the whole fleet comes from IRENA's country totals (the list places \SI{0.3}{GW} of the \SI{95}{GW} of onshore wind in the rest of Europe); with one node per country this changes nothing.
+  \item Only the placed plants form the floor below which the optimisation may not reduce a generator; the capacity added from IRENA's country totals is a starting value that the optimisation is free to drop.
+\end{itemize}
+
+\paragraph{Simplification and clustering} (rules \texttt{simplify\_network}, \texttt{cluster\_network})
+\begin{itemize}[nosep,leftmargin=*]
+  \item When buses are merged (Section~\ref{sec:grid-standard}), generators are aggregated by type, summing already installed capacity and potential.
+  \item The profile of the merged generator is the mean of the profiles, weighted by the potential of each bus.
+\end{itemize}
+
+\subsubsection{Adjustments}\label{sec:renewables-adjust}
+
+Each paragraph below describes one commit to enhance the fidelity of the modelling or the stability of workflow execution.
+
+\paragraph{Take installed wind and solar from IRENA 2024} (\commit{d040060e})
+
+In the existing PyPSA-Earth, the already installed wind and solar capacity of a country comes from two sources.
+The first is the plant list [reiterate what that list is], which names single plants with their location and capacity (Section~\ref{sec:fleet-standard}).
+The second is the capacity statistics of the International Renewable Energy Agency \citep{irenastat}, which give one capacity number per country, technology and year: the total capacity installed at the end of that year, without locations.
+PyPSA-Earth reads IRENA's totals of 2023, and applies them only where they are larger than the plant list of the country, i.e. the missing capacity is then added (Section~\ref{sec:renewables-standard}).
+Where the plant list is the larger of the two, the plant list takes precedent.
+This is the case in 49 countries for solar, in 31 for onshore and in 9 for offshore wind, because the list contains duplicates and plants not yet in operation.
+
+This commit adds an option that scales the plants of such a country down, so that their sum equals IRENA's total.
+Together with it, the project reads IRENA's totals of 2024 instead of 2023, the year of every other data source of the existing system (Section~\ref{sec:fleet-adjust}): \SI{1863}{GW} of solar instead of \SI{1410}{GW}, \SI{1049}{GW} of onshore wind instead of \SI{943}{GW}, and \SI{83}{GW} of offshore wind instead of \SI{74}{GW}.
+
+As the code stands, the scaled-down capacities are computed but not handed on to the generators, so the plants keep the total of the plant list.
+In the one-node runs this has no effect, because there the whole fleet comes from IRENA's totals (Section~\ref{sec:renewables-standard}).
+In the spatially resolved regions the networks hold more than IRENA reports (Figure~\ref{fig:renewcapacity}): \SI{511}{GW} of onshore wind in China against \SI{480}{GW}, \SI{55}{GW} of Chinese offshore wind against \SI{41}{GW}, \SI{116}{GW} of solar in India against \SI{98}{GW}, and \SI{19}{GW} of British offshore wind against \SI{16}{GW}.
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{renew_capacity.pdf}
+  \caption{Installed wind (onshore and offshore) and solar capacity of the eight largest fleets: the plants of the plant list that the model places, PyPSA-Earth v0.9.0 (the list, raised to IRENA's total of 2023 where that is larger), the networks of this project, and IRENA's total at the end of 2024 \citep{irenastat}.}
+  \label{fig:renewcapacity}
+\end{figure}
+
+The feature becomes active in rule \texttt{add\_electricity}, depending on the options below, in every run.
+The runs hand IRENA's totals of 2024 to the rule as a table (\texttt{stats: statistics}, \commit{32e885de}) instead of letting it read IRENA's file, so that US West and US East each receive their share of the national total:
+\yamlblock{renewable_capacities}
+
+\paragraph{Scale profiles to observed capacity factors} (\commit{e004c45b})
+
+In the existing PyPSA-Earth, the profiles come from one weather year, a single turbine and panel type and a coarse grid, and nothing accounts for curtailment, outages or the age of a fleet.
+The model capacity factor of a country's fleet can therefore lie far from the observed one (Figure~\ref{fig:renewmap}).
+
+This commit multiplies the profiles of a country by one factor per group (wind, solar), so that the model capacity factor of its installed fleet equals the capacity factor observed in 2024.
+\begin{itemize}[nosep,leftmargin=*]
+  \item The observed capacity factor is the generation of \textit{Ember 2024} over the capacity of the same year.
+  \item The model capacity factor is the mean of the profiles, weighted by the installed capacity at each bus; onshore and offshore wind share one factor.
+  \item The factor is limited to the range 0.6 to 1.4, and a scaled profile to 1.
+  \item Every generator of the country is scaled, so new capacity at a bus sees the same correction as the fleet there.
+  \item Potentials are not changed.
+\end{itemize}
+
+The factor is 0.72 for China's solar fleet (model 0.151, observed 0.108) and 1.28 for the solar fleet of the US (model 0.152, observed 0.195), 0.68 for British wind (model 0.438, observed 0.296) and 1.30 for Brazilian wind (model 0.288, observed 0.376).
+For 50 of the 93 countries with a wind fleet the limit binds; they hold \SI{77}{GW} of the \SI{1185}{GW} of wind (Figure~\ref{fig:renewcf}).
+Türkiye's wind fleet stays at 0.16 against an observed 0.32, Mexico's at 0.21 against 0.30.
+For solar the limit binds in 33 of 127 countries with \SI{40}{GW} of \SI{1881}{GW}.
+After the scaling the fleets of all countries together reach 0.245 for wind against an observed 0.251, and 0.129 for solar against 0.130.
+The scaling sets the annual mean of a country only: the pattern over the year and within the country remains that of the weather of 2013.
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{renew_cf.pdf}
+  \caption{Model capacity factor of the installed fleet before the scaling against the capacity factor observed in 2024, per country; marker area by fleet capacity.
+  The model capacity factor is the mean of the profiles from the ERA5 weather of 2013, weighted by the installed capacity at each bus.
+  Grey band: the range of the factor applied to the profiles (0.6 to 1.4).
+  Countries outside the band (red) keep a gap after the scaling.}
+  \label{fig:renewcf}
+\end{figure}
+
+The feature becomes active in rule \texttt{add\_electricity}, depending on the option below, in every run:
+\yamlblock{cf_targets}
+
+\paragraph{Weight cluster profiles by installed capacity} (\commit{635b74cb})
+
+In the existing PyPSA-Earth, the profiles of merged buses are averaged with the potential of each bus as weight.
+The fleet stands at few of the buses, often the better ones, so the merged profile no longer describes it, and the capacity factor set by the previous adjustment is lost again.
+
+This commit makes the installed capacity the weight; the potential only decides between buses without any installed capacity.
+A cluster with a fleet then has the capacity factor of that fleet, and a cluster without one keeps the potential-weighted profile.
+
+With potential weights the clustered wind fleet of Brazil would run at 0.30 instead of 0.37 and that of the US at 0.29 instead of 0.33, while British offshore wind would run at 0.41 instead of 0.33.
+
+The feature becomes active in rule \texttt{add\_electricity}, depending on the option below, in every run:
+\yamlblock{cluster_weight}
+
+\paragraph{Split a region's wind and solar into resource classes} (\commit{b516f288})
+
+In the existing PyPSA-Earth, one generator per technology stands for a whole cluster region, with one profile and the potential of the entire area.
+After the previous adjustment that profile is the one of the installed fleet.
+Since the fleet stands at the better sites, new capacity anywhere in the region is credited with the output of those sites.
+
+This commit splits the onshore wind and the solar of each cluster region into classes by capacity factor.
+\begin{itemize}[nosep,leftmargin=*]
+  \item The capacity factor of every weather cell is computed once per run, with the same conversion as the profiles.
+  \item The cells of a region are sorted into classes of equal width between the lowest and the highest mean capacity factor of the region.
+  \item Each class becomes a generator with the potential of its cells and their profile, weighted as before.
+  \item The installed fleet is placed into the classes by the coordinates of the plants.
+  \item The profiles of a country's classes are multiplied by one factor, so that its fleet generates as much as before the split.
+  \item Potential and installed capacity of every region are unchanged.
+\end{itemize}
+
+The project uses five classes.
+Over the whole potential of US onshore wind, the mean capacity factor falls from 0.27 with one generator per region to 0.21 with classes (Figure~\ref{fig:renewclasses}a); in Brazil from 0.11 to 0.08, in China from 0.15 to 0.13.
+In the US 68\,\% of the installed onshore wind stands in the two best classes of its region (Figure~\ref{fig:renewclasses}b).
+Offshore wind is not split.
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{renew_classes.pdf}
+  \caption{Resource classes of onshore wind.
+  (a) Potential of US onshore wind sorted from the highest to the lowest capacity factor, with one generator per cluster region and with five classes per region.
+  (b) Share of the installed onshore wind of each spatially resolved region that stands in each class of its cluster region.}
+  \label{fig:renewclasses}
+\end{figure}
+
+The feature becomes active in rules \texttt{build\_resource\_cells}, \texttt{build\_resource\_classes} and \texttt{add\_extra\_components}, depending on the option below, in every run:
+\yamlblock{resource_classes}
+
+\paragraph{Make the installed capacity the floor of expansion} (\commit{77f169df})
+
+In the existing PyPSA-Earth, only the plants of the plant list form the floor of a generator, that is the capacity below which the optimisation may not reduce it.
+The capacity added from IRENA's totals is a starting value that the optimisation is free to drop.
+Over all modelled countries the plant list holds \SI{1206}{GW} of the \SI{1881}{GW} of solar, so a third of the solar fleet could be dropped and built again elsewhere.
+
+This commit makes the whole installed capacity the floor of each generator: the plants of the list and the capacity added from IRENA's totals together.
+In a pathway run this fleet counts as built in the first model year; with the lifetimes of the cost table (28.5 years for onshore wind, 37.5 for solar) none of it retires before 2050.
+
+\paragraph{Take earlier builds off the remaining potential} (\commit{59c0b237}, \commit{502f63b7})
+
+In the existing PyPSA-Earth, capacity built in one model year of a pathway run reduces what can still be built at the same place in the next, but only in the sector-coupled model, where earlier builds are found by the names of the generators.
+
+The first commit finds earlier builds by their bus and carrier, and with resource classes by their class, so the rule also holds for the electricity model.
+A generator that may still be expanded is no longer counted against itself.
+
+The second commit counts the wind and solar that a buyer of clean electricity builds (Section~\ref{sec:myopic}) against the potential of the bus it stands at.
+
+The remaining commits concern the data processing.
+
+\paragraph{Drop empty duplicate longitudes of prebuilt cutouts} (\commit{e8c94e05})
+
+In the existing PyPSA-Earth, two of the prebuilt cutouts have a defect east of 128.1 degrees East: pairs of longitudes that lie $10^{-5}$ degrees apart, of which one column holds no data.
+The Asian file has 41 such pairs, the Oceanian one 70.
+Every bus whose region touches an empty column gets a profile without values, which affects Japan, South Korea, eastern Indonesia, Australia and New Zealand.
+
+This commit drops the emptier column of each pair when the rule opens the cutout.
+
+\paragraph{Decide land eligibility on a coarser grid in the one-node runs} (\commit{5ad52d7d})
+
+In the existing PyPSA-Earth, land eligibility is always decided on a \SI{100}{m} grid over the box around each bus region.
+In the one-node runs a region is a whole country: for Argentina alone this grid has about $8\times10^{8}$ cells, and the rule ran out of \SI{12}{GB} of memory.
+
+This commit makes the resolution of the grid an option.
+The ten runs that hold the rest of the world use \SI{1}{km}; the five spatially resolved regions and Singapore keep \SI{100}{m}.
+How much the coarser grid changes the potentials has not been measured.
+
+The feature becomes active in rule \texttt{build\_renewable\_profiles}, depending on the option below, here for the rest of Europe:
+\yamlblock{excluder_resolution}
+
+\paragraph{Clip country shapes to a box} (\commit{bcbe9338})
+
+In the existing PyPSA-Earth, the extent of the weather cutout and of the land-cover raster follows the shapes of the modelled countries.
+Alaska's Aleutian islands cross the 180th meridian, so the box around the US spanned the globe, and the land-eligibility step for the US needed more than \SI{20}{GB} of memory.
+
+This commit cuts the country, offshore and administrative shapes to a box given in the configuration.
+What lies outside the box is not modelled (Alaska and Hawaii for the US).
+The two regions of the US also use the box to divide the sea: the box of US West holds the Pacific coast, that of US East the Gulf of Mexico and the Atlantic.
+
+The feature becomes active in rule \texttt{build\_shapes}, depending on the option below, which the runs set to the box of their cutout or of their region, here for US West:
+\yamlblock{clip_bbox}
+
+\paragraph{Restrict a country to a list of its states} (\commit{3148f537})
+
+PyPSA-Earth models whole countries, and the box above is the only way to leave a part of one out.
+A box cannot follow the border between two states, which is where this project divides the United States into US West and US East (Section~\ref{sec:model}).
+
+This commit takes a list of administrative units of a country (GADM level 1, the states of the US).
+The shape of a country named in the list becomes the union of its listed units, and the administrative shapes keep only those units.
+The list is applied before the box and before the offshore shapes are built, and the grid, the bus regions, the profiles and the potentials follow the shapes without a further change.
+The list does not divide the sea, which is left to the box.
+
+The feature becomes active in rule \texttt{build\_shapes}, depending on the option below, here for US West:
+\yamlblock{gadm_subset}
+
+\paragraph{Request ERA5 month by month} (\commit{5bfbae0c})
+
+In the existing PyPSA-Earth, a cutout that is built instead of downloaded is requested from the Copernicus Climate Data Store as a whole year, in parallel requests.
+Requests of this size can exceed what the data store accepts, and the download needs much memory.
+
+This commit requests one month at a time, one request after the other.
+The data are the same.
+
+\paragraph{Compute land eligibility in one process} (\commit{bc475082})
+
+In the existing PyPSA-Earth, the rule hands the land-eligibility computation to a pool of worker processes, also when it has only one thread.
+When the single worker runs out of memory, the pool waits forever.
+
+This commit lets a rule with one thread compute the eligibility in its own process, so that it fails and reports the error.
+The result is the same.

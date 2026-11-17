@@ -39,6 +39,13 @@
 #                       (scripts/plot_fleet_efficiency.py; calibration tables only)
 #   modeldoc_mix_before_after  2024 electricity mix per country, Ember against out-of-the-box v0.9.0 (scripts/plot_mix_before_after.py;
 #                       the validation_world.csv tables of the baseline worktree and of the fork, no network read)
+#   modeldoc_renew_*    Renewables & Weather: installed capacity of the largest fleets (fleet), world maps of the model
+#                       over the observed capacity factor (map), the cutout boxes (cutouts), land cover and land
+#                       eligibility of a region of north-east Scotland (eligibility), the standard procedure for the
+#                       onshore wind of north-west Europe (steps), one week of hourly profiles at a few buses (timeseries), plant list / IRENA / network (capacity), model against observed capacity
+#                       factor (cf), resource classes (classes); all but `timeseries` read build/renewables_check/*, written
+#                       by ../scripts/check_renewables.py, run by hand (read-only, a few minutes, no model rerun; the
+#                       eligibility table only on request: `check_renewables.py eligibility`)
 #   modeldoc_yaml       the options the document quotes, cut out of the config files as YAML code blocks
 #                       (scripts/yaml_snippets.py -> build/yaml/<name>.yaml, \\yamlblock in doc/main.tex)
 #   modeldoc_commit_stats  lines added / removed per cited fork commit, printed by \commit (scripts/commit_stats.py
@@ -341,14 +348,15 @@ rule modeldoc_mix_before_after:
         "scripts/plot_mix_before_after.py"
 
 YAML_SNIPPETS = ["gas_mapping", "plant_statistics", "plant_efficiency", "envelope", "tranches", "retirements",
-                 "drop_duplicate_ids", "fix_indirect_circuits", "geodesic_length", "dc_ratings", "dc_projects", "isolated"]
+                 "drop_duplicate_ids", "fix_indirect_circuits", "geodesic_length", "dc_ratings", "dc_projects", "isolated",
+                 "clip_bbox", "excluder_resolution", "renewable_capacities", "cf_targets", "cluster_weight", "resource_classes"]
 
 
 rule modeldoc_yaml:
     input:
         P("../statistics.yaml"),
         [P(f"../overlay.{s}.yaml") for s in ["now", "zero", "myopic"]],
-        [P(f"../config.{r}.yaml") for r in ["US", "BR", "IN", "CN", "NWE"]],
+        [P(f"../config.{r}.yaml") for r in ["USW", "USE", "BR", "IN", "CN", "NWE", "EUR"]],
     output:
         [os.path.join(BUILD, "yaml", f"{n}.yaml") for n in YAML_SNIPPETS],
     params:
@@ -372,6 +380,122 @@ rule modeldoc_commit_stats:
         "scripts/commit_stats.py"
 
 
+rule modeldoc_renew_fleet:
+    input:
+        capacity=os.path.join(BUILD, "renewables_check/capacity.csv"),
+    output:
+        os.path.join(FIG, "renew_fleet.pdf"),
+    resources:
+        mem_mb=500,
+    script:
+        "scripts/plot_renew_fleet.py"
+
+
+rule modeldoc_renew_cutouts:
+    input:
+        cutouts=os.path.join(BUILD, "renewables_check/cutouts.csv"),
+        row_countries=P("../data/row_countries.csv"),
+        configs=sorted(glob(P("../config.*.yaml"))),
+        countries=COUNTRIES,
+        helper=P("scripts/plot_grid_map.py"),
+    output:
+        os.path.join(FIG, "renew_cutouts.pdf"),
+    resources:
+        mem_mb=1000,
+    script:
+        "scripts/plot_renew_cutouts.py"
+
+
+rule modeldoc_renew_eligibility:
+    input:
+        eligibility=os.path.join(BUILD, "renewables_check/eligibility_NWE.npz"),
+        config=os.path.join(FORK, "config.default.yaml"),
+    output:
+        os.path.join(FIG, "renew_eligibility.pdf"),
+    resources:
+        mem_mb=1500,
+    script:
+        "scripts/plot_renew_eligibility.py"
+
+
+rule modeldoc_renew_map:
+    input:
+        cf=os.path.join(BUILD, "renewables_check/cf.csv"),
+        row_countries=P("../data/row_countries.csv"),
+        configs=sorted(glob(P("../config.*.yaml"))),
+        countries=COUNTRIES,
+        helper=P("scripts/plot_grid_map.py"),
+    output:
+        os.path.join(FIG, "renew_map.pdf"),
+    resources:
+        mem_mb=1500,
+    script:
+        "scripts/plot_renew_map.py"
+
+
+rule modeldoc_renew_steps:
+    input:
+        profile=os.path.join(FORK, "resources/NWE/renewable_profiles/profile_onwind.nc"),
+        cells=os.path.join(FORK, "resources/NWE/renewable_profiles/cells_onwind.nc"),
+        base=os.path.join(FORK, "networks/NWE/base.nc"),
+        shape=os.path.join(FORK, "resources/NWE/shapes/country_shapes.geojson"),
+        eligibility=os.path.join(BUILD, "renewables_check/eligibility_NWE.npz"),
+    output:
+        os.path.join(FIG, "renew_steps.pdf"),
+    resources:
+        mem_mb=2000,
+    script:
+        "scripts/plot_renew_steps.py"
+
+
+rule modeldoc_renew_timeseries:
+    input:
+        profiles=[os.path.join(FORK, f"resources/{r}/renewable_profiles/profile_{c}.nc")
+                  for r in ["US", "BR", "NWE", "CN"] for c in ["solar", "onwind", "offwind-ac"]],
+        base=[os.path.join(FORK, f"networks/{r}/base.nc") for r in ["US", "BR", "NWE", "CN"]],
+    output:
+        os.path.join(FIG, "renew_timeseries.pdf"),
+    params:
+        fork=FORK,
+    resources:
+        mem_mb=3000,
+    script:
+        "scripts/plot_renew_timeseries.py"
+
+
+rule modeldoc_renew_capacity:
+    input:
+        capacity=os.path.join(BUILD, "renewables_check/capacity.csv"),
+    output:
+        os.path.join(FIG, "renew_capacity.pdf"),
+    resources:
+        mem_mb=500,
+    script:
+        "scripts/plot_renew_capacity.py"
+
+
+rule modeldoc_renew_cf:
+    input:
+        cf=os.path.join(BUILD, "renewables_check/cf.csv"),
+    output:
+        os.path.join(FIG, "renew_cf.pdf"),
+    resources:
+        mem_mb=500,
+    script:
+        "scripts/plot_renew_cf.py"
+
+
+rule modeldoc_renew_classes:
+    input:
+        classes=os.path.join(BUILD, "renewables_check/classes.csv"),
+    output:
+        os.path.join(FIG, "renew_classes.pdf"),
+    resources:
+        mem_mb=500,
+    script:
+        "scripts/plot_renew_classes.py"
+
+
 rule modeldoc_pdf:
     input:
         circuits=os.path.join(BUILD, "circuit_ways.tex"),
@@ -383,7 +507,9 @@ rule modeldoc_pdf:
         sections=sorted(glob(os.path.join(DOC, "sections", "*.tex"))),
         figures=[os.path.join(FIG, f) for f in ["coverage.pdf", "layers.pdf", "grid_map.pdf", "grid_steps.pdf", "hvdc_check.pdf", "osm_entries.pdf", "grid_check.pdf", "isolated.pdf", "fleet_check.pdf",
                                                    "fleet_map.pdf", "fleet_sources.pdf", "fleet_vintage.pdf", "fleet_dropped.pdf",
-                                                   "fleet_merit.pdf", "fleet_envelope.pdf", "fleet_retirements.pdf", "fleet_efficiency.pdf", "mix_before_after.pdf"]],
+                                                   "fleet_merit.pdf", "fleet_envelope.pdf", "fleet_retirements.pdf", "fleet_efficiency.pdf", "mix_before_after.pdf",
+                                                   "renew_fleet.pdf", "renew_map.pdf", "renew_cutouts.pdf", "renew_eligibility.pdf", "renew_steps.pdf", "renew_timeseries.pdf",
+                                                   "renew_capacity.pdf", "renew_cf.pdf", "renew_classes.pdf"]],
     output:
         os.path.join(BUILD, "model_doc.pdf"),
     params:

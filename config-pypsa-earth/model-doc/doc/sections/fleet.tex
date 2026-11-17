@@ -119,6 +119,19 @@ The capacity-weighted efficiency of US gas falls from 0.50 to 0.45, in line with
 The feature becomes active in rule \texttt{build\_powerplants}, depending on the option:
 \yamlblock{gas_mapping}
 
+\paragraph{Drop plants outside the modelled area} (\commit{6b2e4dc7})
+
+PyPSA-Earth attaches every plant of a modelled country to the nearest bus, however far away that bus is (Section~\ref{sec:fleet-standard}).
+The shapes of a model can leave out a part of a country (Section~\ref{sec:renewables-adjust}), but the plant list is not cut with them, so the plants of the part left out are stacked on buses at the edge of the model.
+With the contiguous US as one region, the 261 plants of Alaska and Hawaii (\SI{10}{GW} after the scaling described next) sat on mainland buses, most of them in the north-west of Washington and near San Francisco.
+
+This commit drops the plants that lie farther than a given distance outside the country and offshore shapes, before the list is scaled to the capacity statistic and attached to buses.
+The distance is needed because the simplified shapes leave out small islands: at \SI{0}{km}, the St.~Lucie nuclear plant (\SI{1.9}{GW}), which stands on a barrier island of Florida, would be dropped.
+
+The feature becomes active in rule \texttt{build\_powerplants}, depending on the option below.
+Only the two regions of the US set it; in every other run, the plants of a part that the shapes leave out stay on the nearest bus.
+\yamlblock{plants_within_shapes}
+
 \paragraph{Scale the plant list to national capacity statistics} (\commit{101acf0e})
 
 The plant list produced by PyPSA-Earth v0.9.0 misses fleet additions and removals that are highly relevant as of 2024 (Table~\ref{tab:fleetgroups}).
@@ -295,7 +308,12 @@ Biomass and oil spread over the whole range, because their capacity factor of 20
 
 If the generators of one fuel in a country have one efficiency, the merit order of that country has one step per fuel.
 A small change in fuel or CO$_2$ prices can then move a whole fleet at once.
-Real fleets are spread in efficiency: a new combined cycle burns less gas per MWh than one built twenty years earlier.
+Real fleets are spread in efficiency, the main driver of this is plants' age.
+
+The first commit adds the split itself, as one step of the script that adjusts the clustered network: every existing fuel-burning generator is replaced by several generators of equal capacity whose efficiencies are spread evenly around the original one.
+The second gives each part its own marginal cost: the variable operation and maintenance cost stays, and the fuel cost is divided by the factor the efficiency is multiplied by.
+The CO$_2$ price is added to the marginal cost only after the split, so it also follows the efficiency of each part.
+The third lets the spread be set per carrier instead of one value for all carriers, and leaves a carrier without a value unsplit.
 
 Through these commits, every existing fuel-burning generator is split into three parts of equal capacity, with $(1-s)$, 1 and $(1+s)$ times the fleet efficiency; the fuel part of the marginal cost follows each part.
 The spread $s$ is set per carrier and measured on the US fleet of 2024 (Table~\ref{tab:fleetspread}).
@@ -330,22 +348,22 @@ The figure is drawn from the 2024 run of November 2026, which still used a sprea
 
 PyPSA-Earth fills a missing decommissioning year with powerplantmatching's lifetime of the fuel type (Section~\ref{sec:fleet-standard}).
 A new plant in the model, however, lives as long as the cost table says, so an existing and a new plant of the same technology would retire after different lifetimes.
-PyPSA-Eur's pathway code takes the cost table for both.
+Meanwhile, PyPSA-Eur's pathway code takes the cost table for both.
 
-This commit adds that as an option.
+This commit adds PyPSA-Eur's approach as an option, in particular via the following heuristic.
 \begin{itemize}[nosep,leftmargin=*]
-  \item A reported decommissioning year is kept.
+  \item If the decommissioning year of a plant is known, is kept.
   \item A missing one becomes the commissioning year plus the lifetime of the technology in the cost table: 40 years for coal, lignite and nuclear, 25 for gas and oil, 30 for biomass and geothermal.
-  \item As under the standard procedure, a plant whose year lies before 2022 is dropped from the plant list, and the scaling to the capacity statistic places its capacity on the remaining plants of its country and fuel.
+  \item As under the standard procedure, a plant decommissioned before 2022 is dropped from the model.
   \item Hydropower gets no decommissioning year and is never retired, as in PyPSA-Eur.
 \end{itemize}
-The feature becomes active in rule \texttt{build\_powerplants}, depending on the first option below, which is set in the pathway runs; with the second, these runs also keep plants commissioned after 2023:
+The feature is implemented in rule \texttt{build\_powerplants}, depending on the first option below, which is set in the pathway runs; with the second, these runs also keep plants commissioned after 2023:
 \yamlblock{retirements}
 
-With these lifetimes, 33\,\% of the US fleet of 2024 is left in 2030 and 2\,\% in 2050, 51\,\% and 2\,\% in North-West Europe, and 91\,\% and 34\,\% in China (Figure~\ref{fig:fleetretirements}).
-With PyPSA-Earth's default lifetimes it would be 68\,\% and 13\,\% in the US, 77\,\% and 13\,\% in North-West Europe, and 95\,\% and 62\,\% in China.
-By 2030, US gas falls from 546 to \SI{194}{GW} and US nuclear from 97 to \SI{18}{GW}; the model has to replace this capacity.
-The 2024 run keeps PyPSA-Earth's default lifetimes.
+This commit has a large effect on generation fleets in many countries. 
+For instance, when including these lifetimes, 33\,\% of the US fleet of 2024 is left in 2030 and 2\,\% in 2050, 51\,\% and 2\,\% in North-West Europe, and 91\,\% and 34\,\% in China (Figure~\ref{fig:fleetretirements}).
+Under PyPSA-Earth's default lifetimes it would be 68\,\% and 13\,\% in the US, 77\,\% and 13\,\% in North-West Europe, and 95\,\% and 62\,\% in China.
+The 2024 validation run keeps PyPSA-Earth's default lifetimes.
 
 \paragraph{Let plants under construction enter at their build year} (\commit{0d137fd3})
 

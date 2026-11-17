@@ -1106,6 +1106,16 @@ Accepted residuals (2026-10-20, revisit later):
 - Small systems with a fuel off by > 10 pp as before (LT, PT, SD, LB, PS, AF, ...: single national fuel price,
   islanding).
 
+### Wind and solar check (2026-11-16)
+
+`scripts/check_renewables.py` (read-only, a few minutes, nothing rerun) reads what the `now` stages left on disk and writes
+`model-doc/build/renewables_check/`: per country the fleet capacity factor with the unadjusted ERA5-2013 profiles
+against the observed one and the factor `capacity_factor_targets` applies (`cf.csv`); plant list, IRENA 2023 / 2024 and
+the network's capacity (`capacity.csv`); the fleet capacity factor after clustering with capacity and with potential
+weights (`weights.csv`); the resource classes (`classes.csv`); the cutouts (`cutouts.csv`). The model doc's section
+"Renewables & Weather" takes its numbers and figures from these tables. Found with it: `scale_down` does not reach
+the network (China onshore wind 511 GW against IRENA's 480, India solar 116 against 98; `REFACTOR_LATER.md`, item C).
+
 ### Fleet corrections and their check (2026-11-04, in the tables and configs, not yet in any solved network)
 
 `scripts/check_fleet.py` (read-only, 10 s) rebuilds each region's plant list in memory from powerplantmatching's cached

@@ -24,9 +24,10 @@ CONFIGS = TOP.parent
 PREFIX = "../../config-pypsa-earth/"
 ENVELOPE = [("electricity", "nuclear_p_max_pu"), ("electricity", "must_run_cap"), ("conventional", "nuclear"),
             ("conventional", "coal")]
-REGIONS = ["config.US.yaml", "config.BR.yaml", "config.IN.yaml", "config.CN.yaml"]
+REGIONS = ["config.USW.yaml", "config.USE.yaml", "config.BR.yaml", "config.IN.yaml", "config.CN.yaml"]
 
 # name -> [(file, [key paths], files that must agree)]
+WIND_SOLAR = ["onwind", "offwind-ac", "offwind-dc", "solar"]
 SNIPPETS = {
     "gas_mapping": [("statistics.yaml", [("electricity", "gas_technology_mapping")], [])],
     "plant_statistics": [("statistics.yaml", [("electricity", "powerplants_statistics")], [])],
@@ -40,6 +41,15 @@ SNIPPETS = {
     "geodesic_length": [("config.NWE.yaml", [("osm", "build_osm_network", "geodesic_length")], REGIONS)],
     "dc_ratings": [("statistics.yaml", [("links", "dc_ratings")], [])],
     "dc_projects": [("config.NWE.yaml", [("links", "dc_projects")], REGIONS)],
+    "clip_bbox": [("config.USW.yaml", [("build_shape_options", "clip_bbox")], [])],
+    "gadm_subset": [("config.USW.yaml", [("build_shape_options", "gadm_subset")], [])],
+    "plants_within_shapes": [("config.USW.yaml", [("electricity", "powerplants_within_shapes")], ["config.USE.yaml"])],
+    "excluder_resolution": [("config.EUR.yaml", [("renewable", t, "excluder_resolution") for t in WIND_SOLAR], [])],
+    "renewable_capacities": [("statistics.yaml", [("electricity", "estimate_renewable_capacities", k)
+                                                  for k in ["stats", "year", "scale_down"]], [])],
+    "cf_targets": [("statistics.yaml", [("electricity", "capacity_factor_targets")], [])],
+    "cluster_weight": [("statistics.yaml", [("renewable", t, "cluster_weight") for t in WIND_SOLAR], [])],
+    "resource_classes": [("statistics.yaml", [("renewable", t, "resource_classes") for t in ["onwind", "solar"]], [])],
     "isolated": [("config.NWE.yaml", [("cluster_options", "simplify_network", "p_threshold_merge_isolated"),
                                       ("cluster_options", "simplify_network", "s_threshold_fetch_isolated")],
                   ["config.IN.yaml", "config.CN.yaml"])],
@@ -51,6 +61,7 @@ TABLES = {
     "plant_statistics": [("capacity.csv", "calibration/2024/capacity.csv")],
     "plant_efficiency": [("efficiency.csv", "calibration/2024/efficiency.csv")],
     "envelope": [("conventional_<carrier>_<attr>.csv", "calibration/2024/envelope/floor/<carrier>_<attr>.csv")],
+    "cf_targets": [("generation.csv", "calibration/2024/generation.csv")],
     "dc_ratings": [("dc_ratings.csv", "data/hvdc/hvdc_ratings.csv")],
     "dc_projects": [("dc_projects.csv", "data/hvdc/hvdc_project_table.csv")],
 }

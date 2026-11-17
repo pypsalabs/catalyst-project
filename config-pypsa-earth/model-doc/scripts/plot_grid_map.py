@@ -49,8 +49,12 @@ def classify(row_countries, configs):
     rc = pd.read_csv(row_countries, keep_default_na=False)
     out, boxes = {}, {}
     for _, r in rc[rc.status.isin(["modelled", "archetype"])].iterrows():
-        cfg = yaml.safe_load(open(configs / f"config.{r.group}.yaml"))
-        boxes[r.iso2] = cfg.get("build_shape_options", {}).get("clip_bbox")
+        # a country modelled in parts names its stages ("USE+USW"): the clip box is the one around the boxes of the parts
+        cfgs = [yaml.safe_load(open(configs / f"config.{g}.yaml")) for g in r.group.split("+")]
+        cfg = cfgs[0]
+        parts = [c.get("build_shape_options", {}).get("clip_bbox") for c in cfgs]
+        boxes[r.iso2] = (None if not all(parts) else
+                         [min(b[0] for b in parts), min(b[1] for b in parts), max(b[2] for b in parts), max(b[3] for b in parts)])
         if r.status == "modelled" or cfg["scenario"]["clusters"] == [1]:
             out[r.iso2] = "one"
         else:

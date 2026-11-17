@@ -12,6 +12,9 @@
 PyPSA-Earth \citep{pypsaearth} offers globally applicable data pipelines to compile grid, fleet, techno-economic assumptions and renewable potentials into runnable linear optimization energy models.
 This project uses this pipeline for 132 countries, that are then run independently (Figure~\ref{fig:coverage}).
 Sixteen of them are spatially resolved: the contiguous United States, Brazil, India, China and the twelve countries of North-West Europe whose extensive interconnection requires to be modelled within one model.
+The United States are run as two regions, US West (the eleven western states) and US East (the other contiguous states, Texas included), because the two are connected by a few back-to-back converters only.
+The split follows state borders, and no power is exchanged between the two regions.
+Where this report gives a number or a figure for ``the US'', it was measured on the contiguous United States as one region, as they were modelled until the split.
 %
 % [26]: the figure's height in text lines; without it wrapfig miscounts (parskip) and keeps narrowing lines onto the next page
 \begin{wrapfigure}[26]{l}{0.47\textwidth}
