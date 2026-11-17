@@ -88,15 +88,19 @@ def iso2_of(iso3):
 
 
 def archetype_countries():
-    out = {}
+    out, parts = {}, {}
     for f in sorted(glob.glob(os.path.join(CFG, "config.*.yaml"))):
         name = os.path.basename(f)[len("config."):-len(".yaml")]
         if "-smoke" in name:
             continue
         with open(f) as fh:
             cfg = yaml.safe_load(fh)
-        if not (cfg.get("catalyst") or {}).get("single_node"):
+        cat = cfg.get("catalyst") or {}
+        if (cat.get("tables") or {}).get("region"):   # a country modelled in parts (US West, US East) names its stages: "USE+USW"
+            parts.setdefault(cfg["countries"][0], []).append(name)
+        elif not cat.get("single_node"):
             out.update({c: name for c in cfg["countries"]})
+    out.update({c: "+".join(names) for c, names in parts.items()})
     return out
 
 

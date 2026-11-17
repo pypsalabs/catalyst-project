@@ -106,7 +106,8 @@ regions:
   AFRICA: {name: "Africa", continent: Africa}
   CSAMERICA: {name: "Central and South America", continent: South America}
 
-# The six PyPSA-Earth stage regions of config-pypsa-earth, as keys of the tables above
+# The stage regions of config-pypsa-earth (stages USW, USE since 2026-11-17, NWE, BR, IN, CN, SG) and Australia's SWIS
+# (no stage), as keys of the tables above
 modelled_regions: [USW, USE, NWE, BRA, IND, CHN, AUW, SGP]
 sensitivity_regions: [ITA, ISL, TUR, HUN, FRA, DEU, KEN, IDN, MAR]   # extra rows of cap_sensitivity.py
 

@@ -11,9 +11,11 @@ Sources
          (Cloudflare-gated; archive link in the README, fetched with a browser and kept in the repo)
   ECB    annual average reference exchange rates (EUR base)
   manual_points.csv   hand-curated points with citation (national statistics, prices, 2050 outlooks)
+  EIA    state tables (data/validation/eia/state/): generation, capacity and retail sales by state, for the stages that
+         model a part of a country (US West, US East; see split_parts)
 
 Output columns: region,country,scenario,quantity,carrier,value,unit,year,source_short,source,url,note
-  region    SG | BR | IN | NWE | US | CN (the run.sh stage prefixes; countries from config.<R>.yaml)
+  region    SG | BR | IN | NWE | USW | USE | CN (the run.sh stage prefixes; countries from config.<R>.yaml)
   country   ISO2 of a single country, empty for region totals
   scenario  now (actual statistics) | zero (2050 outlooks)
   quantity  generation | capacity | demand | price | emissions | fuel_price
@@ -30,12 +32,16 @@ import os
 
 import re
 
+import sys
+
 import numpy as np
 import pandas as pd
 import yaml
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CFG = os.path.dirname(HERE)
+sys.path[:0] = [HERE, CFG]
+from merge_config import stage_files, stage_table  # noqa: E402
 DATA = os.path.join(CFG, "data", "validation")
 COLS = ["region", "country", "scenario", "quantity", "carrier", "value", "unit", "year", "source_short", "source", "url", "note"]
 ISO3 = {"AT": "AUT", "BE": "BEL", "CH": "CHE", "CZ": "CZE", "DE": "DEU", "DK": "DNK", "FR": "FRA", "GB": "GBR", "IE": "IRL",
@@ -70,15 +76,28 @@ def fxrate(fx, cur, year):
 
 def regions():
     """{region: [ISO2, ...]} from config-pypsa-earth/config.<R>.yaml (stage names without '-smoke'); the rest-of-world
-    groups (catalyst.single_node) are left out: plot_world.py validates them against Ember directly."""
+    groups (catalyst.single_node) are left out: plot_world.py validates them against Ember directly; so are the test
+    regions that have no page of their own (catalyst.world_page: false, e.g. MA10)."""
     out = {}
-    for f in sorted(os.listdir(CFG)):
-        if f.startswith("config.") and f.endswith(".yaml") and "-smoke" not in f:
-            r = f[len("config."):-len(".yaml")]
-            with open(os.path.join(CFG, f)) as fh:
+    for r, f in stage_files().items():
+        if "-smoke" not in r:
+            with open(f) as fh:
                 cfg = yaml.safe_load(fh)
-            if not (cfg.get("catalyst") or {}).get("single_node"):
+            cat = cfg.get("catalyst") or {}
+            if not cat.get("single_node") and cat.get("world_page", True):
                 out[r] = list(cfg["countries"])
+    return out
+
+
+def part_stages():
+    """{stage: config} of the stages that model a part of a country (catalyst: tables: region; US West, US East)."""
+    out = {}
+    files = stage_files()
+    for r in regions():
+        with open(files[r]) as fh:
+            cfg = yaml.safe_load(fh)
+        if ((cfg.get("catalyst") or {}).get("tables") or {}).get("region"):
+            out[r] = cfg
     return out
 
 
@@ -358,13 +377,72 @@ def manual(path, fx):
     return m
 
 
+# ------------------------------------------------------------------------------------------ parts ----------
+def split_parts(df, parts):
+    """Points of the stages that model a part of a country, from the country's points (region = the country code):
+      - Ember's generation, capacity, demand and fuel emissions of `now`, each carrier x the part's share of the country
+        in the calibration tables (calibration/<year>/regions/<part>/, EIA state shares; scripts/build_region_tables.py):
+        the numbers the part is calibrated to;
+      - EIA's state tables summed over the part's states, as the independent source;
+      - the fuel-price markers and outlooks of the country, unchanged.
+    The country's other points (IRENA, EI, national statistics, 2050 outlooks in TWh and GW) describe the whole country
+    and are not carried over; prices are per market and are keyed by the part in manual_points.csv."""
+    import build_region_tables as brt
+
+    out = [df]
+    for stage, cfg in parts.items():
+        country = cfg["countries"][0]
+        nat = df[(df.region == country) & (df.country == "")]
+        share = {}
+        for qty, name, col in [("generation", "generation", "twh"), ("capacity", "capacity", "gw")]:
+            t = {k: x[x.country == country].set_index("group")[col] for k, x in
+                 [("part", stage_table(cfg, name)), ("country", stage_table({}, name))]}
+            share[qty] = (t["part"] / t["country"]).to_dict() | {"total": t["part"].sum() / t["country"].sum()}
+        d = {k: x[x.country == country].demand_twh.sum() for k, x in
+             [("part", stage_table(cfg, "demand")), ("country", stage_table({}, "demand"))]}
+        share["demand"] = {"total": d["part"] / d["country"]}
+        e = nat[(nat.scenario == "now") & nat.source_short.str.startswith("Ember ") & nat.quantity.isin(list(share) + ["emissions"])].copy()
+        factor = e.apply(lambda r: share.get("generation" if r.quantity == "emissions" else r.quantity, {}).get(r.carrier, np.nan), axis=1)
+        em = (e.quantity == "emissions") & (e.carrier != "total")
+        if em.any():   # total emissions: the part's share of the fuel emissions
+            factor[(e.quantity == "emissions") & (e.carrier == "total")] = (e.value[em] * factor[em]).sum() / e.value[em].sum()
+        e["value"] = e.value * factor
+        e["source_short"] = e.source_short + " x EIA state share"
+        e["note"] = e.note + f"; the national value x the share of {stage} in EIA's state tables, as its calibration tables"
+        fuel = nat[nat.quantity == "fuel_price"]
+
+        states = [brt.unit_codes(country)[i] for i in cfg["build_shape_options"]["gadm_subset"]]
+        year = int(((cfg.get("catalyst") or {}).get("tables") or {}).get("year", 2024))
+        gen, cap, sales = brt.eia_generation(year), brt.eia_capacity(year), brt.eia_sales(year)
+        pick = lambda t, sources: t[t.index.get_level_values("source").isin(sources)].groupby("state").sum().reindex(states).sum()
+        src = "U.S. EIA, State Historical Tables (EIA-923, EIA-860, EIA-861), Total Electric Power Industry"
+        url = "https://www.eia.gov/electricity/data/state/"
+        note = f"sum over the {len(states)} states of {stage}; utility-scale plants (no small-scale solar)"
+        eia = rows(stage, "now", "generation", "TWh", year, f"EIA states {year}", src, url, note,
+                   {g: pick(gen, s) / 1e6 for g, (s, _) in brt.EIA_FUELS.items()})
+        eia += rows(stage, "now", "capacity", "GW", year, f"EIA states {year}", src, url, note + "; nameplate",
+                    {g: pick(cap, c) / 1e3 for g, (_, c) in brt.EIA_FUELS.items()})
+        eia += rows(stage, "now", "demand", "TWh", year, f"EIA states {year}", src, url,
+                    f"retail sales to ultimate customers in the {len(states)} states of {stage} (without grid losses)",
+                    {"total": sales.reindex(states).sum() / 1e6})
+        out += [pd.concat([e, fuel]).assign(region=stage), pd.DataFrame(eia)]
+    return pd.concat(out, ignore_index=True)[COLS]
+
+
 def main(out, ember_csv, price_csv, irena_xlsx, fx_csv, manual_csv, ei_xlsx):
-    regs = regions()
+    stages = regions()
+    parted = part_stages()
+    # the sources are read per country; a country modelled in parts enters under its code and is split afterwards
+    regs = {r: c for r, c in stages.items() if r not in parted}
+    for cfg in parted.values():
+        regs.setdefault(cfg["countries"][0], list(cfg["countries"]))
     fx = pd.read_csv(fx_csv)[["CURRENCY", "TIME_PERIOD", "OBS_VALUE"]]
     parts = [ember(ember_csv, regs), ember_prices(price_csv, ember_csv, regs), irena(irena_xlsx, regs), ei(ei_xlsx, regs),
              ei_fuel(ei_xlsx, regs, fx), manual(manual_csv, fx)]
     df = pd.concat([p for p in parts if len(p)], ignore_index=True)[COLS]
-    df = df[df.region.isin(regs)]
+    df = df[df.region.isin(set(regs) | set(parted))]
+    df = split_parts(df, parted)
+    df = df[df.region.isin(stages)]
     df = df[(df.value != 0) | (df.carrier == "total")]          # zero rows carry no information as dots
     df["value"] = df.value.astype(float).round(4)
     df = df.sort_values(["region", "scenario", "quantity", "source_short", "country", "carrier"]).reset_index(drop=True)

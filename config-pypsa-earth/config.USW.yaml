@@ -1,0 +1,97 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# Catalyst / WP1: US West (the eleven states of the Western Interconnection) as its own model region (2026-11-17;
+# README "US West / US East"). The contiguous US was one
+# stage `US` until then; the two halves are coupled by about 1.3 GW of back-to-back ties only, none of them in the OSM
+# network, so they are modelled apart and meet only in the learning market. US West is the geothermal-favourable
+# archetype.
+#
+# The region is a list of whole states (statistics are by state): AZ CA CO ID MT NV NM OR UT WA WY.
+# El Paso (West grid) is counted East; eastern New Mexico and eastern Montana (East grid) are counted West.
+# The country stays `US` in every data source (GADM, OSM, powerplantmatching, demand series); what makes this the
+# West is
+#   - build_shape_options: gadm_subset + clip_bbox  the land is the listed states, the sea the part of the US EEZ in the box
+#                                                    (OSM network, bus regions, wind / solar potential and EGS supply
+#                                                    curves follow the shapes)
+#   - electricity: powerplants_within_shapes         plants more than 10 km outside the shapes are dropped
+#   - catalyst: tables: region                       the statistics of the half replace the national rows (tables.smk;
+#                                                    calibration/<year>/regions/USW/, scripts/build_calibration.py)
+# The state list below is the single source of the split: build_calibration.py reads it for the tables.
+# No hourly demand shape per half yet: both use the national series (REFACTOR_LATER.md item E).
+
+countries: [US]
+
+run:
+  name: USW
+  shared_cutouts: true
+
+scenario:
+  simpl: [""]            # empty: simplify_network skips its pre-clustering (no solver call)
+  clusters: [20]         # USW 20 + USE 30 = the 50 nodes of the former US stage; a tractability setting
+  ll: [copt]
+  opts: [Co2L]
+
+snapshots:
+  start: "2013-01-01"
+  end: "2014-01-01"
+  inclusive: left
+
+enable:
+  retrieve_databundle: true
+  retrieve_cost_data: true
+  retrieve_cutout: false  # prebuilt North-America cutout is 29.5 GB zipped; the CONUS one is used instead
+  build_cutout: false     # cutouts/cutout-2013-era5-conus.nc exists (built via CDS for the former US stage, shared by both halves)
+  download_osm_data: true
+  build_natura_raster: false
+  progress_bar: false
+
+download_osm_data_nprocesses: 1   # fork patch: earth-osm single process
+
+osm:
+  clean_osm_data:
+    threshold_voltage: 200000   # [V] keep the 230 kV+ backbone; at the 51 kV default the US has 30k buses and the
+                                # per-bus availability matrices in build_renewable_profiles exceed 8 GB
+    drop_duplicate_ids: true      # a cross-border way arrives once per country extract and became parallel lines
+    fix_indirect_circuits: true   # voltage=230000;230000, cables=6 became 3 circuits per voltage instead of 1
+  build_osm_network:
+    geodesic_length: true         # Web Mercator stretches lengths by 1 / cos(latitude)
+
+links:
+  dc_projects:                    # HVDC capacity per project, README "Grid corrections"; overrides dc_ratings of statistics.yaml
+    enable: true                  # table dc_projects.csv = data/hvdc/hvdc_project_table.csv (tables.smk)
+    reference_year: 2024          # the calibration year; myopic horizons would need the table's years per horizon
+    unmatched: zero               # links without a project: unnamed pieces of lines added separately, later lines, links outside the table
+    add_missing: true             # only projects with both terminals inside the half get a link
+
+atlite:
+  nprocesses: 1
+  default: cutout-2013-era5-conus
+  cutouts:
+    cutout-2013-era5-conus:
+      module: era5
+      dx: 0.3
+      dy: 0.3
+      x: [-125.0, -66.5]   # CONUS; auto-bounds would span the globe because of Alaska/Hawaii
+      y: [24.0, 50.0]
+
+electricity:
+  renewable_carriers: [solar, onwind, offwind-ac, offwind-dc, hydro]
+  powerplants_within_shapes: 10     # fork option: plants more than 10 km outside the shapes are dropped; without it every
+                                    # US plant is assigned to its nearest bus of this half. 10 km keeps the plants on
+                                    # barrier islands, which the simplified shapes leave out (St. Lucie, 1.9 GW)
+
+build_shape_options:
+  nprocesses: 1
+  gdp_method: standard    # GDP_PPP raster ships in bundle_data_earth (data/GDP); used with population to distribute demand to buses
+  # fork option: GADM level-1 ids (GADM numbers the states alphabetically, Alaska = 2 and Hawaii = 12 included)
+  gadm_subset: [US.3_1, US.5_1, US.6_1, US.13_1, US.27_1, US.29_1, US.32_1, US.38_1,
+                US.45_1, US.48_1, US.51_1]
+  clip_bbox: [-125.0, 24.0, -101.5, 50.0]   # the eleven states and the Pacific EEZ (no Gulf of Mexico west of 97.5 W)
+
+catalyst:
+  tables:
+    region: USW           # tables.smk: rows of calibration/<year>/regions/USW/<table>.csv replace the national US rows
+
+solving:
+  solver:
+    name: gurobi          # only cluster_network's MIQP uses it before prepare_network; scip is the fallback

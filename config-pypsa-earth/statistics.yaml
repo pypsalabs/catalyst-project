@@ -26,9 +26,11 @@ electricity:
   powerplants_efficiency: true # table efficiency.csv
   nuclear_p_max_pu: false   # nuclear availability from the envelope below (Ember capacity factor), not IAEA 2022-24
   must_run_cap: 0.9         # must-run floors <= 90 % of a country's lowest load (islanded countries cannot export it)
-  # add_electricity: wind and solar from IRENA 2024 (Ember's own source for them), the plant list scaled down where above
+  # add_electricity: wind and solar from IRENA 2024 (Ember's own source for them), the plant list scaled down where above.
+  # Read from the table (the same IRENA numbers the fork reads itself with `stats: irena`, written by
+  # scripts/build_calibration.py), so that a stage of a part of a country gets its share (US West, US East)
   estimate_renewable_capacities:
-    stats: irena
+    stats: statistics         # table renewable_capacities.csv
     year: 2024
     scale_down: true
     technology_mapping:

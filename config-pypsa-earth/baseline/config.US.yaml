@@ -1,9 +1,12 @@
 # SPDX-License-Identifier: CC0-1.0
 #
-# Catalyst / WP1: contiguous-US (CONUS) power-only prenetwork, STAGE B (full weather year 2013).
-# Diff over pypsa-earth config.default.yaml; copied to models/pypsa-earth/config.yaml
-# by config-pypsa-earth/run_us.sh after the smoke stage succeeded. Reuses data/ (bundles, OSM, GADM).
-# Stage A (config.US-smoke.yaml) is identical except run name, snapshots and cutout name.
+# The contiguous US as ONE region, the stage `US` of the project until 2026-11-17. Since then the US is modelled as US West
+# and US East (../config.USW.yaml, ../config.USE.yaml; README "US West / US East"). This file stays for
+#   - the v0.9.0 baseline (run_overnight.sh, CATALYST_BASELINE=1), which has no fork option to model a part of a country
+#     (merge_config.py and run.sh look here first in baseline mode);
+#   - the read-only checks and model-doc figures that still read the files of the former US runs on disk
+#     (scripts/check_fleet.py, check_renewables.py), until the two halves are built.
+# It is not a stage of the patched fork: run.sh does not find it, and the pages and the learning market do not count it.
 
 countries: [US]
 

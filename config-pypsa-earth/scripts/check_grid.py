@@ -36,6 +36,9 @@ sys.path.insert(0, os.path.join(FORK, "scripts"))
 from _dc_projects import assign_projects, missing_links, read_way_names  # noqa: E402
 
 OUT = os.path.join(HERE, "model-doc", "build", "grid_check")
+# "US" is the former single stage of the contiguous US (until 2026-11-17), whose runs are still on disk and whose config is
+# baseline/config.US.yaml; the stages are USW and USE now (README "US West / US East"). This check moves to them once
+# they are built; the national statistics it compares with then belong to the sum of the two.
 REGIONS = {"US": ["US"], "BR": ["BR"], "IN": ["IN"], "CN": ["CN"], "NWE": "IE GB FR BE NL LU DE DK CH AT CZ PL".split()}
 REFERENCE_YEAR = 2024
 GEOD = pyproj.Geod(ellps="WGS84")

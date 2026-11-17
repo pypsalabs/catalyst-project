@@ -3,7 +3,8 @@
 Builds **power-only PyPSA-Earth models up to the `prepare_network` output** ("prenetwork",
 not solved), one country (or country group) per stage, as the end-to-end exercise of the global data pipeline the
 SOW prescribes (SOW §methodology: PyPSA-Earth soft fork, atlite/ERA5 feed-in). Done: the
-contiguous United States (`US`, 2026-09-16), Brazil (`BR`, the hydro-rich archetype,
+contiguous United States (`US`, 2026-09-16; since 2026-11-17 the two stages `USW` and `USE`, section "US West / US
+East"), Brazil (`BR`, the hydro-rich archetype,
 2026-09-17) India (`IN`, the fossil-heavy archetype next to US East, 2026-09-18) and Singapore (`SG`, the islanded
 archetype of the kickoff slides, 2026-09-18, a single node); North-West and Central Europe (`NWE`, twelve
 countries, the dense / renewables-constrained archetype, 2026-09-19) is the first multi-country stage and
@@ -43,8 +44,10 @@ propose to pypsa-meets-earth, `(no relevance 4 upstream)` a fork-only change:
 
 ## Files
 
-- `config.US-smoke.yaml` — stage A: January 2013, run name `US-smoke`, cutout `cutout-2013-era5-conus-jan`.
-- `config.US.yaml` — stage B: full year 2013, run name `US`, cutout `cutout-2013-era5-conus`.
+- `config.USW.yaml`, `config.USE.yaml` — US West and US East, full year 2013, cutout `cutout-2013-era5-conus` (shared);
+  both `countries: [US]`, cut by state list (section "US West / US East"). The single stage `US` of 2026-09-16 (and its
+  January smoke stage) is gone; its config is kept as `baseline/config.US.yaml` for the v0.9.0 baseline and for the
+  read-only checks that still read the files of the former US runs.
 - `config.BR-smoke.yaml`, `config.BR.yaml` — the same pair for Brazil (`countries: [BR]`, cutouts
   `cutout-2013-era5-brazil[-jan]` over `x [-74.5, -31.0] y [-34.5, 6.0]`, `clip_bbox` the same box,
   `threshold_voltage: 200000` = the ONS "Rede Básica"); see the Brazil caveats below.
@@ -144,7 +147,7 @@ propose to pypsa-meets-earth, `(no relevance 4 upstream)` a fork-only change:
   is never resumed with `wget -c` (Geofabrik rotates the extract daily; resuming across a rotation
   corrupts it).
   `bundle_data_earth.zip` is fetched to `models/pypsa-earth/tempfile.zip`, which the patched rule resumes.
-- `run.sh [prestage:<CC>] [<stage> ...]` — the supervisor (default `prestage:US US-smoke US`). Stage kinds: a bare
+- `run.sh [prestage:<CC>] [<stage> ...]` — the supervisor (default `prestage:USW USW USE`). Stage kinds: a bare
   `<stage>` builds the prenetwork of `config.<stage>.yaml` (`prestage:BR BR-smoke BR`); `<R>-now` / `<R>-zero` solve a
   screening scenario of region `R` (overlay merge, `resources/<R>-<scen>` symlinked to `resources/<R>` and
   `networks/<R>-<scen>/base.nc` hardlinked, so only `add_electricity` → `solve_network` → `plot_validation` run:
@@ -174,11 +177,11 @@ setsid nohup systemd-inhibit --what=handle-lid-switch:sleep:idle --who=catalyst 
   bash config-pypsa-earth/run.sh prestage:BR BR-smoke BR > models/pypsa-earth/logs/catalyst/driver.out 2>&1 &
 tail -f models/pypsa-earth/logs/catalyst/status.log
 # re-run a single stage (targets that exist are skipped; Snakemake resumes)
-bash config-pypsa-earth/run.sh US
+bash config-pypsa-earth/run.sh USW
 # screening solves + dashboards for all regions, overnight, going on after a failed stage
 CONTINUE_ON_FAIL=1 MEM_MAX=12G STAGE_TIMEOUT=4h setsid nohup systemd-inhibit --what=handle-lid-switch:sleep:idle \
   --who=catalyst --why="screening solves" bash config-pypsa-earth/run.sh SG-now SG-zero dashboard:SG BR-now BR-zero dashboard:BR \
-  IN-now IN-zero dashboard:IN NWE-now NWE-zero dashboard:NWE US-now US-zero dashboard:US > models/pypsa-earth/logs/catalyst/driver.out 2>&1 &
+  IN-now IN-zero dashboard:IN NWE-now NWE-zero dashboard:NWE USW-now USW-zero dashboard:USW USE-now USE-zero dashboard:USE > models/pypsa-earth/logs/catalyst/driver.out 2>&1 &
 (nohup eog models/pypsa-earth/results/catalyst/validation_*.png >/dev/null 2>&1 &)
 ```
 
@@ -246,6 +249,99 @@ run as the network** (`resources/US-now/bus_regions/` with `networks/US-now/` or
 `check_bus_regions.py <run>` first. To repair the base runs rebuild them with the current `simplify_network`
 (`rm networks/<R>/elec_s*.nc && bash config-pypsa-earth/run.sh <R>`; simplify + cluster + prepare ≈ 5–10 min per
 region, the heavy stages are untouched) — the result then matches the scenario runs' bus set as well.
+
+## US West / US East (stages `USW`, `USE`; 2026-11-17)
+
+The contiguous United States were one stage `US` until 2026-11-17. The Western Interconnection and the rest of the
+country are coupled by about 1.3 GW of back-to-back converters only, so they are two regions in the model, as they
+already were in the archetype classification (`misc-quarter1/country-classification/split_us.py`: US West is the
+geothermal-favourable archetype, US East the fossil-heavy brownfield one), in the geothermal supply curves and in the
+weather-year sites.
+
+**Definition.** Whole states, because the statistics are by state: `USW` = WA, OR, CA, NV, ID, UT, AZ, NM, CO, WY, MT;
+`USE` = the other 37 contiguous states and DC, Texas included; Alaska and Hawaii in neither. 20 and 30 clusters (the
+50 of the former stage; a tractability setting). No power is exchanged between the two: lines across the seam are
+dropped and the back-to-back ties (which OSM does not have as links) are not modelled. The halves meet only in the
+learning market (`run.sh pathway:<scen>:USW,USE,...`).
+
+**Why it is not a config copy.** Both stages are `countries: [US]`: GADM, OSM, powerplantmatching, the demand series and
+every statistics table know the country, not the half, and the fork keeps only two-letter codes. In the OSM network the
+two halves are one AC component (6,340 of the 6,479 base buses of the former stage), so the seam is cut by geography.
+What makes a stage a half:
+
+| What | How | Where |
+|---|---|---|
+| land | fork option `build_shape_options: gadm_subset` (3148f537) = the GADM level-1 ids of the states: the country shape is their union, the GADM shapes are filtered to them | `config.<R>.yaml`; the list is the single source of the split |
+| sea | `clip_bbox`: the box of `USW` ends at 101.5 W (Pacific EEZ only), that of `USE` starts at 107 W (Gulf and Atlantic only) | `config.<R>.yaml` |
+| network, bus regions, wind / solar potential and profiles, EGS supply curves | follow the shapes: `clean_osm_data` drops substations outside them and lines with an end outside, the regions and potentials are built on what is left | nothing to set |
+| plant list | fork option `electricity: powerplants_within_shapes: 10` (6b2e4dc7): plants more than 10 km outside the shapes are dropped. Without it every US plant is assigned to the nearest bus of the half (the former `US` stage placed the plants of Alaska and Hawaii on CONUS buses this way) | `config.<R>.yaml` |
+| wind and solar totals | fork option `estimate_renewable_capacities: stats: statistics` (32e885de): the totals come from the table `renewable_capacities.csv` instead of powerplantmatching's national IRENA file (same numbers for every other stage) | `statistics.yaml` |
+| statistics | `catalyst: tables: region: <R>`: `tables.smk` replaces the US rows of a table by the rows of `calibration/<year>/regions/<R>/<table>.csv` where that file exists | `config.<R>.yaml`, `tables.smk` |
+
+In memory (no run), the land and sea of the two halves add up exactly to those of the former stage (7,954 thousand km2
+of land, 1,957 of sea), and of its 11,974 plants 3,048 fall in the West (271 GW), 8,693 in the East (994 GW), 262 in
+neither (Alaska, Hawaii, one plant with a wrong longitude) and 29 (4.6 GW, plants within 10 km of the seam such as El
+Paso's) in both. The 10 km are needed for plants on barrier islands, which are neither in the simplified country shape
+nor in the offshore shape (St. Lucie, 1.9 GW of nuclear, was dropped at 0 km).
+
+**Tables of a half** (`scripts/build_region_tables.py`, run after `build_calibration.py` and `build_demand_pathway.py`;
+the national tables are not changed, so nothing that sums a table counts the US twice). A half's value is the national
+value x the half's share of the country in EIA's state tables of 2024 (`data/validation/eia/state/`, gitignored
+downloads from eia.gov/electricity/data/state: `annual_generation_state.csv`, `existcapacity_annual.csv`,
+`HS861 2010-.xlsx`); Alaska and Hawaii drop out:
+
+| Table | Value of a half | USW | USE | USW + USE over national |
+|---|---|---|---|---|
+| `demand.csv` (2024 and every horizon) | share of retail sales; the horizons take the US multiple for both | 784 TWh (17.8 %) | 3,604 TWh (81.8 %) | 0.996 |
+| `capacity.csv`, `generation.csv`, `hydro_generation.csv` | share of nameplate capacity / of generation, per fuel group | coal 23 GW, gas 89, nuclear 7, hydro 53, geothermal 2.7 | coal 169 GW, gas 456, nuclear 90, hydro 31, geothermal 0 | 0.98 to 1.00, oil 0.91 (capacity) and 0.69 (generation): Hawaii and Alaska burn oil |
+| `generation.csv` column `cf` (wind / solar targets) | from the two rows above | wind 0.314, solar 0.236 | wind 0.344, solar 0.174 | national 0.338, 0.195 |
+| `renewable_capacities.csv` | IRENA x the wind / solar capacity share; offshore wind by the states that have some | onshore 32 GW, solar 60, offshore 0 | onshore 120 GW, solar 116, offshore 0.2 | 1.00 |
+| `hydro_max_hours.csv` | GloHydroRes plants inside the half's states, the national formula | 1,464 h | 3,000 h (the cap; the Missouri reservoirs) | national 2,002 h |
+| envelope tables (`p_min_pu`, `p_max_pu`) | carriers that run flat, at the half's capacity factor | nuclear 0.96, oil 0.27 | nuclear 0.92, oil 0.07 | |
+
+No table per half, the national rows apply: fleet efficiencies, fuel prices, the CO2 price (0; California's and
+Washington's carbon markets and RGGI stay out, as before) and the efficiency spread of the tranches.
+`merge_config.stage_table(cfg, name)` returns a table as a stage sees it; `clear_market.py` (coverage: `USW` alone 2.5 %
+of world demand, `USE` 11.7 %, both 14.2 %), `plot_world.py` (a row per half, its "Ember" bar = the US row split the
+same way) and `build_validation.py` use it.
+
+**Validation dots** (`build_validation.py`, `split_parts`): Ember's US values x the half's share (the numbers the half
+is calibrated to), EIA's state tables summed over the half's states (the independent source; utility-scale plants,
+demand = retail sales without losses), the fuel-price markers of the US unchanged. Prices are per market:
+ERCOT and PJM real-time 2024 for `USE`, CAISO day-ahead 2024 (41 USD/MWh, CAISO only) for `USW`
+(`manual_points.csv`). The national rows of `manual_points.csv` (EIA 2024, the 2050 outlooks in TWh and GW) describe the
+whole country and are shown for neither half.
+
+**Limits.**
+- Whole states, not the seam: El Paso (West grid) is in `USE`; eastern New Mexico and eastern Montana (East grid) are
+  in `USW`. ERCOT is not modelled apart: Texas is connected to the East by whatever lines OSM shows.
+- One hourly demand shape for both halves: the fork has one synthetic series per country, scaled to each half's annual
+  demand. The US series is a blend of four time zones; the West's real load runs 2-3 hours behind the East's
+  (`REFACTOR_LATER.md` item E).
+- The state shares are of utility-scale plants; small-scale solar is not in EIA's state tables (California's share of
+  solar is understated by that).
+- EIA's "Other" (batteries, purchased steam) is left out of the oil group's share.
+- The v0.9.0 baseline (`baseline/`) cannot model a part of a country and keeps the US as one region
+  (`baseline/config.US.yaml`); `plot_before_after.py` sums the two halves into one US row for the comparison.
+- Not moved to the two stages yet: `scripts/check_grid.py`, `check_fleet.py`, `check_renewables.py` and the model-doc
+  figures still read the files of the former `US` runs on disk; `misc-quarter1/weather-years` names buses of the
+  archived 50-node US network.
+- Of the former `US` runs, only what those scripts read is still on disk (4.3 GB: `resources/US` without its demand
+  profiles, `resources/US-now`, `networks/US/base.nc`, `networks/US-now` without `elec_s.nc`, the solved results under
+  `results/US-*` and `results/archive/US-*`, the clustered networks of `networks/archive/US-20261020`). Deleted on
+  2026-11-17: the `US-smoke`, `US-zero` and `US-myopic` resources and networks, the per-bus demand profiles and the
+  unclustered `elec.nc` / `elec_s.nc` that nothing reads. The North-America cutout stays: `NAM` and `CA` use it.
+
+**To build** (launched 2026-11-17 16:00 as one chain with `MEM_MAX=16G`; 22 GB were free, and the whole US needed
+10 to 16 GB of memory in its solves, so the default cap of 8 GB is too low):
+
+```bash
+bash config-pypsa-earth/run.sh prestage:USW USW USE
+```
+
+```bash
+bash config-pypsa-earth/run.sh USW-now USW-zero dashboard:USW USE-now USE-zero dashboard:USE world
+```
 
 ## Brazil (stages `BR-smoke`, `BR`)
 

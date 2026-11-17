@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Pre-stage the two largest downloads for a pypsa-earth stage so the
 # workflow's own downloaders never handle them:
-#   bash config-pypsa-earth/prestage.sh <CC>        (CC = US | BR | IN | SG | NWE | CN, or a rest-of-world group
-#                                                    EUR | RU | MEA | AFR | ASI | OCE | NAM | SAM | IS; default US)
+#   bash config-pypsa-earth/prestage.sh <CC>        (CC = USW | USE | BR | IN | SG | NWE | CN, or a rest-of-world group
+#                                                    EUR | RU | MEA | AFR | ASI | OCE | NAM | SAM | IS; default USW)
 #   1. One Geofabrik <region>-latest.osm.pbf per extract of the stage (US 12 GB, BR 2.1 GB, IN 1.7 GB,
 #      SG 0.25 GB via the MY-SG-BN extract, NWE twelve country extracts = 18.6 GB in total, one after
 #      the other) -> osmium tags-filter to power features -> data/osm/pbf/<region>-latest.osm.pbf
@@ -18,9 +18,9 @@ LOGDIR="$PE/logs/catalyst"; mkdir -p "$LOGDIR"
 STATUS="$LOGDIR/status.log"
 MIN_FREE_GB=${MIN_FREE_GB:-20}
 MEM_MAX=${MEM_MAX:-8G}
-CC="${1:-US}"
+CC="${1:-USW}"
 case "$CC" in   # Geofabrik extracts per stage, space separated (earth-osm names each file <id>-latest.osm.pbf)
-  US) GFS=north-america/us ;;
+  US|USW|USE) GFS=north-america/us ;;   # US West and US East are cut from the one US extract (build_shape_options: gadm_subset)
   BR) GFS=south-america/brazil ;;
   IN) GFS=asia/india ;;
   CN) GFS=asia/china ;;

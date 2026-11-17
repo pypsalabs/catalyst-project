@@ -4,7 +4,7 @@ Sanity check + map for a Catalyst pypsa-earth prenetwork.
 
     cd models/pypsa-earth && pixi run python ../../config-pypsa-earth/check_network.py <run>
 
-<run> is a stage name (US, US-smoke, BR, ...); the clip box and renewable carriers are read from
+<run> is a stage name (USW, BR, BR-smoke, ...); the clip box and renewable carriers are read from
 config-pypsa-earth/config.<run>.yaml. Prints one line per check and writes
 models/pypsa-earth/results/catalyst/<run>_map.png (line width ~ s_nom, red dots ~ annual load).
 Must run inside the pixi env (`pixi run`) so PROJ/cartopy find their data.

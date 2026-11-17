@@ -11,7 +11,9 @@ select_countries.py) gets three 100 % bars, top to bottom:
             expansion at 2025 costs without a CO2 cap
     zero    the <R>-zero screening solve (Co2L0, 2050 costs)
 Countries of multi-node regions are split by bus country, except the multi-country archetype region NWE, which is
-shown as one row (its 12 countries summed, Ember included). The model mix is primary generation: generators plus hydro
+shown as one row (its 12 countries summed, Ember included), and the two halves of the United States (stages USW, USE:
+catalyst: tables: region), which are a row each; their "Ember" bar is the US row split by EIA's state statistics, as the
+tables the halves are calibrated to (scripts/build_region_tables.py). The model mix is primary generation: generators plus hydro
 reservoir discharge; pumped hydro, battery and H2 discharge are storage throughput and left out (Ember counts neither);
 load shedding is drawn as its own red segment. Right of the bars: the fossil share (coal + gas + oil) of each bar and, for
 the Ember and now bars, the power-sector CO2 from fossil combustion in Mt (Ember "Fossil" aggregate of the same year, i.e.
@@ -48,7 +50,7 @@ from matplotlib.transforms import blended_transform_factory  # noqa: E402
 HERE = os.path.dirname(os.path.abspath(__file__))
 CFG = os.path.dirname(HERE)
 sys.path.insert(0, CFG)
-from merge_config import BASELINE, solved_network  # noqa: E402
+from merge_config import BASELINE, solved_network, stage_files, stage_table  # noqa: E402
 
 warnings.filterwarnings("ignore")
 logging.getLogger("pypsa").setLevel(logging.ERROR)
@@ -75,7 +77,11 @@ SHORT = {"KP": "North Korea", "KR": "South Korea", "CD": "DR Congo", "CG": "Cong
          "RU": "Russia", "LA": "Laos", "VE": "Venezuela", "BO": "Bolivia", "TZ": "Tanzania", "SY": "Syria", "MD": "Moldova",
          "VN": "Vietnam", "PS": "Palestine", "BN": "Brunei", "IR": "Iran", "CI": "Côte d'Ivoire", "BA": "Bosnia-Herzeg.",
          "AE": "UAE", "DO": "Dominican Rep.", "TT": "Trinidad & Tobago"}
-REGION_NAMES = {"NWE": "North-West Europe"}
+REGION_NAMES = {"NWE": "North-West Europe", "USW": "US West", "USE": "US East"}
+# a stage that models a part of a country (catalyst: tables: region; US West, US East) is its own row under the part's
+# key; its reference is the country's Ember row split as its statistics are (calibration/<year>/regions/<part>/, EIA
+# state shares), the fossil CO2 in proportion to the part's coal, gas and oil generation at these t/MWh_el
+PART_CO2 = {"coal": 0.336 / 0.38, "gas": 0.198 / 0.50, "oil": 0.2571 / 0.35}
 SCEN = ["ember", "now", "zero"]
 SCEN_LABEL = {"ember": "Ember", "now": "now", "zero": "zero"}
 HEAD_LABEL = {"ember": "Ember", "now": "model now", "zero": "model zero"}
@@ -91,8 +97,7 @@ def stage_regions():
     """{region: config dict} of every non-smoke config.<R>.yaml (test regions with catalyst.world_page: false left out,
     e.g. JP, which the ASI group already counts)."""
     out = {}
-    for f in sorted(glob.glob(os.path.join(CFG, "config.*.yaml"))):
-        r = os.path.basename(f)[len("config."):-len(".yaml")]
+    for r, f in stage_files().items():
         if "-smoke" not in r:
             with open(f) as fh:
                 cfg = yaml.safe_load(fh)
@@ -148,9 +153,10 @@ def collect(fork):
     import pycountry
 
     ember, world = ember_table()
-    rows, missing = [], []
+    rows, missing, parts = [], [], {}
     for r, cfg in stage_regions().items():
         ccs = [str(c) for c in cfg["countries"]]
+        part = ((cfg.get("catalyst") or {}).get("tables") or {}).get("region")
         for scen in ("now", "zero"):
             path = os.path.join(fork, solved_network(r, scen))
             if not os.path.exists(path):
@@ -163,15 +169,27 @@ def collect(fork):
             t = country_table(n)
             for c in ccs:
                 row = t.loc[c].to_dict() if c in t.index else {k: np.nan for k in ORDER + ["load"]}
-                rows.append(dict(row, country=c, region=r, scen=scen))
+                rows.append(dict(row, country=part or c, region=r, scen=scen))
         for c in ccs:
             iso3 = pycountry.countries.get(alpha_2=c).alpha_3
-            if iso3 in ember.index:
+            if iso3 not in ember.index:
+                continue
+            if part:
+                twh = {name: t[t.country == c].set_index("group").twh.rename(index={"geothermal": "other"})
+                       for name, t in [("part", stage_table(cfg, "generation")), ("country", stage_table({}, "generation"))]}
+                fossil = {name: sum(v.get(g, 0.0) * f for g, f in PART_CO2.items()) for name, v in twh.items()}
+                ref = twh["part"].reindex(ORDER, fill_value=0.0).fillna(0.0).to_dict()
+                ref["co2"] = ember.co2[iso3] * fossil["part"] / fossil["country"]
+                rows.append(dict(ref, country=part, region=r, scen="ember"))
+                demand = stage_table(cfg, "demand")
+                parts[part] = dict(demand=demand[demand.country == c].demand_twh.sum(), year=ember.year[iso3],
+                                   name=REGION_NAMES.get(part, part))
+            else:
                 rows.append(dict(ember.loc[iso3, ORDER + ["co2"]].to_dict(), country=c, region=r, scen="ember"))
     df = pd.DataFrame(rows)
-    iso3 = {c: pycountry.countries.get(alpha_2=c).alpha_3 for c in df.country.unique()}
+    iso3 = {c: pycountry.countries.get(alpha_2=c).alpha_3 for c in df.country.unique() if c not in parts}
     for k in ("demand", "year", "name"):
-        df[k] = df.country.map(lambda c: ember[k].get(iso3[c], np.nan))
+        df[k] = df.country.map(lambda c: parts[c][k] if c in parts else ember[k].get(iso3[c], np.nan))
     df["name"] = df.country.map(SHORT).fillna(df["name"]).fillna(df.country)
     # multi-country archetype regions are one row: the countries summed per scenario
     for r, cfg in stage_regions().items():

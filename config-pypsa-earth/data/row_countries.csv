@@ -1,6 +1,6 @@
 iso2,iso3,name,continent,year,demand_twh,status,group,cum_share,load_source,geofabrik,reason
 CN,CHN,China,Asia,2024,10069.88,archetype,CN,0.32569,gegis,,
-US,USA,United States of America,North America,2024,4404.83,archetype,US,0.46815,gegis,,
+US,USA,United States of America,North America,2024,4404.83,archetype,USE+USW,0.46815,gegis,,
 IN,IND,India,Asia,2024,2034.22,archetype,IN,0.53394,gegis,,
 BR,BRA,Brazil,South America,2024,757.31,archetype,BR,0.55844,gegis,,
 DE,DEU,Germany,Europe,2024,522.26,archetype,NWE,0.57533,gegis,,

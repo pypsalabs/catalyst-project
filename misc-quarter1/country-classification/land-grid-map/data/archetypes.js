@@ -91,7 +91,7 @@ window.ARCHETYPES = [
     id: 'k_sparse',
     name: 'Fossil-heavy brownfield with large economies',
     short: 'Fossil-heavy brownfield',
-    examples: 'US East · Russia · Canada · ERCOT · Saudi Arabia · Australia NEM',
+    examples: 'US East · Russia · Canada · Saudi Arabia · Australia NEM',
     color: '#0B9E45', tint: '#DFF3E5',
     icon: '<circle cx="24" cy="25" r="16"/><path d="M26.5 14 L18.5 27 H25 L21.5 36 L30 23 H23.5 Z"/><line x1="24" y1="4" x2="24" y2="9"/><line x1="24" y1="41" x2="24" y2="46"/><line x1="3" y1="25" x2="8" y2="25"/><line x1="40" y1="25" x2="45" y2="25"/>'
   }

@@ -43,9 +43,21 @@ BEFORE_C, AFTER_C = ic.STEEL_L, ic.BLUE
 SHOW = {"before": "0.9.0", "after": "with patches"}   # how the two sides are named on the page
 
 
+# rows of the world page that are parts of one country (plot_world.py: stages with catalyst: tables: region). v0.9.0 models
+# the country as one, so the parts are summed into the country's row before the two sides are compared
+PARTS = {"USW": ("US", "United States"), "USE": ("US", "United States")}
+
+
 def read(path):
     d = pd.read_csv(path)
     d[FUELS + ["shed"]] = d[FUELS + ["shed"]].fillna(0.0)
+    part = d.country.isin(PARTS)
+    if part.any():
+        p = d[part].assign(country=d.country[part].map(lambda c: PARTS[c][0]), name=d.country[part].map(lambda c: PARTS[c][1]))
+        sums = p.groupby(["country", "scen"], as_index=False)[FUELS + ["shed", "load", "co2", "demand"]].sum(min_count=1)
+        rest = p.groupby(["country", "scen"], as_index=False)[["region", "year", "name"]].first()
+        rest["region"] = "parts"
+        d = pd.concat([d[~part], sums.merge(rest, on=["country", "scen"])], ignore_index=True)
     return d
 
 

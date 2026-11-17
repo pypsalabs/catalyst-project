@@ -62,7 +62,7 @@ rule build_validation_points:
         irena="data/IRENA_Statistics_Extract_2025H2.xlsx",
         ei=VALDATA + "/EI-Stats-Review-ALL-data-2025.xlsx",        # browser download, kept in the repo (see README)
         manual=VALDATA + "/manual_points.csv",
-        configs=[CATALYST_CFG + f"/config.{r}.yaml" for r in ("US", "BR", "IN", "SG", "NWE", "CN")],
+        configs=[CATALYST_CFG + f"/config.{r}.yaml" for r in ("USW", "USE", "BR", "IN", "SG", "NWE", "CN")],
     output:
         "resources/catalyst/validation_points.csv",
     log:

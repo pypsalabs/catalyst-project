@@ -175,7 +175,16 @@ def ember_rows():
     return t[t.twh > 0]
 
 
+# "US" is the former single stage of the contiguous US (until 2026-11-17), whose runs are still on disk and whose config is
+# baseline/config.US.yaml; the stages are USW and USE now (README "US West / US East"). This check moves to them once
+# they are built; the national statistics it compares with then belong to the sum of the two.
 STAGES = "US BR IN CN NWE SG IS CA RU OCE NAM SAM MEA EUR AFR ASI".split()   # every stage with a `now` solve
+
+
+def stage_file(stage):
+    """config.<stage>.yaml, or the config of a former stage kept in baseline/ (US)."""
+    fn = os.path.join(HERE, f"config.{stage}.yaml")
+    return fn if os.path.exists(fn) else os.path.join(HERE, "baseline", f"config.{stage}.yaml")
 FUELS = {  # matched-list fuel type -> fuel of the sources figure
     "Hard Coal": "coal", "Lignite": "coal", "Natural Gas": "gas", "Oil": "oil", "Nuclear": "nuclear",
     "Solid Biomass": "biomass", "Biogas": "biomass", "Waste": "biomass", "Bioenergy": "biomass", "Geothermal": "geothermal",
@@ -183,7 +192,7 @@ FUELS = {  # matched-list fuel type -> fuel of the sources figure
 
 
 def stage_countries(stage):
-    return yaml.safe_load(open(os.path.join(HERE, f"config.{stage}.yaml")))["countries"]
+    return yaml.safe_load(open(stage_file(stage)))["countries"]
 
 
 def world():

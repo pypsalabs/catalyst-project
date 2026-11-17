@@ -26,6 +26,10 @@ writes config-pypsa-earth/calibration/<year>/
                           country, value                 conventional: <carrier>: existing: <attr> (add_electricity);
                                                          nofloor without floors on emitting carriers (Co2L and future years)
     net_imports.csv       country, net_imports_twh       Ember net imports -> net-import band (solve_network)
+    renewable_capacities.csv  country, technology,       IRENA wind and solar capacity of <year> by technology (Onshore,
+                          capacity_mw                    Offshore, PV, CSP), the numbers the fork reads itself with
+                                                         `stats: irena` -> electricity.estimate_renewable_capacities
+                                                         (stats: statistics; add_electricity)
 and the hand-curated price tables:
     fuel_prices.csv  country, fuel, price   fuel_prices_<year>.csv + fuel_price_regions.csv, EUR x USD_PER_EUR (USD/MWh_th)
                                             -> costs.fuel_prices (add_electricity)
@@ -37,6 +41,9 @@ and the hand-curated price tables:
 prints the residuals of solved networks against generation.csv: per country and fuel group the model's share of
 generation vs Ember's, the capacity factors, and the rows that are more than 10 percentage points off (the
 candidates for envelope_overrides.csv).
+
+The tables of the stages that model a part of a country (US West, US East) are derived from these by
+scripts/build_region_tables.py (calibration/<year>/regions/<region>/); run it after this script.
 
 Ember data: config-pypsa-earth/data/validation/yearly_full_release_long_format.csv (gitignored download).
 For each country the latest Ember year <= --year is used (Ukraine stops in 2023).
@@ -159,6 +166,26 @@ def irena_table(latest):
     return t
 
 
+WIND_SOLAR = ["Onshore", "Offshore", "PV", "CSP"]   # IRENA technologies, the keys of the fork's technology_mapping
+
+
+def renewable_capacities(year):
+    """IRENA wind and solar capacity (MW) per country and technology in `year`: powerplantmatching's IRENASTAT frame,
+    read and summed exactly as the fork's add_electricity does with `estimate_renewable_capacities: stats: irena`."""
+    import powerplantmatching as pm
+
+    d = pm.data.IRENASTAT().powerplant.convert_country_to_alpha2()
+    d = d[(d.Year == year) & d.Technology.isin(WIND_SOLAR) & d.Country.notna()]
+    t = d.groupby(["Country", "Technology"]).Capacity.sum().rename("capacity_mw").round(1)
+    t.index.names = ["country", "technology"]
+    return t
+
+
+def flat_envelope(cf):
+    """(p_min_pu, p_max_pu) of a carrier that runs flat at the capacity factor cf."""
+    return round(min(cf, 0.95) * 0.85, 3), round(min(cf * 1.05, 1.0), 3)
+
+
 def demand_table(e):
     d = e[(e.Category == "Electricity demand") & (e.Unit == "TWh") & (e.Variable == "Demand")]
     return d.groupby("country").Value.sum().rename("demand_twh")
@@ -233,6 +260,8 @@ def main(year):
         os.path.join(out, "net_imports.csv"), index=False
     )
 
+    renewable_capacities(year).reset_index().to_csv(os.path.join(out, "renewable_capacities.csv"), index=False)
+
     rows = [dict(country="*", carrier=c, p_min_pu=np.nan, p_max_pu=v["p_max_pu"], efficiency=v["efficiency"],
                  source="thermal availability and fleet efficiency") for c, v in FLEET.items()]
     for group, carriers in INFLEXIBLE.items():
@@ -240,8 +269,8 @@ def main(year):
             if g != group or not np.isfinite(v) or v <= 0:
                 continue
             for carrier in carriers:
-                rows.append(dict(country=c, carrier=carrier, p_min_pu=round(min(v, 0.95) * 0.85, 3),
-                                 p_max_pu=round(min(v * 1.05, 1.0), 3), efficiency=np.nan,
+                p_min_pu, p_max_pu = flat_envelope(v)
+                rows.append(dict(country=c, carrier=carrier, p_min_pu=p_min_pu, p_max_pu=p_max_pu, efficiency=np.nan,
                                  source=f"ember_cf_{latest[c]} flat"))
     co2 = fuel_table(emissions, "Power sector emissions", "mtCO2")
     n_implied = 0

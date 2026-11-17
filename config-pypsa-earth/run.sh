@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Supervised, sequential driver for the pypsa-earth fork (one stage at a time).
 #   bash config-pypsa-earth/run.sh [prestage:<CC>] [<stage> ...]
-#   e.g. bash config-pypsa-earth/run.sh prestage:BR BR-smoke BR       (default: prestage:US US-smoke US)
+#   e.g. bash config-pypsa-earth/run.sh prestage:BR BR-smoke BR       (default: prestage:USW USW USE)
 #        CONTINUE_ON_FAIL=1 MEM_MAX=14G bash config-pypsa-earth/run.sh NWE-now NWE-zero dashboard:NWE
 # Stage kinds (config.<name>.yaml lives in config-pypsa-earth/):
 #   <name>            prenetwork: target networks/<name>/elec_s{simpl}_{clusters}_ec_l{ll}_{opts}.nc
@@ -59,12 +59,16 @@ attempt_log() { tac "$slog" | sed "/######## \[$run\] attempt $attempt /q" | tac
 free_gb() { df -BG --output=avail "$PE" | tail -1 | tr -dc 0-9; }
 mem_avail_gb() { awk '/MemAvailable/ {printf "%d", $2/1048576}' /proc/meminfo; }
 
+has_config() {   # $1 = region: config.<R>.yaml exists; the v0.9.0 baseline also takes baseline/config.<R>.yaml (the US as one region)
+  [ -f "$HERE/config.$1.yaml" ] || { [ "${CATALYST_BASELINE:-0}" = 1 ] && [ -f "$HERE/baseline/config.$1.yaml" ]; }
+}
+
 stage_kind() {   # $1 = stage name -> prenetwork | overlay | dashboard | unknown
   case "$1" in
     dashboard:*) echo dashboard ;;
     assumptions) echo assumptions ;;
-    *) if [ -f "$HERE/config.$1.yaml" ]; then echo prenetwork
-       elif [[ "$1" == *-* ]] && [ -f "$HERE/config.${1%-*}.yaml" ] && [ -f "$HERE/overlay.${1##*-}.yaml" ]; then echo overlay
+    *) if has_config "$1"; then echo prenetwork
+       elif [[ "$1" == *-* ]] && has_config "${1%-*}" && [ -f "$HERE/overlay.${1##*-}.yaml" ]; then echo overlay
        else echo unknown; fi ;;
   esac
 }
@@ -232,7 +236,7 @@ run_pathway() {   # $1 = pathway:<scen>:<R1>,<R2>,... (see header)
     || { log "[pathway $scen] plot_learning.py FAILED, see $slog"; return 1; }
 }
 
-stages=("$@"); [ ${#stages[@]} -eq 0 ] && stages=(prestage:US US-smoke US)
+stages=("$@"); [ ${#stages[@]} -eq 0 ] && stages=(prestage:USW USW USE)
 log "######## run.sh start: ${stages[*]} (cap ${MEM_MAX}, continue_on_fail=${CONTINUE_ON_FAIL}) ########"
 ma=$(mem_avail_gb); need=$(( ${MEM_MAX%G} + 2 ))
 [ "$ma" -ge "$need" ] || log "WARNING: host MemAvailable ${ma} GB < cap ${MEM_MAX} + 2 GB; close other applications or the host OOM killer may act before the scope cap"
@@ -242,7 +246,7 @@ for i in "${!stages[@]}"; do
   case "$s" in
     prestage|prestage:*)
       cc="${s#prestage}"; cc="${cc#:}"
-      [ -n "$cc" ] || { cc="${stages[$((i+1))]:-US}"; cc="${cc%%-*}"; }
+      [ -n "$cc" ] || { cc="${stages[$((i+1))]:-USW}"; cc="${cc%%-*}"; }
       bash "$HERE/prestage.sh" "$cc" || { log "prestage $cc FAILED -> stop"; exit 1; } ;;
     world)
       run_world || { [ "$CONTINUE_ON_FAIL" = 1 ] && failed+=("$s") || exit 1; } ;;

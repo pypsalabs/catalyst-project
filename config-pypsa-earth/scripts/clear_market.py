@@ -104,10 +104,18 @@ def builds(n, rows, threshold):
 
 
 def coverage(stages):
-    """Share of 2024 world demand (Ember, calibration/2024/demand.csv) in the countries of the stages."""
-    d = pd.read_csv(DEMAND).set_index("country").demand_twh
-    countries = {c for s in stages for c in merge_config.stage_config("overlay", s)["countries"]}
-    return d.reindex(sorted(countries)).sum() / d.sum()
+    """Share of 2024 world demand (Ember, calibration/2024/demand.csv) in the countries of the stages. A stage that
+    models a part of a country (catalyst: tables: region, e.g. US West) counts with the demand of its part
+    (merge_config.stage_table); a country or part named by several stages counts once."""
+    world = pd.read_csv(DEMAND).demand_twh.sum()
+    covered = {}
+    for s in stages:
+        cfg = merge_config.stage_config("overlay", s)
+        region = ((cfg.get("catalyst") or {}).get("tables") or {}).get("region")
+        d = merge_config.stage_table(cfg, "demand", 2024).set_index("country").demand_twh
+        for c in cfg["countries"]:
+            covered[(c, region)] = d.get(c, 0.0)
+    return sum(covered.values()) / world
 
 
 def multiplier(stages):

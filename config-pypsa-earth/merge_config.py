@@ -37,6 +37,9 @@ at a time).
 Learning (catalyst.learning: true in the overlay, e.g. overlay.myopic.yaml): catalyst.learning_market =
 results/learning/<scen>/market_{year}.csv, the learning market of all <R>-<scen> stages (scripts/clear_market.py);
 assumptions.smk makes it an input of the palette costs of every year after costs.year.
+Parts of a country (catalyst: tables: region: <KEY> in config.<R>.yaml, e.g. US West / US East, both countries: [US]):
+tables.smk overlays calibration/<year>/regions/<KEY>/ on the national tables; stage_table() returns a table as such a
+stage sees it, for the scripts that compare a stage with its statistics (README "US West / US East").
 Overlay inheritance: `inherit: <scen>` in overlay.<x>.yaml merges overlay.<scen>.yaml first (recursively), so a
 sensitivity overlay carries only what differs (overlay.cfe.yaml inherits myopic, overlay.cfesec.yaml inherits cfe).
 Branches (catalyst.branch: {from: <scen>, year: <Y>}): stage <R>-<x> shares every horizon up to Y with <R>-<scen>
@@ -79,10 +82,30 @@ def deep_merge(base, over):
     return base
 
 
+def stage_files():
+    """{stage: path of its config.<stage>.yaml} of every stage (smoke stages included). In baseline mode the configs of
+    baseline/ come first and the stages that model a part of a country (catalyst: tables: region) are left out: v0.9.0
+    models the US as one region (baseline/config.US.yaml), the fork as US West and US East."""
+    import glob
+
+    out = {os.path.basename(f)[len("config."):-len(".yaml")]: f for f in sorted(glob.glob(os.path.join(HERE, "config.*.yaml")))}
+    if BASELINE:
+        for stage, f in list(out.items()):
+            with open(f) as fh:
+                if (((yaml.safe_load(fh) or {}).get("catalyst") or {}).get("tables") or {}).get("region"):
+                    del out[stage]
+        for f in sorted(glob.glob(os.path.join(HERE, "baseline", "config.*.yaml"))):
+            out[os.path.basename(f)[len("config."):-len(".yaml")]] = f
+    return out
+
+
 def load(name):
     if name == STATISTICS and BASELINE:
         return {}
-    with open(os.path.join(HERE, name)) as f:
+    path = os.path.join(HERE, name)
+    if BASELINE and name.startswith("config.") and os.path.exists(os.path.join(HERE, "baseline", name)):
+        path = os.path.join(HERE, "baseline", name)
+    with open(path) as f:
         return yaml.safe_load(f) or {}
 
 
@@ -93,6 +116,22 @@ def load_overlay(scen, seen=()):
     cfg = load(OVERLAY.format(scen=scen))
     parent = cfg.pop("inherit", None)
     return deep_merge(load_overlay(parent, seen + (scen,)), cfg) if parent else cfg
+
+
+def stage_table(cfg, name, year=None):
+    """calibration/<year>/<name>.csv as a stage sees it (cfg = its config, or a config.<R>.yaml alone): for a stage that
+    models a part of a country (catalyst: tables: region, e.g. US West) the rows of
+    calibration/<year>/regions/<region>/<name>.csv replace the rows of the same countries, as tables.smk does for the run."""
+    import pandas as pd
+
+    tables = (cfg.get("catalyst") or {}).get("tables") or {}
+    year = year or tables.get("year", 2024)
+    table = pd.read_csv(os.path.join(HERE, "calibration", str(year), f"{name}.csv"), comment="#")
+    regional = os.path.join(HERE, "calibration", str(year), "regions", str(tables.get("region")), f"{name}.csv")
+    if tables.get("region") and os.path.exists(regional):
+        part = pd.read_csv(regional)
+        table = pd.concat([table[~table.country.isin(part.country)], part], ignore_index=True)
+    return table
 
 
 def envelope_variant(cfg, variant):

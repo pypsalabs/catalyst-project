@@ -19,22 +19,28 @@
 set -u
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; ROOT="$(dirname "$HERE")"; PE="$ROOT/models/pypsa-earth"
 TAG="${TAG:-20261020}"
-read -ra ARCHETYPES <<< "${ARCHETYPES-BR IN NWE CN US}"   # small -> large; SG has no grid changes
-read -ra REGIONS <<< "${REGIONS:-SG IS CA RU OCE NAM SAM MEA EUR AFR ASI BR IN NWE CN US}"
+read -ra ARCHETYPES <<< "${ARCHETYPES-BR IN NWE CN USW USE}"   # small -> large; SG has no grid changes
+read -ra REGIONS <<< "${REGIONS:-SG IS CA RU OCE NAM SAM MEA EUR AFR ASI BR IN NWE CN USW USE}"
 export CONTINUE_ON_FAIL=1 MEM_MAX="${MEM_MAX:-20G}"
 STATUS="$PE/logs/catalyst/status.log"; mkdir -p "$PE/logs/catalyst"
 log() { echo "[$(date '+%F %T')] [rerun_validation] $*" | tee -a "$STATUS"; }
 cd "$PE" || exit 1
 log "######## start: archetypes ${ARCHETYPES[*]}, regions ${REGIONS[*]} (cap $MEM_MAX, $(df -BG --output=avail . | tail -1 | tr -dc 0-9) GB free) ########"
 
-# 1. archive
-for r in "${REGIONS[@]}"; do
+# 1. archive (SKIP_ARCHIVE=1: continue an interrupted re-run without moving its new results away)
+[ "${SKIP_ARCHIVE:-0}" = 1 ] && REGIONS_ARCHIVE=() || REGIONS_ARCHIVE=("${REGIONS[@]}")
+for r in "${REGIONS_ARCHIVE[@]}"; do
   for o in now zero; do
     if [ -d "results/$r-$o" ]; then
       dst="results/archive/$r-$o-$TAG"; [ -e "$dst" ] && dst="$dst-$(date +%H%M%S)"
       mv "results/$r-$o" "$dst" && log "moved results/$r-$o -> $dst"
     fi
   done
+  # the dashboard of <R> too: run.sh skips a stage whose target exists (2026-11-15: the six dashboards of 11-10 were kept)
+  if [ -f "results/catalyst/validation_$r.png" ]; then
+    mkdir -p "results/catalyst/archive-$TAG" && mv "results/catalyst/validation_$r.png" "results/catalyst/archive-$TAG/" \
+      && log "moved results/catalyst/validation_$r.png -> results/catalyst/archive-$TAG/"
+  fi
 done
 for r in "${ARCHETYPES[@]}"; do
   if ls "networks/$r"/elec*.nc >/dev/null 2>&1; then
@@ -54,7 +60,7 @@ done
 stages=()
 for r in "${REGIONS[@]}"; do stages+=("$r-now"); done
 for r in "${REGIONS[@]}"; do stages+=("$r-zero"); done
-for r in US BR IN NWE CN SG; do [[ " ${REGIONS[*]} " == *" $r "* ]] && stages+=("dashboard:$r"); done
+for r in USW USE BR IN NWE CN SG; do [[ " ${REGIONS[*]} " == *" $r "* ]] && stages+=("dashboard:$r"); done
 bash "$HERE/run.sh" "${stages[@]}" world || failed+=("stages")
 
 # 4. before/after pages (baseline = PyPSA-Earth v0.9.0 of 2026-10-29)
