@@ -31,7 +31,7 @@
 #   Rest-of-world groups (config.<G>.yaml with catalyst.single_node, from scripts/select_countries.py) run as
 #   prestage:<G> <G> <G>-now <G>-zero; their overlay target is the solved network itself.
 # Constraints enforced here: no Snakemake parallelism (-c1 -j1), the whole process tree capped at MEM_MAX
-# RAM with no swap (systemd user scope), a disk watchdog that stops the run below MIN_FREE_GB, retries only
+# RAM with no swap (systemd user scope; inside a Slurm job the job's own limit, see cluster/run.sbatch), a disk watchdog that stops the run below MIN_FREE_GB, retries only
 # for network-type failures, never for OOM. CONTINUE_ON_FAIL=1 goes on with the next stage after a failure
 # (default: stop). Events go to models/pypsa-earth/logs/catalyst/status.log, full Snakemake output to
 # logs/catalyst/<stage>.log, the merged config of each stage to logs/catalyst/config.<stage>.yaml.
@@ -53,6 +53,18 @@ NET_WAITS=${NET_WAITS:-24}   # network outages before any rule ran: up to 24 x 3
 NETWORK_RULES='retrieve_databundle_light|download_osm_data|build_cutout|retrieve_cost_data|build_shapes|build_powerplants|retrieve_validation_data'
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 export PATH="$HOME/.pixi/bin:$HOME/.local/bin:$PATH"
+# Memory cap. Here: a systemd user scope of MEM_MAX around every command. Inside a Slurm job (cluster/run.sbatch) there
+# is no user session to open a scope in and the job's own limit (--mem, enforced by Slurm's cgroup) is the cap: the
+# commands run bare, MEM_MAX only reports that limit, and "SCOPE memory.peak" is the peak of the job so far (all
+# stages of the call), not of one stage.
+if [ -n "${SLURM_JOB_ID:-}" ]; then
+  SCOPE=(); SCOPE_STAGE=()
+  mb=${SLURM_MEM_PER_NODE:-$(( ${SLURM_MEM_PER_CPU:-0} * ${SLURM_CPUS_PER_TASK:-1} ))}
+  [ "$mb" -gt 0 ] && MEM_MAX="$(( mb / 1024 ))G"
+else
+  SCOPE=(systemd-run --user --scope --quiet --expand-environment=no -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0)
+  SCOPE_STAGE=("${SCOPE[@]}" -p OOMPolicy=continue --); SCOPE+=(--)
+fi
 
 log() { echo "[$(date '+%F %T')] $*" | tee -a "$STATUS"; }
 attempt_log() { tac "$slog" | sed "/######## \[$run\] attempt $attempt /q" | tac; }   # this attempt's part of the stage log
@@ -140,14 +152,15 @@ run_stage() {   # $1 = stage name (see header); HORIZON=<year> (pathway): target
           echo "[$(date '+%F %T')] [$run] DISK LOW -> stopping snakemake" >> "$STATUS"
           pkill -TERM -f "snakemake $target" ; fi
       done ) & wd=$!
-    # --expand-environment=no: systemd-run >= 259 expands $VARIABLES in a scope's command line itself by default
+    # SCOPE_STAGE (defined at the top; empty inside a Slurm job). --expand-environment=no: systemd-run >= 259 expands
+    # $VARIABLES in a scope's command line itself by default
     # (the bash -c script below starts with $RUN: 'Invalid environment variable name', rc 127; seen 2026-11-10)
     # the scope caps snakemake + the job + any workers; memory.peak is read from
     # inside the scope before it disappears. --rerun-triggers mtime input: never re-run a rule only
     # because its params/code provenance changed (NWE: retrieve_databundle_light wanted to re-run
     # over the read-only, shared data/ files although the bundle list was identical to the earlier stages)
     timeout --signal=TERM --kill-after=5m "$STAGE_TIMEOUT" \
-      systemd-run --user --scope --quiet --expand-environment=no -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -p OOMPolicy=continue -- \
+      "${SCOPE_STAGE[@]}" \
       bash -c '$RUN snakemake "$1" -c1 -j1 --rerun-incomplete --rerun-triggers mtime input --set-resources build_shapes:mem_mb=2000 $SNAKEMAKE_EXTRA; rc=$?
                cg=/sys/fs/cgroup$(cut -d: -f3 /proc/self/cgroup)
                echo "SCOPE memory.peak=$(( $(cat $cg/memory.peak 2>/dev/null || echo 0) / 1048576 )) MiB events: $(tr "\n" " " < $cg/memory.events 2>/dev/null)"
@@ -194,7 +207,7 @@ run_world() {   # world page over all solved networks, same memory scope as the 
   cd "$PE" || return 1
   log "[world] plot_world.py -> results/catalyst/validation_world.png (cap ${MEM_MAX})"
   echo "######## [world] $(date) ########" >> "$slog"
-  systemd-run --user --scope --quiet --expand-environment=no -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -- \
+  "${SCOPE[@]}" \
     $RUN python "$HERE/scripts/plot_world.py" -o results/catalyst/validation_world.png >> "$slog" 2>&1 \
     || { log "[world] FAILED, see $slog"; return 1; }
   log "[world] SUCCESS results/catalyst/validation_world.png"
@@ -225,7 +238,7 @@ run_pathway() {   # $1 = pathway:<scen>:<R1>,<R2>,... (see header)
     # PATHWAY_UNTIL=<year>: stop after that horizon (e.g. the trunk of branched sensitivities)
     if [ -n "${PATHWAY_UNTIL:-}" ] && [ "$y" -ge "$PATHWAY_UNTIL" ]; then log "[pathway $scen] PATHWAY_UNTIL=$PATHWAY_UNTIL: stop after $y"; break; fi
     log "[pathway $scen] market step: builds of $y -> costs of $ynext"
-    systemd-run --user --scope --quiet --expand-environment=no -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -- \
+    "${SCOPE[@]}" \
       $RUN python "$HERE/scripts/clear_market.py" step "$scen" "$y" "$ynext" "${stages[@]}" \
       ${LEARNING_EXOGENOUS:+--exogenous "$LEARNING_EXOGENOUS"} >> "$slog" 2>&1 \
       || { log "[pathway $scen] clear_market.py step $y FAILED, see $slog"; return 1; }

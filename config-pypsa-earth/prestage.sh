@@ -42,7 +42,8 @@ free_gb() { df -BG --output=avail "$PE" | tail -1 | tr -dc 0-9; }
 disk_guard() { local f; f=$(free_gb); [ "$f" -ge "$MIN_FREE_GB" ] || { log "DISK LOW: ${f} GB free < ${MIN_FREE_GB} GB, abort"; exit 2; }; }
 wait_for_wget() { # do not start a second wget on a file another wget is writing
   while pgrep -f "wget .*$1" >/dev/null 2>&1; do sleep 60; done; }
-capped() { systemd-run --user --scope --quiet -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -- "$@"; }
+capped() {   # inside a Slurm job the job's own memory limit is the cap (see run.sh)
+  if [ -n "${SLURM_JOB_ID:-}" ]; then "$@"; else systemd-run --user --scope --quiet -p "MemoryMax=$MEM_MAX" -p MemorySwapMax=0 -- "$@"; fi; }
 
 cd "$PE" || exit 1
 mkdir -p "$RAW" "$PBF"
