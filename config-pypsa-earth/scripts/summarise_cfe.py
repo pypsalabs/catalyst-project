@@ -13,7 +13,11 @@ and results/learning/<scen>/cfe.csv (one row per horizon x buyer: fork scripts/c
 cost_per_mwh, grid_price_per_mwh, premium_per_mwh, ... in USD2024/MWh; plus the newly acquired part of the
 horizon: demand_new_twh = the buyer's load growth since the horizon before, cost_new_per_mwh = annual cost of the
 buyer assets built in this horizon / that growth, minus the buyer's export revenue per MWh of its whole load
-(ASSUMPTION: every MWh of buyer load sells the same excess), premium_new_per_mwh = that minus the grid price) and results/learning/<scen>/factors.csv
+(ASSUMPTION: every MWh of buyer load sells the same excess), premium_new_per_mwh = that minus the grid price), results/learning/<scen>/cfe_zones.csv
+(one row per horizon x market zone: fork scripts/cfe.py summary_zones(), the same columns for the buyers of a zone
+together, with the energy matched across the zone's buses (transfer_twh) and what moving it costs at nodal prices
+(congestion_per_mwh). The buyers are matched per zone, so these are the rows to read; a single buyer's cost in
+cfe.csv contains what it pays to or receives from the other buyers of its zone) and results/learning/<scen>/factors.csv
 (year, pool, component, factor, cumulative_capacity, unit) from the market files of the stage's horizons
 (the parent market's for the shared ones), and results/learning/<scen>/mix.csv (year, carrier, kind, twh, twh_buyer:
 kind "generation" = annual generation incl. hydro reservoir dispatch, kind "storage" = annual discharge of PHS,
@@ -104,7 +108,7 @@ def summarise(stage):
     cfg = merge_config.stage_config("overlay", stage)
     scen = cfg["catalyst"]["scenario"]
     rows = advanced_rows()
-    caps, cfe, fac, mix = [], [], [], []
+    caps, cfe, zon, fac, mix = [], [], [], [], []
     for y in cfg["scenario"]["planning_horizons"]:
         f = merge_config.solved_horizon(stage, y)
         if os.path.exists(f):
@@ -113,31 +117,42 @@ def summarise(stage):
             mix += [dict(year=y, stage=stage, scen=scen, **m) for m in generation(n)]
             meta = (n.meta or {}).get("cfe") or {}
             summ = meta.get("summary") or (cfe_module().summary(n) if meta.get("buyers") else {})
+            zone_of = meta.get("zones") or {}
             for buyer, v in summ.items():
                 v = {k: x for k, x in v.items() if not isinstance(x, dict)}
+                v.setdefault("zone", zone_of.get(buyer, v.get("bus")))
                 cfe.append(dict(year=y, stage=stage, scen=scen, buyer=buyer, **v))
+            if meta.get("buyers"):
+                zsum = meta.get("summary_zones") or cfe_module().summary_zones(n)
+                for zone, v in zsum.items():
+                    v = {k: x for k, x in v.items() if not isinstance(x, dict)}
+                    zon.append(dict(year=y, stage=stage, scen=scen, zone=zone, **v))
         m = os.path.join("results", "learning", market_of(stage, y), f"market_{y}.csv")
         if os.path.exists(m):
             d = pd.read_csv(m, comment="#")[["pool", "component", "unit", "factor", "cumulative_capacity"]]
             fac.append(d.assign(year=y, stage=stage, scen=scen))
     # the newly acquired part of each horizon (a buyer share that grows over the horizons, catalyst.cfe.share)
-    prev = {}
-    for r in sorted(cfe, key=lambda r: r["year"]):
-        if r.get("cost_own_new") is None:
-            continue   # solved before the fork recorded it
-        grown = r["demand_twh"] - prev.get(r["buyer"], 0.0)
-        prev[r["buyer"]] = r["demand_twh"]
-        r["demand_new_twh"] = grown
-        if grown > 1e-6:
-            r["cost_new_per_mwh"] = r["cost_own_new"] / (grown * 1e6) - r["revenue_per_mwh"]
-            r["premium_new_per_mwh"] = r["cost_new_per_mwh"] - r["grid_price_per_mwh"]
+    # per buyer and per zone; under zone matching only the zone rows mean something (a buyer's imports are another
+    # buyer's exports)
+    for table, key in [(cfe, "buyer"), (zon, "zone")]:
+        prev = {}
+        for r in sorted(table, key=lambda r: r["year"]):
+            if r.get("cost_own_new") is None:
+                continue   # solved before the fork recorded it
+            grown = r["demand_twh"] - prev.get(r[key], 0.0)
+            prev[r[key]] = r["demand_twh"]
+            r["demand_new_twh"] = grown
+            if grown > 1e-6:
+                r["cost_new_per_mwh"] = (r["cost_own_new"] / (grown * 1e6) - r["revenue_per_mwh"]
+                                         + (r.get("congestion_per_mwh") or 0.0))   # zone rows: moving power within the zone
+                r["premium_new_per_mwh"] = r["cost_new_per_mwh"] - r["grid_price_per_mwh"]
     out = os.path.join("results", "learning", scen)
     os.makedirs(out, exist_ok=True)
-    tables = dict(summary=pd.DataFrame(caps), cfe=pd.DataFrame(cfe), mix=pd.DataFrame(mix),
+    tables = dict(summary=pd.DataFrame(caps), cfe=pd.DataFrame(cfe), cfe_zones=pd.DataFrame(zon), mix=pd.DataFrame(mix),
                   factors=pd.concat(fac, ignore_index=True) if fac else pd.DataFrame())
     for name, df in tables.items():
         df.to_csv(os.path.join(out, f"{name}.csv"), index=False, float_format="%.6g")
-    print(f"summarise_cfe: {stage} -> {out}/{{summary,cfe,factors,mix}}.csv "
+    print(f"summarise_cfe: {stage} -> {out}/{{summary,cfe,cfe_zones,factors,mix}}.csv "
           f"({len(set(c['year'] for c in caps))} horizons solved)")
     return tables
 

@@ -12,8 +12,9 @@ results/learning/<name>/ (default <R>-branches) power, energy, mix, learning and
   mix       generation per horizon by technology group, stacked bars, the 24/7 CFE buyer's own plants hatched on top
             (share of the total above each bar)
   learning  learning factor per technology / component, one panel per sensitivity
-  premium   24/7 CFE buyer's cost minus the load-weighted average price of the rest of the region's demand, USD/MWh,
-            one line per sensitivity
+  premium   24/7 CFE buyers' cost minus the load-weighted average price of the rest of the demand, USD/MWh, per
+            market zone (fork cfe.summary_zones) and averaged over the region's zones by buyer load, one line per
+            sensitivity
 The horizons up to the branch year are the trunk's (the same in every panel); a thin dashed line marks the branch.
 """
 import os
@@ -122,7 +123,7 @@ def plot_mix(stages, mix, out, region):
 
 def title_of(stage):
     cat = merge_config.stage_config("overlay", stage)["catalyst"]
-    if not cat.get("cfe"):
+    if not (cat.get("cfe") or {}).get("share"):   # a region's config may carry cfe: zones without a buyer
         return "reference (no 24/7 CFE)", cat.get("branch")
     v = str(cat.get("learning_spillover"))
     return SPILLOVER.get(v, f"x{v}" if v != "None" else "only modelled builds"), cat.get("branch")
@@ -170,8 +171,9 @@ def main(region, scens, name=None):
     stages = [f"{region}-{s}" for s in scens]
     tables = {s: summarise_cfe.summarise(s) for s in stages}
     caps = pd.concat([t["summary"] for t in tables.values()], ignore_index=True)
-    cfe = pd.concat([t["cfe"] for t in tables.values() if len(t["cfe"])], ignore_index=True) \
-        if any(len(t["cfe"]) for t in tables.values()) else pd.DataFrame()
+    # the buyers are matched per market zone: the premium is read from the zone rows (cfe_zones.csv), not per buyer
+    cfe = pd.concat([t["cfe_zones"] for t in tables.values() if len(t["cfe_zones"])], ignore_index=True) \
+        if any(len(t["cfe_zones"]) for t in tables.values()) else pd.DataFrame()
     fac = pd.concat([t["factors"] for t in tables.values() if len(t["factors"])], ignore_index=True)
     outdir = os.path.join("results", "learning", name or f"{region}-branches")
     os.makedirs(outdir, exist_ok=True)

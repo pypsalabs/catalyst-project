@@ -40,7 +40,9 @@ def summarise(stage):
             stage=stage, year=int(f[-7:-3]), onwind_gw=cap.get("onwind", 0.0), egs_gw=cap.get("egs", 0.0),
             solar_gw=cap.get("solar", 0.0),
             onwind_cf=float(n.generators_t.p[wind].mul(w, axis=0).sum().sum() / (g.loc[wind, "p_nom_opt"].sum() * w.sum())),
-            price=price, premium=s[0].get("premium_per_mwh", np.nan) if s else np.nan,
+            price=price,   # premium: the buyers' mean, weighted by their load (was the first buyer's only)
+            premium=float(np.average([b.get("premium_per_mwh", np.nan) for b in s],
+                                     weights=[b["demand_twh"] for b in s])) if s else np.nan,
         ))
     return pd.DataFrame(rows)
 

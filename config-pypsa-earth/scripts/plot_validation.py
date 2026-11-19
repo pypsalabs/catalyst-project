@@ -92,7 +92,9 @@ def collect(n, costs=None):
     """Return a dict of tidy tables (pandas) for one solved network, region-wide."""
     w = n.snapshot_weightings.generators
     d = {}
-    ac = n.buses.index[n.buses.carrier == "AC"]
+    # the 24/7 CFE buyer buses (fork scripts/cfe.py) are AC buses at their grid bus: not grid buses of their own
+    buyers = ((getattr(n, "meta", {}) or {}).get("cfe") or {}).get("buyers") or {}
+    ac = n.buses.index[(n.buses.carrier == "AC") & ~n.buses.index.isin(list(buyers))]
     g = n.generators
     gp = n.generators_t.p.reindex(columns=g.index, fill_value=0.0)
     shed = g.index[g.carrier == SHED]
@@ -100,7 +102,7 @@ def collect(n, costs=None):
 
     # ---- demand
     load = n.loads_t.p_set.reindex(columns=n.loads.index, fill_value=0.0)
-    load_bus_country = n.loads.bus.map(n.buses.country)
+    load_bus_country = n.loads.bus.replace(buyers).map(n.buses.country)   # a buyer's load counts at its grid bus
     d["load_hourly"] = load.sum(axis=1)                                      # MW
     d["demand_twh"] = float((d["load_hourly"] * w).sum() / 1e6)
     d["peak_gw"] = float(d["load_hourly"].max() / 1e3)
