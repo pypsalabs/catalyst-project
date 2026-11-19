@@ -85,9 +85,33 @@ stage_kind() {   # $1 = stage name -> prenetwork | overlay | dashboard | unknown
   esac
 }
 
+link_profiles() {   # $1 = base run, $2 = scenario run: the stage's own renewable_profiles/ with links to the base run's files
+  # The wind and solar profiles are the base run's (symlinks). Not so the files that are built from the plant list:
+  # profile_hydro.nc (inflows indexed by the row number of the plant list) and cells_<tech>.nc (build_resource_cells).
+  # A pathway stage builds its own list (plants under construction, lifetimes), with other rows. In a shared
+  # directory the stage that ran last rewrote these files for all (2026-11-18: after USW-tzone the inflows of
+  # USW-now belonged to other plants, no row in common was the same plant, and USW's resource classes looked
+  # outdated). So the directory is the stage's own, and these files are hard links to the base run's (same inode
+  # and mtime, nothing looks outdated) only while the stage has the base run's plant list. Snakemake removes an
+  # output before it rebuilds it, so a stage that builds its own list gets its own files and leaves the base run's alone.
+  local base="$1" run="$2" d="resources/$2/renewable_profiles" e
+  [ -d "resources/$base/renewable_profiles" ] && [ -d "resources/$run" ] || return 0
+  if [ -L "$d" ]; then rm "$d"; log "[$run] $d was a directory symlink -> own directory (own hydro profile and resource cells)"; fi
+  [ -d "$d" ] && return 0
+  mkdir -p "$d"
+  for e in resources/"$base"/renewable_profiles/*; do
+    e="$(basename "$e")"
+    case "$e" in
+      profile_hydro.nc|cells_*.nc) cmp -s "resources/$run/powerplants.csv" "resources/$base/powerplants.csv" && ln "resources/$base/renewable_profiles/$e" "$d/$e" ;;
+      *) ln -s "../../$base/renewable_profiles/$e" "$d/$e" ;;
+    esac
+  done
+  return 0
+}
+
 link_resources() {   # $1 = base run, $2 = scenario run: share the expensive resources of the base run
-  # resources/<run>/ is a real directory of symlinks to the base run's entries (shapes, osm, renewable_profiles,
-  # powerplants, natura; not the cost tables and demand profiles, see below) except bus_regions/, which gets its own directory with symlinks to the
+  # resources/<run>/ is a real directory of symlinks to the base run's entries (shapes, osm,
+  # powerplants, natura; renewable_profiles/ see link_profiles; not the cost tables and demand profiles, see below) except bus_regions/, which gets its own directory with symlinks to the
   # two build_bus_regions outputs only: simplify_network / cluster_network write busmaps and clustered regions
   # into bus_regions/, and a shared directory would let one scenario run invalidate the other (and the base run)
   # by rewriting those files with a newer mtime (happened 2026-09-20: IN-now re-solved after IN-zero).
@@ -106,14 +130,15 @@ link_resources() {   # $1 = base run, $2 = scenario run: share the expensive res
     mkdir -p "resources/$run/bus_regions"
     for e in resources/"$base"/*; do
       e="$(basename "$e")"
-      case "$e" in bus_regions|costs_*|demand_profiles*.csv|resource_classes|statistics) continue ;; esac
+      case "$e" in bus_regions|costs_*|demand_profiles*.csv|resource_classes|statistics|renewable_profiles) continue ;; esac
       ln -s "../$base/$e" "resources/$run/$e"
     done
     for e in regions_onshore.geojson regions_offshore.geojson; do
       [ -e "resources/$base/bus_regions/$e" ] && ln -s "../../$base/bus_regions/$e" "resources/$run/bus_regions/$e"
     done
-    log "[$run] resources/$run/: per-entry symlinks to resources/$base (own bus_regions/)"
+    log "[$run] resources/$run/: per-entry symlinks to resources/$base (own bus_regions/, renewable_profiles/)"
   fi
+  link_profiles "$base" "$run"
   if [ ! -e "networks/$run/base.nc" ] && [ -f "networks/$base/base.nc" ]; then
     mkdir -p "networks/$run"; ln "networks/$base/base.nc" "networks/$run/base.nc"; log "[$run] networks/$run/base.nc hardlinked from networks/$base"; fi
 }
