@@ -1656,10 +1656,14 @@ endogenously (SOW §1.1). After Riepin, Jenkins, Swezey & Brown (Joule 2025; `mo
   zones of the table (rows keyed by GADM unit, of the stage's countries and `gadm_subset`), `apply_on:
   [cluster_network]`. `cluster_network` then sets the zone as the "country" of every bus of the simplified
   network, distributes the clusters over the (zone, sub-network) groups by load (at least one each) and puts the
-  country back afterwards; the clustered buses are named after the zone (`CAISO0 3`). The profiles are not
-  touched. Not applied to `simplify_network` (its isolated-network threshold is a share of the "country" load) nor
-  to `build_bus_regions` (PyPSA-Earth passes the country's sea areas where the subregions' are looked up, so every
-  subregion would lose its offshore regions; same in upstream main). `subregion_shapes.geojson` is written by
+  country back afterwards; the clustered buses are named after the zone (`CAISO0 3`). PyPSA-Earth applies the
+  subregions of `cluster_network` in `build_bus_regions` too (the rule is keyed on the same name), so in a base
+  run the bus regions are Voronoi cells within a zone, on land and at sea, and the profiles are rebuilt on them;
+  a stage of an existing base run (the US West test below) keeps the base run's regions and profiles. For the sea
+  areas this needed a fork fix (2026-11-19, found by China's rebuild: the rule got the countries' sea areas where
+  the zones' are looked up, every zone lost its offshore regions and the offshore wind profile failed; same in
+  upstream main). Not applied to `simplify_network` (its isolated-network threshold is a share of the "country"
+  load). `subregion_shapes.geojson` and `subregion_offshore.geojson` are written by
   `build_shapes`; for a run that exists `scripts/write_subregion_shapes.py <run>` writes it with the same
   functions, since re-running `build_shapes` would rebuild the whole run. Zones made of whole countries
   (Germany + Luxembourg) cannot use the switch (`merge_config.py` raises).
