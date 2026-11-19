@@ -89,6 +89,9 @@ build_shape_options:
   clip_bbox: [-125.0, 24.0, -101.5, 50.0]   # the eleven states and the Pacific EEZ (no Gulf of Mexico west of 97.5 W)
 
 catalyst:
+  cfe:
+    zones: statistics             # 24/7 CFE buyers are matched per market zone, not per country: CAISO, Northwest, Southwest
+                                  # (data/market_zones/market_zones.csv -> statistics/market_zones.csv, tables.smk; README "Market zones")
   tables:
     region: USW           # tables.smk: rows of calibration/<year>/regions/USW/<table>.csv replace the national US rows
 

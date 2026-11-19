@@ -23,7 +23,12 @@
 #                                                         where calibration/<year>/regions/<region>/<same path> exists,
 #                                                         its rows replace the rows of the same countries in the table
 #                                                         (scripts/build_region_tables.py; README "US West / US East")
+#   catalyst: tables: {zones: market_zones}               (default) the definition of the market zones,
+#                                                         data/market_zones/<zones>.csv (a test table has another name)
 # The palette's cost rows (cost_overrides_<year>.csv) are written by technology-assumptions/assumptions.smk.
+#
+# market_zones.csv (fork option catalyst: cfe: zones: statistics) is not a copy: rule catalyst_market_zones builds the
+# bus -> zone table of the run from the zone definitions and the run's own clustering (scripts/build_market_zones.py).
 #
 # Files are copied with their modification time: a table is as old as its source, so that outputs shared between runs
 # (run.sh link_resources: base.nc, renewable profiles, ...) do not look outdated against a fresh copy.
@@ -93,4 +98,21 @@ rule catalyst_statistics:
             os.utime(output[0], (newest, newest))
 
 
+rule catalyst_market_zones:
+    input:
+        zones=f"{_HERE}/data/market_zones/{_TABLES.get('zones', 'market_zones')}.csv",
+        simplified="networks/" + RDIR + f"elec_s{config['scenario']['simpl'][0]}.nc",
+        busmap="resources/" + RDIR
+        + f"bus_regions/busmap_elec_s{config['scenario']['simpl'][0]}_{config['scenario']['clusters'][0]}.csv",
+        gadm="resources/" + RDIR + "shapes/gadm_shapes.geojson",
+    output:
+        STATISTICS + "market_zones.csv",
+    log:
+        "logs/" + RDIR + "catalyst_market_zones.log",
+    shell:
+        "python " + _HERE + "/scripts/build_market_zones.py --simplified {input.simplified} --busmap {input.busmap} "
+        "--gadm {input.gadm} --table {input.zones} --out {output} > {log} 2>&1"
+
+
 ruleorder: catalyst_statistics > copy_statistics
+ruleorder: catalyst_market_zones > copy_statistics

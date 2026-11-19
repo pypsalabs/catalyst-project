@@ -1,0 +1,135 @@
+# Market zones of the 24/7 CFE matching (catalyst: cfe: zones: statistics). One row per key:
+#   key = a GADM level-1 id as in resources/<run>/shapes/gadm_shapes.geojson (US.5_1), or a country code (DE), or, for
+#         tests only, the name of a clustered bus. A country with any GADM row must be covered completely; a country
+#         without a row is one zone (its country code), e.g. India (one national zone: the exchanges clear nearly one
+#         price, CERC 2024-25: 0.48 % of cleared volume lost to congestion) and every one-node region.
+#   zone = identifier of the market zone, letters, digits and underscore only.
+# scripts/build_market_zones.py turns this into the bus -> zone table of a run (zone of a clustered bus = the zone
+# holding most of its load). US rows: state totals of nameplate capacity by balancing authority, EIA-860 2024
+# (data/validation/eia/eia860_2024); the markets' balancing authorities are PJM, MISO, SWPP (SPP), ERCO (ERCOT), NYIS,
+# ISNE, CISO; every other eastern balancing authority counts as SOUTHEAST (no organised market).
+key,zone,name,source
+US.1_1,SOUTHEAST,Alabama,"EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (SOCO 0.74, TVA 0.26)"
+US.2_1,US_AK,Alaska,not modelled (outside both US stages); listed so that the country is covered completely
+US.3_1,SOUTHWEST,Arizona,"ASSUMPTION (zone grouping chosen 2026-11-18): outside CAISO the West has no organised market; Southwest and Rockies = NV, UT, AZ, NM, CO, WY"
+US.4_1,MISO,Arkansas,"EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (MISO 0.78, SPP 0.12)"
+US.5_1,CAISO,California,EIA-860 2024: CISO 0.83 of the state's capacity
+US.6_1,SOUTHWEST,Colorado,"ASSUMPTION (zone grouping chosen 2026-11-18): outside CAISO the West has no organised market; Southwest and Rockies = NV, UT, AZ, NM, CO, WY"
+US.7_1,ISONE,Connecticut,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (ISNE 1.00)
+US.8_1,PJM,Delaware,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (PJM 1.00)
+US.9_1,PJM,District of Columbia,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (PJM 1.00)
+US.10_1,SOUTHEAST,Florida,"EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (FPL 0.52, FPC 0.21, TEC 0.11)"
+US.11_1,SOUTHEAST,Georgia,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (SOCO 0.97)
+US.12_1,US_HI,Hawaii,not modelled (outside both US stages); listed so that the country is covered completely
+US.13_1,NORTHWEST,Idaho,"ASSUMPTION (zone grouping chosen 2026-11-18): outside CAISO the West has no organised market; Northwest = WA, OR, ID, MT"
+US.14_1,PJM,Illinois,"EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (PJM 0.68, MISO 0.32)"
+US.15_1,MISO,Indiana,"EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (MISO 0.68, PJM 0.32)"
+US.16_1,MISO,Iowa,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (MISO 0.98)
+US.17_1,SPP,Kansas,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (SPP 1.00)
+US.18_1,SOUTHEAST,Kentucky,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (no market: LGEE 0.42 + TVA 0.23; PJM 0.29)
+US.19_1,MISO,Louisiana,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (MISO 0.96)
+US.20_1,ISONE,Maine,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (ISNE 0.97)
+US.21_1,PJM,Maryland,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (PJM 1.00)
+US.22_1,ISONE,Massachusetts,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (ISNE 1.00)
+US.23_1,MISO,Michigan,"EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (MISO 0.86, PJM 0.14)"
+US.24_1,MISO,Minnesota,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (MISO 0.99)
+US.25_1,SOUTHEAST,Mississippi,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (no market: TVA 0.38 + SOCO 0.26; MISO 0.36)
+US.26_1,SPP,Missouri,"EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (SPP 0.39, MISO 0.36, AECI 0.22 (close; by load Ameren Missouri in MISO may be larger))"
+US.27_1,NORTHWEST,Montana,"ASSUMPTION (zone grouping chosen 2026-11-18): outside CAISO the West has no organised market; Northwest = WA, OR, ID, MT"
+US.28_1,SPP,Nebraska,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (SPP 1.00)
+US.29_1,SOUTHWEST,Nevada,"ASSUMPTION (zone grouping chosen 2026-11-18): outside CAISO the West has no organised market; Southwest and Rockies = NV, UT, AZ, NM, CO, WY"
+US.30_1,ISONE,New Hampshire,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (ISNE 1.00)
+US.31_1,PJM,New Jersey,"EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (PJM 0.91, NYIS 0.09)"
+US.32_1,SOUTHWEST,New Mexico,"ASSUMPTION (zone grouping chosen 2026-11-18): outside CAISO the West has no organised market; Southwest and Rockies = NV, UT, AZ, NM, CO, WY"
+US.33_1,NYISO,New York,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (NYIS 1.00)
+US.34_1,SOUTHEAST,North Carolina,"EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (DUK 0.50, CPLE 0.41, PJM 0.08)"
+US.35_1,MISO,North Dakota,"EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (MISO 0.58, SPP 0.41)"
+US.36_1,PJM,Ohio,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (PJM 1.00)
+US.37_1,SPP,Oklahoma,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (SPP 0.90)
+US.38_1,NORTHWEST,Oregon,"ASSUMPTION (zone grouping chosen 2026-11-18): outside CAISO the West has no organised market; Northwest = WA, OR, ID, MT"
+US.39_1,PJM,Pennsylvania,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (PJM 1.00)
+US.40_1,ISONE,Rhode Island,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (ISNE 1.00)
+US.41_1,SOUTHEAST,South Carolina,"EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (DUK 0.41, SCEG 0.30, SC 0.22)"
+US.42_1,SPP,South Dakota,"EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (SPP 0.57, MISO 0.38)"
+US.43_1,SOUTHEAST,Tennessee,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (TVA 0.99)
+US.44_1,ERCOT,Texas,"EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (ERCOT 0.87, SPP 0.07, MISO 0.05)"
+US.45_1,SOUTHWEST,Utah,"ASSUMPTION (zone grouping chosen 2026-11-18): outside CAISO the West has no organised market; Southwest and Rockies = NV, UT, AZ, NM, CO, WY"
+US.46_1,ISONE,Vermont,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (ISNE 1.00)
+US.47_1,PJM,Virginia,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (PJM 1.00)
+US.48_1,NORTHWEST,Washington,"ASSUMPTION (zone grouping chosen 2026-11-18): outside CAISO the West has no organised market; Northwest = WA, OR, ID, MT"
+US.49_1,PJM,West Virginia,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (PJM 1.00)
+US.50_1,MISO,Wisconsin,EIA-860 2024: the market with the largest share of the state's generating capacity by balancing authority (MISO 1.00)
+US.51_1,SOUTHWEST,Wyoming,"ASSUMPTION (zone grouping chosen 2026-11-18): outside CAISO the West has no organised market; Southwest and Rockies = NV, UT, AZ, NM, CO, WY"
+BR.1_1,BR_SE_CO,Acre,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.7_1,BR_SE_CO,Distrito Federal,ASSUMPTION: Distrito Federal with Goiás (Southeast / Centre-West); not in the list read
+BR.8_1,BR_SE_CO,Espírito Santo,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.9_1,BR_SE_CO,Goiás,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.11_1,BR_SE_CO,Mato Grosso do Sul,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.12_1,BR_SE_CO,Mato Grosso,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.13_1,BR_SE_CO,Minas Gerais,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.19_1,BR_SE_CO,Rio de Janeiro,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.22_1,BR_SE_CO,Rondônia,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.25_1,BR_SE_CO,São Paulo,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.16_1,BR_S,Paraná,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.21_1,BR_S,Rio Grande do Sul,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.24_1,BR_S,Santa Catarina,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.2_1,BR_NE,Alagoas,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.5_1,BR_NE,Bahia,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.6_1,BR_NE,Ceará,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.15_1,BR_NE,Paraíba,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.17_1,BR_NE,Pernambuco,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.18_1,BR_NE,Piauí,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.20_1,BR_NE,Rio Grande do Norte,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.26_1,BR_NE,Sergipe,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.3_1,BR_N,Amapá,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.4_1,BR_N,Amazonas,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.10_1,BR_N,Maranhão,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.14_1,BR_N,Pará,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+BR.23_1,BR_N,Roraima,ASSUMPTION: Roraima with the North (joined the interconnected system last); not in the list read
+BR.27_1,BR_N,Tocantins,"ONS / CCEE submarket; state list from esferaenergia.com.br (read 2026-11-18), not from an official list"
+CN.1_1,CN_AH,Anhui,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.2_1,CN_BJ,Beijing,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.3_1,CN_CQ,Chongqing,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.4_1,CN_FJ,Fujian,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.5_1,CN_GS,Gansu,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.6_1,CN_SOUTH,Guangdong,"Southern regional market (Guangdong, Guangxi, Yunnan, Guizhou, Hainan): one spot market with unified clearing, formal operation since October 2026 (press reports, e.g. yicaiglobal.com; no official document read)"
+CN.7_1,CN_SOUTH,Guangxi,"Southern regional market (Guangdong, Guangxi, Yunnan, Guizhou, Hainan): one spot market with unified clearing, formal operation since October 2026 (press reports, e.g. yicaiglobal.com; no official document read)"
+CN.8_1,CN_SOUTH,Guizhou,"Southern regional market (Guangdong, Guangxi, Yunnan, Guizhou, Hainan): one spot market with unified clearing, formal operation since October 2026 (press reports, e.g. yicaiglobal.com; no official document read)"
+CN.9_1,CN_SOUTH,Hainan,"Southern regional market (Guangdong, Guangxi, Yunnan, Guizhou, Hainan): one spot market with unified clearing, formal operation since October 2026 (press reports, e.g. yicaiglobal.com; no official document read)"
+CN.10_1,CN_HE,Hebei,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024); Hebei has two markets (Jibei, Hebei South), one zone here"
+CN.11_1,CN_HL,Heilongjiang,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.12_1,CN_HA,Henan,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.13_1,CN_HB,Hubei,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.14_1,CN_HN,Hunan,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.15_1,CN_JS,Jiangsu,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.16_1,CN_JX,Jiangxi,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.17_1,CN_JL,Jilin,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.18_1,CN_LN,Liaoning,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.19_1,CN_NM,Nei Mongol,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024); Inner Mongolia has two grids (Mengxi, Mengdong), one zone here"
+CN.20_1,CN_NX,Ningxia Hui,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.21_1,CN_QH,Qinghai,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.22_1,CN_SN,Shaanxi,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.23_1,CN_SD,Shandong,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.24_1,CN_SH,Shanghai,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.25_1,CN_SX,Shanxi,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.26_1,CN_SC,Sichuan,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.27_1,CN_TJ,Tianjin,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.28_1,CN_XJ,Xinjiang Uygur,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.29_1,CN_XZ,Xizang,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.30_1,CN_SOUTH,Yunnan,"Southern regional market (Guangdong, Guangxi, Yunnan, Guizhou, Hainan): one spot market with unified clearing, formal operation since October 2026 (press reports, e.g. yicaiglobal.com; no official document read)"
+CN.31_1,CN_ZJ,Zhejiang,"provincial spot market: the province is the market unit (inter-provincial trade through the separate State Grid inter-provincial spot market, formal since October 2024)"
+CN.HKG,CN_HK,Hong Kong,separate system
+CN.MAC,CN_MO,Macau,separate system
+DE,DE_LU,Germany,ENTSO-E bidding zone configuration: Germany and Luxembourg are one bidding zone
+LU,DE_LU,Luxembourg,ENTSO-E bidding zone configuration: Germany and Luxembourg are one bidding zone
+DK.2_1,DK1,Midtjylland,ENTSO-E bidding zone configuration: DK1 = Jutland and Funen
+DK.3_1,DK1,Nordjylland,ENTSO-E bidding zone configuration: DK1 = Jutland and Funen
+DK.5_1,DK1,Syddanmark,ENTSO-E bidding zone configuration: DK1 = Jutland and Funen
+DK.1_1,DK2,Hovedstaden,ENTSO-E bidding zone configuration: DK2 = Zealand and the islands east of the Great Belt
+DK.4_1,DK2,Sjælland,ENTSO-E bidding zone configuration: DK2 = Zealand and the islands east of the Great Belt
+IE,SEM,Ireland,Single Electricity Market of Ireland and Northern Ireland
+GB.2_1,SEM,Northern Ireland,Single Electricity Market of Ireland and Northern Ireland
+GB.,GB,Great Britain (GADM unit without a level-1 name),GB bidding zone
+GB.1_1,GB,England,GB bidding zone
+GB.3_1,GB,Scotland,GB bidding zone
+GB.4_1,GB,Wales,GB bidding zone

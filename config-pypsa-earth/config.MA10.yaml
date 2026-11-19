@@ -5,7 +5,7 @@
 # of from wind and solar pooled over the whole country? (README "Why EGS and no iron-air".) Same settings as MA except
 # the run name, clusters: 10 and k-means on Voronoi bus regions (alternative_clustering: false; with GADM level 0
 # the one-node stage has a single region). Built from scratch in resources/MA10/ (OSM extract, cutout, bundle shared
-# with MA). Run with its own learning market: overlay `cfenode` (= cfe), never in a pathway with MA.
+# with MA). Run with its own learning market: overlay `cfenode` (= cfe with matching: node), never in a pathway with MA.
 #   - catalyst.world_page: false keeps MA10 off the world page; no single_node: the grid inside Morocco stays, ATKc
 #     only cuts cross-border exchange.
 

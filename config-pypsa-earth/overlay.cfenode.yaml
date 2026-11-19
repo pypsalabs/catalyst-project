@@ -1,6 +1,10 @@
 # SPDX-License-Identifier: CC0-1.0
 #
-# Catalyst scenario "cfenode" = overlay.cfe.yaml under a name of its own (2026-11-11), so that a side test (MA10, the
-# ten-node Morocco) gets its own learning market results/learning/cfenode/ and leaves the pooled trunk market
-# results/learning/cfe/ alone.
+# Catalyst scenario "cfenode" = overlay.cfe.yaml with every buyer matched at its own node (2026-11-11; the side test
+# on MA10, the ten-node Morocco, with its own learning market results/learning/cfenode/). Node matching is not the
+# study's setting: `cfe` and the fork match per market zone (decided, 2026-11-18), so the node boundary is set here.
 inherit: cfe
+
+catalyst:
+  cfe:
+    matching: node

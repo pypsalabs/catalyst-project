@@ -168,6 +168,7 @@ def stage_config(kind, stage):
             envelope_variant(cfg, cat["envelope"])
         if cat.get("palette"):
             apply_palette(cfg, stage)
+        check_market_zones(cfg, stage)
         if cat.get("learning"):
             if not cat.get("palette") or cfg.get("foresight") != "myopic":
                 raise ValueError(f"{stage}: catalyst.learning needs catalyst.palette and foresight: myopic")
@@ -183,7 +184,57 @@ def stage_config(kind, stage):
         deep_merge(cfg, load("baseline/common.yaml"))
     else:
         cfg["custom_rules"] = sorted(set(cfg.get("custom_rules", []) or []) | {ASSUMPTIONS_SMK, TABLES_SMK})
+        if kind != "assumptions" and (cfg.get("catalyst") or {}).get("cluster_by_zone"):
+            cluster_by_zone(cfg, stage)
     return cfg
+
+
+def cluster_by_zone(cfg, stage):
+    """catalyst: cluster_by_zone: true -> PyPSA-Earth's `subregion` block, so that cluster_network forms the clusters
+    inside each market zone (no cluster straddles a zone border; README "Market zones"). The zones are the rows of
+    data/market_zones/ keyed by GADM unit, for the countries (and, with build_shape_options: gadm_subset, the units)
+    of the stage. Applied to cluster_network only: simplify_network would keep every zone border bus, and for
+    build_bus_regions PyPSA-Earth hands over the country's sea areas instead of the subregions' (the offshore regions
+    of every subregion would be lost; same in upstream main, 2026-11-18)."""
+    cat = cfg["catalyst"]
+    name = (cat.get("tables") or {}).get("zones", "market_zones")
+    path = os.path.join(HERE, "data", "market_zones", f"{name}.csv")
+    subset = set((cfg.get("build_shape_options") or {}).get("gadm_subset") or [])
+    zones, by_country = {}, set()
+    with open(path) as f:
+        for line in f:
+            if not line.strip() or line.startswith(("#", "key,")):
+                continue
+            key, zone = line.split(",")[:2]
+            if key in cfg["countries"]:
+                by_country.add(key)
+            if "." in key and key.split(".")[0] in cfg["countries"] and (not subset or key in subset):
+                zones.setdefault(zone, []).append(key)
+    if by_country:
+        raise ValueError(f"{stage}: catalyst: cluster_by_zone takes zones made of GADM units; {sorted(by_country)} have "
+                         f"zones by country in {path} (REFACTOR_LATER.md item F)")
+    if len(zones) < 2:
+        raise ValueError(f"{stage}: catalyst: cluster_by_zone, but {path} has {len(zones)} zones for {cfg['countries']}")
+    cfg["subregion"] = {"method": "gadm", "apply_on": ["cluster_network"], "define_by_gadm": zones,
+                        "path_custom_shapes": False, "path_custom_offshore": False, "tolerance": 100}
+
+
+def check_market_zones(cfg, stage):
+    """Warn when a stage with 24/7 CFE buyers models countries that have market zones (data/market_zones/) but does
+    not read them (catalyst: cfe: zones: statistics in config.<R>.yaml): its buyers would be matched per country."""
+    cfe = (cfg.get("catalyst") or {}).get("cfe") or {}
+    if not cfe.get("share") or cfe.get("matching", "zone") != "zone" or cfe.get("zones", "country") == "statistics":
+        return
+    path = os.path.join(HERE, "data", "market_zones", "market_zones.csv")
+    if not os.path.exists(path) or len(cfg.get("countries", [])) > 20:
+        return
+    with open(path) as f:
+        keys = {line.split(",")[0].split(".")[0] for line in f if line.strip() and not line.startswith(("#", "key,"))}
+    listed = sorted(set(cfg["countries"]) & keys)
+    multi_node = any(str(c) not in ("1",) for c in cfg["scenario"]["clusters"]) and not cfg["catalyst"].get("single_node")
+    if listed and multi_node:
+        print(f"merge_config: {stage} has 24/7 CFE buyers and market zones are defined for {listed}, but the stage does "
+              f"not read them (catalyst: cfe: zones: statistics); the buyers are matched per country", file=sys.stderr)
 
 
 def apply_palette(cfg, stage):

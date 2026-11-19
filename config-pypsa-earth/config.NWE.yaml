@@ -84,3 +84,8 @@ cluster_options:
 solving:
   solver:
     name: gurobi          # only cluster_network's MIQP uses it before prepare_network; scip is the fallback
+
+catalyst:
+  cfe:
+    zones: statistics             # 24/7 CFE buyers are matched per market zone, not per country: the bidding zones (DE+LU, DK1 / DK2, Ireland + Northern Ireland)
+                                  # (data/market_zones/market_zones.csv -> statistics/market_zones.csv, tables.smk; README "Market zones")

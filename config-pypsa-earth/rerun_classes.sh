@@ -14,7 +14,7 @@
 #      results/archive/<stage>-20261109, re-solved, dashboards, world page, before/after pages. `-now` must reproduce
 #      the 2024 dispatch (classes are energy-neutral for the fleet); `-zero` changes.
 # Not rebuilt (stale, pre-classes): the <G>-myopic group stages (void since 2026-11-08), the JP single-region branches
-# (JP-ref, JP-cfesec / cfemid / cfeext), MA10 (cfenode / cfezone), the A/B record JP-{ref,refrc,cfenorc,cferc,nowrc}.
+# (JP-ref, JP-cfesec / cfemid / cfeext), MA10 (cfenode / cfezone; cfezone is now cfe), the A/B record JP-{ref,refrc,cfenorc,cferc,nowrc}.
 # STEPS limits the run (e.g. STEPS="pool" or STEPS="validation"); SKIP_ARCHIVE=1 continues an interrupted validation step
 # (2026-11-12 19:42: the pool step failed on a DNS outage, the validation had begun; restarted as STEPS="pool validation"
 # SKIP_ARCHIVE=1, run.sh now retries network errors).

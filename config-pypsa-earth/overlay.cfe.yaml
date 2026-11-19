@@ -2,7 +2,7 @@
 #
 # Catalyst scenario "cfe" (SOW §1.3 S2, 24/7 CFE catalyst) = the myopic pathway (overlay.myopic.yaml, inherited) with a
 # 24/7 carbon-free electricity buyer at every AC bus from the first expansion horizon on: a flat load of `share` of the
-# bus's demand, matched with carbon-free supply in every hour (annual sum of hourly matching, Riepin et al., Joule
+# bus's demand; the buyers of a market zone are matched together with carbon-free supply in every hour (Riepin et al., Joule
 # 2025, github.com/PyPSA/247-cfe), choosing what to procure from the palette itself (technology choice and volume
 # endogenous, SOW §1.1). Implementation: fork scripts/cfe.py (buyer added in add_brownfield, constraints in
 # solve_network); README "24/7 CFE catalyst (overlay cfe)". Own learning market results/learning/cfe/.
@@ -17,6 +17,12 @@ catalyst:
     target: 1.0                 # only binds with grid_imports: true (without imports the score is 1 by construction)
     excess_share: 0.20
     start_year: 2030            # 2025 is a dispatch-only horizon: nothing can be procured
+    matching: zone              # decided (Morocco ten-node test of 2026-11-11, written down 2026-11-18): the buyers of a
+                                # market zone are matched together hour by hour, power through the grid. Matching every
+                                # buyer at its own node (overlay cfenode) is unrealistically restrictive: 24/7 CFE
+                                # accounting matches within a bidding zone. Also the fork's default since 2026-11-18.
+                                # The zone of a bus is its country, or its market zone where the region's config sets
+                                # catalyst: cfe: zones: statistics (BR, CN, NWE, USW, USE; README "Market zones")
     grid_imports: false         # decided 2026-11-10: the buyer never buys from the grid, its own portfolio covers every
                                 # hour (import link closed, no matching constraint needed, one solve per horizon);
                                 # true = 247-cfe: imports credited with the grid's hourly clean share, `iterations` solves

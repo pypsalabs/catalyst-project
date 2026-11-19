@@ -93,6 +93,9 @@ build_shape_options:
   clip_bbox: [-107.0, 24.0, -66.5, 50.0]    # the 37 states + DC, the Gulf and the Atlantic EEZ (no Pacific east of 117 W)
 
 catalyst:
+  cfe:
+    zones: statistics             # 24/7 CFE buyers are matched per market zone, not per country: ERCOT, SPP, MISO, PJM, NYISO, ISO-NE, Southeast
+                                  # (data/market_zones/market_zones.csv -> statistics/market_zones.csv, tables.smk; README "Market zones")
   tables:
     region: USE           # tables.smk: rows of calibration/<year>/regions/USE/<table>.csv replace the national US rows
 

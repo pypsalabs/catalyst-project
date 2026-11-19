@@ -87,3 +87,11 @@ cluster_options:
 solving:
   solver:
     name: gurobi          # only cluster_network's MIQP uses it before prepare_network; scip is the fallback
+
+catalyst:
+  cfe:
+    zones: statistics             # 24/7 CFE buyers are matched per market zone, not per country: the provinces, the five southern ones as one
+                                  # (data/market_zones/market_zones.csv -> statistics/market_zones.csv, tables.smk; README "Market zones")
+  cluster_by_zone: true           # the 50 clusters are formed inside the market zones (merge_config.py -> subregion:, applied to
+                                  # cluster_network): with clusters across provinces 24 % of load lay in a cluster of another zone
+                                  # and Beijing, Tianjin and Shanghai had no cluster (2026-11-18; README "Market zones")
