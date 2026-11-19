@@ -138,6 +138,44 @@ in `build_demand_profiles`, not as a path option.
 
 **Why in a sweep.** Changes the demand profiles and every network after them for both US stages.
 
+### F. Clusters per market zone for every multi-node region (noted 2026-11-18)
+
+**Now:** the 24/7 CFE buyers are matched per market zone (`catalyst: cfe: zones: statistics`, README "Market zones").
+The clusters are formed per country, so a cluster can lie across a zone border; `scripts/build_market_zones.py`
+gives it the zone holding most of its load. Share of load in a cluster assigned to another zone on the networks of
+2026-11-18: NWE 0.9 %, BR 3.6 %, USW 6.3 %, USE 15.4 %. China (23.7 %, three municipalities without a cluster) has
+the switch `catalyst: cluster_by_zone: true` in `config.CN.yaml` (decided 2026-11-18); its networks take it at
+their next rebuild, which is a full one (the China base run predates the sweep of 2026-11-16).
+
+**Change:** set `catalyst: cluster_by_zone: true` in the other regions too. `merge_config.py` turns it into
+PyPSA-Earth's `subregion` block (`method: gadm`, `define_by_gadm` = the zone definitions of
+`data/market_zones/`, `apply_on: [cluster_network]`); `cluster_network` then clusters per (zone, sub_network).
+The mechanism is in place and tested (README "Market zones": US West 2024 dispatch with clusters per zone, same
+generation mix as before, every cluster inside one zone).
+
+**Why deferred:** it changes the network of every scenario of the region, the validated `now` / `zero` networks
+included: every stage is rebuilt from `cluster_network` on and solved again (the profiles are not rebuilt).
+Findings (2026-11-18):
+- `subregion_shapes.geojson` is an output of `build_shapes`; re-running that rule rewrites all shape files, which are
+  inputs of the OSM steps and of `build_powerplants`. For a run that exists the two subregion files are written by
+  `scripts/write_subregion_shapes.py <run>` (the functions of `build_shapes`); a fresh build needs nothing.
+- `apply_on` must stay `[cluster_network]`: in `simplify_network` the threshold `s_threshold_fetch_isolated` is a
+  share of the "country" load, and the country is the zone at that point; for `build_bus_regions` PyPSA-Earth hands
+  over the country's sea areas instead of the subregions' (Snakefile `retrieve_subregion`, `method: gadm`), so the
+  offshore regions of every subregion would be lost (same in upstream main; worth an upstream issue).
+- The clusters go to the zones by load: US West 20 = CAISO 11, Southwest 6, Northwest 3 (by country: 6 / 9 / 5);
+  China 50 = Southern market 7, Shandong 4, Jiangsu 4, three zones with 3, four with 2 and 18 provinces with a
+  single cluster (Inner Mongolia, Xinjiang and Gansu among them), where zone matching is node matching.
+- Bus names take the zone as prefix (`PJM0 3`); `country` is put back after clustering and no zone column survives,
+  so the zone still comes from the table (then with every cluster inside one zone). The bus names in
+  `misc-quarter1/weather-years/config.yaml` go stale.
+- A zone of two countries (Germany + Luxembourg): after clustering `country` is reset from the cluster's
+  coordinates, so Luxembourg would vanish from everything keyed on `country` (energy bands, net imports, CO2 price).
+  Such zones cannot use this route.
+- Only `distribute_cluster: load` works (our default); every (zone, sub_network) group needs at least one cluster.
+
+**Questions:** see below.
+
 ## Questions to ask before a sweep is planned
 
 **To the agent that plans a sweep: put the open questions listed here to the maintainer in the planning step, before the plan
@@ -153,6 +191,12 @@ is finalised. Do not pick an answer yourself and do not bury them in the plan.**
   unmanaged forest (see the three targets of item D)? And should a slope or elevation limit come with it?
 - **Item E, which demand shape for the two US stages.** A time shift of the national series, EIA-930 data of another
   year, or a regional run of the demand model?
+- **Item F, which regions get clusters per market zone.** US East is the candidate (15 % of load in a cluster of
+  another zone); is the re-solve of every stage worth it for US West (6 %) and Brazil (4 %)? And does Denmark need a
+  second cluster so that DK1 and DK2 exist apart (one cluster today)? North-West Europe cannot take the switch as
+  it is (zones made of whole countries, Germany + Luxembourg).
+- **Item F, China's 18 single-cluster provinces.** With 50 clusters over 28 zones, 18 provinces are one node and are
+  matched by node. More clusters, or regional grids as zones for the small provinces, or accept it?
 
 ## Done: sweep of 2026-11-16
 

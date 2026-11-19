@@ -692,7 +692,25 @@ region (`results/catalyst/validation_<R>.png`).
   `cluster_network` then rewrote the busmaps and clustered regions in the shared `bus_regions/`, and the sibling
   scenario (and the base prenetwork chain) looked outdated to Snakemake — `IN-now` was re-solved by a plot-only
   pass at 02:09 and its solved network deleted. Fixed by the per-run `bus_regions/` plus `snakemake --touch` of
-  every intact target. Solver: `gurobi-default` (barrier, no crossover, `BarConvTol 1e-6`), 8 threads via the
+  every intact target. **Own `renewable_profiles/` too (2026-11-18)**: `profile_hydro.nc` holds the inflows by
+  row number of the plant list, and a pathway stage builds its own list (plants under construction, lifetimes
+  from the cost table), whose rows are others. With the directory shared, the pathway stage rewrote the base run's
+  file: after the test stage `USW-tzone` the next build of `USW-tsub` (base list) failed in `add_electricity` on run-of-river
+  plants missing from the inflows, and of the 354 row numbers the two lists had in common none was the same
+  plant, so a region without such a gap would have got the inflows of other plants without an error.
+  `build_resource_cells` takes the plant list as well, so `cells_<tech>.nc` was rewritten too (same content, new
+  time stamp: the base run's resource classes looked outdated). `run.sh` (`link_profiles`) now gives every stage
+  its own directory: symlinks to the base run's wind and solar profiles, and for `profile_hydro.nc` and
+  `cells_<tech>.nc` a hard link to the base run's only while the stage has the base run's plant list (Snakemake
+  removes an output before rebuilding it, so a stage with its own list gets its own files). A stage directory of
+  the old layout is converted when the stage is next run. Reach on 2026-11-18: the archetypes BR, CN, IN, NWE, USE
+  and JP had one hydro list per region, nothing mixed; USW was restored (hydro profile and cells rebuilt from the
+  base list, time stamps set back to before the base network of 2026-11-17, inflow 151.24 TWh as in that
+  network); in MA and MA10 the base run's `profile_hydro.nc` is the one of the test stages `t*` of 2026-11-18
+  (both base runs predate the sweep of 2026-11-16 and rebuild from `base_network` on at their next run, plant
+  list and inflows included); in CA and OCE the file matches the `now` / `zero` stages and only the void myopic
+  test stages of October do not match it.
+  Solver: `gurobi-default` (barrier, no crossover, `BarConvTol 1e-6`), 8 threads via the
   overlay. Deleting a scenario: `rm -r resources/<R>-<scen> networks/<R>-<scen> results/<R>-<scen>`.
 - **OOM safety of the overnight queue**: `MEM_MAX=12G` cgroup cap with `MemorySwapMax=0` (a runaway solve is
   killed inside the scope instead of swapping), `CONTINUE_ON_FAIL=1` so an OOM/timeout/infeasible stage is
@@ -1494,19 +1512,29 @@ endogenously (SOW §1.1). After Riepin, Jenkins, Swezey & Brown (Joule 2025; `mo
   (generators incl. EGS tranches, storage units, the Li-ion store with charger / discharger), same carriers and
   costs, so the learning market counts the buyer's builds without change. From `start_year` (2030; 2025 is
   dispatch-only). Earlier buyer builds are carried over like any other asset.
-- **Constraints** (`add_cfe_constraints`, in `extra_functionality`): matching Σ_t w_t import_t (1 − grid_cfe_t) ≤
-  (1 − target) Σ_t w_t load_t (with the buyer bus's hourly balance this is 247-cfe's annual sum of hourly clean
-  supply ≥ target × load); excess Σ_t w_t export_t ≤ excess_share × load; shared potentials: buyer twin + grid
-  asset ≤ the grid asset's potential (VRE netted by location, EGS tranches by name, buyer builds included).
+- **Constraints** (`add_cfe_constraints`, in `extra_functionality`). The study's setting (`matching: zone`, no grid
+  purchases; "Market zones" below): the buyers of a market zone are matched together, in every hour
+  Σ_buyers export_t ≥ Σ_buyers import_t, so a buyer's shortfall is covered by the surplus of the other buyers of its
+  zone and the power goes through the grid; excess Σ_t w_t (Σ_buyers export_t − import_t) ≤ excess_share × the zone's
+  buyer load. With grid purchases (`grid_imports: true`, node matching, as 247-cfe): matching
+  Σ_t w_t import_t (1 − grid_cfe_t) ≤ (1 − target) Σ_t w_t load_t per buyer (with the buyer bus's hourly balance this
+  is 247-cfe's annual sum of hourly clean supply ≥ target × load) and excess Σ_t w_t export_t ≤ excess_share × load.
+  Always: shared potentials, buyer twin + grid asset ≤ the grid asset's potential (VRE netted by location, EGS
+  tranches by name, buyer builds included).
 - **Grid CFE** (`grid_cfe`): clean share of the generation at the bus, buyer assets and pure storage left out
   (hydro reservoirs count as generation); clean = `clean_carriers` and carriers at or below `clean_threshold`
   tCO2/MWh_th. The previous horizon's solved network seeds the first solve, `iterations` (2) solves per horizon,
   each with the grid CFE of the one before (`solve_network`).
-- **Results** in `n.meta["cfe"]` of every solved network: `buyers`, `grid_cfe` (used in the last solve),
-  `grid_cfe_result`, `summary` per buyer: `cfe_score`, `cost_per_mwh` = (annualised CAPEX of all buyer assets incl.
-  earlier vintages + their marginal cost + imports at the bus price − export revenue) / buyer demand,
-  `grid_price_per_mwh` = load-weighted average price of the rest of the bus's demand, `premium_per_mwh` = the
-  difference (USD2024/MWh).
+- **Results** in `n.meta["cfe"]` of every solved network: `buyers`, `zones`, `grid_cfe` (used in the last solve),
+  `grid_cfe_result`, and two summaries (USD2024/MWh of buyer load). `summary_zones`, per market zone, is the one to
+  read: `cost_per_mwh` = (annualised CAPEX of all buyer assets of the zone incl. earlier vintages + their marginal
+  cost + the zone's settlement with the grid at nodal prices) / the zone's buyer demand; the settlement is split into
+  `revenue_per_mwh` (net sales at the zone's price) and `congestion_per_mwh` (what moving power between the zone's
+  buses costs); `transfer_twh` = energy matched across buses; `grid_price_per_mwh` = load-weighted price of the rest
+  of the zone's demand; `premium_per_mwh` = the difference. `summary`, per buyer, has the same columns at one bus;
+  under zone matching a buyer's cost contains what it pays to or receives from the other buyers of its zone, so only
+  the demand-weighted mean over a zone means something (it equals the zone row). `scripts/summarise_cfe.py` writes
+  both (`cfe_zones.csv`, `cfe.csv`).
 - **Growing buyer share** (`catalyst.cfe.share: {2030: 0.01, 2050: 0.10}`, decided 2026-11-10; fork: `share` may be
   a `{year: share}` pathway, interpolated linearly): 1 % of demand in 2030, 3.25 / 5.5 / 7.75 % in 2035 / 2040 /
   2045, 10 % in 2050, instead of a flat 10 % from 2030. With a flat share the buyer bought once, in 2030, and its
@@ -1579,30 +1607,101 @@ endogenously (SOW §1.1). After Riepin, Jenkins, Swezey & Brown (Joule 2025; `mo
   doublings (-43 % in one step), while India's 1.9 GWh of iron-air x 9.13 on 40 GWh is half a doubling (-8 %). In 2035
   EGS (x0.57) replaces wind, solar and Li-ion, not iron-air: with EGS switched off the buyer still builds no iron-air
   (31 MW per 259 MW of load once excess sales are closed as well).
-  The same year with ten nodes (`config.MA10.yaml`, k-means on Voronoi regions, overlay `cfenode` = `cfe` with a
-  market of its own; `run.sh MA10` then `PATHWAY_UNTIL=2030 run.sh pathway:cfenode:MA10`, 14 min in all): every buyer
+  The same year with ten nodes (`config.MA10.yaml`, k-means on Voronoi regions, overlay `cfenode` = `cfe` with node
+  matching and a market of its own; `run.sh MA10` then `PATHWAY_UNTIL=2030 run.sh pathway:cfenode:MA10`, 14 min in all): every buyer
   procures at its own node, and the ten buyers of 2030 build 12.6 MW of iron-air for the same 65 MW of load (1.9 MW
   per 10 MW; 8 of 10 nodes, none at the node with a wind CF of 0.46), with 399 MW of solar, 24 MW of wind and
   180 MW / 1.3 GWh of Li-ion; their cost is 107 USD/MWh against 93 at one node. Only 2025 and 2030 were solved.
   This run found a multi-node bug in the fork's `scripts/cfe.py` (`add_cfe_buyer` indexed the grown load table with
   the load list from before the first buyer; fixed, one-node runs unchanged).
-  Matching per node is stricter than 24/7 CFE accounting, which matches within a bidding zone (Google, EnergyTag,
-  the hydrogen hourly-matching rules), so the fork has `catalyst.cfe.matching: zone` since 2026-11-11 (buyers of a
-  country matched together hour by hour, import links open, power through the grid, excess limit on the zone's net
-  exports; overlay `cfezone`). MA10-cfezone 2030: no iron-air, 290 MW solar, 40 MW wind, 143 MW / 1.0 GWh Li-ion,
-  most of it at the windy Atlantic node; mean marginal price at the buyer buses 82 USD/MWh (node matching 107,
-  one node 93). So the iron-air of MA10-cfenode came from the per-node boundary, not from the grid.
   That pull is an artefact of the boundary: one buyer per node that procures only there is stricter than 24/7 CFE
-  accounting, which matches within a bidding zone. Fork option `catalyst.cfe.matching: zone` (2026-11-11, overlay
-  `cfezone`; default `node`): buyers stay at their nodes, their import links are open, and the buyers of a country
-  together may not buy net from the grid in any hour (sum of exports >= sum of imports); the power goes through
-  the lines; the excess limit holds for the zone's net exports. `pathway:cfezone:MA10` to 2030: iron-air 0 MW (290 MW
-  solar, 40 MW wind, 143 MW / 1.0 GWh Li-ion), buyers' cost 82 USD/MWh (107 per node, 93 at one node: the buyers
-  now build at the best nodes, e.g. wind at CF 0.46 instead of the country's pooled 0.28). The grid hardly binds
-  (nodal mean prices 59.8 to 60.4). On a one-node country `zone` is the same as `node`. What the zone is remains a
-  choice for Japan (price areas), India and the US.
+  accounting, which matches within a bidding zone (Google, EnergyTag, the hydrogen hourly-matching rules). With
+  zone matching (fork `catalyst.cfe.matching: zone`, 2026-11-11: buyers stay at their nodes, their import links are
+  open, and the buyers of a zone together may not buy net from the grid in any hour; the power goes through the
+  lines; the excess limit holds for the zone's net exports) the same run, `MA10-cfezone` to 2030, builds no
+  iron-air: 290 MW solar, 40 MW wind, 143 MW / 1.0 GWh Li-ion, most of it at the windy Atlantic node (wind at CF
+  0.46 instead of the country's pooled 0.28); the zone's cost is 74 USD/MWh (97 with node matching, 74 at one
+  node; `summary_zones`). The grid hardly binds (nodal mean prices 59.8 to 60.4). So the iron-air of MA10-cfenode
+  came from the per-node boundary, not from the grid.
+  **Decided** (in the discussion of this Morocco test; written down 2026-11-18): the study matches per market
+  zone, not per node, because one buyer per node that procures only there is unrealistically restrictive. Zone
+  matching is the fork's default and the setting of `overlay.cfe.yaml` since 2026-11-18; overlay `cfenode` keeps the
+  node boundary for this side test; the overlay `cfezone` is gone (it equals `cfe`; its MA10 results stay in
+  `results/MA10-cfezone`, `results/learning/cfezone`). The one-node results are unaffected. Consequence for the
+  multi-node archetypes: the buyers lean on the grid, so a grid that is too permissive makes 24/7 CFE too cheap
+  (India: "India: how permissive the modelled grid is" above).
+- **Market zones** (2026-11-18). The zone of a bus is its country by default; a region whose markets are not its
+  countries sets `catalyst: cfe: zones: statistics` in its `config.<R>.yaml` and gets the table
+  `statistics/market_zones.csv` (bus, zone), built per run by `tables.smk` rule `catalyst_market_zones` =
+  `scripts/build_market_zones.py` from the definitions in `data/market_zones/market_zones.csv` (one row per GADM
+  level-1 unit or country, every row with its source):
+
+  | Region | Zones | Definition |
+  |---|---|---|
+  | US East | ERCOT, SPP, MISO, PJM, NYISO, ISO-NE, Southeast | whole states; a state goes to the market with the largest share of its generating capacity by balancing authority (EIA-860 2024); every eastern balancing authority outside a market counts as Southeast. Close: Missouri (SPP 0.39, MISO 0.36) |
+  | US West | CAISO, Northwest (WA, OR, ID, MT), Southwest (NV, UT, AZ, NM, CO, WY) | ASSUMPTION: no organised market outside CAISO, the two groups are a choice |
+  | Brazil | N, NE, SE/CO, S | the four submarkets; state list from a sector blog, not an official list; Distrito Federal and Roraima are ASSUMPTIONS |
+  | China | the provinces; Guangdong, Guangxi, Yunnan, Guizhou and Hainan as one | provincial spot markets; Southern regional market with unified clearing, in formal operation since October 2026 (press reports) |
+  | North-West Europe | bidding zones | countries, with Germany + Luxembourg, DK1 / DK2, Ireland + Northern Ireland |
+  | India | one national zone (no table) | the exchanges clear nearly one price (CERC 2024-25: 0.48 % of volume lost to congestion); the five regional grids would be a data edit |
+
+  A clustered bus is not inside one zone: it takes the zone that holds most of its load (simplified buses by GADM
+  unit, summed per cluster). How good that is (builder report on the networks of 2026-11-18): share of load in a
+  cluster assigned to another zone NWE 0.9 %, BR 3.6 %, USW 6.3 %, USE 15.4 %, CN 23.7 %. In China Beijing, Tianjin
+  and Shanghai get no cluster and 11 zones are a single bus (node matching there); Denmark is one cluster, so DK1
+  and DK2 cannot be told apart. For China the clustering is therefore redone per zone (next bullet); for the
+  others the table stands, and clustering per zone is `REFACTOR_LATER.md` item F.
+- **Clusters per market zone** (`catalyst: cluster_by_zone: true` in `config.<R>.yaml`; China, 2026-11-18).
+  `merge_config.py` turns the switch into PyPSA-Earth's `subregion` block: `method: gadm`, `define_by_gadm` = the
+  zones of the table (rows keyed by GADM unit, of the stage's countries and `gadm_subset`), `apply_on:
+  [cluster_network]`. `cluster_network` then sets the zone as the "country" of every bus of the simplified
+  network, distributes the clusters over the (zone, sub-network) groups by load (at least one each) and puts the
+  country back afterwards; the clustered buses are named after the zone (`CAISO0 3`). The profiles are not
+  touched. Not applied to `simplify_network` (its isolated-network threshold is a share of the "country" load) nor
+  to `build_bus_regions` (PyPSA-Earth passes the country's sea areas where the subregions' are looked up, so every
+  subregion would lose its offshore regions; same in upstream main). `subregion_shapes.geojson` is written by
+  `build_shapes`; for a run that exists `scripts/write_subregion_shapes.py <run>` writes it with the same
+  functions, since re-running `build_shapes` would rebuild the whole run. Zones made of whole countries
+  (Germany + Luxembourg) cannot use the switch (`merge_config.py` raises).
+  *Test on US West* (2026-11-18, overlay `tsub` = `now` + the switch, 2024 dispatch; overlay and stage deleted
+  on 2026-11-19, the zone shapes of US West stay in `resources/USW/shapes/`): 20 clusters = CAISO 11,
+  Southwest 6, Northwest 3 (by country: 6 / 9 / 5), no load in a cluster of another zone (6.3 % before),
+  objective 152.37 against 152.32 bn USD, generation by carrier within 0.3 TWh, lines at their limit 9 against 10
+  of 30. *China*: the switch is set and the zone shapes are written, but no network has it yet: the China base run
+  predates the sweep of 2026-11-16, so its next run rebuilds everything from `base_network` on, and every stage
+  with it. What the clustering will give (the fork's `distribute_clusters` on the simplified network of today):
+  Southern market 7 clusters, Shandong 4, Jiangsu 4, Henan, Sichuan, Hebei 3, Zhejiang, Hunan, Hubei, Liaoning 2,
+  and 18 provinces a single cluster (Beijing, Tianjin and Shanghai now have one; so do Inner Mongolia, Xinjiang
+  and Gansu), where zone matching is node matching.
+- **Tests of zone matching** (2026-11-18; Morocco, buyer share 1 % in 2030 and 3.25 % in 2035; test overlays
+  `tzone` = `cfe`, `tnode` = node matching, `tzone2` = two test zones North (4 buses) / South (6) pinned by bus in
+  a test table, each with its own market; overlays, table, stages and markets deleted on 2026-11-19, the numbers
+  below are the record):
+
+  | Check | Result |
+  |---|---|
+  | one node (`MA`), 2030: zone and node matching are the same problem | objective 1.880212 bn USD in both, identical buyer capacities, zone row = buyer row |
+  | ten nodes (`MA10`), 2030: node ≥ two zones ≥ one zone | objective 1.81936 ≥ 1.81274 ≥ 1.81113 bn USD |
+  | the same in the second horizon (2035, buyer assets of 2030 carried over) | 1.81175 ≥ 1.78873 ≥ 1.78374 bn USD |
+  | hourly net exports of every zone ≥ 0 | minimum 0.000 MW in all runs |
+  | zone cost = demand-weighted cost of its buyers | equal in all runs |
+
+  Cost of the 24/7 CFE supply in 2030 (USD2024/MWh of buyer load): one zone 69.6, two zones 72.4 (North 77.3,
+  South 69.6), node matching 84.2 (72 to 100 by node); in 2035 63.0 / 64.6 / 75.3. Energy matched across buses of
+  a zone: 0.37 of 0.57 TWh with one zone, 0.23 with two, none with node matching. Only node matching builds
+  iron-air (4 MW in 2030, 10 MW in 2035). These levels are below the 74 / 97 of the run of 2026-11-11 above (same
+  buyer share): that run had no resource classes (best wind and solar class now procurable on their own) and a
+  grid price of 59 instead of 53 USD/MWh.
+
+  US West to 2030 with its three zones (`USW-tzone`, 20 nodes, 3-hourly, zones from the table): solves, net
+  exports of every zone ≥ 0 in every hour, cost 70.2 (Northwest), 75.6 (CAISO), 68.9 (Southwest) USD/MWh against a
+  grid price of 40 to 41; 6.0 of 8.6 TWh of buyer load is matched across buses; solar, onshore wind and Li-ion
+  only. **Size**: 11.2 million rows and 5.5 million columns (3.1 / 4.5 million after presolve), 41 minutes of
+  barrier, and the memory use ran into the 13 GB cap of the test (89 throttling events, no kill), so what the solve
+  needs is at least that. A 50-node region with CFE buyers does not fit this laptop (30 GB).
 - **No purchases from the grid** (`catalyst.cfe.grid_imports: false`, decided 2026-11-10; fork option, default
-  false): the import link is closed (`p_nom` 0), so the buyer's own portfolio covers every hour of its load; the
+  false): with node matching the import link is closed (`p_nom` 0), so the buyer's own portfolio covers every hour
+  of its load; with zone matching it is open, but the zone as a whole never buys net (above). The 247-cfe
   matching constraint is not added, the grid CFE is no longer in the problem and each horizon is solved once
   (the grid CFE is still recorded for the summary). Neither grid purchases nor the iteration are in the SOW
   (§1.1 leaves the implementation open); both came with the 247-cfe design. `grid_imports: true` restores it
@@ -1612,8 +1711,9 @@ endogenously (SOW §1.1). After Riepin, Jenkins, Swezey & Brown (Joule 2025; `mo
 - **Settings** (`overlay.cfe.yaml`, decided 2026-11-08): 10 % of demand, target 1.0, excess ≤ 20 % (as the
   procurement paper), `clean_carriers` = the palette's clean rows; SOFC-CC counts as clean (2.2 % of the gas CO2
   left; ASSUMPTION, as in the toy model).
-- **Caveats**: multi-node regions get one buyer per bus, each matched against its own bus's generation (imports into
-  the bus are not traced); grid CFE is a parameter of each solve, not a variable (two iterations, as 247-cfe).
+- **Caveats**: clusters straddle market-zone borders (shares under "Market zones"); zone matching has been solved
+  on the ten-node Morocco only (tests of 2026-11-18 below), no archetype has a CFE pathway yet; with
+  `grid_imports: true` the grid CFE is a parameter of each solve, not a variable (two iterations, as 247-cfe).
 - **Smoke test** (2026-11-08, SG 2030 network of the myopic stage, 2 iterations): score 1.000, no imports, the
   buyer builds 0.96 GW of SOFC-CC at 116 USD/MWh against a grid price of 26 (premium 90). Void: that network had
   the free-fuel bug (section "Fixed: new fuel-burning plants without fuel or VOM cost").
