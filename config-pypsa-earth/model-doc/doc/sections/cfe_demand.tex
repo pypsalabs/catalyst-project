@@ -1,0 +1,137 @@
+% Demand for 24/7 CFE: which share of a country's demand the buyers of the catalyst scenario take, and where the numbers
+% come from. Evidence, sourced tables and the builder live in misc-quarter1/datacentre-demand (scripts/build_country_share.py
+% -> calibration/<year>/cfe_share.csv); figures from scripts/plot_cfe_*.py, the table from scripts/table_cfe_share.py.
+\section{Demand for 24/7 Carbon-Free Electricity}\label{sec:cfedemand}
+
+In the catalyst scenario a part of electricity demand commits to carbon-free electricity in every hour (24/7 CFE) and procures the portfolio that delivers it.
+How large that part is decides how much advanced technology the buyers can pull into the system, so the number needs a basis.
+This section describes who these buyers could plausibly be, how large their electricity demand is per country, and how the share of demand that the model hands to them follows from that.
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{cfe_share_map.pdf}
+  \caption{Share of a country's electricity demand that may procure 24/7 CFE in 2030: the demand of its data centres plus half of the other electricity use of RE100 members, at most 20\,\%.
+    Countries with a dark outline take their data-centre demand from a value published for the country, the others from the region they belong to in the tables of the International Energy Agency \citep{ieakeyquestions2026}.
+  Country borders from \citet{naturalearth}.}
+  \label{fig:cfesharemap}
+\end{figure}
+
+Two groups of consumers are counted.
+The first are data centres, whose operators hold most of the hourly-matching commitments made so far and whose demand grows faster than any other.
+The second are the members of RE100, companies that have committed to cover their electricity use with renewable electricity on an annual basis, and that are the natural candidates for a stricter commitment.
+The share differs by an order of magnitude between countries (Figure~\ref{fig:cfesharemap}), which is why it is set per country and not as one number for the world.
+
+\subsection{Data centres}\label{sec:cfe-datacentres}
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{cfe_datacentres.pdf}
+  \caption{Left: electricity use of data centres by region.
+    Estimates of past years to 2024 and the Base Case to 2030 per region from \citet{ieaenergyai2025}, the world total of the Base Case to 2035 from \citet{ieakeyquestions2026} with the regions held at their shares of 2030, and an extrapolation of our own after 2035.
+    Dots: world outlooks of BloombergNEF \citep{bnefdatacentres2026,bnefneo2025}, DNV \citep{dnveto2026}, Wood Mackenzie \citep{woodmac2026} and Rystad Energy \citep{rystadai}.
+  Right: the same as a share of the region's electricity demand, \textit{Ember 2024} \citep{ember2025} to 2024 and the demand pathway of Section~\ref{sec:demand} after.}
+  \label{fig:cfedatacentres}
+\end{figure}
+
+The International Energy Agency estimates that data centres used \SI{416}{TWh} of electricity in 2024, 1.3\,\% of world demand, and that this more than doubles to \SI{945}{TWh} in 2030 in its Base Case \citep{ieaenergyai2025,ieakeyquestions2026}.
+The scope is the whole facility of enterprise, colocation and hyperscale data centres, without telecommunication networks and cryptocurrency mining.
+Almost half of it is in the United States and a quarter in China (Figure~\ref{fig:cfedatacentres}).
+
+The series has three stretches of decreasing certainty.
+To 2030 the agency gives values per region.
+From 2031 to 2035 it gives the world total only (\SI{1193}{TWh} in 2035 in the Base Case, between \SI{942}{TWh} and \SI{1637}{TWh} in its other cases), and the regions are assumed to keep their shares of 2030.
+After 2035 no value of the agency exists.
+The series continues with the mean yearly increment of the Base Case between 2030 and 2035, about \SI{50}{TWh} a year.
+This is an assumption of ours and it ends below every published outlook for 2050.
+It is accepted because the years to 2035 are the ones in which early procurement moves technology costs, and there the series rests on the agency's numbers.
+
+\subsection{Values per country}\label{sec:cfe-countries}
+
+The agency publishes values for the United States, China and six broad regions, not for other countries.
+Within a region the differences are large: data centres take more than a fifth of Ireland's metered electricity \citep{csoireland2026} and about four percent of Germany's \citep{bitkom2024}.
+The data-centre demand of a country in 2030 is therefore set by the first of four rules that applies.
+\begin{itemize}[nosep,leftmargin=*]
+  \item A value published for the country and for 2030 is used as it is.
+  \item A value of a past year and a value after 2030 from one publisher are joined by constant growth.
+  \item A value of a past year alone grows like the data-centre demand of the country's region in the agency's table.
+  \item A country without a value takes the region's data-centre demand in proportion to its electricity demand.
+\end{itemize}
+The country values come from national bodies where one publishes them: the statistics office and the grid operators of Ireland \citep{csoireland2026,eirgrid2026}, the system operator of Great Britain \citep{neso2025}, the French grid operator \citep{rte2025}, Statistics Netherlands \citep{cbs2025}, the energy agencies of Denmark and Switzerland \citep{ens2025,bfe2026}, Japan's grid coordinator \citep{occto2026} and Australia's market operator \citep{aemo2026}.
+Germany's values are those of its industry association \citep{bitkom2024}.
+India, Brazil, Malaysia and Indonesia take the values of \citet{bnefdatacentres2026}, Japan's past year that of \citet{woodmacjapan2025}.
+The values of Singapore, South Korea and Poland were read in press reports of a study or a national plan, not in the document itself.
+Where a source has scenarios, its central or reference case is used; where it gives a range without a central value, the lower end.
+Every value is one row with its source in \texttt{data/\allowbreak datacentre\_countries.csv} of the topic directory.
+The country values are higher than the agency's regional totals allow: summed up, they exceed its totals for Europe and for Asia outside China.
+The sources are not reconciled, and a country without a value of its own keeps the full regional share.
+After 2030 the data-centre demand of every country grows like the world total of Figure~\ref{fig:cfedatacentres}.
+
+\subsection{Corporate buyers beyond data centres}\label{sec:cfe-re100}
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{cfe_buyers.pdf}
+  \caption{Left: electricity use that the members of RE100 report, by data year \citep{re100adr2025}, with the largest members grouped by sector from their own reports; a company counts from the year it joined.
+  Right: RE100 members, all data centres \citep{ieaenergyai2025}, the four large technology companies among the members (Google, Microsoft, Meta, Apple) and the two of them with a goal of hourly matching by 2030 (Google, Microsoft), as shares of world electricity demand \citep{ember2025}.}
+  \label{fig:cfebuyers}
+\end{figure}
+
+The 408 members that reported to RE100 for 2024 used \SI{557}{TWh}, 1.8\,\% of world demand \citep{re100adr2025}.
+Data centres and RE100 members are two sets that overlap, and neither contains the other (Figure~\ref{fig:cfebuyers}).
+Among the members, Google, Microsoft, Meta, Apple and Equinix run data centres and used about \SI{92}{TWh} in 2024; most data-centre demand belongs to companies that are not members.
+The larger part of the members' electricity goes to semiconductor and electronics plants, solar manufacturing, telecommunication networks and retail.
+
+RE100 reports its members' consumption per country for \SI{480}{TWh} of the \SI{557}{TWh}; the rest is assumed to be spread like the reported part.
+The data-centre operators among the members are taken out of each country in proportion to its data-centre demand, China left out, so that their load is not counted twice.
+What remains is the other electricity use of RE100 members.
+It is concentrated in East Asia: more than a tenth of electricity demand in South Korea and in Taiwan, about a twentieth in Japan, below one percent in India and Brazil.
+It is held at its share of the country's demand of 2024 in all later years.
+
+\subsection{The share in the model}\label{sec:cfe-share}
+
+The share of a country's demand that may procure 24/7 CFE in a horizon is
+\[
+  \text{share} = \min \left\{ \text{cap},\; \text{scale} \times \left( \text{data centres} + \text{weight} \times \text{other use of RE100 members} \right) \right\},
+\]
+all three as shares of the country's electricity demand of that horizon.
+The weight is 0.5: a membership of RE100 is a commitment to an annual balance, and only a part of the members can be expected to move to hourly matching.
+The scale is 1.0.
+It is the handle to bring the share down to the volume of 24/7 CFE supply that can plausibly come online by 2030, a check that is still to be made.
+The cap is 20\,\% of a country's demand.
+It keeps the buyers a minority of every system: without it Ireland's share would be 35\,\% in 2030, and the growth after 2030 would carry it towards half of demand, which no source supports.
+The cap binds on Ireland in every horizon and on Denmark from 2045.
+All three are choices, not sources.
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{cfe_share_regions.pdf}
+  \caption{Left: the share of 2030 in the archetype regions, the countries of North-West Europe and the one-node test regions, split into data centres and the counted half of the other use of RE100 members; Ireland is at the cap.
+  Right: the share per horizon in the archetype regions, weighted by demand over a region's countries, against the uniform share used before (1\,\% in 2030 rising to 10\,\% in 2050).}
+  \label{fig:cfeshareregions}
+\end{figure}
+
+\begin{table}[htb]
+  \centering\small\setlength{\tabcolsep}{4.5pt}
+  \caption{The buyers' share of demand in the countries of the archetype and test regions.
+  The fourth column names where the data-centre value of 2030 comes from (``$\times$ region'': a value of a past year grown like the region).
+  A star marks a share at the cap of 20\,\%.}
+  \label{tab:cfeshare}
+  \input{../build/cfe_share.tex}
+\end{table}
+
+In the model the buyers enter with the rule \texttt{add\_brownfield\_elec}, in every planning horizon from 2030 on (\commit{0127cc6c}).
+At every bus with a load a buyer takes a constant load: the share of the bus's country in that horizon times the mean load of the bus.
+The same energy is taken out of the bus's own load, so the demand of the system does not change.
+A country with a share of zero has no buyer.
+The option is \texttt{catalyst:\allowbreak\ cfe:\allowbreak\ share:\allowbreak\ statistics}; a single number for the whole network remains possible.
+
+The builder writes one table per horizon with the share and its two parts for every country (Figure~\ref{fig:cfeshareregions}, Table~\ref{tab:cfeshare}).
+It is the script \texttt{build\_country\_share.py} of the topic directory \texttt{misc-quarter1/\allowbreak datacentre-demand}, and the tables are \texttt{calibration/\allowbreak <year>/\allowbreak cfe\_share.csv}.
+Both halves of the United States take the national value.
+
+What the numbers are and are not:
+\begin{itemize}[nosep,leftmargin=*]
+  \item They describe a pool of consumers that could commit to 24/7 CFE, not commitments that exist.
+  \item The agency's data-centre numbers are at the low end of the published outlooks, the country values of analysts mostly above them.
+  \item The share is a share of the demand pathway of Section~\ref{sec:demand}, which does not contain the growth of data centres as a separate item.
+\end{itemize}

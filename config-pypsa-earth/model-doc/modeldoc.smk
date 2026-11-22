@@ -46,6 +46,11 @@
 #                       factor (cf), resource classes (classes); all but `timeseries` read build/renewables_check/*, written
 #                       by ../scripts/check_renewables.py, run by hand (read-only, a few minutes, no model rerun; the
 #                       eligibility table only on request: `check_renewables.py eligibility`)
+#   modeldoc_cfe_*      Demand for 24/7 CFE: data centres by region (datacentres), RE100 members and corporate buyers
+#                       (buyers), world map of the buyers' share in 2030 (share_map), its parts and path in the modelled
+#                       regions (share_regions), the table per country (table -> build/cfe_share.tex); they read the topic
+#                       directory misc-quarter1/datacentre-demand (build it first: its Snakefile, then `model_tables`)
+#                       and calibration/<year>/cfe_share.csv
 #   modeldoc_yaml       the options the document quotes, cut out of the config files as YAML code blocks
 #                       (scripts/yaml_snippets.py -> build/yaml/<name>.yaml, \\yamlblock in doc/main.tex)
 #   modeldoc_commit_stats  lines added / removed per cited fork commit, printed by \commit (scripts/commit_stats.py
@@ -70,6 +75,8 @@ FIG = os.path.join(BUILD, "figures")
 FORK = P("../../models/pypsa-earth")
 TA = P("../technology-assumptions")
 COUNTRIES = P("../../misc-quarter1/country-classification/data/ne_50m_admin_0_countries/ne_50m_admin_0_countries.shp")
+CFE = P("../../misc-quarter1/datacentre-demand")   # evidence for the 24/7 CFE buyers' share; build it there first (its Snakefile)
+CFE_YEARS = [2030, 2035, 2040, 2045, 2050]
 
 
 rule modeldoc_all:
@@ -496,6 +503,74 @@ rule modeldoc_renew_classes:
         "scripts/plot_renew_classes.py"
 
 
+rule modeldoc_cfe_datacentres:
+    input:
+        series=os.path.join(CFE, "build/series_trend.csv"),
+        outlooks=os.path.join(CFE, "data/outlooks.csv"),
+    output:
+        os.path.join(FIG, "cfe_datacentres.pdf"),
+    resources:
+        mem_mb=500,
+    script:
+        "scripts/plot_cfe_datacentres.py"
+
+
+rule modeldoc_cfe_buyers:
+    input:
+        stack=os.path.join(CFE, "build/buyers_stack.csv"),
+        share=os.path.join(CFE, "build/buyers_share.csv"),
+        config=os.path.join(CFE, "config.yaml"),
+        helper=P("scripts/plot_cfe_datacentres.py"),
+    output:
+        os.path.join(FIG, "cfe_buyers.pdf"),
+    resources:
+        mem_mb=500,
+    script:
+        "scripts/plot_cfe_buyers.py"
+
+
+rule modeldoc_cfe_share_map:
+    input:
+        share=P("../calibration/2030/cfe_share.csv"),
+        row_countries=P("../data/row_countries.csv"),
+        configs=sorted(glob(P("../config.*.yaml"))),
+        countries=COUNTRIES,
+        helper=P("scripts/plot_grid_map.py"),
+    output:
+        os.path.join(FIG, "cfe_share_map.pdf"),
+    resources:
+        mem_mb=1000,
+    script:
+        "scripts/plot_cfe_share_map.py"
+
+
+rule modeldoc_cfe_share_regions:
+    input:
+        tables=[P(f"../calibration/{y}/cfe_share.csv") for y in CFE_YEARS],
+        demand=[P(f"../calibration/{y}/demand.csv") for y in CFE_YEARS],
+        names=P("../data/row_countries.csv"),
+        helper=P("scripts/plot_cfe_datacentres.py"),
+    output:
+        os.path.join(FIG, "cfe_share_regions.pdf"),
+    resources:
+        mem_mb=500,
+    script:
+        "scripts/plot_cfe_share_regions.py"
+
+
+rule modeldoc_cfe_table:
+    input:
+        share=os.path.join(CFE, "build/country_share.csv"),
+        sources=os.path.join(CFE, "data/datacentre_countries.csv"),
+        names=P("../data/row_countries.csv"),
+    output:
+        os.path.join(BUILD, "cfe_share.tex"),
+    resources:
+        mem_mb=500,
+    script:
+        "scripts/table_cfe_share.py"
+
+
 rule modeldoc_pdf:
     input:
         circuits=os.path.join(BUILD, "circuit_ways.tex"),
@@ -509,7 +584,9 @@ rule modeldoc_pdf:
                                                    "fleet_map.pdf", "fleet_sources.pdf", "fleet_vintage.pdf", "fleet_dropped.pdf",
                                                    "fleet_merit.pdf", "fleet_envelope.pdf", "fleet_retirements.pdf", "fleet_efficiency.pdf", "mix_before_after.pdf",
                                                    "renew_fleet.pdf", "renew_map.pdf", "renew_cutouts.pdf", "renew_eligibility.pdf", "renew_steps.pdf", "renew_timeseries.pdf",
-                                                   "renew_capacity.pdf", "renew_cf.pdf", "renew_classes.pdf"]],
+                                                   "renew_capacity.pdf", "renew_cf.pdf", "renew_classes.pdf",
+                                                   "cfe_datacentres.pdf", "cfe_buyers.pdf", "cfe_share_map.pdf", "cfe_share_regions.pdf"]],
+        cfe=os.path.join(BUILD, "cfe_share.tex"),
     output:
         os.path.join(BUILD, "model_doc.pdf"),
     params:
