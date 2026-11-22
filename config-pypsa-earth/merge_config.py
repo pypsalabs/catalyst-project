@@ -169,6 +169,7 @@ def stage_config(kind, stage):
         if cat.get("palette"):
             apply_palette(cfg, stage)
         check_market_zones(cfg, stage)
+        check_cfe_shares(cfg, stage)
         if cat.get("learning"):
             if not cat.get("palette") or cfg.get("foresight") != "myopic":
                 raise ValueError(f"{stage}: catalyst.learning needs catalyst.palette and foresight: myopic")
@@ -235,6 +236,24 @@ def check_market_zones(cfg, stage):
     if listed and multi_node:
         print(f"merge_config: {stage} has 24/7 CFE buyers and market zones are defined for {listed}, but the stage does "
               f"not read them (catalyst: cfe: zones: statistics); the buyers are matched per country", file=sys.stderr)
+
+
+def check_cfe_shares(cfg, stage):
+    """Stop when a stage with 24/7 CFE buyers reads their share from the table (catalyst: cfe: share: statistics) and a
+    country of the stage has no row in it for one of the horizons with a buyer."""
+    import pandas as pd
+
+    cfe = (cfg.get("catalyst") or {}).get("cfe") or {}
+    if str(cfe.get("share")) != "statistics":
+        return
+    horizons = cfg.get("scenario", {}).get("planning_horizons") or []
+    for year in [h for h in horizons if int(h) >= int(cfe.get("start_year", 0))]:
+        path = os.path.join(HERE, "calibration", str(year), "cfe_share.csv")
+        have = set(pd.read_csv(path, keep_default_na=False).country) if os.path.exists(path) else set()
+        missing = sorted(set(cfg.get("countries", [])) - have)
+        if missing:
+            sys.exit(f"merge_config: {stage}: calibration/{year}/cfe_share.csv has no share for {missing} "
+                     f"(misc-quarter1/datacentre-demand: snakemake model_tables)")
 
 
 def apply_palette(cfg, stage):

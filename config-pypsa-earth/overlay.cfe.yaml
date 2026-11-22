@@ -11,9 +11,12 @@ inherit: myopic
 
 catalyst:
   cfe:
-    share: {2030: 0.01, 2050: 0.10}   # decided 2026-11-10: the buyers' share of demand grows linearly from 1 % (2030) to 10 % (2050):
-                                # 2035 3.25 %, 2040 5.5 %, 2045 7.75 %; every horizon adds a cohort that buys at that horizon's
-                                # costs (was a flat 0.10 from 2030; a number still means a constant share)
+    share: statistics           # decided 2026-11-19: the buyers' share of demand per country and horizon, from the table
+                                # calibration/<year>/cfe_share.csv = data centres + half of the other electricity use of
+                                # RE100 members, at most 20 % (evidence and builder: misc-quarter1/datacentre-demand;
+                                # model doc "Demand for 24/7 Carbon-Free Electricity"); every horizon adds a cohort that
+                                # buys at that horizon's costs. Before: {2030: 0.01, 2050: 0.10} in every country (a
+                                # number or such a pathway still works)
     target: 1.0                 # only binds with grid_imports: true (without imports the score is 1 by construction)
     excess_share: 0.20
     start_year: 2030            # 2025 is a dispatch-only horizon: nothing can be procured

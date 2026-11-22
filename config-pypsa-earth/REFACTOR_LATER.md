@@ -270,6 +270,78 @@ again once item G is in.
 
 **Questions:** see below.
 
+### I. 24/7 CFE buyers' share per country: what is left (noted 2026-11-19, list of 2026-11-22)
+
+Since 2026-11-19 the buyers' share of demand is one value per country and horizon (`calibration/<year>/cfe_share.csv`
+= min(20 %, scale x (data centres + 0.5 x other electricity use of RE100 members)); fork option
+`catalyst: cfe: share: statistics`, commit 0127cc6c; evidence and builder in `misc-quarter1/datacentre-demand`, model
+doc section "Demand for 24/7 Carbon-Free Electricity"). Open, in the order in which it should be done:
+
+**Not yet tested end to end**
+
+- **No stage has been solved with the table.** Done: the buyer loads on two prenetworks (table of 1 % = scalar 1 %,
+  demand unchanged, one share per country), a dry run of `MA-cfe` 2030, the config check. Owed: Morocco one node to
+  2035 and Singapore to 2030 through a throwaway overlay with its own learning market (so `results/learning/cfe*`
+  stay as they are). Singapore is the one to watch: a buyer with 12.4 % of the demand of a land-constrained node may
+  be infeasible. The solves could not run on 2026-11-19 / 22 because a China chain held the fork's Snakemake lock.
+- **Dry runs with a free `config.yaml`.** The dry runs were made with the stage config layered over the running
+  chain's config; the one of `MA-ref` stopped on a missing envelope table for oil, most likely from that layering,
+  not confirmed. Repeat both when no chain runs.
+- A fix after these tests means amending 0127cc6c (not pushed): the hash is cited in the README ("24/7 CFE
+  catalyst") and in `model-doc/doc/sections/cfe_demand.tex`.
+
+**Choices to revisit (all in `misc-quarter1/datacentre-demand/config.yaml`, `buyer_share`)**
+
+- **Scale** is 1.0. Decided: bring it down to the 24/7 CFE supply that can plausibly come online by 2030; that
+  check is not made (`misc-quarter1/technology-suppliers` holds the pipelines to compare with).
+- **Cap** of 20 % of a country's demand: the level was set without a source, after "do the capping". It binds on
+  Ireland in every horizon and on Denmark from 2045; 15 % would start to bind on the United States in 2050.
+- **Weight** 0.5 on the other use of RE100 members: a choice.
+- **Growth after 2030**: every country's data-centre demand grows like the world total of the `trend` variant. No
+  country has a path of its own (India stays flat at 1.5 % because its demand grows as fast; Ireland sits at the cap).
+
+**Data that is thin or does not add up**
+
+- **Country values against the IEA's regions.** The country values sum to 161 TWh in Europe (IEA 114) and 179 TWh
+  in Asia Pacific outside China (IEA 101). A country without a value still takes the full regional share, so e.g.
+  Pakistan gets 1.4 %. Matters for the rest-of-world runs; a rule (remainder of the region, or a lower fallback) is
+  undecided.
+- **No national value found**: Belgium (elia.be refuses automated requests; 3.2 TWh today and 27.3 TWh by 2034
+  seen in search results only), Austria, Czechia, Luxembourg, Taiwan, New Zealand, South Africa, Morocco.
+- **No 2030 value in TWh read at the source**: Ireland (EirGrid's share only), Netherlands, Poland, Brazil, South
+  Korea. **Read in a press report only**: Singapore, South Korea, Poland.
+- **Found and not in use**, my judgement: Netherlands 15 % in 2030 (a bank's note on the grid operators'
+  scenarios), India 57 TWh in 2030 (S&P Global through a news site).
+- **Japan 2030** is a sum of two sources (Wood Mackenzie's 2024 value + OCCTO's increment), marked DERIVED.
+- **Rows not checked one by one**: of the 84 country rows of the second research round six were compared with the
+  downloaded documents; the 188 rows of the first round and the per-company rows of `data/buyers.csv` were checked
+  for structure and totals only. Check a row before its number goes on a slide.
+- **RE100 part**: held at its 2024 share of demand; the 77 of 557 TWh without a market breakdown are spread like
+  the rest; the five data-centre operators' 92 TWh are taken out by data-centre use, not by their own regional
+  reports.
+- **Demand pathway**: the buyers' share is a share of a demand pathway that does not carry data-centre growth as an
+  item (model US demand +416 TWh from 2024 to 2030, LBNL's data centres alone +457 TWh).
+- **Licence**: `data/iea_table_a4.csv` is from an annex under CC BY-NC-SA 4.0; check before the data are released
+  under CC BY 4.0.
+
+**Below the country**
+
+- **US West / US East** both take the national 9.6 % (2030). Data centres are not spread evenly over the states
+  (Virginia, Texas, Arizona, Oregon); EPRI and LBNL publish state tables. A table per half would go into
+  `calibration/<year>/regions/<R>/cfe_share.csv` and is picked up by `tables.smk` without a fork change.
+- **Market zones** (Ireland's zone, Virginia in PJM, Chinese provinces): a share per zone needs the fork to key the
+  table by zone as well as by country. Within a country the buyer sits at every bus in proportion to the load.
+
+**Runs and documents**
+
+- **No CFE pathway has the new share**: every CFE result on disk (Japan branches, pooled test regions, Morocco
+  tests) was solved with the uniform 1 % (2030) to 10 % (2050). Reruns are launched by Lukas.
+- **Model doc**: `build/model_doc.pdf` was compiled with the rule's `latexmk` command by hand. A full
+  `snakemake -s modeldoc.smk` re-renders about twenty older figures whose inputs changed, some from the China
+  networks that were being rebuilt. The new section points to the Demand subsection for the demand pathway, which
+  is still "to be written".
+- **Not pushed**: fork commit 0127cc6c and the parent commits of this work.
+
 ## Questions to ask before a sweep is planned
 
 **To the agent that plans a sweep: put the open questions listed here to the maintainer in the planning step, before the plan

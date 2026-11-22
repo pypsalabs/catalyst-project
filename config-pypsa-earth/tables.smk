@@ -60,9 +60,9 @@ _SOURCES = {
 def _national_table(w):
     if w.table in _SOURCES:
         return _SOURCES[w.table]
-    horizon = re.fullmatch(r"demand_(\d{4})", w.table)
+    horizon = re.fullmatch(r"(demand|cfe_share)_(\d{4})", w.table)
     if horizon:
-        return f"{_CAL}/{horizon.group(1)}/demand.csv"
+        return f"{_CAL}/{horizon.group(2)}/{horizon.group(1)}.csv"
     return f"{_ENVELOPE}/{w.table[len('conventional_'):]}.csv"
 
 
@@ -84,7 +84,7 @@ rule catalyst_statistics:
     output:
         STATISTICS + "{table}.csv",
     wildcard_constraints:
-        table="|".join(sorted(_SOURCES)) + r"|demand_\d{4}|conventional_[A-Za-z]+_p_(min|max)_pu",
+        table="|".join(sorted(_SOURCES)) + r"|demand_\d{4}|cfe_share_\d{4}|conventional_[A-Za-z]+_p_(min|max)_pu",
     run:
         if len(input) == 1:
             copy2(input[0], output[0])

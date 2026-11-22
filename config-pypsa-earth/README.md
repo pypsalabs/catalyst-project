@@ -1535,8 +1535,22 @@ endogenously (SOW §1.1). After Riepin, Jenkins, Swezey & Brown (Joule 2025; `mo
   under zone matching a buyer's cost contains what it pays to or receives from the other buyers of its zone, so only
   the demand-weighted mean over a zone means something (it equals the zone row). `scripts/summarise_cfe.py` writes
   both (`cfe_zones.csv`, `cfe.csv`).
-- **Growing buyer share** (`catalyst.cfe.share: {2030: 0.01, 2050: 0.10}`, decided 2026-11-10; fork: `share` may be
-  a `{year: share}` pathway, interpolated linearly): 1 % of demand in 2030, 3.25 / 5.5 / 7.75 % in 2035 / 2040 /
+- **Buyer share per country** (`catalyst.cfe.share: statistics`, decided 2026-11-19; fork commit 0127cc6c, not
+  pushed): the share of a bus's load that the buyer takes is that of the bus's country in the horizon's table
+  `calibration/<year>/cfe_share.csv` (through `tables.smk` as `statistics/cfe_share_<horizon>.csv`; columns country,
+  share, datacentres, re100, basis, capped). The table = data centres + half of the other electricity use of RE100
+  members, at most 20 % of a country's demand, scale 1.0 until it is brought down to the 24/7 CFE supply that can
+  plausibly come online by 2030: 2030 United States 9.6 %, China 2.8 %, India 1.5 %, Brazil 1.3 %, Singapore 12.4 %,
+  North-West Europe 5.2 % (Ireland 20 %, capped; France 2.4 %), Japan 6.5 %, Morocco 0.5 %; after 2030 it follows
+  the data-centre trend (United States 15.4 % in 2050). Evidence, sources, caveats and the builder:
+  `misc-quarter1/datacentre-demand` (`snakemake -c1 model_tables` rewrites the tables); model doc section "Demand
+  for 24/7 Carbon-Free Electricity". US West and US East take the national value (REFACTOR_LATER.md item I).
+  `merge_config.py` stops a stage whose countries have no row. A bus whose country has share 0 gets no buyer.
+  **No CFE stage has been run with the table yet** (dry runs and a check of the buyer loads only; every CFE result
+  on disk has the uniform share below).
+- **Growing buyer share** (the share before 2026-11-19: `catalyst.cfe.share: {2030: 0.01, 2050: 0.10}`, decided
+  2026-11-10; fork: `share` may be a `{year: share}` pathway, interpolated linearly, which still works): 1 % of
+  demand in 2030, 3.25 / 5.5 / 7.75 % in 2035 / 2040 /
   2045, 10 % in 2050, instead of a flat 10 % from 2030. With a flat share the buyer bought once, in 2030, and its
   cost per MWh stayed the annuity of that unlearnt portfolio; now every horizon adds a cohort at that horizon's
   costs. Reported per horizon in `cfe.csv` (summarise_cfe.py): `demand_new_twh`, `cost_new_per_mwh` = annual cost
