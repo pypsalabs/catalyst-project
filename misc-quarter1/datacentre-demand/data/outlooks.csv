@@ -1,0 +1,36 @@
+# Published outlooks of data-centre electricity demand other than the IEA's, read from the source named in `url`
+# (2026-11-18). `show` = 1: drawn as a mark in the figure (world rows only). `share_pct` = the publisher's own share of
+# electricity demand, on the publisher's own demand total. `primary` = 1: the publisher's own text, 0: a report about it.
+# Caveats that matter:
+#  - BNEF New Energy Outlook 2025: the executive summary calls 1,200 / 3,700 TWh "incremental" demand and gives the
+#    shares "in total"; BNEF's article of the same day says demand will "rise to" these values. Base year not stated.
+#  - BNEF New Energy Outlook 2026: the press release prints "1,114 TWh (3.6 % of total demand) by 2050, a 10th of
+#    electricity consumed worldwide". 1,114 TWh at 3.6 % is a demand total of about 2030, not 2050, so the row is kept
+#    out of the figure (show = 0); a report of the same edition gives 5.4 % for 2035.
+#  - Wood Mackenzie gives 400 TWh for 2024 (May 2026) and 700 TWh for 2025 (Oct 2025).
+#  - Rystad's pages carry no date. DNV gives no 2050 value.
+region,year,twh,share_pct,publisher,label,scenario,published,primary,show,url
+World,2035,2354,7,BloombergNEF,BNEF,base case from the project pipeline (Powering the Data Center Boom),2026-11-11,1,1,https://assets.bbhub.io/professional/sites/44/BNEF-BP-Powering-the-Data-Center-Boom-How-Grid-Policy-Can-Deliver-Clean-Power-Faster.pdf
+World,2035,1200,4.5,BloombergNEF,BNEF 2025,New Energy Outlook 2025 Economic Transition Scenario,2025-04-15,1,0,https://www.qualenergia.it/wp-content/uploads/2025/04/New-Energy-Outlook-2025-Executive-summary-external-14-04-2025-1.pdf
+World,2050,3700,8.7,BloombergNEF,BNEF,New Energy Outlook 2025 Economic Transition Scenario,2025-04-15,1,1,https://www.qualenergia.it/wp-content/uploads/2025/04/New-Energy-Outlook-2025-Executive-summary-external-14-04-2025-1.pdf
+World,2050,1114,3.6,BloombergNEF,BNEF 2026,New Energy Outlook 2026 Economic Transition Scenario (year as printed; see header),2026-05-19,1,0,https://about.bnef.com/insights/clean-energy/bloombergnefs-new-energy-outlook-2026-transition-to-newer-technologies-expanded-electrification-to-strengthen-nations-energy-security/
+World,2035,,5.4,BloombergNEF,BNEF 2026,New Energy Outlook 2026 Economic Transition Scenario,2026-05-29,0,0,https://mercomindia.com/solar-to-become-worlds-largest-power-source-by-2032-report
+World,2030,1100,2.7,DNV,DNV,Energy Transition Outlook 2026,2026-10-07,1,0,https://www.dnv.com/energy-transition-outlook/2026/
+World,2040,2700,,DNV,DNV,Energy Transition Outlook 2026,2026-10-07,1,1,https://www.dnv.com/energy-transition-outlook/2026/
+World,2060,5700,6.8,DNV,DNV,Energy Transition Outlook 2026,2026-10-07,1,0,https://www.dnv.com/energy-transition-outlook/2026/
+World,2040,,5,DNV,DNV 2025,Energy Transition Outlook 2025,2025-10-08,1,0,https://www.dnv.com/news/2025/energy-transition-outlook/
+World,2030,800,,Wood Mackenzie,Wood Mackenzie,opinion piece on hyperscalers' power,2026-05-08,1,0,https://www.woodmac.com/news/opinion/decarbonising-data-centres-hyperscalers-power-race-will-increase-emissions-but-spur-more-direct-decarbonisation/
+World,2050,3500,,Wood Mackenzie,Wood Mackenzie,"opinion piece on hyperscalers' power (""over 3,500"")",2026-05-08,1,1,https://www.woodmac.com/news/opinion/decarbonising-data-centres-hyperscalers-power-race-will-increase-emissions-but-spur-more-direct-decarbonisation/
+World,2040,1800,,Rystad Energy,Rystad,insight page (undated),,1,0,https://www.rystadenergy.com/insights/ai-energy-demands-could-bring-benefits-not-just-burdens
+World,2050,2700,,Rystad Energy,Rystad,insight page (undated),,1,1,https://www.rystadenergy.com/insights/ai-s-energy-appetite-takes-center-stage-ahead-of-cop30
+World,2030,980,,Gartner,Gartner,release of 2025-11-17 as reported,2025-11-17,0,0,https://itbrief.com.au/story/data-centres-power-demand-to-more-than-double-by-2030
+United States,2030,649,11.8,LBNL,LBNL,2025 Update Reference Case (bounds 521 to 843 TWh),2026-06,1,0,https://escholarship.org/uc/item/33m6w3x0
+United States,2030,,12,BloombergNEF,BNEF,forecast of July 2026 as reported by Bloomberg News,2026-07-21,0,0,https://news.bloomberglaw.com/esg/data-centers-on-track-to-suck-up-a-fifth-of-us-power-use-by-2035
+United States,2035,,20,BloombergNEF,BNEF,forecast of July 2026 as reported by Bloomberg News (194 GW),2026-07-21,0,0,https://news.bloomberglaw.com/esg/data-centers-on-track-to-suck-up-a-fifth-of-us-power-use-by-2035
+United States,2030,,13,EPRI,EPRI,Powering Intelligence 2026 Medium (Low 9 % to High 17 %; 380 to 790 TWh),2026-02,1,0,https://restservice.epri.com/publicattachment/96784
+China,2030,289,2.3,Rystad Energy,Rystad,announced projects,2026-04-28,1,0,https://www.rystadenergy.com/news/chinas-data-center-capacity-doubling-of-power
+China,2030,774,6,Wood Mackenzie,Wood Mackenzie,press release,2026-08-25,1,0,https://www.woodmac.com/press-releases/chinas-ai-boom-to-drive-data-centre-power-demand-to-774-twh-by-2030/
+Europe,2030,168,4.5,ICIS,ICIS,as cited by Ember (Europe not defined),2025-06-19,0,0,https://ember-energy.org/latest-insights/grids-for-data-centres-ambitious-grid-planning-can-win-europes-ai-race/grids-for-data-centres/
+Europe,2035,236,5.7,ICIS,ICIS,as cited by Ember (Europe not defined),2025-06-19,0,0,https://ember-energy.org/latest-insights/grids-for-data-centres-ambitious-grid-planning-can-win-europes-ai-race/grids-for-data-centres/
+Europe,2030,134,,ENTSO-E,ENTSO-E,Data centres and the power system (2030 min; 2024 = 87 TWh),2026-05-08,1,0,https://eepublicdownloads.blob.core.windows.net/public-cdn-container/clean-documents/Reports/2026/ENTSO-E_Data_Centres_260520.pdf
+Europe,2035,254,,ENTSO-E,ENTSO-E,Data centres and the power system (2035 max; min 199),2026-05-08,1,0,https://eepublicdownloads.blob.core.windows.net/public-cdn-container/clean-documents/Reports/2026/ENTSO-E_Data_Centres_260520.pdf

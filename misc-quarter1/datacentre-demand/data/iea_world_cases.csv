@@ -1,0 +1,18 @@
+# World data-centre electricity consumption by case, TWh per year: IEA, Key questions on energy and AI (April 2026),
+# Figure 1.4, p. 24 (read off the vector chart), with 2030 and 2035 from its Table A.1, CC BY 4.0:
+#   https://iea.blob.core.windows.net/assets/3179f7f8-01f6-4dd6-bffa-c9f7b73f1dc9/KeyQuestionsonEnergyandAI.pdf
+# 2025 = estimate of the year (485 TWh). The IEA calls everything after 2030 "exploratory". No regional split is
+# published after 2030 and none for the cases other than the Base Case. The first edition (Energy and AI, April 2025,
+# Table A.1) had a wider span: 2035 = 1,719 (Lift-Off), 972 (High Efficiency), 707 (Headwinds).
+year,base,lift_off,high_efficiency,headwinds
+2025,485,485,485,485
+2026,560,560,547,555
+2027,664,664,638,642
+2028,771,771,731,711
+2029,862,884,802,771
+2030,945,1008,868,833
+2031,1012,1130,915,868
+2032,1074,1263,957,893
+2033,1119,1394,983,912
+2034,1161,1527,1003,933
+2035,1193,1637,1013,942

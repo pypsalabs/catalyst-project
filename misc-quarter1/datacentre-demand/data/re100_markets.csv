@@ -1,0 +1,125 @@
+# Electricity consumption of RE100 members by market, data year 2024.
+# Source: 2025 RE100 Annual Disclosure Report (Climate Group / CDP), appendix "market progress table", read from the PDF text:
+#   https://www.theclimategroup.org/hubfs/Climate%20Group%2027646%20RE100%20-%20Annual%20Disclosure%20Report%202025.pdf
+# The table holds 480 of the members' 557 TWh: members that gave no breakdown by market are not in it (the report says so).
+# level: total | continent (the report's subtotals; they add up to the total) | single market (a subtotal inside a
+#   continent, not to be added to it) | country. `continent` is the report's grouping (Turkey and the Middle East under Asia,
+#   Mexico and Central America under North America). Names shortened (Republic of Korea -> South Korea, "Taiwan, China" -> Taiwan).
+# A country's continent is the subtotal it is printed under. The country rows add up to their subtotal within 0.2 TWh, except
+#   Europe (2.3 TWh short, not resolved); markets below 0.1 TWh with empty cells are left out.
+# companies_hq / companies_operating: members headquartered / operating in the market; re_recognised_gwh: renewable
+#   electricity recognised by RE100's technical criteria.
+market,level,continent,companies_hq,companies_operating,consumption_gwh,re_recognised_gwh
+All markets,total,,436,405,479716,224252
+Asia,continent,Asia,191,369,292504,107003
+China,country,Asia,9,290,94351,60169
+South Korea,country,Asia,37,200,70225,8605
+Japan,country,Asia,89,245,46897,18575
+Taiwan,country,Asia,35,173,37111,2321
+India,country,Asia,16,220,13183,6386
+Malaysia,country,Asia,0,170,5381,1613
+Vietnam,country,Asia,0,180,8013,3352
+Thailand,country,Asia,0,182,3965,1915
+Singapore,country,Asia,4,210,2503,150
+Indonesia,country,Asia,0,147,3136,1102
+Turkey,country,Asia,1,116,1611,1094
+Philippines,country,Asia,0,121,2069,641
+Russia,country,Asia,0,60,654,337
+Israel,country,Asia,0,85,1519,210
+United Arab Emirates,country,Asia,0,120,500,102
+Saudi Arabia,country,Asia,0,84,398,91
+Pakistan,country,Asia,0,45,258,154
+Sri Lanka,country,Asia,0,35,138,57
+Cambodia,country,Asia,0,33,128,20
+Bangladesh,country,Asia,0,44,86,17
+Mongolia,country,Asia,0,8,44,5
+Jordan,country,Asia,0,27,33,4
+Iran,country,Asia,0,8,29,2
+Kazakhstan,country,Asia,0,46,35,13
+Qatar,country,Asia,0,47,26,0
+Myanmar,country,Asia,0,29,25,0
+Lebanon,country,Asia,0,25,28,1
+Oman,country,Asia,0,26,12,7
+Nepal,country,Asia,0,10,4,0
+North America,continent,North America,99,302,108351,69046
+North American single market,single market,North American single market,98,303,101716,65733
+United States,country,North America,94,298,98919,64542
+Canada,country,North America,4,175,2798,1162
+Mexico,country,North America,1,172,6216,3202
+Costa Rica,country,North America,0,56,219,40
+Honduras,country,North America,0,19,24,0
+El Salvador,country,North America,0,20,13,6
+Panama,country,North America,0,50,43,24
+Cuba,country,North America,0,6,9,1
+Barbados,country,North America,0,9,1,0
+Europe,continent,Europe,130,297,60571,36920
+European single market,single market,European single market,85,268,41549,30234
+Germany,country,Europe,18,211,11534,8672
+France,country,Europe,16,185,5187,3793
+Spain,country,Europe,5,172,3652,3212
+Netherlands,country,Europe,9,179,2065,1352
+Italy,country,Europe,0,165,2133,1258
+Belgium,country,Europe,2,149,2063,1379
+Hungary,country,Europe,0,116,2038,1373
+Switzerland,country,Europe,12,134,1187,839
+Denmark,country,Europe,6,118,1704,1491
+Czechia,country,Europe,0,132,1320,964
+Austria,country,Europe,0,122,1407,1179
+Sweden,country,Europe,3,131,1257,699
+Slovakia,country,Europe,0,85,914,249
+Greece,country,Europe,0,79,691,503
+Finland,country,Europe,2,100,633,264
+Portugal,country,Europe,0,104,627,439
+Norway,country,Europe,2,100,318,155
+Croatia,country,Europe,0,63,171,158
+Luxembourg,country,Europe,1,79,165,128
+Slovenia,country,Europe,0,52,109,77
+Lithuania,country,Europe,0,53,60,56
+Estonia,country,Europe,0,36,31,22
+Latvia,country,Europe,0,50,10,5
+Monaco,country,Europe,0,16,6,6
+Jersey,country,Europe,0,9,2,2
+United Kingdom,country,Europe,44,204,10848,4684
+Ireland,country,Europe,1,113,3623,382
+Poland,country,Europe,0,120,2792,1137
+Romania,country,Europe,0,70,782,371
+Iceland,country,Europe,0,15,469,11
+Serbia,country,Europe,0,46,150,17
+Bulgaria,country,Europe,0,50,107,40
+Malta,country,Europe,0,13,0,0
+Ukraine,country,Europe,0,67,124,1
+North Macedonia,country,Europe,0,16,47,20
+Albania,country,Europe,0,16,36,2
+Montenegro,country,Europe,0,11,21,20
+South America,continent,South America,0,172,8722,6507
+Brazil,country,South America,0,167,5917,4793
+Chile,country,South America,0,91,497,449
+Argentina,country,South America,0,87,842,479
+Colombia,country,South America,0,97,533,263
+Venezuela,country,South America,0,26,296,0
+Ecuador,country,South America,0,41,181,118
+Peru,country,South America,0,70,395,382
+Uruguay,country,South America,0,36,50,21
+Oceania,continent,Oceania,15,192,6240,2820
+Australia,country,Oceania,15,187,5498,2701
+New Zealand,country,Oceania,0,120,669,118
+Fiji,country,Oceania,0,13,48,1
+Papua New Guinea,country,Oceania,0,13,22,0
+Africa,continent,Africa,1,145,3328,1957
+South Africa,country,Africa,1,117,1268,1072
+Egypt,country,Africa,0,74,830,531
+Nigeria,country,Africa,0,52,286,45
+Morocco,country,Africa,0,62,205,106
+Tanzania,country,Africa,0,19,148,4
+Kenya,country,Africa,0,52,78,70
+Ghana,country,Africa,0,26,75,14
+DR Congo,country,Africa,0,9,65,28
+Algeria,country,Africa,0,31,64,5
+Mozambique,country,Africa,0,17,58,2
+Ethiopia,country,Africa,0,12,42,35
+Côte d’Ivoire,country,Africa,0,21,45,1
+Tunisia,country,Africa,0,33,38,0
+Rwanda,country,Africa,0,11,23,16
+Uganda,country,Africa,0,16,17,0
+Senegal,country,Africa,0,17,5,1
+Zambia,country,Africa,0,14,3,1

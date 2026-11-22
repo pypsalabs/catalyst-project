@@ -1,0 +1,108 @@
+# Data-centre electricity demand by region, 2020-2050, against total electricity demand.
+
+years: [2020, 2050]
+
+# Regions of the IEA's annual series (data/iea_regions.csv), bottom to top of the stack. `members` = the outlook regions
+# of the demand tables (column weo_region of config-pypsa-earth/calibration/<year>/demand.csv); `continent` keeps
+# only the members on that continent (Australia, New Zealand and the Pacific islands are in the IEA's rest of the world).
+# The last region is the remainder of the world.
+regions:
+  United States: {members: [United States]}
+  China: {members: [China]}
+  Europe: {members: [European Union, rest of Europe]}
+  Asia excl. China: {members: [Japan, India, Southeast Asia, rest of Asia Pacific], continent: Asia}
+  Rest of world: {remainder: true}
+
+# Total electricity demand: Ember yearly data to `history_until`, then the model's demand pathway (Ember 2024 x the
+# outlook consensus, config-pypsa-earth/scripts/build_demand_pathway.py), linear between its table years.
+demand:
+  ember: ../../config-pypsa-earth/data/validation/yearly_full_release_long_format.csv
+  countries: ../../config-pypsa-earth/data/row_countries.csv
+  pathway: ../../config-pypsa-earth/calibration/{year}/demand.csv
+  pathway_years: [2025, 2030, 2035, 2040, 2045, 2050]
+  history_until: 2024
+
+# The data-centre series, by stretch of years:
+#   to 2030      IEA Base Case by region (data/iea_regions.csv)
+#   2031-2035    IEA Base Case for the world (data/iea_world_cases.csv); ASSUMPTION: every region keeps its 2030 share
+#                of the world total (the IEA publishes no regional split after 2030)
+#   2036-2050    ASSUMPTION, no source, one of two rules per variant (`world_2050`); regions keep their 2030 shares:
+#                  trend   the world total grows by the mean yearly increment of 2030-2035 of the Base Case
+#                          (about 50 TWh a year); this ends below every published outlook for 2050
+#                  median  straight line from the Base Case of 2035 to the median of the world outlooks for 2050 that
+#                          data/outlooks.csv marks with show = 1 (other publishers, other methods, a higher 2035)
+#                  <TWh>   straight line to this value
+projection:
+  regional_until: 2030
+  world_until: 2035
+  increment_from: 2030
+
+# One figure per variant: figures/datacentre_demand_<variant>.png
+variants:                         # the first one is the variant in use (decided 2026-11-19: trend), the other a cross-check
+  trend: {world_2050: trend}
+  outlooks: {world_2050: median}
+
+# Grey reference line in the share panel: the share of demand that the 24/7 CFE buyers take in the model
+# (config-pypsa-earth/overlay.cfe.yaml, catalyst.cfe.share). Remove the key to drop the line.
+reference_share: {2030: 0.01, 2050: 0.10}
+
+# figures/corporate_buyers.png: the RE100 members named in the stacked areas, by group (one hue per group, a tint per
+# company), bottom to top; the rest of the RE100 total is "Other members". A company counts from its joining year
+# (data/buyers.csv, re100_joined) and from the first year it has a figure; before that its load is in "Other members".
+# Chosen: members above about 5 TWh in 2024 with a figure for every year since; not Walmart (no figure), Equinix
+# (membership unclear in 2024), Vodafone (no figure for 2020), Procter & Gamble (no figure for 2023).
+buyers:
+  years: [2018, 2024]
+  groups:
+    Big tech: [Google, Microsoft, Meta, Apple]
+    Chips and electronics: [Samsung Electronics, TSMC, SK hynix, Hon Hai (Foxconn), Intel, Samsung Display]
+    Solar manufacturing: [Tongwei, LONGi, Jinko Solar]
+    Telecoms: [Deutsche Telekom, Verizon, Telefónica]
+    Retail and industry: [Seven & i, General Motors]
+  hourly_goal: [Google, Microsoft]     # public goal of hourly matching by 2030
+
+# who could buy 24/7 CFE in `year`: the region's data centres plus a part of the other electricity use of RE100 members
+# (scripts/build_buyer_share.py; the weights are a choice, not a source)
+buyer_share:
+  year: 2030
+  base_year: 2024                 # data year of the RE100 market table
+  re100_markets:                  # rows of data/re100_markets.csv per region; the remainder region takes the rest
+    United States: {plus: [United States]}
+    China: {plus: [China]}
+    Europe: {plus: [Europe]}
+    Asia excl. China: {plus: [Asia], minus: [China]}
+  country_names:                  # names of the country table -> names of the market table
+    United States of America: United States
+    Russian Federation (the): Russia
+    Viet Nam: Vietnam
+    Iran (Islamic Republic of): Iran
+    Philippines (the): Philippines
+    Congo (the Democratic Republic of the): DR Congo
+    Tanzania, the United Republic of: Tanzania
+    Cote d'Ivoire: Côte d’Ivoire
+    Venezuela (Bolivarian Republic of): Venezuela
+  overlap: [Google, Microsoft, Meta, Apple, Equinix]   # RE100 members whose electricity is mostly data centres
+  overlap_not_in: [China]
+  mixes:                          # regional summary (build_buyer_share.py): share = data centres + weight x RE100 other
+    datacentres_only: 0.0
+    plus_half_re100: 0.5
+    plus_all_re100: 1.0
+  # the table the model reads (scripts/build_country_share.py); decided 2026-11-19: weight 0.5, and one scale factor
+  # to bring the share down to what 24/7 CFE supply can plausibly come online (1.0 until that check is made)
+  weight: 0.5
+  scale: 1.0
+  cap: 0.20                       # decided 2026-11-19: no country's share above this (the level is a choice; binds on
+                                  # Ireland from 2030, Denmark from 2045); the cap takes from the data centres' part
+  horizons: [2030, 2035, 2040, 2045, 2050]
+  tables: ../../config-pypsa-earth/calibration/{year}/cfe_share.csv
+  iea_countries: [United States, China]   # regions of the table that are one country (China with Hong Kong)
+  iea_regions:                    # regions of the model's demand tables (weo_region) -> rows of data/iea_table_a4.csv
+    United States: {weo: [United States], plus: [United States]}
+    North America excl. US: {weo: [rest of North America], plus: [North America], minus: [United States]}
+    Central and South America: {weo: [Brazil, rest of Central and South America], plus: [Central and South America]}
+    Europe: {weo: [European Union, rest of Europe], plus: [Europe]}
+    Africa: {weo: [Africa], plus: [Africa]}
+    Middle East: {weo: [Middle East], plus: [Middle East]}
+    China: {weo: [China], plus: [China]}
+    Asia Pacific excl. China: {weo: [India, Japan, Southeast Asia, rest of Asia Pacific], plus: [Asia Pacific], minus: [China]}
+    Eurasia: {weo: [Russia, Caspian], remainder: true}      # not in the table: world minus the listed regions

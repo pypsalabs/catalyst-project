@@ -1,0 +1,24 @@
+# Data-centre electricity consumption by region, TWh per year. Historical estimate to 2024, Base Case from 2025.
+# IEA, Energy and AI (April 2025), Figure 2.12 left panel, p. 65, CC BY 4.0:
+#   https://iea.blob.core.windows.net/assets/dd7c2387-2f60-4b60-8c5f-6563b6aa1e4c/EnergyandAI.pdf
+# Read off the vector chart of the PDF (the IEA publishes no annual table); the values agree within 1 TWh with the
+# report's Table A.4 (2020, 2023, 2024, 2030) and with Table A.4 of the update "Key questions on energy and AI"
+# (April 2026; 2025 and 2030), which left the Base Case to 2030 unchanged (945 TWh):
+#   https://iea.blob.core.windows.net/assets/3179f7f8-01f6-4dd6-bffa-c9f7b73f1dc9/KeyQuestionsonEnergyandAI.pdf
+# Scope: enterprise, colocation and hyperscale facilities, whole facility (IT x PUE); no telecom networks, no crypto
+# mining. All values are modelled estimates, China's the least certain. Regions: Europe = EU-27, UK, Norway,
+# Switzerland, Iceland, Turkiye, Ukraine, Israel, Western Balkans, Belarus, Moldova; China incl. Hong Kong;
+# "Asia excl. China" leaves Australia and New Zealand in the rest of the world (43 TWh in 2024 against 48 TWh for
+# Asia Pacific excl. China in Table A.4).
+year,United States,China,Europe,Asia excl. China,Rest of world,World,kind
+2020,108,62,57,27,15,269,history
+2021,121,71,60,31,15,297,history
+2022,134,78,62,34,16,325,history
+2023,154,84,66,39,17,360,history
+2024,182,102,68,43,20,416,history
+2025,224,118,72,49,23,486,base
+2026,260,140,78,56,26,561,base
+2027,304,175,89,67,30,665,base
+2028,350,215,98,77,34,774,base
+2029,391,245,106,84,38,863,base
+2030,426,277,114,89,40,946,base

@@ -1,0 +1,123 @@
+# Data-centre electricity demand by region, 2020-2050, against total electricity demand (README.md).
+#
+#   ../../models/priam-myopic/.pixi/envs/default/bin/snakemake -c1
+#
+# rules
+#   build_series    data/iea_*.csv + Ember history + the model's demand pathway -> build/series_<variant>.csv
+#   plot_overview   stacked areas by region + share of demand per region -> figures/datacentre_demand_<variant>.{png,pdf}
+#   plot_buyers     RE100 members and the large technology companies -> figures/corporate_buyers.{png,pdf}
+#   buyer_share     data centres + other use of RE100 members as a share of demand in 2030 -> build/buyer_share.csv
+#   country_share   the same per country and horizon -> build/country_share.csv
+#   model_tables    ... written as the model's tables config-pypsa-earth/calibration/<year>/cfe_share.csv (tracked);
+#                   not part of `all`: run `snakemake -c1 model_tables` when the table is to change in the model
+# <variant> = how the world total is carried from 2035 to 2050 (config.yaml `variants`)
+
+configfile: "config.yaml"
+
+PY = "../../models/priam-myopic/.pixi/envs/default/bin/python"
+
+
+VARIANTS = list(config["variants"])
+
+
+rule all:
+    input:
+        expand("figures/datacentre_demand_{variant}.png", variant=VARIANTS),
+        "figures/corporate_buyers.png",
+        "build/buyer_share.csv",
+        "build/country_share.csv",
+
+
+rule build_series:
+    input:
+        "config.yaml",
+        "data/iea_regions.csv",
+        "data/iea_world_cases.csv",
+        config["demand"]["ember"],
+        config["demand"]["countries"],
+        "data/outlooks.csv",
+        expand(config["demand"]["pathway"], year=[config["demand"]["history_until"]] + config["demand"]["pathway_years"]),
+        script="scripts/build_series.py",
+    output:
+        expand("build/series_{variant}.csv", variant=VARIANTS),
+        "build/world_cases.csv",
+    shell:
+        "{PY} {input.script}"
+
+
+rule plot_overview:
+    input:
+        "config.yaml",
+        "build/series_{variant}.csv",
+        "build/world_cases.csv",
+        "data/outlooks.csv",
+        "scripts/ftlook.py",
+        script="scripts/plot_overview.py",
+    output:
+        "figures/datacentre_demand_{variant}.png",
+        "figures/datacentre_demand_{variant}.pdf",
+    shell:
+        "{PY} {input.script} {wildcards.variant}"
+
+
+rule plot_buyers:
+    input:
+        "config.yaml",
+        "data/buyers.csv",
+        "data/iea_regions.csv",
+        config["demand"]["ember"],
+        "scripts/ftlook.py",
+        script="scripts/plot_buyers.py",
+    output:
+        "figures/corporate_buyers.png",
+        "figures/corporate_buyers.pdf",
+        "build/buyers_stack.csv",
+        "build/buyers_share.csv",
+    shell:
+        "{PY} {input.script}"
+
+
+rule buyer_share:
+    input:
+        "config.yaml",
+        "build/series_" + VARIANTS[0] + ".csv",
+        "data/re100_markets.csv",
+        "data/buyers.csv",
+        config["demand"]["countries"],
+        script="scripts/build_buyer_share.py",
+    output:
+        "build/buyer_share.csv",
+        "build/re100_countries.csv",
+    shell:
+        "{PY} {input.script}"
+
+
+COUNTRY_INPUTS = [
+    "config.yaml",
+    "build/series_" + VARIANTS[0] + ".csv",
+    "data/datacentre_countries.csv",
+    "data/iea_table_a4.csv",
+    "data/re100_markets.csv",
+    "data/buyers.csv",
+    config["demand"]["countries"],
+    *expand(config["demand"]["pathway"], year=[config["demand"]["history_until"]] + config["demand"]["pathway_years"]),
+    "scripts/build_country_share.py",
+]
+
+
+rule country_share:
+    input:
+        COUNTRY_INPUTS,
+    output:
+        "build/country_share.csv",
+    shell:
+        "{PY} scripts/build_country_share.py"
+
+
+rule model_tables:
+    input:
+        COUNTRY_INPUTS,
+    output:
+        expand(config["buyer_share"]["tables"], year=config["buyer_share"]["horizons"]),
+    shell:
+        "{PY} scripts/build_country_share.py --tables"
