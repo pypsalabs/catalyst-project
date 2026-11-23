@@ -92,6 +92,12 @@ build_shape_options:
                 US.43_1, US.44_1, US.46_1, US.47_1, US.49_1, US.50_1]
   clip_bbox: [-107.0, 24.0, -66.5, 50.0]    # the 37 states + DC, the Gulf and the Atlantic EEZ (no Pacific east of 117 W)
 
+load_options:
+  # build_demand_profiles: the national hourly load series blends four time zones; this half's load runs 0.39 hours earlier
+  # (table demand_shift.csv = calibration/2024/regions/USE/demand_shift.csv, scripts/build_region_tables.py: the
+  # states' offsets to UTC weighted with their retail sales). README "US West / US East"; REFACTOR_LATER.md item E
+  time_shift: true
+
 catalyst:
   cfe:
     zones: statistics             # 24/7 CFE buyers are matched per market zone, not per country: ERCOT, SPP, MISO, PJM, NYISO, ISO-NE, Southeast

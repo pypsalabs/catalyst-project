@@ -68,47 +68,6 @@ the two "unvalidated" bullets written on 2026-11-16 (US tranche spread, nuclear 
 **Why here.** A change of the document only (no fork change, no rerun); listed here by request so it is done together
 with the sweep, whose item A rewrites the same section.
 
-### C. `scale_down` of the wind and solar plant list does not reach the network (found 2026-11-16)
-
-**Problem.** Fork commit `d040060e` (`electricity: estimate_renewable_capacities: scale_down`) scales the plants of a
-country down to the IRENA total where the list exceeds it, but in `attach_wind_and_solar`
-(`scripts/add_electricity.py`) the capacities handed to the generators (`caps_final`) are copied from the plant list
-*before* the scaling, so only the logged number and the gap fill see the scaled values. Found by
-`scripts/check_renewables.py` (table `model-doc/build/renewables_check/capacity.csv`) and visible in the rule's own
-log ("plant list scaled to the statistics (x0.84) ... gap filled = 18.16 GW" for India's solar, where no gap exists).
-Effect in the networks of 2026-11-13: China onshore wind 510.9 GW against IRENA's 480.0, China offshore 55.5 against
-41.3, India solar 115.7 against 97.6, GB offshore 18.9 against 15.9, NL offshore 6.8 against 4.7; about 69 GW in all.
-The one-node runs are not affected (their fleet is the statistic). The observed capacity factors of these countries
-are generation over the *statistic's* capacity, so the model generates more wind and solar there than observed.
-
-**Target.** Hand the scaled capacities on (take the copy after the scaling, or scale both). Two lines.
-
-**Changes with it.** Fork: `attach_wind_and_solar`. Model doc: the paragraph "Take installed wind and solar from
-IRENA 2024 and scale the plant list down to it" in `model-doc/doc/sections/renewables.tex` states the defect and its
-numbers; they go once it is fixed, and `check_renewables.py capacity` must then show no country above the statistic.
-
-**Why in a sweep.** Changes `elec.nc` and everything after it for US (since 2026-11-17: USW, USE), CN, IN and NWE.
-
-### E. One hourly demand shape for US West and US East (noted 2026-11-17)
-
-**Problem.** The fork has one synthetic hourly demand series per country (GEGIS, DemandCast as fallback), spread over
-the buses by population and GDP. Since 2026-11-17 the US is two stages, `USW` and `USE` (README "US West / US East"),
-both `countries: [US]`: each gets the national series, scaled to its annual demand
-(`calibration/<year>/regions/<R>/demand.csv`). The US series is a blend of four time zones; the West's real load runs
-2-3 hours behind the East's, and its evening peak falls later against its solar output than the model has it. The
-former single `US` stage had the same error for its western buses.
-
-**Target (to be decided).** A demand shape per half: (1) shift the national series by the half's mean offset to UTC
-(no new data; keeps the blended shape); (2) hourly demand per interconnection or balancing authority from EIA-930
-(public, from 2015, so not the model's weather year 2013: needs a rule for mapping it); (3) a regional run of the
-synthetic demand model, if its inputs allow one. Whichever it is enters as a statistics table of the run and a switch
-in `build_demand_profiles`, not as a path option.
-
-**Changes with it.** Fork: `build_demand_profiles` (and `build_demand_profiles_horizon`). Parent:
-`scripts/build_region_tables.py`, `tables.smk`, README, model doc (Demand).
-
-**Why in a sweep.** Changes the demand profiles and every network after them for both US stages.
-
 ### F. Clusters per market zone for every multi-node region (noted 2026-11-18)
 
 **Now:** the 24/7 CFE buyers are matched per market zone (`catalyst: cfe: zones: statistics`, README "Market zones").
@@ -263,24 +222,18 @@ doc section "Demand for 24/7 Carbon-Free Electricity"). Open, in the order in wh
   is still "to be written".
 - **Not pushed**: fork commit 0127cc6c and the parent commits of this work.
 
-### J. Demand placed inside a country by GDP and population (noted 2026-11-23)
+### J. Demand placed inside a country: the regions other than China (noted 2026-11-23)
 
-**Now:** `build_demand_profiles` spreads a country's hourly demand over its buses by 0.6 x GDP share + 0.4 x
-population share (a regression on European countries). In China this puts far too little demand in the provinces
-with heavy industry: the `CN-now` run of 2026-11-23 has 188 TWh in Inner Mongolia and 131 TWh in Xinjiang, where
-press reports of the provincial statistics give 548 and 444 TWh for 2025 (not yet read at a primary source). The
-model then exports 711 TWh from Inner Mongolia, runs its HVDC links at 95 % of their capacity (about 2,980 TWh a
-year) and is congested on 27 of 87 AC lines at a margin of 0.7.
+China is done (README "China: demand per province"; fork option `load_options: subnational_shares`, table
+`calibration/2024/demand_shares.csv`). Open: whether GDP and population misplace demand in India, the US halves and
+Brazil as well. First step is the read-only check (`scripts/check_demand_placement.py`) against state statistics
+(India: CEA; US: EIA retail sales, on disk; Brazil: EPE); a region that is off gets rows in the same table.
 
-**Change:** a fork switch `load_options: distribution: statistics`: where the table
-`resources/<run>/statistics/demand_shares.csv` (GADM level-1 id, share of the country's demand; written by
-`tables.smk` from `calibration/<year>/demand_shares.csv`) has rows for a country, its demand is split over the units
-by these shares and inside a unit by GDP and population as today; other countries are unchanged. The national total
-stays the calibrated one (`demand.csv`). China first; the same table can hold India's states (CEA), the US states
-(EIA retail sales, already used for the two halves) and Brazil's states (EPE).
+### E, rest. Each US half's own demand shape (noted 2026-11-17, time shift done 2026-11-23)
 
-**Why deferred:** it changes the demand of every bus, so cluster weights, clusters per zone and every solve of the
-region; the provincial table must be read at a source; a full rebuild of `CN`, `CN-now`, `CN-zero` is about 8 hours.
+The two US stages use the national hourly series moved in time (README "US West / US East"). Open: the daily and
+seasonal pattern of each half from EIA-930 (hourly demand per balancing authority, from 2015; needs a rule to apply
+it to the 2013 series of the model).
 
 ## Questions to ask before a sweep is planned
 
@@ -293,8 +246,6 @@ is finalised. Do not pick an answer yourself and do not bury them in the plan.**
   1.02), so the fuel burnt at equal dispatch shifts. Either rescale the factors per carrier so that the fleet
   efficiency is kept, or accept the shift.
 - **Item A, number of tranches.** Three equal thirds as now, or more (the table could carry quintiles)?
-- **Item E, which demand shape for the two US stages.** A time shift of the national series, EIA-930 data of another
-  year, or a regional run of the demand model?
 - **Item F, which regions get clusters per market zone.** US East is the candidate (15 % of load in a cluster of
   another zone); is the re-solve of every stage worth it for US West (6 %) and Brazil (4 %)? And does Denmark need a
   second cluster so that DK1 and DK2 exist apart (one cluster today)? North-West Europe cannot take the switch as
@@ -310,9 +261,6 @@ is finalised. Do not pick an answer yourself and do not bury them in the plan.**
   reconductoring can deliver, such as `ll2.0`)? Does HVDC count in the same cap (the India test escaped the line
   limit with 39 GW of HVDC)? Does the 2030 horizon get committed projects only (lead time 5 to 15 years)?
 
-- **Item J, scope.** China only, or India, the US states and Brazil in the same step (one option, one table)?
-- **Item J, later horizons.** Provincial shares of 2024 kept to 2050, or shifted (the west grows faster)?
-- **Item J, the source.** If a complete provincial table can be read for 2025 only, are 2025 shares used for 2024?
 
 ## Dropped
 
@@ -322,6 +270,14 @@ is finalised. Do not pick an answer yourself and do not bury them in the plan.**
   of Brazil's potential. The one region where onshore wind is tight is North-West Europe (42 % of the potential used,
   120 of 246 class generators at their limit, 40 % of the potential on forest), where wind in managed forest is common
   practice. The letters of the other items are kept.
+
+## Done on 2026-11-23: items C, E (time shift), J (China)
+
+- **C.** The scaled-down wind and solar plant list reaches the generators (fork 9d6a937b). Networks on disk predate it.
+- **E.** Time shift of the national load series per US half (fork 8f290c58): West 1.77 h later, East 0.39 h earlier.
+  The measured shapes stay open (above).
+- **J.** China's demand per province from published shares (fork 563658d5), China rebuilt and re-solved; decided:
+  China only for now, shares constant over the horizons.
 
 ## Done: item G, long AC lines (2026-11-23)
 

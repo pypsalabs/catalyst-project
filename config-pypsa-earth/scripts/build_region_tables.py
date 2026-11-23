@@ -23,6 +23,9 @@ are EIA's state tables of 2024 (data/validation/eia/state/, gitignored downloads
     demand.csv (every year)         share of retail sales, HS861 2010-.xlsx
     hydro_max_hours.csv             GloHydroRes plants inside the part's units (the national formula)
     envelope/<variant>/             flat carriers at the part's capacity factor (as build_calibration.py)
+    demand_shift.csv                hours by which the part's load runs later than the country's hourly series
+                                    (load_options: time_shift): the part's offset to UTC against the country's, both
+                                    weighted with the states' retail sales (UTC_OFFSET)
 
 Alaska and Hawaii are in the national statistics but in no part: the parts add up to the contiguous share of each row
 (printed). The shares are of utility-scale plants; small-scale solar is not in EIA's state tables. Efficiencies, fuel
@@ -65,6 +68,23 @@ EIA_FUELS = {
 TECHNOLOGY_GROUP = {"Onshore": "wind", "PV": "solar", "CSP": "solar"}
 OFFSHORE = ["RI", "NY", "MA", "VA"]
 PRODUCER = "Total Electric Power Industry"
+
+
+# Standard-time offset to UTC of the time zone that holds most of a state's people (the contiguous states and DC).
+# States cut by a zone border are counted with their larger part (ASSUMPTION: Florida, Indiana, Kentucky and Michigan
+# as Eastern; Tennessee, Kansas, Nebraska, the Dakotas and Texas as Central; Idaho as Mountain; Oregon as Pacific).
+UTC_OFFSET = {**dict.fromkeys("CA WA OR NV".split(), -8), **dict.fromkeys("AZ UT CO NM ID MT WY".split(), -7),
+              **dict.fromkeys("AL TN MS LA AR MO IA MN WI IL TX OK KS NE SD ND".split(), -6),
+              **dict.fromkeys("ME NH VT MA RI CT NY NJ PA DE MD DC VA WV NC SC GA FL OH MI IN KY".split(), -5)}
+
+
+def demand_shift(year):
+    """{region key: hours by which its load runs later than the series of all parts together}."""
+    sales, offset = eia_sales(year), pd.Series(UTC_OFFSET, dtype=float)
+    parts = {key: [unit_codes(country)[i] for i in ids] for key, (country, ids) in region_stages().items()}
+    mean = lambda states: float((sales.reindex(states) * offset.reindex(states)).sum() / sales.reindex(states).sum())
+    everything = mean([s for states in parts.values() for s in states])
+    return {key: round(everything - mean(states), 2) for key, states in parts.items()}
 
 
 def region_stages():
@@ -158,6 +178,7 @@ def main(year):
     national = {name: pd.read_csv(os.path.join(CAL, str(year), f"{name}.csv"))
                 for name in ["capacity", "generation", "hydro_generation", "renewable_capacities"]}
     report = []
+    shift = demand_shift(year)
     for key, (country, ids) in region_stages().items():
         codes = unit_codes(country)
         states = [codes[i] for i in ids]
@@ -180,6 +201,7 @@ def main(year):
         write(pd.DataFrame({"country": [country], "twh": [round(gen.twh["hydro"], 3)]}), out, "hydro_generation.csv")
         write(pd.DataFrame({"country": [country], "max_hours": [round(reservoir_hours(country, states))]}), out,
               "hydro_max_hours.csv")
+        write(pd.DataFrame({"country": [country], "shift_hours": [shift[key]]}), out, "demand_shift.csv")
 
         ren = national["renewable_capacities"][national["renewable_capacities"].country == country].copy()
         offshore = eia_capacity(year)

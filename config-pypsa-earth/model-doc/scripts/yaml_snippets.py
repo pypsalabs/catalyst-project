@@ -41,6 +41,8 @@ SNIPPETS = {
     "geodesic_length": [("config.NWE.yaml", [("osm", "build_osm_network", "geodesic_length")], REGIONS)],
     "dc_ratings": [("statistics.yaml", [("links", "dc_ratings")], [])],
     "loadability": [("statistics.yaml", [("lines", "loadability"), ("lines", "s_max_pu")], [])],
+    "demand_shares": [("config.CN.yaml", [("load_options", "subnational_shares")], [])],
+    "time_shift": [("config.USW.yaml", [("load_options", "time_shift")], ["config.USE.yaml"])],
     "dc_projects": [("config.NWE.yaml", [("links", "dc_projects")], REGIONS)],
     "clip_bbox": [("config.USW.yaml", [("build_shape_options", "clip_bbox")], [])],
     "gadm_subset": [("config.USW.yaml", [("build_shape_options", "gadm_subset")], [])],
@@ -64,6 +66,8 @@ TABLES = {
     "envelope": [("conventional_<carrier>_<attr>.csv", "calibration/2024/envelope/floor/<carrier>_<attr>.csv")],
     "cf_targets": [("generation.csv", "calibration/2024/generation.csv")],
     "dc_ratings": [("dc_ratings.csv", "data/hvdc/hvdc_ratings.csv")],
+    "demand_shares": [("demand_shares.csv", "calibration/2024/demand_shares.csv")],
+    "time_shift": [("demand_shift.csv", "calibration/2024/regions/USW/demand_shift.csv")],
     "dc_projects": [("dc_projects.csv", "data/hvdc/hvdc_project_table.csv")],
 }
 

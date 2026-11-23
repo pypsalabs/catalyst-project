@@ -315,9 +315,13 @@ whole country and are shown for neither half.
 **Limits.**
 - Whole states, not the seam: El Paso (West grid) is in `USE`; eastern New Mexico and eastern Montana (East grid) are
   in `USW`. ERCOT is not modelled apart: Texas is connected to the East by whatever lines OSM shows.
-- One hourly demand shape for both halves: the fork has one synthetic series per country, scaled to each half's annual
-  demand. The US series is a blend of four time zones; the West's real load runs 2-3 hours behind the East's
-  (`REFACTOR_LATER.md` item E).
+- One hourly demand shape for both halves, moved in time (2026-11-23, fork option `load_options: time_shift`, commit
+  8f290c58): the fork has one synthetic series per country, a blend of four time zones for the US. Each half's
+  series is the national one shifted by the half's mean offset to UTC against the contiguous states', weighted with
+  the states' retail sales (`calibration/2024/regions/<R>/demand_shift.csv`, `scripts/build_region_tables.py`,
+  `UTC_OFFSET`): West 1.77 h later, East 0.39 h earlier; the annual demand is unchanged. Checked on `USW`: the mean
+  daily peak moves from 23:24 to 01:16 UTC. The shape itself is still the national one; each half's own daily and
+  seasonal pattern from EIA-930 is the open rest of `REFACTOR_LATER.md` item E.
 - The state shares are of utility-scale plants; small-scale solar is not in EIA's state tables (California's share of
   solar is understated by that).
 - EIA's "Other" (batteries, purchased steam) is left out of the oil group's share.
@@ -711,7 +715,7 @@ any limit (128 of 312 GW between India's regional grids).
 
 State (2026-11-23): fork commit pushed; India re-solved with it (`IN-now`, `IN-zero`, `dashboard:IN`, finished 16:32;
 the results before are `results/archive/IN-now-20261113`, `IN-zero-20261115`, `validation_IN-20261115.png`). China
-follows with its demand placement (item J). No other region is re-solved.
+was re-solved the same day together with its demand placement (next subsection). No other region is re-solved.
 
 India before and after (same demand and fleet; the stage rebuilt its base network and profiles, with identical
 wind, solar and coal numbers in the 2024 dispatch, so the difference is the line rule and the margin):
@@ -729,6 +733,39 @@ wind, solar and coal numbers in the 2024 dispatch, so the difference is the line
 The 2024 dispatch hardly notices the tighter grid (+0.5 % cost). The zero-carbon run costs 4.5 % more and buys the
 grid back: eight times the AC reinforcement and 22 GW of new HVDC, because reinforcement is unbounded (`ll: copt`,
 `REFACTOR_LATER.md` item H).
+
+#### China: demand per province (2026-11-23)
+
+PyPSA-Earth spreads a country's load with 0.6 x GDP share + 0.4 x population share per GADM level-1 unit. In China
+that put 15 % of national demand (1,521 TWh) into the wrong province: Inner Mongolia, Xinjiang, Ningxia and Qinghai
+had a third of their published consumption, Heilongjiang and Jilin twice theirs. Fork option
+`load_options: subnational_shares` (commit 563658d5; on in `config.CN.yaml`) takes each unit's share from the table
+`calibration/2024/demand_shares.csv` = `scripts/build_demand_shares.py` from
+`data/demand_provinces/cn_provinces_2024.csv` (the 31 provinces measured off a published bar chart of CEC / NBS
+figures and scaled to the national total, within 2 % of eight exact figures; Hong Kong 2023, Macau from CEM); the
+same shares in every horizon. `scripts/check_demand_placement.py` (read-only) compares a run with the table: after
+the rebuild 0.2 % is misplaced. China was rebuilt and re-solved (`CN`, `CN-now`, `CN-zero`, `dashboard:CN`, 62 min;
+before = `results/archive/CN-{now,zero}-20261123`, `networks/archive/CN-20261123/`), also for the first time with
+the loadability rule and the margin of 0.4, so the two effects are mixed in this comparison:
+
+| | 2024 before | 2024 after | zero-carbon 2050 before | zero-carbon 2050 after |
+|---|---|---|---|---|
+| sum of line limits, existing grid (GW) | 1,457 | 795 | 1,466 | 800 |
+| system cost (bn $/a) | 323.8 | 325.5 | 954.0 | 978.6 |
+| AC capacity built (GW / TW-km) | 14 / 7 | 64 / 38 | 1,944 / 851 | 1,145 / 372 |
+| HVDC built (GW, on 354 to 359 existing) | 0 | 16 | 1,179 | 1,900 |
+| lines at their limit in more than 10 % of hours | 27 | 39 | 54 | 62 |
+| hours with one price | 10 % | 21 % | 80 % | 71 % |
+
+- Net exports of 2024 now match the statistics: Inner Mongolia 358 TWh (published generation minus consumption
+  about 300), Xinjiang 108 TWh (about 105).
+- The use of the HVDC links stays at 91 % (95 % before): it is no measure of misplaced demand, as first thought. The
+  links have no losses and a marginal cost of 0.01 $/MWh, so transit power runs through them freely (2,945 TWh over
+  HVDC against 1,166 TWh of provincial net exports).
+- China is congested at the margin of 0.4, for which no published transfer capacity exists: the 2024 dispatch builds
+  64 GW of AC capacity and 16 GW of HVDC.
+- The zero-carbon run answers the tighter AC lines with HVDC: 1,900 GW of new links on 354 GW. The cap on grid
+  build-out (`REFACTOR_LATER.md` item H) has to count HVDC with AC.
 
 **The India derating test of 2026-11-18** (`test-line-derating/`, overlays `{now,zero}dr{100,70,50}`, runs
 `IN-{now,zero}dr{100,70,50}`; never tracked, deleted on 2026-11-23) used an earlier form of the rule: one factor per clustered line from the
@@ -1228,8 +1265,11 @@ Accepted residuals (2026-10-20, revisit later):
 against the observed one and the factor `capacity_factor_targets` applies (`cf.csv`); plant list, IRENA 2023 / 2024 and
 the network's capacity (`capacity.csv`); the fleet capacity factor after clustering with capacity and with potential
 weights (`weights.csv`); the resource classes (`classes.csv`); the cutouts (`cutouts.csv`). The model doc's section
-"Renewables & Weather" takes its numbers and figures from these tables. Found with it: `scale_down` does not reach
-the network (China onshore wind 511 GW against IRENA's 480, India solar 116 against 98; `REFACTOR_LATER.md`, item C).
+"Renewables & Weather" takes its numbers and figures from these tables. Found with it: `scale_down` did not reach
+the network (China onshore wind 511 GW against IRENA's 480, India solar 116 against 98). Fixed on 2026-11-23 (fork
+commit 9d6a937b: the generators take the scaled list; India's `elec.nc` rebuilt with it holds 97.6 GW of solar). The
+networks and results on disk predate the fix, except `networks/IN-now/elec.nc`, which is now newer than the India
+results of the same day.
 
 ### Fleet corrections and their check (2026-11-04, in the tables and configs, not yet in any solved network)
 
@@ -1787,8 +1827,8 @@ endogenously (SOW §1.1). After Riepin, Jenkins, Swezey & Brown (Joule 2025; `mo
   and Jiangsu 4, Sichuan and Henan 3, Anhui, Hunan, Liaoning, Zhejiang, Hebei and Hubei 2, and 17 provinces a single
   cluster (among them Beijing, Tianjin, Shanghai, Inner Mongolia, Xinjiang and Gansu), where zone matching is node
   matching. The 2024 dispatch has 87 AC lines of 57 to 2,007 km and one price in 10 % of the hours (32 % before);
-  HVDC links run at 95 % of their capacity on average, which points at where the load sits (Inner Mongolia exports
-  711 TWh on 188 TWh of load), not checked against provincial statistics yet.
+  Inner Mongolia exported 711 TWh on 188 TWh of load: demand sat in the wrong provinces, fixed on 2026-11-23 (below,
+  "China: demand per province").
 - **Tests of zone matching** (2026-11-18; Morocco, buyer share 1 % in 2030 and 3.25 % in 2035; test overlays
   `tzone` = `cfe`, `tnode` = node matching, `tzone2` = two test zones North (4 buses) / South (6) pinned by bus in
   a test table, each with its own market; overlays, table, stages and markets deleted on 2026-11-19, the numbers

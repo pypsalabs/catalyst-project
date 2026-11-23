@@ -10,7 +10,8 @@
 #
 #   calibration/<year>/<name>.csv            demand, capacity, efficiency, generation, hydro_generation,
 #                                            hydro_max_hours, fuel_prices, co2_prices, net_imports, renewable_capacities,
-#                                            demand_shares (share of a country's demand per GADM unit)
+#                                            demand_shares (share of a country's demand per GADM unit),
+#                                            demand_shift (hours by which a part's load runs later than the country's)
 #   calibration/<demand_year>/demand.csv     demand of a run with another demand year (overlay.zero: 2050)
 #   calibration/<horizon>/demand.csv         demand_<horizon>: the demand of a planning horizon (myopic)
 #   calibration/<year>/envelope/<variant>/   conventional_<carrier>_<attr>: the operating envelope of the existing fleet
@@ -50,7 +51,7 @@ _SOURCES = {
     **{
         name: f"{_CAL}/{_YEAR}/{name}.csv"
         for name in ["capacity", "efficiency", "generation", "hydro_generation", "hydro_max_hours", "fuel_prices",
-                     "co2_prices", "net_imports", "renewable_capacities", "demand_shares"]
+                     "co2_prices", "net_imports", "renewable_capacities", "demand_shares", "demand_shift"]
     },
     "dc_ratings": f"{_HERE}/data/hvdc/hvdc_ratings.csv",
     "dc_projects": f"{_HERE}/data/hvdc/hvdc_project_table.csv",

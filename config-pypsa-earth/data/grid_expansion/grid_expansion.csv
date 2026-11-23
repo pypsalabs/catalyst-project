@@ -1,0 +1,15 @@
+# Growth of the transmission grid per region: the rates of the cap on grid build-out (fork option
+# lines: expansion_limit; merge_config.py takes the column named by `catalyst: grid_expansion`, delivered or plan).
+# Rates are compound, per year, on the line volume (capacity x length of AC lines and HVDC links together) from 2024:
+# cap(year) = (1 + rate)^(year - 2024) x the existing grid. region = stage of run.sh.
+# rate_delivered: what the region's grid has grown by, rounded (decided 2026-11-23 as the central case).
+# rate_plan: what official plans and needs studies ask for, rounded (the sensitivity).
+# The figures behind them, with sources, are in published.csv; the rates are our reading of those figures, which are
+# in circuit km or interface capacity and not in MW km (ASSUMPTION: the line volume grows like them).
+region,name,rate_delivered,rate_plan,basis_delivered,basis_plan
+USW,US West,0.01,0.025,"about 1 %/yr in the last decade, about 2 %/yr 1978-2020 (REPEAT 2022); line length +3 % in a decade (IEA 2023)","DOE planning study: 2.1 to 2.6 x the 2020 system by 2050 = 2.5 to 3.2 %/yr; REPEAT's IRA case 2.3 %/yr"
+USE,US East,0.01,0.025,"as US West (national figures)","as US West (national figures)"
+NWE,North-West Europe,0.01,0.02,"EU transmission grid +12 % in a decade (IEA 2023); Germany: 2,983 km in operation of 16,879 km of legally listed projects in mid-2026","cross-border capacity of the twelve countries 46.6 GW (2024), 71.3 GW (reference grid 2030), 80.8 GW (2040); ENTSO-E: 35 GW under construction or advanced by 2030 on 126 GW"
+BR,Brazil,0.02,0.025,"more than 50 % (92,000 km) in a decade (IEA 2023), slowing: the plan to 2035 adds 15 % in ten years","PDE 2035: 191,353 km (Dec 2025) to 220,134 km (Dec 2035), 26,857 km of it by 2030; Nordeste export 13.5 GW to 21-25 GW by 2030"
+IN,India,0.03,0.04,"line length +3 %/yr and inter-regional capacity +3.7 %/yr from 2019-20 to 2024-25 (CEA figures); about 60 % (180,000 km) in a decade (IEA 2023)","National Electricity Plan: 496,372 ckm (Aug 2025) to 648,190 ckm (2031-32); inter-regional 118.7 to 167.5 GW; HVDC 33.5 to 66.75 GW"
+CN,China,0.04,0.045,"west-to-east capacity 270 GW (2020) to 340 GW (2025) = 4.7 %/yr; over half a million km in a decade (IEA 2023)","west-to-east capacity of over 420 GW by 2030 = 4.3 %/yr (NDRC / NEA roadmap)"

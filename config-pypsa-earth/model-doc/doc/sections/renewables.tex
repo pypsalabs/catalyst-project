@@ -150,9 +150,10 @@ This is the case in 49 countries for solar, in 31 for onshore and in 9 for offsh
 This commit adds an option that scales the plants of such a country down, so that their sum equals IRENA's total.
 Together with it, the project reads IRENA's totals of 2024 instead of 2023, the year of every other data source of the existing system (Section~\ref{sec:fleet-adjust}): \SI{1863}{GW} of solar instead of \SI{1410}{GW}, \SI{1049}{GW} of onshore wind instead of \SI{943}{GW}, and \SI{83}{GW} of offshore wind instead of \SI{74}{GW}.
 
-As the code stands, the scaled-down capacities are computed but not handed on to the generators, so the plants keep the total of the plant list.
-In the one-node runs this has no effect, because there the whole fleet comes from IRENA's totals (Section~\ref{sec:renewables-standard}).
-In the spatially resolved regions the networks hold more than IRENA reports (Figure~\ref{fig:renewcapacity}): \SI{511}{GW} of onshore wind in China against \SI{480}{GW}, \SI{55}{GW} of Chinese offshore wind against \SI{41}{GW}, \SI{116}{GW} of solar in India against \SI{98}{GW}, and \SI{19}{GW} of British offshore wind against \SI{16}{GW}.
+A first version computed the scaled-down capacities but handed the unscaled plant list to the generators; a second commit (\commit{9d6a937b}) hands the scaled list on.
+In the one-node runs this had no effect, because there the whole fleet comes from IRENA's totals (Section~\ref{sec:renewables-standard}).
+Figure~\ref{fig:renewcapacity} still shows the networks built before that second commit, which hold more than IRENA reports in the spatially resolved regions: \SI{511}{GW} of onshore wind in China against \SI{480}{GW}, \SI{55}{GW} of Chinese offshore wind against \SI{41}{GW}, \SI{116}{GW} of solar in India against \SI{98}{GW}, and \SI{19}{GW} of British offshore wind against \SI{16}{GW}.
+With the second commit India's network holds \SI{97.6}{GW} of solar, IRENA's total.
 
 \begin{figure}[htb]
   \centering

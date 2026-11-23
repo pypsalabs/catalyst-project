@@ -25,6 +25,11 @@
 #                       loadability_map (the clustered networks by usable share), loadability_check (limits per GW of peak
 #                       load; model over published transfer capacity across borders); its inputs build/loadability/* come
 #                       from ../scripts/check_loadability.py, run by hand (read-only, 3 min, no model rerun)
+#   modeldoc_grid_expansion  the cap on grid build-out per region against delivered growth and plans (scripts/plot_grid_expansion.py,
+#                       from ../data/grid_expansion/*.csv; also writes build/grid_expansion.tex, the rows of the table of rates)
+#   modeldoc_demand_placement  demand per province of China, model over published, before and after the provincial shares
+#                       (scripts/plot_demand_placement.py); its inputs build/demand_placement/CN_{before,after}.csv come from
+#                       ../scripts/check_demand_placement.py, run by hand on the China run before and after (read-only)
 #   modeldoc_circuits   real ways hit by the circuit defect, without and with fix_indirect_circuits (scripts/table_circuits.py -> build/circuit_ways.tex)
 #   modeldoc_isolated   the AC sub-networks of IN, CN, NWE and what simplify_network does with them, recomputed from
 #                       networks/<R>-now/elec.nc (scripts/plot_isolated.py); build/isolated_fates.csv = sub-networks per fate
@@ -214,6 +219,31 @@ rule modeldoc_loadability:
         "scripts/plot_loadability.py"
 
 
+rule modeldoc_grid_expansion:
+    input:
+        rates=P("../data/grid_expansion/grid_expansion.csv"),
+        published=P("../data/grid_expansion/published.csv"),
+    output:
+        figure=os.path.join(FIG, "grid_expansion.pdf"),
+        table=os.path.join(BUILD, "grid_expansion.tex"),
+    resources:
+        mem_mb=500,
+    script:
+        "scripts/plot_grid_expansion.py"
+
+
+rule modeldoc_demand_placement:
+    input:
+        before=os.path.join(BUILD, "demand_placement/CN_before.csv"),
+        after=os.path.join(BUILD, "demand_placement/CN_after.csv"),
+    output:
+        os.path.join(FIG, "demand_placement.pdf"),
+    resources:
+        mem_mb=500,
+    script:
+        "scripts/plot_demand_placement.py"
+
+
 rule modeldoc_isolated:
     input:
         networks=[os.path.join(FORK, f"networks/{r}-now/elec.nc") for r in ["IN", "CN", "NWE"]],
@@ -382,7 +412,7 @@ rule modeldoc_mix_before_after:
         "scripts/plot_mix_before_after.py"
 
 YAML_SNIPPETS = ["gas_mapping", "plant_statistics", "plant_efficiency", "envelope", "tranches", "retirements",
-                 "drop_duplicate_ids", "fix_indirect_circuits", "geodesic_length", "dc_ratings", "dc_projects", "isolated", "loadability",
+                 "drop_duplicate_ids", "fix_indirect_circuits", "geodesic_length", "dc_ratings", "dc_projects", "isolated", "loadability", "demand_shares", "time_shift",
                  "clip_bbox", "excluder_resolution", "renewable_capacities", "cf_targets", "cluster_weight", "resource_classes"]
 
 
@@ -614,6 +644,7 @@ rule modeldoc_pdf:
                                                    "renew_capacity.pdf", "renew_cf.pdf", "renew_classes.pdf",
                                                    "cfe_datacentres.pdf", "cfe_buyers.pdf", "cfe_share_map.pdf", "cfe_share_regions.pdf"]],
         cfe=os.path.join(BUILD, "cfe_share.tex"),
+        demand=os.path.join(FIG, "demand_placement.pdf"),
     output:
         os.path.join(BUILD, "model_doc.pdf"),
     params:

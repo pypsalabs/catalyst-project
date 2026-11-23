@@ -1,2 +1,57 @@
 \subsection{Demand}\label{sec:demand}
 \tbd
+
+\subsubsection{Adjustments}\label{sec:demand-adjust}
+
+\paragraph{Place demand inside a country with published shares} (\commit{563658d5})
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{demand_placement.pdf}
+  \caption{Electricity demand per province of China in the model over its published share of national consumption in 2024, with the province's published share next to its name.
+  Grey: the load distributed by GDP and population.
+  Blue: with the provincial shares.
+  Demand is counted where the buses of the base network lie.}
+  \label{fig:demandplacement}
+\end{figure}
+
+\textit{What needed fixing.}
+PyPSA-Earth distributes a country's hourly load to the buses with one weight per first-level administrative unit, 0.6 times its share of GDP plus 0.4 times its share of population, a regression on European countries.
+Inside a unit the load follows the area of the bus regions.
+Where heavy industry sits in units with few people, the load ends up in the wrong place.
+In China, 15\,\% of national demand lay in the wrong province: Inner Mongolia, Xinjiang, Ningxia and Qinghai had a third of their published consumption, Heilongjiang and Jilin twice theirs (Figure~\ref{fig:demandplacement}).
+The model then moved the missing demand's generation east: Inner Mongolia exported \SI{711}{TWh} on a load of \SI{188}{TWh}.
+
+\textit{What was done.}
+A table gives the share of the country's demand per administrative unit.
+A unit with a row gets that share of the country's load in every hour; units without a row keep the weight from GDP and population, and the table's shares are scaled to what is left.
+Inside a unit the load is distributed as before, and a country without rows is not touched.
+The national level stays the calibrated one, and every planning horizon uses the same shares.
+For China the table holds the consumption of the 31 provinces in 2024, Hong Kong and Macau.
+No table of 2024 could be read as text, so the provinces are measured off a published bar chart of the China Electricity Council's figures and scaled to the national total; for the eight provinces with an exact figure from another source the reading is within 2\,\%.
+The feature becomes active in rule \texttt{build\_demand\_profiles}, for China only:
+\yamlblock{demand_shares}
+
+\textit{Check.}
+With the shares, 0.2\,\% of China's demand lies in another province than published; what is left comes from bus regions that reach across a provincial border.
+In the dispatch of 2024 Inner Mongolia then exports \SI{358}{TWh} and Xinjiang \SI{108}{TWh}; their published generation minus consumption of 2024 is about 300 and \SI{105}{TWh}.
+All provinces share one national hourly demand shape, and the shares do not change over the horizons.
+
+\paragraph{Move the load of a part of a country in time} (\commit{8f290c58})
+
+\textit{What needed fixing.}
+The model has one hourly load series per country.
+The two US regions are parts of one country and both got the national series, which blends four time zones.
+The load of the West runs later in the day than this blend and that of the East a little earlier, so the West's evening peak fell too early against its solar output.
+
+\textit{What was done.}
+A table gives the hours by which the series of a country is moved in time before it is scaled and distributed.
+A positive value moves it later; fractions of an hour are interpolated, the series wraps around at the ends of the year, and its sum is kept.
+For each US region the shift is its mean offset to UTC against that of the contiguous United States, with the states weighted by their retail electricity sales of 2024: US West runs 1.77 hours later and US East 0.39 hours earlier.
+A state that a time-zone border cuts is counted with its larger part.
+The shape itself stays the national one: differences in the seasonal pattern and in the form of the daily curve between the regions are not represented.
+The feature becomes active in rule \texttt{build\_demand\_profiles}, for the two US regions:
+\yamlblock{time_shift}
+
+\textit{Check.}
+In US West the mean daily peak of the load moves from 23:24 to 01:16 UTC, from 15:24 to 17:16 Pacific Standard Time, and the annual demand is unchanged.
