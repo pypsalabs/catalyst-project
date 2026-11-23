@@ -709,10 +709,26 @@ dispatches solved at 0.7 the flow exceeded a 0.4 limit in more than 10 % of the 
 34 of 88 in Brazil, 32 of 89 in North-West Europe and 3 of 118 in India. A cluster that spans a border holds the crossing circuits inside, without
 any limit (128 of 312 GW between India's regional grids).
 
-State (2026-11-23): fork commit local, not pushed; `IN-now`, `IN-zero`, `dashboard:IN` launched with it at 15:29
-(the results before are `results/archive/IN-now-20261113`, `IN-zero-20261115`, `validation_IN-20261115.png`; the
-stage also rebuilds its base network and profiles because the statistics tables are newer than its last run); no
-other region is re-solved.
+State (2026-11-23): fork commit pushed; India re-solved with it (`IN-now`, `IN-zero`, `dashboard:IN`, finished 16:32;
+the results before are `results/archive/IN-now-20261113`, `IN-zero-20261115`, `validation_IN-20261115.png`). China
+follows with its demand placement (item J). No other region is re-solved.
+
+India before and after (same demand and fleet; the stage rebuilt its base network and profiles, with identical
+wind, solar and coal numbers in the 2024 dispatch, so the difference is the line rule and the margin):
+
+| | 2024 before | 2024 after | zero-carbon 2050 before | zero-carbon 2050 after |
+|---|---|---|---|---|
+| sum of line limits, existing grid (GW) | 1,691 | 773 | 1,691 | 773 |
+| system cost (bn $/a) | 73.20 | 73.57 | 238.9 | 249.7 |
+| AC capacity built (GW / TW-km) | 0 | 0.5 / 0.2 | 37 / 12 | 309 / 106 |
+| HVDC built (GW) | 0 | 0 | 0 | 22 |
+| lines ever at their limit / in more than 10 % of hours | 1 / 0 | 14 / 3 | 87 / 13 | 114 / 29 |
+| hours with one price | 100 % | 99 % | 92 % | 85 % |
+| solar / onshore wind (GW) | 115 / 48 | 115 / 48 | 3,960 / 348 | 4,003 / 371 |
+
+The 2024 dispatch hardly notices the tighter grid (+0.5 % cost). The zero-carbon run costs 4.5 % more and buys the
+grid back: eight times the AC reinforcement and 22 GW of new HVDC, because reinforcement is unbounded (`ll: copt`,
+`REFACTOR_LATER.md` item H).
 
 **The India derating test of 2026-11-18** (`test-line-derating/`, overlays `{now,zero}dr{100,70,50}`, runs
 `IN-{now,zero}dr{100,70,50}`; never tracked, deleted on 2026-11-23) used an earlier form of the rule: one factor per clustered line from the

@@ -50,6 +50,13 @@ osm:
   build_osm_network:
     geodesic_length: true         # Web Mercator stretches lengths by 1 / cos(latitude)
 
+load_options:
+  # build_demand_profiles: China's demand is split over its provinces with their published shares of national
+  # consumption (table demand_shares.csv = calibration/2024/demand_shares.csv, scripts/build_demand_shares.py) instead
+  # of 0.6 x GDP + 0.4 x population, which put a third of their demand into Inner Mongolia and Xinjiang; the same
+  # shares for every horizon. README "China"; REFACTOR_LATER.md item J
+  subnational_shares: true
+
 links:
   dc_projects:                    # HVDC capacity per project, README "Grid corrections"; overrides dc_ratings of statistics.yaml
     enable: true                  # table dc_projects.csv = data/hvdc/hvdc_project_table.csv (tables.smk)
