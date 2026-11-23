@@ -1,0 +1,51 @@
+# Electricity consumption (全社会用电量) of China's provincial-level units in 2024, the source of the provincial demand
+# shares (scripts/build_demand_shares.py -> calibration/2024/demand_shares.csv). key = GADM level-1 id as in
+# resources/<run>/shapes/gadm_shapes.geojson and data/market_zones/market_zones.csv.
+#
+# The 31 provinces: no table of 2024 could be read as text (2026-11-23). The values are measured off the bar chart
+# "2024年全国用电量 (亿千瓦时)" of 中国电力知库, data 中电联 / 国家统计局, as reposted by 广东省水力和新能源发电工程学会 on
+# 2025-02-17 (https://www.gdshe.org/article/23756.html, image upload/image/20250217/1739756480968081.png, 1080 px
+# wide): bar_px = length of the province's bar in pixels. The script converts with one scale for all bars, set so
+# that the 31 provinces sum to the national 98,521 亿千瓦时 (NEA): 23.91 亿千瓦时 per pixel, so a value is good to
+# about +-12 亿千瓦时 (1.2 TWh). check_twh = an exact figure read elsewhere, used only to test the reading (the
+# script prints the deviations, all within 2 %): Jiangsu and Gansu from the State Grid province reports, Beijing from
+# CEIC's China Electricity Council series, the others = the 2025 value / (1 + growth 2025) of the table of 电能革新
+# reposted by Sina Finance on 2026-10-03 (https://finance.sina.cn/2026-10-03/detail-inityptr3686788.d.html).
+#
+# Hong Kong and Macau are not in the chart; demand_twh is given directly: Hong Kong 163,897 TJ in 2023, the latest
+# year of EMSD, Hong Kong Energy End-use Data 2025, Table 8 (2023 taken for 2024: ASSUMPTION); Macau 6,259.7 GWh in
+# 2025 at +0.4 % on 2024 (CEM, company profile, https://cem-macau.com/en/about-cem/company-profile/operation).
+key,name,name_zh,bar_px,demand_twh,check_twh
+CN.6_1,Guangdong,广东,384,,913.9
+CN.15_1,Jiangsu,江苏,357,,848.7
+CN.23_1,Shandong,山东,350,,
+CN.31_1,Zhejiang,浙江,285,,678.0
+CN.19_1,Nei Mongol,内蒙古,218,,
+CN.10_1,Hebei,河北,209,,498.7
+CN.12_1,Henan,河南,181,,
+CN.28_1,Xinjiang Uygur,新疆,178,,
+CN.26_1,Sichuan,四川,167,,
+CN.1_1,Anhui,安徽,151,,
+CN.4_1,Fujian,福建,139,,333.3
+CN.25_1,Shanxi,山西,124,,302.0
+CN.13_1,Hubei,湖北,123,,
+CN.30_1,Yunnan,云南,117,,
+CN.18_1,Liaoning,辽宁,114,,
+CN.22_1,Shaanxi,陕西,108,,
+CN.7_1,Guangxi,广西,107,,
+CN.14_1,Hunan,湖南,99,,
+CN.16_1,Jiangxi,江西,91,,
+CN.24_1,Shanghai,上海,83,,
+CN.8_1,Guizhou,贵州,79,,
+CN.5_1,Gansu,甘肃,72,,174.6
+CN.3_1,Chongqing,重庆,67,,
+CN.20_1,Ningxia Hui,宁夏,57,,
+CN.2_1,Beijing,北京,57,,138.9
+CN.11_1,Heilongjiang,黑龙江,50,,
+CN.27_1,Tianjin,天津,45,,
+CN.21_1,Qinghai,青海,44,,
+CN.17_1,Jilin,吉林,39,,
+CN.9_1,Hainan,海南,21,,
+CN.29_1,Xizang,西藏,5,,
+CN.HKG,Hong Kong,香港,,45.53,
+CN.MAC,Macau,澳门,,6.23,
