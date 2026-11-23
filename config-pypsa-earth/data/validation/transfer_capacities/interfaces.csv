@@ -1,0 +1,31 @@
+# Borders across which a published transfer capacity is compared with the model (scripts/check_loadability.py).
+#   side_a, side_b  what lies on either side, separated by ";": names of US states, market zones of
+#                   data/market_zones/market_zones.csv (Brazil), "regional grids" = every pair of India's five regional
+#                   grids (data/validation/india_regional_grids.csv)
+#   published       ids of the interfaces of nerc_itcs_part1.csv, separated by "+" (their largest value over directions
+#                   and seasons is taken, the smallest non-zero one is kept as the low end), or the row of published.csv
+#   published_dc    NERC interfaces that are HVDC only and are listed apart from the others
+#   hvdc            how the model's HVDC links across the border are counted: "add" = on top of the AC circuits,
+#                   "no" = left out (a link that is not interchange between the two sides)
+# The NERC study draws its regions on a map and does not list them by state: the states per region are read off that
+# map (ASSUMPTION; Montana with Wasatch Front, Wyoming with Front Range). Borders where a region cuts through a state
+# are left out (the PJM, MISO, SPP and SERC regions among themselves), and so is Texas (ERCOT is not the state).
+# Europe needs no rows: every border of ember_ntc_2024.csv between two countries of the run is compared.
+region,interface,side_a,side_b,published,published_dc,hvdc,note
+USW,Washington - Oregon,Washington,Oregon,W2,,add,
+USW,Washington - Wasatch Front,Washington,Idaho;Nevada;Utah;Montana,W3,,add,
+USW,Oregon - California,Oregon,California,W4,W14,add,W14 = the Pacific DC Intertie
+USW,Oregon - Wasatch Front,Oregon,Idaho;Nevada;Utah;Montana,W5,,add,
+USW,California - Wasatch Front,California,Idaho;Nevada;Utah;Montana,W7+W8,,add,
+USW,California - Southwest,California,Arizona;New Mexico,W9,,add,
+USW,Wasatch Front - Southwest,Idaho;Nevada;Utah;Montana,Arizona;New Mexico,W11,,add,
+USW,Wasatch Front - Front Range,Idaho;Nevada;Utah;Montana,Colorado;Wyoming,W12,,add,
+USW,Southwest - Front Range,Arizona;New Mexico,Colorado;Wyoming,W13,,add,
+USE,New England - New York,Connecticut;Maine;Massachusetts;New Hampshire;Rhode Island;Vermont,New York,E35,,add,
+USE,New York - PJM East,New York,Pennsylvania;New Jersey,E33,,add,
+USE,Florida - SERC Southeast,Florida,Georgia;Alabama,E26,,add,
+USE,Michigan - Indiana and Ohio,Michigan,Indiana;Ohio,E15+E22,,add,MISO East against MISO Central and PJM West
+USE,SERC East - SERC Southeast,South Carolina,Georgia,E27,,add,
+BR,Nordeste export,BR_NE,BR_N;BR_SE_CO,export of the Nordeste,,add,
+BR,Sul import,BR_S,BR_SE_CO,import of the Sul,,no,the HVDC link from Itaipu to São Paulo is not interchange between the submarkets
+IN,Regional grids,regional grids,regional grids,all five regional grids,,add,the published figure is taken to include HVDC (ASSUMPTION)

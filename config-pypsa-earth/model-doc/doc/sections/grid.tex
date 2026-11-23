@@ -63,7 +63,7 @@ China, India and the twelve countries of North-West Europe also change the handl
 \begin{itemize}[nosep,leftmargin=*]
   \item Its capacity is $s_\text{nom} = \sqrt{3}\, i_\text{nom}\, v\, n_\text{circuits}$, with $i_\text{nom}$ the current limit of one phase of the conductor type (kA), $v$ the line's voltage from OSM (kV, phase to phase), $n_\text{circuits}$ the number of three-phase circuits, and $\sqrt{3}$ from the three phases.
   \item For example, one circuit at \SI{230}{kV} gets $\sqrt{3} \times \SI{1.29}{kA} \times \SI{230}{kV} = \SI{514}{MVA}$, with unit conversion 1 V $\cdot$ A = 1 J/C $\cdot$ 1 C/s = 1 J/s = 1 W and linear approximation is 514MW.
-  \item To reflect a simulate a security margin, only up to 70\,\% of that capacity can be used ($s_\text{max\_pu} = 0.7$).
+  \item To reflect a security margin, only up to 70\,\% of that capacity can be used ($s_\text{max\_pu} = 0.7$); we limit long circuits further by their loadability and use a margin of 0.4 (Section~\ref{sec:grid-adjust}).
   \item Each HVDC line becomes a PyPSA link component, with its capacity set as described in Section~\ref{sec:grid-adjust}.
   \item Transformers get \SI{2000}{MVA}.
   \item Lines that are tagged \textit{under construction} get zero capacity.
@@ -94,6 +94,7 @@ China, India and the twelve countries of North-West Europe also change the handl
   \item The step is executed as as a small integer programme and every sub-network gets at least one node.
   \item Within each share, k-means on the bus coordinates places the nodes, with buses weighted by their load and conventional plant capacity.
   \item Lines between two clusters are combined into one: capacities add up, and the length is the straight-line distance between the cluster centres times 1.25.
+  \item The combined line so carries the summed thermal capacity of its circuits; its own length, 227 to \SI{520}{km} at the median of a region, is that of none of them (Figure~\ref{fig:linelengths}).
   \item HVDC links are not combined; each keeps its own capacity between its two clusters.
   \item The clustered regions are the unions of the Voronoi cells of their buses.
   \item For Brazil this results in 50 buses, 88 lines and 9 HVDC links Figure~\ref{fig:gridsteps}c.
@@ -103,7 +104,7 @@ China, India and the twelve countries of North-West Europe also change the handl
 \subsubsection{Adjustments}\label{sec:grid-adjust}
 
 Each adjustment is one commit on the branch \texttt{catalyst} of our fork of PyPSA-Earth, named after what it does and linked to the commit, in the order of the workflow.
-Options are off by default in the fork and switched on in the configurations of the five regions, \texttt{dc\_ratings} in all stages; commits without an option always apply.
+Options are off by default in the fork and switched on in the configurations of the five regions, \texttt{dc\_ratings} and \texttt{loadability} in all stages; commits without an option always apply.
 Section~\ref{sec:grid-check} checks the result as a whole.
 
 \paragraph{Keep a way once across country extracts} (\commit{4d1355aa})
@@ -315,6 +316,72 @@ Rule \texttt{base\_network}.
   \item India's 118 small fragments now spread over 124 backbone buses, the largest receiving \SI{0.4}{GW}, and China's 122 over 163 buses, the largest receiving \SI{0.3}{GW}.
 \end{itemize}
 
+\paragraph{Limit long circuits by their loadability} (\commit{e3b61211})
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{line_lengths.pdf}
+  \caption{AC transmission capacity between clusters by the length of the circuit, in the six spatially resolved regions, sorted by the median.
+  Each row: the circuits of the base network whose two ends lie in different clusters, with their length from OpenStreetMap, as share of their summed thermal rating per length bin.
+  Black line: median by capacity.
+  Grey area: lengths at which the loadability of a \SI{380}{kV} circuit lies below its thermal rating.
+  Left: share of the capacity that the loadability limits.}
+  \label{fig:linelengths}
+\end{figure}
+
+\textit{What needed fixing.}
+A line's capacity is the thermal rating of its conductors, whatever its length.
+Heat limits short lines only: a longer line is limited by the voltage drop along it and, longer still, by the stability of the angle between its two ends \citep{stclair1953,dunlop1979}.
+The St.~Clair curve expresses this as the load a line without compensation can carry in multiples of its surge impedance loading (SIL): 3.0 at 50 miles and 1.0 at 300 miles (Figure~\ref{fig:loadcurve}a).
+The model's line types have a thermal rating of 2.5 to 2.8 times their SIL, so the curve lies below the thermal rating from \SI{93}{km} on at \SI{380}{kV} and from \SI{118}{km} on at \SI{750}{kV}.
+The regions differ in how much of their grid is that long (Figure~\ref{fig:linelengths}).
+Half of the capacity between clusters lies in circuits longer than \SI{220}{km} in Brazil and \SI{158}{km} in India, against \SI{120}{km} in US West, \SI{64}{km} in US East and China and \SI{38}{km} in North-West Europe.
+Brazil and India are also the regions with the most generous grids: at 0.7 of the thermal rating their line limits sum to 4.0 and 5.2 times the peak load, against 0.6 to 1.7 times in the other regions (Figure~\ref{fig:loadcheck}a).
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{loadability_curve.pdf}
+  \caption{The loadability limit.
+  (a) The St.~Clair curve of a line without compensation, in multiples of the surge impedance loading; dots are the points the model interpolates between (3.0 at 50 miles and 1.0 at 300 miles as published \citep{stclair1953}, the others read off the curve as reproduced by \citet{sekhon1981}).
+  Horizontal: the thermal rating of two of the model's line types, which is the limit left of the crossing.
+  (b) Share of the thermal rating that is loadable, per clustered AC line, against the mean length of the circuits it combines, dot area by thermal rating; grey: one \SI{380}{kV} circuit of that length.}
+  \label{fig:loadcurve}
+\end{figure}
+
+\textit{What was done.}
+Every AC circuit of the base network is limited to $\min(s_\text{nom},\, k(L)\,\mathrm{SIL})$, with $L$ its own length.
+$k(L)$ is the St.~Clair curve, interpolated between its points on logarithmic axes and continued with its first slope below 50 miles and with its last slope beyond 600 miles.
+Per circuit, $\mathrm{SIL} = v^2 / Z_c$ with the surge impedance $Z_c = \sqrt{x / (\omega c)}$ from the reactance $x$ and capacitance $c$ per km of the line type: \SI{606}{MW} for a \SI{380}{kV} circuit against a thermal rating of \SI{1698}{MVA}, and \SI{2175}{MW} against \SI{5404}{MVA} at \SI{750}{kV}.
+The base network is used because there every circuit still has its own length, voltage and line type.
+The usable share $s_\text{max\_pu}$ of a clustered line is multiplied by the sum of these limits over the circuits between its two clusters, divided by the sum of their thermal ratings (Figure~\ref{fig:loadcurve}b).
+The length of the clustered line, the distance between two cluster centres, does not enter, so the result does not depend on the number of clusters.
+The security margin so applies to whichever of the two limits binds.
+Capacity that the optimisation adds to a line is limited in the same way, so a corridor of long circuits costs more per usable megawatt than one of short circuits.
+HVDC links are not touched.
+The loadability limits 84\,\% of the capacity between clusters in Brazil, 68\,\% in India, 45\,\% in US West, 25\,\% in US East, 14\,\% in China and 11\,\% in North-West Europe.
+It lowers the line limits by 23\,\% in Brazil, 20\,\% in India, 13\,\% in US West, 5\,\% in US East and 1 to 3\,\% in China and North-West Europe.
+The curve is that of a line without compensation \citep{sekhon1981}; series compensation raises what real long lines carry, and the model does not represent it.
+The feature becomes active in rule \texttt{prepare\_network}, depending on the option \texttt{lines: loadability}, shown below with the margin.
+
+\textit{A lower security margin.}
+The loadability alone does not bring the regions down to their published transfer capacities (Section~\ref{sec:grid-check}): across the borders with a published figure the circuits still carry 1.2 to 2.6 times that figure.
+PyPSA-Earth's 0.7 is a margin per line.
+Published transfer limits are limits of the whole system: after the loss of any element, with loop flows, with bottlenecks behind the border and under stability criteria.
+For each region we computed the margin at which the circuits across its borders, limited by their loadability, carry the published capacity: 0.60 in US West, 0.41 in US East, 0.40 in Brazil, 0.35 in India, and in North-West Europe 0.26 against the net transfer capacities of 2024 and 0.39 against those of the reference grid of 2030.
+We use 0.4 for every region, China included, for which no published figure with a border was found.
+\yamlblock{loadability}
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{loadability_map.pdf}
+  \caption{The clustered AC networks with the loadability limit and the security margin of 0.4.
+  Line width: thermal rating.
+  Colour: usable share of it, 0.7 for every line in PyPSA-Earth.
+  The share in each title is weighted by capacity.
+  HVDC links are not drawn.}
+  \label{fig:loadmap}
+\end{figure}
+
 \FloatBarrier
 \subsubsection{Check against real project metrics}\label{sec:grid-check}
 
@@ -374,13 +441,44 @@ Capacity times true length avoids this (Table~\ref{tab:hvdcregions}, Figure~\ref
   \item Germany comes to 32,600 km against about 37,000 km, against 79,800 km uncorrected, 50,800 km of them with true lengths.
   \item Brazil's 173,500 km compares with about 157,000 km projected for 2024, from an older source.
   \item The US falls from 476,500 to 295,200 circuit km; we found no national total to compare it with, and none for China.
-  \item These totals test line lengths and circuit counts only: thermal ratings still come from standard conductor types, and the limits of long lines are not tested.
+  \item These totals test line lengths and circuit counts only: thermal ratings still come from standard conductor types.
+\end{itemize}
+
+\textbf{Transfer capacity across borders.}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{loadability_check.pdf}
+  \caption{The line limits against real metrics.
+  (a) Sum of the limits of the clustered AC lines per GW of peak load, at PyPSA-Earth's 0.7 of the thermal rating and with the loadability limit and the security margin of 0.4.
+  (b) Capacity across the borders with a published transfer capacity, model over published: the AC circuits of the base network whose two ends lie on either side of the border, with the HVDC links across it, summed over the borders of a region.
+  Published: the United States \citep{nercitcs2024}, Brazil \citep{epepde2035}, India \citep{powerline2025}, Europe \citep{emberinterconnection}, for 2024 and for the reference grid of 2030.
+  China has no published figure with a border.}
+  \label{fig:loadcheck}
+\end{figure}
+
+\begin{itemize}[nosep,leftmargin=*]
+  \item The script \texttt{check\_loadability.py} calls the rule's function in memory on the networks, so Figures~\ref{fig:linelengths} to~\ref{fig:loadcheck} do not depend on a solved network.
+  \item It counts the AC circuits of the base network whose two ends lie on either side of a border, by the state or country of each end, so the count does not depend on the clustering.
+  \item United States: NERC's transfer capability study gives the total transfer capability between neighbouring planning regions for the summer and winter peak of 2024 \citep{nercitcs2024}; nine borders in the West and five in the East follow state borders and are compared, each with the larger of its directions and seasons.
+  \item The study computes one border at a time, so its values are not simultaneous, and it draws its regions on a map: which states make up a region is our reading of that map.
+  \item Brazil: the mean interchange limits of the existing system of September 2025, \SI{13.5}{GW} of export from the Nordeste and \SI{11.0}{GW} of import into the Sul \citep{epepde2035}.
+  \item India: \SI{118.7}{GW} between its five regional grids at the end of 2024-25 \citep{powerline2025}; the source does not say whether HVDC is counted, and we take it to be.
+  \item Europe: the net transfer capacities of 2024 per border \citep{emberinterconnection}, 16 borders between the twelve countries with AC circuits.
+  \item At 0.7 of the thermal rating the model holds 1.3 times the published capacity in US West, 1.7 times in US East, 2.3 times in Brazil, 2.1 times in India and 2.6 times in North-West Europe (Figure~\ref{fig:loadcheck}b).
+  \item The loadability brings that to 1.2 in US West, 1.8 in Brazil and 1.7 in India and leaves US East and Europe as they are, because their border circuits are short (\SI{20}{km} and \SI{17}{km} at the median against 212 and \SI{178}{km} in Brazil and India).
+  \item With the margin of 0.4 the model holds 0.7 times the published capacity in US West, 1.0 times in US East and Brazil, 1.1 times in India and 1.5 times in North-West Europe.
+  \item US West is compared with the larger of two directions and two seasons per border, so 0.7 is against the upper end of the published values.
+  \item North-West Europe's net transfer capacities of 2024 are commercial values that their source calls a conservative picture of the physical capacity; against the reference grid of 2030 on the same borders (\SI{56}{GW} instead of \SI{38}{GW}) the model holds 1.0 times the published capacity.
+  \item A cluster that spans a border holds the circuits across it inside, where the clustered network has no line and therefore no limit: \SI{128}{GW} of the \SI{312}{GW} between India's regional grids.
 \end{itemize}
 
 \textbf{What stays unvalidated.}
 \begin{itemize}[nosep,leftmargin=*]
   \item Any effect on model results: load shedding, flows, prices and the technology mix.
-  \item AC capacity as such, as distinct from circuit length, and the corridors of the Chinese projects that are only partly named or were added as straight links.
+  \item AC transfer capacity in China: no published figure with a border was found (\SI{340}{GW} of west-to-east transmission, AC and HVDC not separated).
+  \item The security margin: one value from 33 borders in five regions, applied to every line of every region; China's has no published figure behind it.
+  \item The loadability curve is a planning curve for single lines without compensation; circuit lengths are those between two substations in OpenStreetMap, which can be shorter than the section between two points with voltage support.
+  \item The corridors of the Chinese projects that are only partly named or were added as straight links.
   \item The hand-curated name table, including our reading of the Chinese names, and the two projects added from memory (Yongren--Funing, the Quebec--New England section).
   \item The project table remains mostly one source, which also supplies the ratings, so the comparison tests the mapping and not the ratings themselves.
 \end{itemize}

@@ -40,6 +40,7 @@ SNIPPETS = {
     "fix_indirect_circuits": [("config.NWE.yaml", [("osm", "clean_osm_data", "fix_indirect_circuits")], REGIONS)],
     "geodesic_length": [("config.NWE.yaml", [("osm", "build_osm_network", "geodesic_length")], REGIONS)],
     "dc_ratings": [("statistics.yaml", [("links", "dc_ratings")], [])],
+    "loadability": [("statistics.yaml", [("lines", "loadability"), ("lines", "s_max_pu")], [])],
     "dc_projects": [("config.NWE.yaml", [("links", "dc_projects")], REGIONS)],
     "clip_bbox": [("config.USW.yaml", [("build_shape_options", "clip_bbox")], [])],
     "gadm_subset": [("config.USW.yaml", [("build_shape_options", "gadm_subset")], [])],

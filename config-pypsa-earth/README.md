@@ -659,6 +659,87 @@ counts 2.3 TWh of solar curtailed May-Dec 2025, about 2-3 % of solar output, for
 load), not transmission; transmission curtailment is local, e.g. about 4 GW of Rajasthan projects on temporary
 access, up to ~50 % at midday. So the model's inter-regional grid is 3x the rated and 5-9x the operational capacity.
 
+### Loadability of long AC circuits and a security margin of 0.4 (2026-11-23)
+
+PyPSA-Earth gives every AC line the thermal rating of its conductors times `lines: s_max_pu` 0.7, whatever its
+length. Two things are changed (`REFACTOR_LATER.md` item G, decided 2026-11-23; model doc, Grid Data):
+
+- **Fork option `lines: loadability`** (commit e3b61211, `prepare_network.py::set_line_loadability`; on in
+  `statistics.yaml`). Every AC circuit of the base network is limited to `min(thermal, k(L) x SIL)`: `k(L)` is the
+  St. Clair curve at the circuit's own length (3.0 SIL at 50 miles, 1.0 at 300 miles; points between and beyond read
+  off the curve as reproduced in Sekhon 1981; continued with its end slopes), SIL from the line type. The usable
+  share of a clustered line is multiplied by the sum of these limits over the circuits between its two clusters
+  divided by the sum of their thermal ratings. The rule reads `networks/<run>/base.nc` and the two bus maps; nothing
+  upstream of `prepare_network` changes. HVDC links are not touched.
+- **`lines: s_max_pu: 0.4`** in `statistics.yaml`, for every stage (PyPSA-Earth: 0.7). For each region the margin was
+  computed at which the circuits across its borders with a published transfer capacity, limited by their
+  loadability, carry that capacity: US West 0.60, US East 0.41, Brazil 0.40, India 0.35 (0.48 if the published
+  figure does not count HVDC), North-West Europe 0.26 against the capacities of 2024 and 0.39 against the reference
+  grid of 2030. One value is used for all, China included (no published figure). Decided 2026-11-23, after two
+  regional values (Brazil 0.4, India 0.35, the others 0.7) had been set for a few hours: one rule for all regions
+  instead of two special cases.
+
+`scripts/check_loadability.py` calls the fork's function in memory on the existing networks (read-only, 3 min) and
+writes `model-doc/build/loadability/` (lines, circuits, summary, curve, transfer). Published transfer capacities are
+in `data/validation/transfer_capacities/`: `nerc_itcs_part1.csv` (NERC ITCS Part 1, August 2024, parsed from the
+PDF), `ember_ntc_2024.csv` (Ember's interconnection data, CC BY 4.0), `published.csv` (India, Brazil, China) and
+`interfaces.csv` (which borders are compared; the states per NERC region are read off NERC's map, ASSUMPTION).
+
+| | USW | USE | BR | IN | CN | NWE |
+|---|---|---|---|---|---|---|
+| circuits between clusters, median km (by capacity) | 120 | 64 | 220 | 158 | 64 | 38 |
+| clustered lines, median km | 444 | 520 | 362 | 302 | 333 | 227 |
+| capacity between clusters limited by the loadability | 45 % | 25 % | 84 % | 68 % | 14 % | 11 % |
+| security margin | 0.4 | 0.4 | 0.4 | 0.4 | 0.4 | 0.4 |
+| usable share of the thermal rating, by capacity | 0.35 | 0.38 | 0.31 | 0.32 | 0.39 | 0.40 |
+| line limits per GW of peak load, PyPSA-Earth -> now | 1.21 -> 0.60 | 0.57 -> 0.31 | 4.03 -> 1.77 | 5.21 -> 2.38 | 0.81 -> 0.45 | 1.69 -> 0.96 |
+| borders with a published capacity | 9 | 5 | 2 | 1 | none | 16 |
+| model / published at those borders: 0.7 x thermal | 1.31 | 1.69 | 2.32 | 2.11 | | 2.60 |
+| ... with the loadability at 0.7 | 1.16 | 1.68 | 1.76 | 1.73 | | 2.60 |
+| ... with the loadability and 0.4 | 0.70 | 0.97 | 1.01 | 1.11 | | 1.51 (1.02 against 2030) |
+
+Model = AC circuits of the base network whose two ends lie on either side of the border (by state or country, so
+independent of the clustering) plus the HVDC links across it. Caveats: NERC computes one border at a time and the
+larger of its directions and seasons is taken; the Indian source does not say whether HVDC is counted (taken to
+be); Brazil's two figures are mean limits of the system of September 2025; Europe's are commercial net transfer
+capacities (`ember_ntc_2024.csv`; `ember_ntc_2030.csv` = the reference grid of 2030 on the same borders, 56 GW
+against 38 GW); for China only "340 GW west-to-east" was found, with no border, so its 0.4 has no figure behind
+it, and its 2024 dispatch is congested for another reason (load placement, see the China section). In the 2024
+dispatches solved at 0.7 the flow exceeded a 0.4 limit in more than 10 % of the hours on 58 of 87 lines in China,
+34 of 88 in Brazil, 32 of 89 in North-West Europe and 3 of 118 in India. A cluster that spans a border holds the crossing circuits inside, without
+any limit (128 of 312 GW between India's regional grids).
+
+State (2026-11-23): fork commit local, not pushed; `IN-now`, `IN-zero`, `dashboard:IN` launched with it at 15:29
+(the results before are `results/archive/IN-now-20261113`, `IN-zero-20261115`, `validation_IN-20261115.png`; the
+stage also rebuilds its base network and profiles because the statistics tables are newer than its last run); no
+other region is re-solved.
+
+**The India derating test of 2026-11-18** (`test-line-derating/`, overlays `{now,zero}dr{100,70,50}`, runs
+`IN-{now,zero}dr{100,70,50}`; never tracked, deleted on 2026-11-23) used an earlier form of the rule: one factor per clustered line from the
+distance between its cluster centres, `min(0.7, f k(L) SIL / thermal)`, with `k(L)` a power law through the two
+benchmark points. It stays as the record of what a tighter Indian grid does to the solves:
+
+| | today | f = 1.0 | f = 0.7 | f = 0.5 |
+|---|---|---|---|---|
+| sum of line limits (GW) | 1,691 | 1,249 | 875 | 625 |
+| 2024: lines ever at limit / reinforced | 1 / 0 | 8 / 0 | 16 / 3 | 26 / 10 |
+| 2024: hours with one price | 100 % | 100 % | 99.7 % | 98.4 % |
+| zero-carbon 2050: system cost (bn $/a) | 238.9 | 242.6 | 248.5 | 255.5 |
+| zero-carbon 2050: AC reinforcement (TW-km) | +1.5 % | +7.3 % | +13.9 % | +17.6 % |
+| zero-carbon 2050: HVDC added (GW) | 0 | 0 | 9.8 | 39.1 |
+| zero-carbon 2050: grid reinforcement (bn $) | 0.6 | 2.7 | 5.8 | 8.9 |
+| zero-carbon 2050: hours with one price | 93 % | 91 % | 89 % | 85 % |
+| zero-carbon 2050: load met by net imports of a node | 34 % | 30 % | 25 % | 17 % |
+
+- The 2024 dispatch cannot measure the limit in India: 132 coal units at 44 nodes share three marginal costs, so
+  coal moves between nodes at no cost (36 TWh at f = 0.5, variable cost unchanged).
+- In the zero-carbon run the capacity mix barely moves (solar +4 % at f = 0.5); the system re-localises and buys
+  the grid back, because reinforcement is unbounded (`ll: copt` in every overlay; `REFACTOR_LATER.md` item H).
+- India's inter-regional capacity scaled with the sum of line limits (not recomputed per corridor): about 250 GW
+  today, 190 / 145 / 113 GW at f = 1.0 / 0.7 / 0.5, against 119 GW published. f = 0.5 is the level that matches.
+
+With the rule and margin now in the model India's sum of line limits is 773 GW, between the test's f = 0.7 and 0.5.
+
 ## Screening solves (stages `<R>-now`, `<R>-zero`, `dashboard:<R>`; 2026-09-19/20)
 
 *This section describes the out-of-the-box definition of `now` and `zero` used until 2026-09-30 and the results it
@@ -1685,12 +1766,13 @@ endogenously (SOW §1.1). After Riepin, Jenkins, Swezey & Brown (Joule 2025; `mo
   on 2026-11-19, the zone shapes of US West stay in `resources/USW/shapes/`): 20 clusters = CAISO 11,
   Southwest 6, Northwest 3 (by country: 6 / 9 / 5), no load in a cluster of another zone (6.3 % before),
   objective 152.37 against 152.32 bn USD, generation by carrier within 0.3 TWh, lines at their limit 9 against 10
-  of 30. *China*: the switch is set and the zone shapes are written, but no network has it yet: the China base run
-  predates the sweep of 2026-11-16, so its next run rebuilds everything from `base_network` on, and every stage
-  with it. What the clustering will give (the fork's `distribute_clusters` on the simplified network of today):
-  Southern market 7 clusters, Shandong 4, Jiangsu 4, Henan, Sichuan, Hebei 3, Zhejiang, Hunan, Hubei, Liaoning 2,
-  and 18 provinces a single cluster (Beijing, Tianjin and Shanghai now have one; so do Inner Mongolia, Xinjiang
-  and Gansu), where zone matching is node matching.
+  of 30. *China*: rebuilt with the switch on 2026-11-22/23 (`CN`, `CN-now`, `CN-zero`, `dashboard:CN`; the results
+  before are `results/archive/CN-{now,zero}-20261115`). The 50 clusters over 28 zones: Southern market 7, Shandong
+  and Jiangsu 4, Sichuan and Henan 3, Anhui, Hunan, Liaoning, Zhejiang, Hebei and Hubei 2, and 17 provinces a single
+  cluster (among them Beijing, Tianjin, Shanghai, Inner Mongolia, Xinjiang and Gansu), where zone matching is node
+  matching. The 2024 dispatch has 87 AC lines of 57 to 2,007 km and one price in 10 % of the hours (32 % before);
+  HVDC links run at 95 % of their capacity on average, which points at where the load sits (Inner Mongolia exports
+  711 TWh on 188 TWh of load), not checked against provincial statistics yet.
 - **Tests of zone matching** (2026-11-18; Morocco, buyer share 1 % in 2030 and 3.25 % in 2035; test overlays
   `tzone` = `cfe`, `tnode` = node matching, `tzone2` = two test zones North (4 buses) / South (6) pinned by bus in
   a test table, each with its own market; overlays, table, stages and markets deleted on 2026-11-19, the numbers

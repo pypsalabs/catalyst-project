@@ -65,6 +65,16 @@ renewable:
     # add_electricity: reservoir energy-to-power ratio from GloHydroRes
     hydro_max_hours: statistics  # table hydro_max_hours.csv
 
+lines:
+  # prepare_network: every AC circuit of the base network carries at most its loadability (St. Clair curve at its own
+  # length x surge impedance loading) where that is below its thermal rating; summed per clustered line
+  loadability: true
+  # prepare_network: usable share of that limit (security margin; PyPSA-Earth: 0.7). 0.4 is where the AC circuits
+  # across borders with a published transfer capacity carry that capacity: US East 0.41, Brazil 0.40, India 0.35 to
+  # 0.48, North-West Europe 0.40 against the 2030 reference grid (0.26 against the commercial capacities of 2024),
+  # US West 0.60; China has no published figure (scripts/check_loadability.py, data/validation/transfer_capacities/)
+  s_max_pu: 0.4
+
 links:
   # base_network: an OSM HVDC line is one bipole of the rating of its country and voltage (scripts/build_hvdc_ratings.py),
   # not v_nom x the current of one 500 kV cable type (1.31 GW at 800 kV)

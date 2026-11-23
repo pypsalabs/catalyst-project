@@ -89,35 +89,6 @@ numbers; they go once it is fixed, and `check_renewables.py capacity` must then 
 
 **Why in a sweep.** Changes `elec.nc` and everything after it for US (since 2026-11-17: USW, USE), CN, IN and NWE.
 
-### D. Onshore wind counts every forest as eligible land, rainforest included (noted 2026-11-16)
-
-**Problem.** `renewable: onwind: copernicus: grid_codes` of v0.9.0 holds all twelve forest classes of the Copernicus
-map (111-126), at the full 3 MW/km2. Brazil's onshore potential is 17,100 GW, about half of it on forest and 5,300 GW
-on closed evergreen broadleaf forest (code 112); no law bans wind in the Amazon biome outright, but the 80 % legal
-reserve of the Forest Code, the conservation units and the indigenous lands leave no room for such a figure, and no
-wind farm stands in a state of the North region (ABEEolica 2024).
-
-**Measured effect (2026-11-16, read-only, from the `zero` screening networks and the cells files).** Small where the
-forest is rainforest, because rainforest is not windy: 99.5 % of Brazil's code-112 potential lies in weather cells
-with a capacity factor below 0.2, and the 2050 screening run builds only in classes above 0.3 (68 GW new, 0.6 % of
-the potential used). With potential-weighted cluster profiles (v0.9.0) the forest pulled the profile of every
-northern cluster down; the capacity weights and the resource classes of the fork removed that. Where the effect is
-real is temperate forest: in NWE 40 % of the onshore potential stands on forest (18 % in the cells above 0.3), and
-the 2050 screening run uses 42 % of the region's potential with 120 of 246 class generators at their limit. There,
-wind in managed forest is common practice (Germany 11 % of capacity, Sweden, Finland, Scotland), so a blanket
-exclusion would be wrong in the other direction. The same pattern holds for mountains (the Alps are eligible).
-
-**Target (to be decided).** In rising order of effort: (1) drop code 112 (and 122) from `grid_codes` of onshore wind,
-a config line, which also takes out non-tropical evergreen broadleaf forest; (2) a share per land-cover class instead
-of all-or-nothing (Eurek et al. 2017 use 10 % for every forest class), a new fork option; (3) exclude primary /
-unmanaged forest from a second raster: the forest-management map of Lesiv et al. 2022 (100 m, on the Copernicus grid,
-class 11 = no signs of management; Zenodo 5115984, CC BY 4.0) or Intact Forest Landscapes; as an input of the rule
-with a switch, not a path option.
-
-**Why in a sweep.** Changes `build_renewable_profiles` for every stage (hours per multi-node region) and every
-network after it. Model doc: the bullet on Brazil's potential in "Eligible land" of
-`model-doc/doc/sections/renewables.tex` goes or changes with it.
-
 ### E. One hourly demand shape for US West and US East (noted 2026-11-17)
 
 **Problem.** The fork has one synthetic hourly demand series per country (GEGIS, DemandCast as fallback), spread over
@@ -177,56 +148,6 @@ Findings (2026-11-18):
   coordinates, so Luxembourg would vanish from everything keyed on `country` (energy bands, net imports, CO2 price).
   Such zones cannot use this route.
 - Only `distribute_cluster: load` works (our default); every (zone, sub_network) group needs at least one cluster.
-
-**Questions:** see below.
-
-### G. Long AC lines carry their thermal rating (noted 2026-11-19)
-
-**Now:** every AC circuit gets the thermal rating of one line type per voltage times `lines: s_max_pu` 0.7,
-whatever its length (`prepare_network.py::set_line_s_max_pu`). A long line is limited by voltage and by angle
-stability, not by heat. With the model's line types 0.7 x thermal is about 1.85 x the surge impedance loading (SIL);
-the St. Clair loadability curve (3.0 SIL at 50 miles, 1.0 SIL at 300 miles) allows that up to about 190 km only, and
-the median clustered line of India is 350 km. This is PyPSA-Earth v0.9.0 out of the box, not an effect of the
-fork's grid corrections. Why it matters: the 24/7 CFE buyers are matched per market zone with power through the
-grid, so a too permissive grid makes 24/7 CFE too cheap in the multi-node regions.
-
-Severity (2024 dispatch, main synchronous area; 2026-11-18): AC capacity between clusters per GW of peak load
-IN 7.6, BR 5.7, NWE 2.4, CN 1.2, US 1.1; lines ever at their limit IN 1 of 118, BR 13 of 88, NWE 29 of 89,
-CN 73 of 100, US 48 of 89; hours with one price IN 100 %, BR 98 %, CN 32 %, US 0.2 %. India between its five
-regional grids: 218 GW AC at 0.7 plus 32 GW HVDC in the model against 118.74 GW published.
-
-**Change:** a fork option (a switch, off by default) that sets `s_max_pu` of every clustered line from its length:
-`min(0.7, f * k(L) * SIL / thermal)` with `k(L)` the St. Clair curve and SIL and thermal rating summed over the base
-circuits between the two clusters. HVDC is not touched. Build it on upstream's country-specific line types
-(pypsa-meets-earth/pypsa-earth#1933, merged 2026-09-07, not in the fork) if that is taken over in the same sweep.
-The tested implementation is a post-processing of the prepared network: `test-line-derating/derate_lines.py`
-(driver `derate_driver.sh`, overlays `{now,zero}dr{100,70,50}`, runs `IN-{now,zero}dr{100,70,50}` in the fork;
-all of it untracked and to be removed when the option exists).
-
-**Why deferred:** it changes the network of every scenario of every multi-node region, the validated `now` / `zero`
-solves included, and the level `f` is not decided. The direct measurement, an India CFE pathway with and without
-the limit, has not been run (a 50-node CFE pathway does not fit the laptop).
-
-Findings of the India test (2026-11-18; `k(L)` = a power law through the two benchmark points, ASSUMPTION):
-
-| | today | f = 1.0 | f = 0.7 | f = 0.5 |
-|---|---|---|---|---|
-| sum of line limits (GW) | 1,691 | 1,249 | 875 | 625 |
-| 2024: lines ever at limit / reinforced | 1 / 0 | 8 / 0 | 16 / 3 | 26 / 10 |
-| 2024: hours with one price | 100 % | 100 % | 99.7 % | 98.4 % |
-| zero-carbon 2050: system cost (bn $/a) | 238.9 | 242.6 | 248.5 | 255.5 |
-| zero-carbon 2050: AC reinforcement (TW-km) | +1.5 % | +7.3 % | +13.9 % | +17.6 % |
-| zero-carbon 2050: HVDC added (GW) | 0 | 0 | 9.8 | 39.1 |
-| zero-carbon 2050: grid reinforcement (bn $) | 0.6 | 2.7 | 5.8 | 8.9 |
-| zero-carbon 2050: hours with one price | 93 % | 91 % | 89 % | 85 % |
-| zero-carbon 2050: load met by net imports of a node | 34 % | 30 % | 25 % | 17 % |
-
-- The 2024 dispatch cannot measure the limit in India: 132 coal units at 44 nodes share three marginal costs, so
-  coal moves between nodes at no cost (36 TWh at f = 0.5, variable cost unchanged).
-- In the zero-carbon run the capacity mix barely moves (solar +4 % at f = 0.5); the system re-localises and buys
-  the grid back, because reinforcement is unbounded (`ll: copt` in every overlay, see the question below).
-- India's inter-regional capacity scaled with the sum of line limits (not recomputed per corridor): about 250 GW
-  today, 190 / 145 / 113 GW at f = 1.0 / 0.7 / 0.5, against 119 GW published. f = 0.5 is the level that matches.
 
 **Questions:** see below.
 
@@ -342,6 +263,25 @@ doc section "Demand for 24/7 Carbon-Free Electricity"). Open, in the order in wh
   is still "to be written".
 - **Not pushed**: fork commit 0127cc6c and the parent commits of this work.
 
+### J. Demand placed inside a country by GDP and population (noted 2026-11-23)
+
+**Now:** `build_demand_profiles` spreads a country's hourly demand over its buses by 0.6 x GDP share + 0.4 x
+population share (a regression on European countries). In China this puts far too little demand in the provinces
+with heavy industry: the `CN-now` run of 2026-11-23 has 188 TWh in Inner Mongolia and 131 TWh in Xinjiang, where
+press reports of the provincial statistics give 548 and 444 TWh for 2025 (not yet read at a primary source). The
+model then exports 711 TWh from Inner Mongolia, runs its HVDC links at 95 % of their capacity (about 2,980 TWh a
+year) and is congested on 27 of 87 AC lines at a margin of 0.7.
+
+**Change:** a fork switch `load_options: distribution: statistics`: where the table
+`resources/<run>/statistics/demand_shares.csv` (GADM level-1 id, share of the country's demand; written by
+`tables.smk` from `calibration/<year>/demand_shares.csv`) has rows for a country, its demand is split over the units
+by these shares and inside a unit by GDP and population as today; other countries are unchanged. The national total
+stays the calibrated one (`demand.csv`). China first; the same table can hold India's states (CEA), the US states
+(EIA retail sales, already used for the two halves) and Brazil's states (EPE).
+
+**Why deferred:** it changes the demand of every bus, so cluster weights, clusters per zone and every solve of the
+region; the provincial table must be read at a source; a full rebuild of `CN`, `CN-now`, `CN-zero` is about 8 hours.
+
 ## Questions to ask before a sweep is planned
 
 **To the agent that plans a sweep: put the open questions listed here to the maintainer in the planning step, before the plan
@@ -353,8 +293,6 @@ is finalised. Do not pick an answer yourself and do not bury them in the plan.**
   1.02), so the fuel burnt at equal dispatch shifts. Either rescale the factors per carrier so that the fleet
   efficiency is kept, or accept the shift.
 - **Item A, number of tranches.** Three equal thirds as now, or more (the table could carry quintiles)?
-- **Item D, which rule for forest.** Drop the rainforest codes only, a reduced share on all forest, or a raster of
-  unmanaged forest (see the three targets of item D)? And should a slope or elevation limit come with it?
 - **Item E, which demand shape for the two US stages.** A time shift of the national series, EIA-930 data of another
   year, or a regional run of the demand model?
 - **Item F, which regions get clusters per market zone.** US East is the candidate (15 % of load in a cluster of
@@ -363,11 +301,6 @@ is finalised. Do not pick an answer yourself and do not bury them in the plan.**
   it is (zones made of whole countries, Germany + Luxembourg).
 - **Item F, China's 18 single-cluster provinces.** With 50 clusters over 28 zones, 18 provinces are one node and are
   matched by node. More clusters, or regional grids as zones for the small provinces, or accept it?
-- **Item G, the level of the limit.** The plain St. Clair curve (f = 1.0), or a margin on top (India's published
-  inter-regional capacity is matched near f = 0.5)? One level for all regions, or one per region set against a
-  published transfer capacity (India 118.74 GW; the others would have to be collected)?
-- **Item G, the curve.** The power law through the two St. Clair benchmark points is an assumption of the test; is
-  there a published fit the maintainer prefers?
 - **Item H, history or plan as the central case.** History is what the grid has delivered; plans are close to the
   forward-looking policies the SOW leaves out, and the US and Europe have missed theirs. With history the US grid
   is 1.3 x today's in 2050, which raises the value of local firm capacity, the study's headline quantity.
@@ -376,8 +309,37 @@ is finalised. Do not pick an answer yourself and do not bury them in the plan.**
 - **Item H, shape of the cap.** One cap on the total line volume per region, or also a ceiling per corridor (what
   reconductoring can deliver, such as `ll2.0`)? Does HVDC count in the same cap (the India test escaped the line
   limit with 39 GW of HVDC)? Does the 2030 horizon get committed projects only (lead time 5 to 15 years)?
-- **Item G, before or after a direct test.** Decide the level from the screening runs, or first run an India CFE
-  pathway with and without the limit on the cluster?
+
+- **Item J, scope.** China only, or India, the US states and Brazil in the same step (one option, one table)?
+- **Item J, later horizons.** Provincial shares of 2024 kept to 2050, or shifted (the west grows faster)?
+- **Item J, the source.** If a complete provincial table can be read for 2025 only, are 2025 shares used for 2024?
+
+## Dropped
+
+- **D. Onshore wind counts every forest as eligible land** (noted 2026-11-16, dropped by the maintainer on 2026-11-22):
+  not needed, the forest sites are poor resources and the good ones are not used up. Measured on 2026-11-16: 99.5 % of
+  Brazil's rainforest potential lies in cells with a capacity factor below 0.2, and the 2050 screening run uses 0.6 %
+  of Brazil's potential. The one region where onshore wind is tight is North-West Europe (42 % of the potential used,
+  120 of 246 class generators at their limit, 40 % of the potential on forest), where wind in managed forest is common
+  practice. The letters of the other items are kept.
+
+## Done: item G, long AC lines (2026-11-23)
+
+Decided by the maintainer on 2026-11-23, after published transfer capacities were collected for the US, Brazil,
+Europe and India (`data/validation/transfer_capacities/`):
+
+- **The rule:** fork option `lines: loadability` (commit e3b61211, a switch, off by default, upstream candidate; on in
+  `statistics.yaml` for every stage). Every AC circuit of the base network carries at most `k(L) x SIL` where that is
+  below its thermal rating, `k(L)` = the St. Clair curve at the circuit's own length; summed per clustered line. A
+  first version took the distance between cluster centres as the length; it halved the capacity between US regions,
+  which at 0.7 of the thermal rating was within 1.3 times NERC's transfer capabilities, and was dropped.
+- **A security margin of 0.4 for every region** (`lines: s_max_pu` in `statistics.yaml`; PyPSA-Earth: 0.7): the
+  margins at which the border circuits carry the published capacity are US West 0.60, US East 0.41, Brazil 0.40,
+  India 0.35, North-West Europe 0.26 (2024) or 0.39 (reference grid of 2030); one value for all, China included,
+  instead of regional values.
+- Record, numbers and the India test: README "Loadability of long AC circuits"; model doc, Grid Data.
+- Not done: no region but India is re-solved. Item H's last column must be measured again. The India derating test
+  files were deleted on 2026-11-23 (its table is kept in the README).
 
 ## Done: sweep of 2026-11-16
 

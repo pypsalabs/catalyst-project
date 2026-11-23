@@ -1,0 +1,43 @@
+# India's five regional grids (Northern, Western, Southern, Eastern, North-Eastern: the areas of Grid-India's regional
+# load despatch centres), by state. Used only by scripts/check_loadability.py to add up the model's transmission
+# capacity between the regional grids for the comparison with the published inter-regional capacity. Not a market
+# zone table of the model (India is one national zone in data/market_zones/market_zones.csv); same format, so
+# scripts/build_market_zones.py reads it. key = GADM level-1 id as in resources/IN/shapes/gadm_shapes.geojson, names
+# from GADM 4.1 (Ladakh is part of IN.14_1 there). Andaman and Nicobar and Lakshadweep are not connected to the grid.
+key,zone,name
+IN.6_1,IN_NORTH,Chandigarh
+IN.12_1,IN_NORTH,Haryana
+IN.13_1,IN_NORTH,Himachal Pradesh
+IN.14_1,IN_NORTH,Jammu and Kashmir
+IN.25_1,IN_NORTH,NCT of Delhi
+IN.28_1,IN_NORTH,Punjab
+IN.29_1,IN_NORTH,Rajasthan
+IN.34_1,IN_NORTH,Uttar Pradesh
+IN.35_1,IN_NORTH,Uttarakhand
+IN.7_1,IN_WEST,Chhattisgarh
+IN.8_1,IN_WEST,Dadra and Nagar Haveli
+IN.9_1,IN_WEST,Daman and Diu
+IN.10_1,IN_WEST,Goa
+IN.11_1,IN_WEST,Gujarat
+IN.19_1,IN_WEST,Madhya Pradesh
+IN.20_1,IN_WEST,Maharashtra
+IN.2_1,IN_SOUTH,Andhra Pradesh
+IN.16_1,IN_SOUTH,Karnataka
+IN.17_1,IN_SOUTH,Kerala
+IN.18_1,IN_SOUTH,Lakshadweep
+IN.27_1,IN_SOUTH,Puducherry
+IN.31_1,IN_SOUTH,Tamil Nadu
+IN.32_1,IN_SOUTH,Telangana
+IN.1_1,IN_EAST,Andaman and Nicobar
+IN.5_1,IN_EAST,Bihar
+IN.15_1,IN_EAST,Jharkhand
+IN.26_1,IN_EAST,Odisha
+IN.30_1,IN_EAST,Sikkim
+IN.36_1,IN_EAST,West Bengal
+IN.3_1,IN_NORTHEAST,Arunachal Pradesh
+IN.4_1,IN_NORTHEAST,Assam
+IN.21_1,IN_NORTHEAST,Manipur
+IN.22_1,IN_NORTHEAST,Meghalaya
+IN.23_1,IN_NORTHEAST,Mizoram
+IN.24_1,IN_NORTHEAST,Nagaland
+IN.33_1,IN_NORTHEAST,Tripura

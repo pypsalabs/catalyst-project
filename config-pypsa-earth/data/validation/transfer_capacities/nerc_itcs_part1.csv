@@ -1,0 +1,180 @@
+# Total transfer capability (TTC) between neighbouring transmission planning regions of the United States, 2024 summer
+# and 2024/25 winter peak cases. Source: NERC, Interregional Transfer Capability Study (ITCS), Part 1 Results, August
+# 2024, chapters 2 to 8, https://www.nerc.com/pa/RAPA/Documents/ITCS_Part_1_Results.pdf (read 2026-11-23; parsed from
+# the PDF's text, text_line = line of `pdftotext -layout`). TTC = base transfer level + first contingency incremental
+# transfer capability, with a voltage screening; computed one interface at a time, so the values are not simultaneous
+# and do not add up. A 0 means the base case could not reverse the flow, not that the lines carry nothing.
+# W/E/WE/TE/QE = interfaces between planning regions, W10xx/E10xx = between FERC Order 1000 areas, WTI/ETI = total
+# import of one region (TTC, HVDC-only interfaces, both).
+interface,from,to,summer_2024_mw,winter_2024_25_mw,text_line
+W1,British Columbia,Washington,2358,2170,661
+W2,Washington,Oregon,7085,7496,670
+W2,Oregon,Washington,4103,2713,671
+W3,Washington,Wasatch Front,1925,4498,687
+W3,Wasatch Front,Washington,7377,7030,688
+W4,Oregon,California North,3972,6175,697
+W4,California North,Oregon,0,2548,698
+W5,Oregon,Wasatch Front,2525,5339,718
+W5,Wasatch Front,Oregon,4748,5079,719
+W6,California North,California South,4647,5676,728
+W6,California South,California North,0,3861,729
+W7,California North,Wasatch Front,1961,4980,749
+W7,Wasatch Front,California North,116,5388,750
+W8,California South,Wasatch Front,5965,984,759
+W8,Wasatch Front,California South,5419,5568,760
+W9,California South,Southwest,5247,8470,776
+W9,Southwest,California South,7667,8752,777
+W10,Alberta,Wasatch Front,957,1280,786
+W11,Wasatch Front,Southwest,2351,2095,802
+W11,Southwest,Wasatch Front,5821,1295,803
+W12,Wasatch Front,Front Range,2032,1984,812
+W12,Front Range,Wasatch Front,2437,477,813
+W13,Southwest,Front Range,3284,3751,829
+W13,Front Range,Southwest,0,0,830
+W14,Oregon,California South,3220,3220,841
+W14,California South,Oregon,3100,3100,842
+WE1,Wasatch Front,SPP North,150,150,896
+WE1,SPP North,Wasatch Front,200,200,897
+WE2,Front Range,SPP North,510,510,908
+WE2,SPP North,Front Range,510,510,909
+WE3,Front Range,SPP South,410,410,927
+WE3,SPP South,Front Range,410,410,928
+TE1,ERCOT,SPP South,820,820,978
+TE1,SPP South,ERCOT,820,820,979
+E1,Saskatchewan,SPP North,165,663,1055
+E2,SPP North,SPP South,1501,1785,1064
+E2,SPP South,SPP North,1705,0,1065
+E3,SPP North,SERC Central,128,1102,1084
+E3,SERC Central,SPP North,1183,0,1085
+E4,SPP North,MISO West,623,778,1097
+E4,MISO West,SPP North,2209,0,1098
+E5,SPP South,MISO West,3323,1196,1117
+E5,MISO West,SPP South,2086,3801,1118
+E6,SPP South,MISO Central,2481,2420,1127
+E6,MISO Central,SPP South,3873,5635,1128
+E7,SPP South,SERC Central,859,5591,1144
+E7,SERC Central,SPP South,5042,6445,1145
+E8,SPP South,MISO South,4295,4336,1154
+E8,MISO South,SPP South,3033,3878,1155
+E9,Manitoba,MISO West,3772,3633,1171
+E10,Ontario,MISO West,2424,1862,1180
+E11,MISO West,MISO East,160,160,1198
+E11,MISO East,MISO West,160,160,1199
+E12,MISO West,PJM West,2518,8011,1208
+E12,PJM West,MISO West,7791,9086,1209
+E13,MISO West,MISO Central,6199,7306,1225
+E13,MISO Central,MISO West,7602,7341,1226
+E14,MISO West,SERC Central,150,4141,1235
+E14,SERC Central,MISO West,3671,6877,1236
+E15,MISO Central,MISO East,4864,5585,1252
+E15,MISO East,MISO Central,6344,6531,1253
+E16,MISO Central,PJM West,6572,10790,1262
+E16,PJM West,MISO Central,6986,20449,1263
+E17,MISO Central,SERC Central,235,3903,1279
+E17,SERC Central,MISO Central,8288,8441,1280
+E18,MISO Central,MISO South,1797,4067,1289
+E18,MISO South,MISO Central,2117,1093,1290
+E19,MISO South,SERC Central,2468,1361,1306
+E19,SERC Central,MISO South,1457,3342,1307
+E20,MISO South,SERC Southeast,3600,3392,1316
+E20,SERC Southeast,MISO South,1638,4028,1317
+E21,Ontario,MISO East,2348,1649,1333
+E22,MISO East,PJM West,5603,5940,1342
+E22,PJM West,MISO East,4345,5608,1343
+E23,SERC Central,PJM West,6646,6710,1359
+E23,PJM West,SERC Central,5444,5786,1360
+E24,SERC Central,SERC East,2419,3311,1369
+E24,SERC East,SERC Central,3257,2675,1370
+E25,SERC Central,SERC Southeast,1095,5387,1386
+E25,SERC Southeast,SERC Central,6579,4639,1387
+E26,SERC Southeast,SERC Florida,2958,1807,1396
+E26,SERC Florida,SERC Southeast,1322,0,1397
+E27,SERC Southeast,SERC East,2397,3669,1416
+E27,SERC East,SERC Southeast,1703,3536,1417
+E28,SERC East,PJM West,5185,4448,1426
+E28,PJM West,SERC East,5318,4286,1427
+E29,SERC East,PJM South,4596,4963,1443
+E29,PJM South,SERC East,4665,5463,1444
+E30,PJM West,PJM East,4762,9815,1453
+E30,PJM East,PJM West,1443,166,1454
+E31,PJM West,PJM South,7041,9035,1470
+E31,PJM South,PJM West,5347,10942,1471
+E32,PJM East,PJM South,5094,6770,1480
+E32,PJM South,PJM East,1605,4166,1481
+E33,PJM East,New York,1356,4814,1497
+E33,New York,PJM East,913,4019,1498
+E34,Ontario,New York,2286,2719,1507
+E35,New York,New England,1303,2432,1523
+E35,New England,New York,1660,1359,1524
+E36,Maritimes,New England,1127,1265,1533
+QE1,Québec,New York,1000,1000,1587
+QE2,Québec,New England,2225,2225,1598
+W1001,British Columbia,Northern Grid,2435,2164,1653
+W1002,Alberta,Northern Grid,981,1286,1658
+W1003,Northern Grid,California ISO,4140,8705,1664
+W1003,California ISO,Northern Grid,1985,5208,1665
+W1004,Northern Grid,West Connect,2842,3326,1670
+W1004,West Connect,Northern Grid,5710,1865,1671
+W1005,California ISO,West Connect,2534,2375,1676
+W1005,West Connect,California ISO,2967,3912,1677
+E1001,Saskatchewan,SPP,0,665,1690
+E1002,SPP,MISO,7058,1513,1695
+E1002,MISO,SPP,5308,6403,1696
+E1003,SPP,SERTP,4857,2814,1701
+E1003,SERTP,SPP,2822,6324,1702
+E1004,Manitoba,MISO,3058,3058,1707
+E1005,Ontario,MISO,2419,1834,1712
+E1006,MISO,PJM,5593,12552,1717
+E1006,PJM,MISO,9146,10771,1718
+E1007,MISO,SERTP,6976,9543,1723
+E1007,SERTP,MISO,0,9801,1724
+E1008,SERTP,PJM,8609,9782,1737
+E1008,PJM,SERTP,7704,7905,1738
+E1009,SERTP,SCRTP,1767,1948,1743
+E1009,SCRTP,SERTP,2415,2335,1744
+E1010,SERTP,FRCC,2918,1803,1749
+E1010,FRCC,SERTP,1058,0,1750
+E1011,PJM,New York,635,858,1755
+E1011,New York,PJM,3136,3394,1756
+WTI01,Into Washington TTC,,7377,10297,1809
+WTI02,Into Oregon TTC,,8004,7534,1819
+WTI02,dc-only interfaces,,3100,3100,1820
+WTI02,Total of TTC and dc-only interfaces,,11104,10634,1821
+WTI03,Into California North TTC,,3972,6631,1841
+WTI04,Into California South TTC,,7829,11288,1851
+WTI04,dc-only interfaces,,3220,3220,1852
+WTI04,Total of TTC and dc-only interfaces,,11049,14508,1853
+WTI05,Into Wasatch Front TTC,,5965,5558,1873
+WTI05,dc-only interfaces,,200,200,1874
+WTI05,Total of TTC and dc-only interfaces,,6165,5758,1875
+WTI06,Into Southwest TTC,,5247,8470,1886
+WTI07,Into Front Range TTC,,3284,3751,1908
+WTI07,dc-only interfaces,,920,920,1909
+WTI07,Total of TTC and dc-only interfaces,,4204,4671,1910
+ETI01,Into SPP North TTC,,2209,663,1931
+ETI01,dc-only interfaces,,660,660,1932
+ETI01,Total of TTC and dc-only interfaces,,2869,1323,1933
+ETI02,Into SPP South TTC,,5042,6445,1954
+ETI02,dc-only interfaces,,1230,1230,1955
+ETI02,Total of TTC and dc-only interfaces,,6272,7675,1956
+ETI03,Into MISO West TTC,,7791,9086,1977
+ETI03,dc-only interfaces,,160,160,1978
+ETI03,Total of TTC and dc-only interfaces,,7951,9246,1979
+ETI04,Into MISO Central TTC,,12714,20449,1989
+ETI05,Into MISO South TTC,,4295,4336,2011
+ETI06,Into MISO East TTC,,5139,7019,2021
+ETI06,dc-only interfaces,,160,160,2022
+ETI06,Total of TTC and dc-only interfaces,,5299,7179,2023
+ETI07,Into SERC Central TTC,,6878,8443,2044
+ETI08,Into SERC Southeast TTC,,4900,6525,2054
+ETI09,Into SERC Florida TTC,,2958,1807,2071
+ETI10,Into SERC East TTC,,6959,5463,2081
+ETI11,Into PJM West TTC,,21773,10942,2101
+ETI12,Into PJM East TTC,,4762,9815,2112
+ETI13,Into PJM South TTC,,9578,9035,2134
+ETI14,Into New York TTC,,2802,4814,2144
+ETI14,dc-only interfaces,,1000,1000,2145
+ETI14,Total of TTC and dc-only interfaces,,3802,5814,2146
+ETI15,Into New England TTC,,2313,3033,2167
+ETI15,dc-only interfaces,,2225,2225,2168
+ETI15,Total of TTC and dc-only interfaces,,4538,5258,2169

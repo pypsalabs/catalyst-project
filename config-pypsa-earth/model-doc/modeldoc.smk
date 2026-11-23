@@ -19,6 +19,12 @@
 #   modeldoc_osm_entries  an HVDC way of OpenStreetMap whose name matches a project, and one that does not (scripts/plot_osm_entries.py)
 #   modeldoc_grid_check HVDC GW km and AC circuit km, uncorrected and corrected, against project and published metrics (scripts/plot_grid_check.py);
 #                       its inputs build/grid_check/* come from ../scripts/check_grid.py, run by hand (read-only, about 10 min, no model rerun)
+#   modeldoc_loadability  circuit length and the loadability limit of long AC circuits in the six spatially resolved regions,
+#                       four figures of one script (scripts/plot_loadability.py): line_lengths (capacity between clusters by
+#                       circuit length, one row per region), loadability_curve (St. Clair curve; loadable share per line),
+#                       loadability_map (the clustered networks by usable share), loadability_check (limits per GW of peak
+#                       load; model over published transfer capacity across borders); its inputs build/loadability/* come
+#                       from ../scripts/check_loadability.py, run by hand (read-only, 3 min, no model rerun)
 #   modeldoc_circuits   real ways hit by the circuit defect, without and with fix_indirect_circuits (scripts/table_circuits.py -> build/circuit_ways.tex)
 #   modeldoc_isolated   the AC sub-networks of IN, CN, NWE and what simplify_network does with them, recomputed from
 #                       networks/<R>-now/elec.nc (scripts/plot_isolated.py); build/isolated_fates.csv = sub-networks per fate
@@ -185,6 +191,27 @@ rule modeldoc_grid_check:
         mem_mb=1000,
     script:
         "scripts/plot_grid_check.py"
+
+
+LOADABILITY_REGIONS = ["USW", "USE", "BR", "IN", "CN", "NWE"]
+
+
+rule modeldoc_loadability:
+    input:
+        summary=os.path.join(BUILD, "loadability/summary.csv"),
+        tables=[os.path.join(BUILD, "loadability", f) for f in ["curve.csv", "transfer.csv"]
+                + [f"{k}_{r}.csv" for k in ["lines", "circuits"] for r in LOADABILITY_REGIONS]],
+        shapes=[os.path.join(FORK, f"resources/{r}/shapes/country_shapes.geojson") for r in LOADABILITY_REGIONS],
+    output:
+        os.path.join(FIG, "{figure}.pdf"),
+    wildcard_constraints:
+        figure="line_lengths|loadability_curve|loadability_map|loadability_check",
+    params:
+        figure=lambda w: "lengths" if w.figure == "line_lengths" else w.figure.replace("loadability_", ""),
+    resources:
+        mem_mb=1000,
+    script:
+        "scripts/plot_loadability.py"
 
 
 rule modeldoc_isolated:
@@ -355,7 +382,7 @@ rule modeldoc_mix_before_after:
         "scripts/plot_mix_before_after.py"
 
 YAML_SNIPPETS = ["gas_mapping", "plant_statistics", "plant_efficiency", "envelope", "tranches", "retirements",
-                 "drop_duplicate_ids", "fix_indirect_circuits", "geodesic_length", "dc_ratings", "dc_projects", "isolated",
+                 "drop_duplicate_ids", "fix_indirect_circuits", "geodesic_length", "dc_ratings", "dc_projects", "isolated", "loadability",
                  "clip_bbox", "excluder_resolution", "renewable_capacities", "cf_targets", "cluster_weight", "resource_classes"]
 
 
@@ -580,7 +607,7 @@ rule modeldoc_pdf:
         tex=os.path.join(DOC, "main.tex"),
         bib=os.path.join(DOC, "references.bib"),
         sections=sorted(glob(os.path.join(DOC, "sections", "*.tex"))),
-        figures=[os.path.join(FIG, f) for f in ["coverage.pdf", "layers.pdf", "grid_map.pdf", "grid_steps.pdf", "hvdc_check.pdf", "osm_entries.pdf", "grid_check.pdf", "isolated.pdf", "fleet_check.pdf",
+        figures=[os.path.join(FIG, f) for f in ["coverage.pdf", "layers.pdf", "grid_map.pdf", "grid_steps.pdf", "hvdc_check.pdf", "osm_entries.pdf", "grid_check.pdf", "isolated.pdf", "line_lengths.pdf", "loadability_curve.pdf", "loadability_map.pdf", "loadability_check.pdf", "fleet_check.pdf",
                                                    "fleet_map.pdf", "fleet_sources.pdf", "fleet_vintage.pdf", "fleet_dropped.pdf",
                                                    "fleet_merit.pdf", "fleet_envelope.pdf", "fleet_retirements.pdf", "fleet_efficiency.pdf", "mix_before_after.pdf",
                                                    "renew_fleet.pdf", "renew_map.pdf", "renew_cutouts.pdf", "renew_eligibility.pdf", "renew_steps.pdf", "renew_timeseries.pdf",
