@@ -5,7 +5,8 @@ Where a run's electricity demand sits inside a country, against published statis
 Read-only: sums resources/<run>/demand_profiles.csv per bus of the base network, puts every bus into the unit that
 contains it (scripts/build_market_zones.py, unit_of_buses) and compares the units' demand with
 calibration/2024/demand_shares.csv scaled to the run's national demand. Writes
-model-doc/build/demand_placement/<label>.csv (key, name, published_twh, model_twh, ratio).
+model-doc/build/demand_placement/<label>.csv (key, name, published_twh, model_twh, ratio) and <label>_buses.csv (the
+annual demand per bus, for the map of model-doc/scripts/plot_demand_population.py).
 
 Usage (from config-pypsa-earth):
     ../models/pypsa-earth/.pixi/envs/default/bin/python scripts/check_demand_placement.py RUN [--label NAME] [--country CN]
@@ -56,6 +57,7 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     fn = os.path.join(OUT, f"{a.label or a.run}.csv")
     out.round(4).to_csv(fn)
+    load.reindex(b.index).rename("twh").rename_axis("bus").round(6).to_csv(fn[:-4] + "_buses.csv")
     off = (out.model_twh - out.published_twh).abs().sum() / 2
     print(f"{a.run}: national {model.sum():.0f} TWh over {len(b)} buses; {off:.0f} TWh ({off / model.sum():.1%}) sit in the wrong unit; "
           f"model / published from {out.ratio.min():.2f} ({out.ratio.idxmin()}) to {out.ratio.max():.2f} ({out.ratio.idxmax()})")

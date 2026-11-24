@@ -4,16 +4,18 @@
 # every country are Ember 2024 (config-pypsa-earth/calibration/2024/, built by scripts/build_calibration.py, entering
 # where each data vector enters the workflow: statistics.yaml), fuel and CO2 prices are 2024 values per country,
 # nuclear / biomass / geothermal run flat at their observed capacity factors, thermal plant has an availability cap,
-# and nothing is extendable (calibration.brownfield_only: generators and stores are frozen; lines may be reinforced,
-# ll=copt).
+# and nothing is extendable (calibration.brownfield_only: generators and stores are frozen; ll=v1.0: the grid too).
 # Applied by config-pypsa-earth/run.sh on top of config.<R>.yaml for a stage named <R>-now (run.sh sets run.name =
 # <R>-now and symlinks resources/<R>-now -> resources/<R>, so only add_electricity and everything downstream are
 # rebuilt). Before 2026-09-30 this overlay was the fork's default brownfield expansion at 2025 costs without a CO2
 # cap; see config-pypsa-earth/README.md "Calibration to 2024".
 scenario:
   simpl: [""]
-  ll: [copt]            # lines may be reinforced at cost: the OSM ratings x the security margin (0.7 then) leave some clusters short of their
-                        # load (a US cluster with 30 GW load, 21 GW plant and 3 GW of lines shed 2 % under v1.0)
+  ll: [v1.0]            # the grid is frozen too (v1.0 = no line or HVDC link is extendable): the 2024 system has to carry the 2024
+                        # demand with the grid it has, so load shedding and price spreads show where grid, fleet or demand placement
+                        # are off. Until 2026-11-24 `copt` (lines reinforced at cost), set on 2026-09-30 because a US cluster with
+                        # 30 GW load, 21 GW plant and 3 GW of lines shed load: that was demand placed in the wrong cluster, which
+                        # the reinforcement hid (US East built 24 % of its grid). README "Demand placement"
   opts: [3h]            # no Co2L -> no CO2 constraint (prepare_network adds one only for a Co2L* opt); 3h = 3-hourly
                         # averaging (pypsa-earth default resolution): the hourly 50-node LP (BR: 19.0 M rows x 9.3 M
                         # columns) needs more than the 12 GB this laptop can give Gurobi (OOM in presolve, 2026-09-19)

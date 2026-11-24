@@ -17,6 +17,10 @@ scenario:
 costs:
   year: 2050            # technology-data v0.13.2 costs_2050.csv
 
+lines:
+  expansion_limit:
+    year: 2050          # the grid may be what the region's rate allows by 2050 (statistics.yaml, catalyst: grid_expansion)
+
 load_options:
   annual_totals: true   # the demand pathway's 2050 table (catalyst: tables: demand_year below)
 

@@ -12,6 +12,10 @@
 load_options:
   # build_demand_profiles: each country's load source series scaled to Ember 2024 before it is spread over the buses
   annual_totals: true          # table demand.csv
+  # build_demand_profiles: inside a GADM unit (state, province) the load goes to the buses with the people living in
+  # each bus region (WorldPop, counted once per base run by build_region_population) instead of the region's area, which
+  # put New York City's load upstate and Texas's into west Texas. README "Demand placement"
+  population_within_units: true
 
 electricity:
   # build_powerplants: powerplantmatching's plant list scaled to Ember 2024 capacity per country and fuel group
@@ -123,3 +127,11 @@ clustering:
       efficiency: capacity_weighted_average
       marginal_cost: capacity_weighted_average
       p_min_pu: capacity_weighted_average
+
+catalyst:
+  # merge_config.py: cap on grid build-out. The transmission volume (AC lines and HVDC links together) of a planning
+  # horizon, or of a single-step run that names its year, is at most (1 + rate)^(year - 2024) x the existing grid
+  # (fork: lines: expansion_limit). The rate of a region is the column of data/grid_expansion/grid_expansion.csv named
+  # here: delivered = what its grid has grown by (US 1 %, North-West Europe 1 %, Brazil 2 %, India 3 %, China 4 % per
+  # year), plan = what plans ask for, none = no cap. Regions without a row have no cap
+  grid_expansion: delivered

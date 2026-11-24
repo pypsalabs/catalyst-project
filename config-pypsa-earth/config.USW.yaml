@@ -93,6 +93,11 @@ load_options:
   # (table demand_shift.csv = calibration/2024/regions/USW/demand_shift.csv, scripts/build_region_tables.py: the
   # states' offsets to UTC weighted with their retail sales). README "US West / US East"; REFACTOR_LATER.md item E
   time_shift: true
+  # build_demand_profiles: the half's demand is split over its states with their shares of EIA's retail sales of 2024
+  # (table demand_shares.csv = calibration/2024/demand_shares.csv, scripts/build_demand_shares.py) instead of
+  # 0.6 x GDP + 0.4 x population, which gave New York 2.2 times and Texas 0.64 times its share; the same shares for
+  # every horizon. README "Demand placement"; REFACTOR_LATER.md item J
+  subnational_shares: true
 
 catalyst:
   cfe:

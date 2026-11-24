@@ -187,7 +187,30 @@ def stage_config(kind, stage):
         cfg["custom_rules"] = sorted(set(cfg.get("custom_rules", []) or []) | {ASSUMPTIONS_SMK, TABLES_SMK})
         if kind != "assumptions" and (cfg.get("catalyst") or {}).get("cluster_by_zone"):
             cluster_by_zone(cfg, stage)
+        if kind != "assumptions":
+            grid_expansion(cfg, stage.rsplit("-", 1)[0] if kind == "overlay" else stage)
     return cfg
+
+
+def grid_expansion(cfg, region):
+    """catalyst: grid_expansion: delivered | plan -> the fork's `lines: expansion_limit` with the region's rate of
+    data/grid_expansion/grid_expansion.csv (column rate_<name>): the transmission volume of a planning horizon, or of
+    the `year` an overlay names for a single-step run, is at most (1 + rate)^(year - 2024) x the existing grid.
+    `none`, no key, or a region without a row (one-node countries, rest of world, test regions): no limit."""
+    import csv
+
+    name = (cfg.get("catalyst") or {}).get("grid_expansion")
+    if not name or name == "none":
+        return
+    with open(os.path.join(HERE, "data", "grid_expansion", "grid_expansion.csv")) as f:
+        rows = {r["region"]: r for r in csv.DictReader(line for line in f if not line.startswith("#"))}
+    if region not in rows:
+        return
+    if f"rate_{name}" not in rows[region]:
+        raise ValueError(f"catalyst: grid_expansion: {name}: no column rate_{name} in data/grid_expansion/grid_expansion.csv")
+    lines = cfg.setdefault("lines", {})
+    limit = lines.get("expansion_limit") or {}
+    lines["expansion_limit"] = {**limit, "rate": float(rows[region][f"rate_{name}"]), "reference_year": 2024}
 
 
 def cluster_by_zone(cfg, stage):

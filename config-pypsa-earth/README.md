@@ -793,6 +793,121 @@ benchmark points. It stays as the record of what a tighter Indian grid does to t
 
 With the rule and margin now in the model India's sum of line limits is 773 GW, between the test's f = 0.7 and 0.5.
 
+### Grid build-out: a cap that rises per horizon (2026-11-23)
+
+Every overlay runs `ll: copt` (lines and HVDC links reinforced at cost, no bound, no lead time). With the tighter
+lines of the subsection above the zero-carbon runs bought the grid back (India 309 GW of AC and 22 GW of HVDC, China
+1,900 GW of HVDC). Since 2026-11-23 (`REFACTOR_LATER.md` item H; model doc, Grid Data):
+
+- **Fork option `lines: expansion_limit: {rate, reference_year, year}`** (commit f374de79, `_helpers.py`
+  `set_transmission_expansion_limit`): the transmission volume (capacity x length of the extendable AC lines and DC
+  links together) is at most (1 + rate)^(year - reference_year) x that of the existing grid, as the global
+  constraint `lv_limit`, which PyPSA enforces. `add_brownfield` sets it for every planning horizon of a pathway;
+  `prepare_network` for a single-step run that names `year`. `ll: copt` stays, so the model chooses where to build.
+- **Rates from one table:** `data/grid_expansion/grid_expansion.csv` (per region `rate_delivered`, `rate_plan`;
+  the published figures behind them in `published.csv`). `statistics.yaml` names the column (`catalyst:
+  grid_expansion: delivered`; `plan` or `none` in an overlay), `merge_config.py` writes the option for a stage whose
+  region has a row, `overlay.zero.yaml` adds `year: 2050`. The 2024 dispatch (`now`) has no cap.
+
+| | USW, USE | NWE | BR | IN | CN |
+|---|---|---|---|---|---|
+| delivered rate (central case) | 1 % | 1 % | 2 % | 3 % | 4 % |
+| grid allowed in 2030 / 2040 / 2050 (x 2024) | 1.06 / 1.17 / 1.30 | 1.06 / 1.17 / 1.30 | 1.13 / 1.37 / 1.67 | 1.19 / 1.60 / 2.16 | 1.27 / 1.87 / 2.77 |
+| plan rate (sensitivity, no run yet) | 2.5 % | 2 % | 2.5 % | 4 % | 4.5 % |
+
+Tests (`scripts/check_grid_expansion.py`, read-only -> `model-doc/build/grid_expansion/solved.csv`):
+
+- `IN-zero`: allowed 2.16, built 1.16, not binding; cost and build-out identical to the run without the cap
+  (249.73 bn $/a).
+- `NWE-zero`: allowed 1.295, built 1.295, binding with a shadow price of 436 $ per MW km; AC volume x1.14, HVDC
+  x6.4 (86 GW). Its cost (286.5 bn $/a) cannot be compared with the run of 2026-11-15 (254.4; margin 0.7, no line
+  rule, older fleet); the cost of the cap alone would need one more solve without it.
+- Pathway `MA10-tgrid` (throwaway overlay `tgrid`, 2 %/yr, to 2035; overlay, stage and market deleted on 2026-11-24,
+  these numbers are the record): allowed 1.020 / 1.126 / 1.243 in 2025 / 2030 /
+  2035, built 1.000 / 1.074 / 1.093, never below the previous horizon; not binding.
+- Seen in that test, not caused by the cap: the dispatch-only horizon 2025 sheds 2.8 TWh of Morocco's 46.8 TWh at
+  the margin of 0.4 (2.0 TWh at 0.7 in `MA10-cfenode`). A frozen grid in 2025 with the lower margin sheds more load.
+- Left alone: `add_brownfield.disable_grid_expansion_if_limit_hit` looks for the constraint type
+  `transmission_expansion_volume_limit`, which never matches (`transmission_volume_expansion_limit` is the name).
+  If upstream corrects it, it would freeze the grid once a limit binds, which is not wanted with a limit that rises.
+
+## Demand placement (2026-11-24)
+
+Where a country's demand sits decides which clusters are short of supply. PyPSA-Earth places it in two steps, and both
+were off in the US:
+
+1. **Between the GADM level-1 units** (states, provinces): 0.6 x GDP share + 0.4 x population share. Against EIA's
+   retail sales of 2024, 16 % of US East's and 17 % of US West's demand lay in the wrong state (New York and New Jersey
+   2.2 times their share, Massachusetts 2.1, California 1.5, Texas 0.64, Arizona 0.65).
+2. **Inside a unit**: by the area in which each base-bus region overlaps the unit. New York City's load lay upstate
+   and Texas's in west Texas. Placed by population instead, 18 % of US East's demand moves to another of the 30
+   clusters (US West 30 %, Brazil 33 %, China 19 %, India 10 %; screen of 2026-11-24 on the cluster layouts of the
+   runs of 23 November).
+
+What was changed:
+
+- **State shares for the US**: `calibration/2024/demand_shares.csv` now also holds the 51 US rows (EIA form 861 retail
+  sales of 2024, `scripts/build_demand_shares.py` through `build_region_tables.eia_sales`); `load_options:
+  subnational_shares: true` in `config.USW.yaml` and `config.USE.yaml`. One national table serves both halves: a run
+  holds the states of its half only, and the option scales their shares to one. China as before; India and Brazil
+  keep GDP and population (`REFACTOR_LATER.md` item J).
+- **Population inside a unit**: fork option `load_options: population_within_units` (commit 7a76b806, a switch, off
+  by default, upstream candidate; on in `statistics.yaml` for every stage). The new rule `build_region_population`
+  counts the people per pair of base-bus region and unit from the WorldPop raster PyPSA-Earth already downloads (3
+  arc seconds, read in strips and summed onto 30 arc seconds; a cell belongs to the shapes that hold its centre;
+  15 s and under 1 GB for US East) -> `resources/<run>/bus_regions/population_onshore.csv`; `build_demand_profiles`
+  then gives each bus region its share of a unit's people instead of its share of the unit's area. `run.sh` links the
+  file from the base run where it exists there; otherwise each stage counts for itself.
+- **The grid is frozen in the 2024 runs**: `overlay.now.yaml` has `ll: [v1.0]` (before: `copt`). Line reinforcement
+  was allowed since 2026-09-30 because single US clusters shed load; that was misplaced demand, and the
+  reinforcement hid it (US East built 24 % of its grid volume on 23 November, upstate New York's lines 4.6 to 7
+  times). With a frozen grid, load shedding and the price spread of a 2024 run measure grid, fleet and placement.
+  The solved networks are named `elec_s_<n>_ec_lv1.0_3h.nc`.
+- **Isolated buses**: `calibrate_network.attach_isolated_buses` filled the ramp limits of its links with zero, which
+  PyPSA enforces: their flow was one value for the whole year, and the bus behind shed load in 92 to 99 % of hours
+  (8 links in US East, 2 in US West, 1 in Brazil; 147 / 431 / 20 bn $ of shedding penalty in the objectives of
+  23 November; in every solve since September). Fixed in fork commit 583c0144.
+
+Clustering weights the buses by their load, so the cluster layout of every multi-node region changes: each stage
+rebuilds from `build_demand_profiles` on (the wind and solar profiles per base bus are kept).
+
+**Test on US East** (`USE-now`, laptop, 7 minutes; 30 clusters, 3-hourly; the cluster layout differs from the run
+of 23 November, which is kept in `results/z3/USE-now/`):
+
+| | 23 Nov (lines extendable, old placement) | 24 Nov (grid frozen, new placement) |
+|---|---|---|
+| grid volume built | +23.7 % | 0 (frozen) |
+| load shed (TWh / hours) | 4.31 / 99 % | 0 / 0 |
+| objective (bn $/a) | 493.4 (431 shedding penalty) | 59.6 |
+| cost without shedding (bn $/a) | 62.7 | 59.6 |
+| load-weighted price, mean ($/MWh; PJM 31, ERCOT 29 published) | 26.4 (median hour 724) | 21.1 |
+| mean price per cluster ($/MWh) | 18 to 22,986 | 16.4 to 22.2 |
+| hours with one price | 0 % | 23 % |
+| lines at their limit in more than 10 % of hours | 14 of 44 | 16 of 46 |
+| peak load of the largest cluster (GW) | 53.2 | 47.4 |
+| largest deviation of a fuel's share from the statistic | coal -1.7 pp | coal -1.7 pp |
+
+- **US West** (`USW-now`, 3 minutes, 20 clusters): no load shed with the grid frozen (1.47 TWh on 23 November),
+  cost 8.81 bn $/a (8.99 without shedding), mean price 20.2 $/MWh, 12.5 to 20.3 per cluster, one price in 45 % of
+  hours; wind 78 TWh against 88 in the statistic, coal 81 against 90, gas 268 against 264.
+- Before the solve, a re-dispatch of the 23 November network with the grid frozen (read-only, without the
+  calibration constraints) had separated the two steps: 157 TWh shed with the old placement, 61 TWh with population
+  only (New York City / New Jersey and New England clusters, whose state totals were still too high), 1.5 TWh with
+  state shares only (west Texas), none with both.
+- Demand in the wrong state (`scripts/check_demand_placement.py`, which puts a bus into the state that holds it):
+  16.2 % before, 1.6 % after; what is left are bus regions that reach across a state border.
+- Wind is curtailed more (11 TWh, 2.9 %; generation 347 TWh against 363 TWh in the statistic), the price of the
+  frozen grid.
+- Not re-solved: US West, Brazil, India, North-West Europe, China (cluster; `rerun` of all `-now` and `-zero`
+  stages), nor any pathway. The base runs' prenetworks (`networks/<R>/elec_s_*`) still hold the old placement; the
+  stages build their own networks from `base.nc`, so only checks that read the base prenetwork are affected.
+- A stage directory that still holds a solved network of the old layout (`..._lcopt_3h.nc`) trips
+  `check_bus_regions.py` ("lacks 1 buses"): the new bus-region files do not describe the old network. Move the old
+  stage results aside before a re-run (laptop: `results/archive/USW-now-20261117/`,
+  `networks/archive/USW-now-20261117/`).
+- `scripts/plot_validation.py`: the cost tile counted the whole existing grid as "transmission expansion" when lines
+  are not extendable; fixed.
+
 ## Screening solves (stages `<R>-now`, `<R>-zero`, `dashboard:<R>`; 2026-09-19/20)
 
 *This section describes the out-of-the-box definition of `now` and `zero` used until 2026-09-30 and the results it

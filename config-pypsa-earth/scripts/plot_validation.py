@@ -167,6 +167,8 @@ def collect(n, costs=None):
     ok = mp < 0.5 * shed_cost                                # bus-snapshots not priced at the shedding penalty
     lb_ok = lb.where(ok, 0.0)
     price_ok = (mp.where(ok) * lb_ok).sum(axis=1) / lb_ok.sum(axis=1).replace(0, np.nan)
+    d["price_hourly_ok"] = price_ok                          # the curve of the price tile: a few bus-hours at the penalty
+                                                             # (100,000 USD/MWh) would lift every hour of the regional mean
     d["price_stats"] = {
         "mean": float(np.nansum(price * d["load_hourly"] * w) / np.nansum(d["load_hourly"] * w)),
         "mean_ok": float(np.nansum(price_ok * lb_ok.sum(axis=1) * w) / np.nansum(lb_ok.sum(axis=1) * w)),
@@ -209,8 +211,11 @@ def collect(n, costs=None):
         + (stores.capital_cost * (stores.e_nom_opt - stores.e_nom_min).clip(lower=0)).sum() \
         + (lk.loc[~lk.carrier.isin(["DC", "AC"]), "capital_cost"]
            * (lk.loc[~lk.carrier.isin(["DC", "AC"]), "p_nom_opt"] - lk.loc[~lk.carrier.isin(["DC", "AC"]), "p_nom_min"]).clip(lower=0)).sum()
-    tr_cap = (lines.capital_cost * (lines.s_nom_opt - lines.s_nom_min).clip(lower=0)).sum() \
-        + (lk.loc[dc, "capital_cost"] * (lk.loc[dc, "p_nom_opt"] - lk.loc[dc, "p_nom_min"]).clip(lower=0)).sum()
+    # a line or link that is not extendable (ll = v1.0, the 2024 runs) has s_nom_min = 0 and builds nothing
+    line_base = np.where(lines.s_nom_extendable, lines.s_nom_min, lines.s_nom)
+    dc_base = np.where(lk.loc[dc, "p_nom_extendable"], lk.loc[dc, "p_nom_min"], lk.loc[dc, "p_nom"])
+    tr_cap = (lines.capital_cost * (lines.s_nom_opt - line_base).clip(lower=0)).sum() \
+        + (lk.loc[dc, "capital_cost"] * (lk.loc[dc, "p_nom_opt"] - dc_base).clip(lower=0)).sum()
     mc = n.get_switchable_as_dense("Generator", "marginal_cost").reindex(columns=gg.index)
     opex = float((gp[gg.index] * mc).mul(w, axis=0).sum().sum()) \
         + float((sup.clip(lower=0) * su.marginal_cost).mul(w, axis=0).sum().sum()) \
@@ -482,7 +487,7 @@ def draw_block(fig, cell, d, colors, nice, title, points=None, styles=None, shap
 
     # 3 price statistics: duration curve + band + validation levels
     ax = axes[2]
-    p = d["price_hourly"].dropna()
+    p = d["price_hourly_ok"].dropna()
     ps = d["price_stats"]
     hpt = 8760.0 / max(len(p), 1)                       # hours per snapshot (3 for the 3-hourly runs)
     ax.plot(np.arange(len(p)) * hpt, np.sort(p.values)[::-1], color="k", lw=1.0)
@@ -490,16 +495,19 @@ def draw_block(fig, cell, d, colors, nice, title, points=None, styles=None, shap
     if len(band):
         lo, hi = np.sort(band.p05.values)[::-1], np.sort(band.p95.values)[::-1]
         ax.fill_between(np.arange(len(lo)) * hpt, lo, hi, color="tab:blue", alpha=0.2, lw=0)
+    # axis from percentiles, not from the extremes: single hours at the shedding penalty or with a large negative dual
+    # would flatten the curve to a line (the box states maximum and minimum)
     top = float(np.nanpercentile(p.values, 99)) if len(p) else 1.0
+    low = float(np.nanpercentile(p.values, 1)) if len(p) else 0.0
     pp = _pts(region_pts, "price")
     if pp is not None and len(pp):
         top = max(top, float(pp.value.max()) * 1.05)
-    ylo, yhi = min(0, ps["min"]) - 0.02 * top, max(top * 1.15, 1)
+    ylo, yhi = min(0, low) - 0.02 * top, max(top * 1.15, 1)
     ax.set_ylim(ylo, yhi)
     ax.set_xlim(0, 8760)
     if pp is not None and len(pp):
         pp = pp.sort_values("value")
-        step = 0.075 * (yhi - ylo)
+        step = 0.10 * (yhi - ylo)                       # one label height
         ytxt, last = [], -np.inf
         for v in pp.value:
             yy = max(v, last + step)
@@ -522,7 +530,8 @@ def draw_block(fig, cell, d, colors, nice, title, points=None, styles=None, shap
         txt += f"\nCO2 shadow price {d['co2_price']:,.0f} USD/t"
     ax.text(0.97, 0.95, txt, transform=ax.transAxes, fontsize=6, va="top", ha="right", zorder=7, linespacing=1.15,
             bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="0.8", lw=0.5))
-    ax.set_title("Price  (load-wtd; band 5–95 % of buses; dashed: published)", **ts)
+    ax.set_title("Price  (load-wtd, without shed bus-hours; band 5–95 % of buses; dashed: published)" if ps["share_shed_bus_h"] > 0
+                 else "Price  (load-wtd; band 5–95 % of buses; dashed: published)", **ts)
 
     # 4 demand: annual TWh per country (+ total row when region-level points exist)
     ax = axes[3]

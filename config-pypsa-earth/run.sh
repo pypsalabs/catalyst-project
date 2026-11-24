@@ -112,7 +112,7 @@ link_profiles() {   # $1 = base run, $2 = scenario run: the stage's own renewabl
 link_resources() {   # $1 = base run, $2 = scenario run: share the expensive resources of the base run
   # resources/<run>/ is a real directory of symlinks to the base run's entries (shapes, osm,
   # powerplants, natura; renewable_profiles/ see link_profiles; not the cost tables and demand profiles, see below) except bus_regions/, which gets its own directory with symlinks to the
-  # two build_bus_regions outputs only: simplify_network / cluster_network write busmaps and clustered regions
+  # two build_bus_regions outputs and the population per base-bus region (build_region_population) only: simplify_network / cluster_network write busmaps and clustered regions
   # into bus_regions/, and a shared directory would let one scenario run invalidate the other (and the base run)
   # by rewriting those files with a newer mtime (happened 2026-09-20: IN-now re-solved after IN-zero).
   # networks/<run>/base.nc is hardlinked (same inode, same mtime) because base.nc is an input of the shared
@@ -133,11 +133,12 @@ link_resources() {   # $1 = base run, $2 = scenario run: share the expensive res
       case "$e" in bus_regions|costs_*|demand_profiles*.csv|resource_classes|statistics|renewable_profiles) continue ;; esac
       ln -s "../$base/$e" "resources/$run/$e"
     done
-    for e in regions_onshore.geojson regions_offshore.geojson; do
-      [ -e "resources/$base/bus_regions/$e" ] && ln -s "../../$base/bus_regions/$e" "resources/$run/bus_regions/$e"
-    done
     log "[$run] resources/$run/: per-entry symlinks to resources/$base (own bus_regions/, renewable_profiles/)"
   fi
+  # the base-bus files of bus_regions/ (also for a stage directory that predates one of them)
+  for e in regions_onshore.geojson regions_offshore.geojson population_onshore.csv; do
+    [ -e "resources/$base/bus_regions/$e" ] && [ ! -e "resources/$run/bus_regions/$e" ] && ln -s "../../$base/bus_regions/$e" "resources/$run/bus_regions/$e"
+  done
   link_profiles "$base" "$run"
   if [ ! -e "networks/$run/base.nc" ] && [ -f "networks/$base/base.nc" ]; then
     mkdir -p "networks/$run"; ln "networks/$base/base.nc" "networks/$run/base.nc"; log "[$run] networks/$run/base.nc hardlinked from networks/$base"; fi

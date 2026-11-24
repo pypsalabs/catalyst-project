@@ -21,21 +21,64 @@ Inside a unit the load follows the area of the bus regions.
 Where heavy industry sits in units with few people, the load ends up in the wrong place.
 In China, 15\,\% of national demand lay in the wrong province: Inner Mongolia, Xinjiang, Ningxia and Qinghai had a third of their published consumption, Heilongjiang and Jilin twice theirs (Figure~\ref{fig:demandplacement}).
 The model then moved the missing demand's generation east: Inner Mongolia exported \SI{711}{TWh} on a load of \SI{188}{TWh}.
+In the two US regions, 16\,\% (East) and 17\,\% (West) of demand lay in the wrong state: New York and New Jersey had 2.2 times their share of the retail sales of electricity, California 1.5 times and Texas 0.64 times.
 
 \textit{What was done.}
 A table gives the share of the country's demand per administrative unit.
 A unit with a row gets that share of the country's load in every hour; units without a row keep the weight from GDP and population, and the table's shares are scaled to what is left.
-Inside a unit the load is distributed as before, and a country without rows is not touched.
+Inside a unit the load is distributed as without the table (next paragraph), and a country without rows is not touched.
 The national level stays the calibrated one, and every planning horizon uses the same shares.
 For China the table holds the consumption of the 31 provinces in 2024, Hong Kong and Macau.
 No table of 2024 could be read as text, so the provinces are measured off a published bar chart of the China Electricity Council's figures and scaled to the national total; for the eight provinces with an exact figure from another source the reading is within 2\,\%.
-The feature becomes active in rule \texttt{build\_demand\_profiles}, for China only:
+For the United States the table holds the retail sales of electricity per state in 2024 \citep{eia861}.
+A US region holds the states of its part only, and their shares are scaled to one.
+The feature becomes active in rule \texttt{build\_demand\_profiles}, for China and the two US regions:
 \yamlblock{demand_shares}
 
 \textit{Check.}
 With the shares, 0.2\,\% of China's demand lies in another province than published; what is left comes from bus regions that reach across a provincial border.
 In the dispatch of 2024 Inner Mongolia then exports \SI{358}{TWh} and Xinjiang \SI{108}{TWh}; their published generation minus consumption of 2024 is about 300 and \SI{105}{TWh}.
-All provinces share one national hourly demand shape, and the shares do not change over the horizons.
+In US East, 1.6\,\% of demand lies in another state than published, for the same reason.
+All units of a country share one national hourly demand shape, and the shares do not change over the horizons.
+India and Brazil keep the weights from GDP and population; their state statistics are not collected yet.
+
+\paragraph{Place demand inside an administrative unit where people live} (\commit{7a76b806})
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{demand_population.pdf}
+  \caption{Electricity demand of 2024 per area of each bus region of US East.
+  Left: state weights from GDP and population, and a state's load distributed by the area of its bus regions.
+  Right: state shares from the retail sales of electricity, and a state's load distributed by the people living in each bus region.
+  Black lines: state borders.}
+  \label{fig:demandpopulation}
+\end{figure}
+
+\textit{What needed fixing.}
+Inside an administrative unit, PyPSA-Earth distributes the load to the bus regions by the area in which each bus region overlaps the unit.
+The load of a state with one large city is then spread evenly over the state.
+New York City's load lay in upstate New York and the load of Dallas and Houston in west Texas (Figure~\ref{fig:demandpopulation}).
+The cluster of upstate New York had a peak load of \SI{38.8}{GW} against \SI{13.6}{GW} of firm plant and \SI{5.9}{GW} of usable line capacity.
+The dispatch of 2024, which could still reinforce lines, built 24\,\% of the grid volume of US East to serve load that is not there.
+
+\textit{What was done.}
+A new rule, \texttt{build\_region\_population}, counts the people in every overlap of a bus region and an administrative unit.
+It reads the WorldPop raster that PyPSA-Earth already downloads for the population of the units, in strips of rows, and sums it onto a grid of 30 arc seconds, about \SI{1}{km}.
+A grid cell belongs to the bus region and the unit that hold its centre.
+The demand step then gives each bus region the share of a unit's load that equals its share of the unit's people.
+A unit without people in any bus region keeps the distribution by area.
+The weight of a unit in its country is not changed: it comes from GDP and population or from the table of the previous paragraph.
+Clustering weights the buses by their load, so the clusters of a region change with this option.
+The feature becomes active in rule \texttt{build\_demand\_profiles}, for every run:
+\yamlblock{population_within_units}
+
+\textit{Check.}
+The people counted in the overlaps of a US East state agree with the population of the state in PyPSA-Earth's own shapes within 0.5\,\% (3\,\% for the District of Columbia).
+Against the placement by area, 18\,\% of US East's demand lies in another cluster.
+US East and US West were re-solved for 2024 with both placement options and with the grid frozen.
+Neither sheds load, and the load-weighted mean price of the clusters lies between 16 and \SI{22}{USD/MWh} in the East and between 13 and \SI{20}{USD/MWh} in the West.
+With the earlier placement US East shed load in every hour unless lines were reinforced.
+The other regions are not re-solved yet.
 
 \paragraph{Move the load of a part of a country in time} (\commit{8f290c58})
 

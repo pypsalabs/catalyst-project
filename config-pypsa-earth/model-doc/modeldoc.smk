@@ -30,6 +30,9 @@
 #   modeldoc_demand_placement  demand per province of China, model over published, before and after the provincial shares
 #                       (scripts/plot_demand_placement.py); its inputs build/demand_placement/CN_{before,after}.csv come from
 #                       ../scripts/check_demand_placement.py, run by hand on the China run before and after (read-only)
+#   modeldoc_demand_population  demand per bus region of US East, before and after state shares and population inside
+#                       a state (scripts/plot_demand_population.py); inputs build/demand_placement/USE_{before,after}_buses.csv
+#                       from the same check script, run by hand on the runs USE (17 Nov) and USE-now (24 Nov)
 #   modeldoc_circuits   real ways hit by the circuit defect, without and with fix_indirect_circuits (scripts/table_circuits.py -> build/circuit_ways.tex)
 #   modeldoc_isolated   the AC sub-networks of IN, CN, NWE and what simplify_network does with them, recomputed from
 #                       networks/<R>-now/elec.nc (scripts/plot_isolated.py); build/isolated_fates.csv = sub-networks per fate
@@ -244,6 +247,20 @@ rule modeldoc_demand_placement:
         "scripts/plot_demand_placement.py"
 
 
+rule modeldoc_demand_population:
+    input:
+        before=os.path.join(BUILD, "demand_placement/USE_before_buses.csv"),
+        after=os.path.join(BUILD, "demand_placement/USE_after_buses.csv"),
+        regions=os.path.join(FORK, "resources/USE/bus_regions/regions_onshore.geojson"),
+        states=os.path.join(FORK, "resources/USE/shapes/gadm_shapes.geojson"),
+    output:
+        os.path.join(FIG, "demand_population.pdf"),
+    resources:
+        mem_mb=2000,
+    script:
+        "scripts/plot_demand_population.py"
+
+
 rule modeldoc_isolated:
     input:
         networks=[os.path.join(FORK, f"networks/{r}-now/elec.nc") for r in ["IN", "CN", "NWE"]],
@@ -412,7 +429,7 @@ rule modeldoc_mix_before_after:
         "scripts/plot_mix_before_after.py"
 
 YAML_SNIPPETS = ["gas_mapping", "plant_statistics", "plant_efficiency", "envelope", "tranches", "retirements",
-                 "drop_duplicate_ids", "fix_indirect_circuits", "geodesic_length", "dc_ratings", "dc_projects", "isolated", "loadability", "demand_shares", "time_shift",
+                 "drop_duplicate_ids", "fix_indirect_circuits", "geodesic_length", "dc_ratings", "dc_projects", "isolated", "loadability", "demand_shares", "population_within_units", "time_shift", "expansion_limit",
                  "clip_bbox", "excluder_resolution", "renewable_capacities", "cf_targets", "cluster_weight", "resource_classes"]
 
 
@@ -644,7 +661,8 @@ rule modeldoc_pdf:
                                                    "renew_capacity.pdf", "renew_cf.pdf", "renew_classes.pdf",
                                                    "cfe_datacentres.pdf", "cfe_buyers.pdf", "cfe_share_map.pdf", "cfe_share_regions.pdf"]],
         cfe=os.path.join(BUILD, "cfe_share.tex"),
-        demand=os.path.join(FIG, "demand_placement.pdf"),
+        demand=[os.path.join(FIG, "demand_placement.pdf"), os.path.join(FIG, "demand_population.pdf")],
+        grid=[os.path.join(BUILD, "grid_expansion.tex"), os.path.join(FIG, "grid_expansion.pdf")],
     output:
         os.path.join(BUILD, "model_doc.pdf"),
     params:

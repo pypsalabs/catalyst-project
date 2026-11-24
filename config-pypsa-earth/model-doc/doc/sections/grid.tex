@@ -382,6 +382,50 @@ We use 0.4 for every region, China included, for which no published figure with 
   \label{fig:loadmap}
 \end{figure}
 
+\paragraph{Limit the build-out of the grid} (\commit{f374de79})
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{grid_expansion.pdf}
+  \caption{The transmission grid relative to 2024 as the model may build it.
+  Solid: the cap with the rate at which the region's grid has grown, the central case.
+  Dashed: the cap with the rate that plans and needs studies ask for.
+  Grey: the growth of the last decade.
+  Circles: published plan figures, in circuit km or interface capacity (Table~\ref{tab:gridexpansion} names them).}
+  \label{fig:gridexpansion}
+\end{figure}
+
+\textit{What needed fixing.}
+The scenarios let the optimisation reinforce every AC corridor and every HVDC link at cost (\texttt{ll: copt}), without a bound, a lead time or a build rate.
+Real grids grow slowly: new transmission takes five to fifteen years to plan, permit and build \citep{ieagrids2023}.
+With lines limited by their loadability and the lower security margin, India's zero-carbon run answered by adding \SI{309}{GW} of AC line capacity and \SI{22}{GW} of HVDC in one step, and China's by adding \SI{1900}{GW} of HVDC to the \SI{354}{GW} it has.
+An unbounded grid makes distant resources too cheap and local firm capacity too small.
+
+\textit{What was done.}
+The transmission volume, capacity times length summed over AC lines and HVDC links, is limited to that of the existing grid grown at a rate per year: $V(y) \le (1 + r)^{\,y - 2024}\, V_{2024}$.
+The limit is one global constraint per region, so the optimisation chooses where the grid grows, and HVDC counts in the same limit as AC.
+In the pathway it is set anew for every planning horizon, and what was built in a horizon stays as the minimum of the next.
+The single-step runs of 2050 get the limit at its 2050 value; the dispatch of 2024 needs none, because its grid is frozen (\texttt{ll: v1.0}).
+The rate $r$ of a region is the growth its grid has delivered (Table~\ref{tab:gridexpansion}, Figure~\ref{fig:gridexpansion}): 1\,\% per year in the two US regions and North-West Europe, 2\,\% in Brazil, 3\,\% in India and 4\,\% in China.
+The rates that official plans and needs studies imply are kept as a sensitivity.
+Published growth is in circuit km or in interface capacity, not in capacity times length; we assume the volume grows like them.
+Uprating of existing lines, common in the US and Europe, is not in the length figures.
+
+\begin{table}[htb]
+  \centering
+  \caption{The cap on grid build-out: rate per year and the grid it allows relative to 2024.
+  Delivered: US about 1\,\% per year in the last decade and 2\,\% from 1978 to 2020 \citep{repeat2022}; EU $+12$\,\% in a decade, Brazil more than $+50$\,\%, India about $+60$\,\% \citep{ieagrids2023}; India $+3$\,\% per year from 2019-20 to 2024-25 \citep{powerline2025}; China's west-to-east capacity from 270 to \SI{340}{GW} between 2020 and 2025.
+  Plans: US 2.1 to 2.6 times the system of 2020 by 2050 \citep{gridstrategies2025}; cross-border capacity between the twelve European countries from 46.6 to \SI{71.3}{GW} by 2030 \citep{emberinterconnection}; Brazil 191,353 to \SI{220134}{km} by 2035 \citep{epepde2035}; India 496,372 to 648,190 circuit km by 2031-32 \citep{powerline2025}; China \SI{420}{GW} by 2030.}
+  \label{tab:gridexpansion}
+  \small
+  \input{../build/grid_expansion.tex}
+\end{table}
+
+The feature becomes active in rules \texttt{add\_brownfield} and \texttt{prepare\_network} with the option \texttt{lines: expansion\_limit}.
+The driver writes the option for every stage from the table of rates, by the column named in the first block; the second block gives the single-step runs of 2050 their year:
+\yamlblock{expansion_limit}
+
+
 \FloatBarrier
 \subsubsection{Check against real project metrics}\label{sec:grid-check}
 
@@ -472,9 +516,17 @@ Capacity times true length avoids this (Table~\ref{tab:hvdcregions}, Figure~\ref
   \item A cluster that spans a border holds the circuits across it inside, where the clustered network has no line and therefore no limit: \SI{128}{GW} of the \SI{312}{GW} between India's regional grids.
 \end{itemize}
 
+\textbf{The cap on build-out.}
+\begin{itemize}[nosep,leftmargin=*]
+  \item India's zero-carbon run of 2050 may build 2.16 times the existing grid and builds 1.16 times: the cap does not bind, and the result equals that without it.
+  \item North-West Europe's may build 1.295 times and builds exactly that, with a shadow price of 436 \$ per MW\,km; inside the allowance the AC volume grows by 14\,\% and the HVDC volume more than sixfold.
+  \item In a pathway of a ten-node test region with 2\,\% per year, the allowance is 1.02, 1.13 and 1.24 times the existing grid in 2025, 2030 and 2035, and the grid built is never above it and never below that of the horizon before.
+\end{itemize}
+
 \textbf{What stays unvalidated.}
 \begin{itemize}[nosep,leftmargin=*]
   \item Any effect on model results: load shedding, flows, prices and the technology mix.
+  \item The cap on build-out in a pathway of a full region, and with the rates of the plans.
   \item AC transfer capacity in China: no published figure with a border was found (\SI{340}{GW} of west-to-east transmission, AC and HVDC not separated).
   \item The security margin: one value from 33 borders in five regions, applied to every line of every region; China's has no published figure behind it.
   \item The loadability curve is a planning curve for single lines without compensation; circuit lengths are those between two substations in OpenStreetMap, which can be shorter than the section between two points with voltage support.

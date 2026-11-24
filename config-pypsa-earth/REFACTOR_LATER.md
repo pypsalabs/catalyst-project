@@ -110,46 +110,6 @@ Findings (2026-11-18):
 
 **Questions:** see below.
 
-### H. Grid build-out without bound (noted 2026-11-19; after item G)
-
-**Now:** every overlay runs `ll: copt`: each existing AC corridor and HVDC link can be reinforced without bound at
-the cost table's price (about 500 $/MW-km x length factor 1.25, HVDC plus 190,000 $/MW per converter pair; 40
-years, 7 %), carried into the next horizon as a minimum; no new corridors, no lead time, no build-rate limit; 2025
-is dispatch-only, so the grid first grows in 2030. The SOW does not set a rule; the Joule 2025 study froze the grid
-(`lv1.0`).
-
-**Decided by the maintainer (2026-11-19):** `copt` should not be the default, transmission build-out is slow and
-lags. The cap comes **after item G**: first the lines themselves have to approximate real behaviour, then the
-build-out is limited (a cap measured against a grid that is too permissive would be measured against the wrong
-base, and in India and Brazil it would not bind at all).
-
-**Change:** a cap on the growth of the line volume per region and horizon. The wildcard `ll` already takes
-`lv<f>` (total volume <= f x today's) and `ll<f>` (every corridor <= f x today's), but one factor for all horizons,
-relative to the base grid, so the model could build the whole allowance in 2030. A cap that rises per horizon needs
-a fork change: a rate per region from a statistics table, the horizon's factor set in `add_brownfield_elec`.
-
-**Why deferred:** it follows item G, changes every pathway solve of the multi-node regions, and the rates are not
-decided.
-
-First assessment of the rates (2026-11-19; figures from search summaries of the sources, not checked in the
-documents; circuit km of 220 / 230 kV and above unless noted, which understates capacity growth where voltages are
-uprated; the last column is the grid of the `zero` screening solves with `copt`, before item G):
-
-| region | history | plan | proposed cap on line volume | cap 2030 / 2040 / 2050 vs 2024 | 2050 `zero` screening asks |
-|---|---|---|---|---|---|
-| US West, US East | about 1 %/yr over the last decade, about 2 %/yr 1978-2020 (REPEAT 2022); 345 kV+: 925 miles/yr 2015-19, 350 miles/yr 2020-23, 888 miles in 2024 (Grid Strategies) | DOE Needs Study: +57 % by 2035 (median), about 3.5 %/yr | 1 %/yr (stretch 2 %) | 1.06 / 1.17 / 1.30 | 2.80 (single US stage) |
-| North-West Europe | advanced economies +9 % in a decade (IEA 2023); 16,000 km in ENTSO-E since 2010; Germany 2,800 of 14,000 legally required km built by end 2023 | TYNDP 2024: +108 GW cross-border after 2030 by 2040 on 126 GW in 2025, project portfolio 80 GW | 1 %/yr (stretch 2 %) | 1.06 / 1.17 / 1.30 | 1.61 |
-| Brazil | +50 % in a decade (IEA 2023); 189,308 km end 2024, +4,100 km in 2024 = 2.2 % (MME) | PDE 2034: +30,000 km in ten years = 1.5 %/yr | 2 %/yr | 1.13 / 1.37 / 1.67 | 1.04 |
-| India | 292,000 ckm (2014) to 494,374 ckm (March 2025) = 4.9 %/yr; FY25 only +1.8 % (CEA) | National Electricity Plan: +191,000 ckm 2022-32 = about 3.5 %/yr; inter-regional 119 to 143 GW (2027) to 168 GW (2032) | 3.5 %/yr | 1.23 / 1.73 / 2.45 | 1.015 |
-| China | +69 % 2013-2023 = 5.4 %/yr to 920,000 km; 1.03 million km in 2025, +5.2 % (CEC) | none collected | 4 %/yr | 1.27 / 1.87 / 2.77 | 2.11 |
-
-Reading: the cap binds hard in the US (asks 2.8 x, gets 1.3 x), binds in North-West Europe, and not in China, India
-and Brazil; in India and Brazil only because their existing grid is too permissive (item G). Lead time 5 to 15
-years (IEA 2023) says the 2030 horizon should get committed projects only. The last column has to be measured
-again once item G is in.
-
-**Questions:** see below.
-
 ### I. 24/7 CFE buyers' share per country: what is left (noted 2026-11-19, list of 2026-11-22)
 
 Since 2026-11-19 the buyers' share of demand is one value per country and horizon (`calibration/<year>/cfe_share.csv`
@@ -222,12 +182,17 @@ doc section "Demand for 24/7 Carbon-Free Electricity"). Open, in the order in wh
   is still "to be written".
 - **Not pushed**: fork commit 0127cc6c and the parent commits of this work.
 
-### J. Demand placed inside a country: the regions other than China (noted 2026-11-23)
+### J. Demand placed inside a country: India, Brazil, North-West Europe (noted 2026-11-23, US done 2026-11-24)
 
-China is done (README "China: demand per province"; fork option `load_options: subnational_shares`, table
-`calibration/2024/demand_shares.csv`). Open: whether GDP and population misplace demand in India, the US halves and
-Brazil as well. First step is the read-only check (`scripts/check_demand_placement.py`) against state statistics
-(India: CEA; US: EIA retail sales, on disk; Brazil: EPE); a region that is off gets rows in the same table.
+China and the two US regions take their state / province shares from the table `calibration/2024/demand_shares.csv`
+(fork option `load_options: subnational_shares`), and every region places a unit's load by population
+(`load_options: population_within_units`; README "Demand placement"). Open:
+
+- **India and Brazil**: state shares from statistics (India: CEA; Brazil: EPE) as rows of the same table. First the
+  read-only check (`scripts/check_demand_placement.py`); decided 2026-11-24: after the US result is confirmed.
+- **North-West Europe**: the units are large (England is one), population inside them is now used; whether the
+  weights of the units (GDP and population) are off has not been checked against national statistics per region.
+- **Shares over time**: constant over the horizons in every region.
 
 ### E, rest. Each US half's own demand shape (noted 2026-11-17, time shift done 2026-11-23)
 
@@ -252,14 +217,6 @@ is finalised. Do not pick an answer yourself and do not bury them in the plan.**
   it is (zones made of whole countries, Germany + Luxembourg).
 - **Item F, China's 18 single-cluster provinces.** With 50 clusters over 28 zones, 18 provinces are one node and are
   matched by node. More clusters, or regional grids as zones for the small provinces, or accept it?
-- **Item H, history or plan as the central case.** History is what the grid has delivered; plans are close to the
-  forward-looking policies the SOW leaves out, and the US and Europe have missed theirs. With history the US grid
-  is 1.3 x today's in 2050, which raises the value of local firm capacity, the study's headline quantity.
-- **Item H, the rates.** Are 1 %/yr (US, North-West Europe), 2 % (Brazil), 3.5 % (India), 4 % (China) of line volume
-  the central case, and which stretch case is reported as a sensitivity?
-- **Item H, shape of the cap.** One cap on the total line volume per region, or also a ceiling per corridor (what
-  reconductoring can deliver, such as `ll2.0`)? Does HVDC count in the same cap (the India test escaped the line
-  limit with 39 GW of HVDC)? Does the 2030 horizon get committed projects only (lead time 5 to 15 years)?
 
 
 ## Dropped
@@ -271,6 +228,15 @@ is finalised. Do not pick an answer yourself and do not bury them in the plan.**
   120 of 246 class generators at their limit, 40 % of the potential on forest), where wind in managed forest is common
   practice. The letters of the other items are kept.
 
+## Done: item H, cap on grid build-out (2026-11-23)
+
+Decided by the maintainer: the central case is what the grids have delivered (US 1, North-West Europe 1, Brazil 2,
+India 3, China 4 % per year on line volume from 2024), plans are a sensitivity; one cap per region and horizon on AC
+lines and HVDC links together; the 2050 screening runs get the cap at its 2050 value. Fork option
+`lines: expansion_limit` (f374de79), rates from `data/grid_expansion/grid_expansion.csv`. Record and tests: README
+"Grid build-out". Not done: no pathway and no other `zero` run is solved with it; no plan-rate run; no ceiling per
+corridor, no lead times.
+
 ## Done on 2026-11-23: items C, E (time shift), J (China)
 
 - **C.** The scaled-down wind and solar plant list reaches the generators (fork 9d6a937b). Networks on disk predate it.
@@ -278,6 +244,20 @@ is finalised. Do not pick an answer yourself and do not bury them in the plan.**
   The measured shapes stay open (above).
 - **J.** China's demand per province from published shares (fork 563658d5), China rebuilt and re-solved; decided:
   China only for now, shares constant over the horizons.
+
+## Done on 2026-11-24: demand placement in the US, population inside a unit, frozen grid in the 2024 runs
+
+- **J, US part.** US states' shares from EIA retail sales of 2024 (rows of `calibration/2024/demand_shares.csv`,
+  `scripts/build_demand_shares.py`; `subnational_shares: true` in `config.USW.yaml` / `config.USE.yaml`).
+- **Population inside a unit** (fork option `load_options: population_within_units`, rule `build_region_population`;
+  on in `statistics.yaml` for every stage). Changes the clusters of every multi-node region: all of them need a
+  rebuild from the demand step on.
+- **2024 runs with a frozen grid** (`overlay.now.yaml`: `ll: [v1.0]`, before `copt`). The solved networks are now
+  named `..._lv1.0_3h.nc`; `model-doc/modeldoc.smk` and two model-doc scripts still name `results/NWE-now/...lcopt_3h.nc`
+  and need the new name once NWE is re-solved.
+- **Isolated buses**: the links that attach them carried a ramp limit of zero, which fixed their flow for the year
+  (shedding at 8 buses of US East, 2 of US West, 1 of Brazil in every solve since September); fixed in
+  `calibrate_network.attach_isolated_buses`.
 
 ## Done: item G, long AC lines (2026-11-23)
 

@@ -11,11 +11,18 @@ China (cn_provinces_2024.csv): the 31 provinces are measured off a published bar
 their bar lengths are converted with one scale so that they sum to the national consumption, and compared with the
 exact figures the file holds for some of them. Hong Kong and Macau are given in TWh.
 
+United States: retail sales of electricity per state in 2024, EIA form 861 (data/validation/eia/state/HS861 2010-.xlsx,
+read by build_region_tables.eia_sales, which also splits the national demand over US West and US East with it). Retail
+sales are consumption without grid losses and without the plants' own use; only their shares are used. One national
+table serves both halves: a run holds the states of its half only, and the option scales their shares to one.
+
 Usage (from config-pypsa-earth): ../models/pypsa-earth/.pixi/envs/default/bin/python scripts/build_demand_shares.py
 """
 import os
 
 import pandas as pd
+
+import build_region_tables as rt
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(HERE, "calibration", "2024", "demand_shares.csv")
@@ -36,8 +43,17 @@ def china():
     return d[["key", "country", "name", "demand_twh"]]
 
 
+def united_states(year=2024):
+    sales = rt.eia_sales(year) / 1e6
+    codes = pd.Series(rt.unit_codes("US"))
+    d = pd.DataFrame({"key": codes.index, "country": "US", "name": codes.values, "demand_twh": codes.map(sales).values})
+    assert d.demand_twh.notna().all(), f"no retail sales for {d.name[d.demand_twh.isna()].tolist()}"
+    print(f"United States: {len(d)} states, retail sales {d.demand_twh.sum():.0f} TWh in {year} (EIA form 861)")
+    return d
+
+
 def main():
-    out = pd.concat([china()], ignore_index=True)
+    out = pd.concat([china(), united_states()], ignore_index=True)
     assert not out.key.duplicated().any() and out.demand_twh.gt(0).all()
     out["share"] = out.demand_twh / out.groupby("country").demand_twh.transform("sum")
     out["demand_twh"] = out.demand_twh.round(1)
