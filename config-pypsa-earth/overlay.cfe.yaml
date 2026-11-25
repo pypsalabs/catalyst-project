@@ -10,6 +10,10 @@
 inherit: myopic
 
 catalyst:
+  # since 2026-11-25: the buyers are added per horizon (fork add_brownfield), so everything up to the prepared network
+  # is the reference's. <R>-cfe starts from a copy of the prepared inputs of <R>-ref (plant list, profiles, network;
+  # run.sh copy_parent) where that stage exists, and builds its own otherwise
+  inputs_from: ref
   cfe:
     share: statistics           # decided 2026-11-19: the buyers' share of demand per country and horizon, from the table
                                 # calibration/<year>/cfe_share.csv = data centres + half of the other electricity use of
@@ -19,7 +23,7 @@ catalyst:
                                 # number or such a pathway still works)
     target: 1.0                 # only binds with grid_imports: true (without imports the score is 1 by construction)
     excess_share: 0.20
-    start_year: 2030            # 2025 is a dispatch-only horizon: nothing can be procured
+    start_year: 2030            # first horizon with buyers (= the first planning horizon since 2026-11-25)
     matching: zone              # decided (Morocco ten-node test of 2026-11-11, written down 2026-11-18): the buyers of a
                                 # market zone are matched together hour by hour, power through the grid. Matching every
                                 # buyer at its own node (overlay cfenode) is unrealistically restrictive: 24/7 CFE

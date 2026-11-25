@@ -7,4 +7,4 @@
 inherit: ref
 
 catalyst:
-  learning_spillover: extrapolate
+  learning_spillover: extrapolate  # since 2026-11-25 two factors of the horizon: grid builds x 1 / (the stages' share of world demand), buyers' builds x 1 / (their share of the world's 24/7 CFE buyer demand); clear_market.py coverage()

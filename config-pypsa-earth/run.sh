@@ -144,6 +144,24 @@ link_resources() {   # $1 = base run, $2 = scenario run: share the expensive res
     mkdir -p "networks/$run"; ln "networks/$base/base.nc" "networks/$run/base.nc"; log "[$run] networks/$run/base.nc hardlinked from networks/$base"; fi
 }
 
+copy_parent() {   # $1 = stage: start from a copy of the prepared inputs of the stage's parent (merge_config.py parent)
+  # The parent of a branch (catalyst.branch) or the stage named by catalyst.inputs_from (overlay cfe: ref) is the
+  # same model up to the prepared network: plant list (47 to 80 min for the US halves and China), profiles,
+  # clustered network. resources/<parent>/ and networks/<parent>/ are copied once, with their modification times
+  # (cp -a), so nothing looks outdated and Snakemake runs only what the stage's own horizons need. The symlinks
+  # into the base run are relative and stay valid. The cost tables of the stage's own horizons are left out: they
+  # follow the stage's own learning market, and a copy could be newer than an unchanged market file.
+  local run="$1" parent y
+  [ -e "resources/$run" ] || [ -e "networks/$run" ] && return 0
+  parent=$($RUN python "$HERE/merge_config.py" parent "$run" 2>/dev/null) || return 0
+  [ -n "$parent" ] && [ -d "resources/$parent" ] && [ -d "networks/$parent" ] || return 0
+  cp -a "resources/$parent" "resources/$run" && cp -a "networks/$parent" "networks/$run" || return 0
+  for y in $($RUN python "$HERE/merge_config.py" horizons "$run" 2>/dev/null); do
+    rm -f "resources/$run/costs_${y}_elec.csv" "resources/$run/statistics/cost_overrides_${y}.csv"
+  done
+  log "[$run] resources/$run/ and networks/$run/ copied from the stage $parent (prepared inputs; own cost tables)"
+}
+
 run_stage() {   # $1 = stage name (see header); HORIZON=<year> (pathway): target that horizon's solved network
   local run="$1" kind tag target slog rc attempt netwait wd rule
   kind=$(stage_kind "$run"); run="${run#dashboard:}"
@@ -155,7 +173,7 @@ run_stage() {   # $1 = stage name (see header); HORIZON=<year> (pathway): target
   cp "$PE/config.yaml" "$LOGDIR/config.$tag.yaml"
   # a document is re-edited, a pathway horizon may have a new market file: let Snakemake decide
   if [ -f "$target" ] && [ "$kind" != assumptions ] && [ -z "${HORIZON:-}" ]; then log "[$run] $target exists, skip"; return 0; fi
-  if [ "$kind" = overlay ]; then link_resources "${run%-*}" "$run"; fi
+  if [ "$kind" = overlay ]; then copy_parent "$run"; link_resources "${run%-*}" "$run"; fi
   attempt=0; netwait=0
   while [ "$attempt" -lt 3 ]; do
     attempt=$((attempt + 1))

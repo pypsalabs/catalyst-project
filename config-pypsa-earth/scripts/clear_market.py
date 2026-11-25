@@ -32,9 +32,14 @@ horizons before Y, and the cost factor of horizon Y
   power; x duration_h for energy-learning rows): a test hook, and the hook for procurement volumes.
 - Learning spillover (catalyst.learning_spillover of the stages, decided 2026-11-08): what the rest of the world
   builds of what the modelled stages build. Unset (default) = only modelled builds count, as above. Otherwise the
-  modelled builds are multiplied by m before they enter Q: a number as given, `midpoint` = sqrt(1 / share),
-  `extrapolate` = 1 / share, share = the stages' share of 2024 world demand (coverage()); exogenous deployment is
-  not scaled. Extra columns multiplier and new_extrapolated (= (m - 1) x modelled, the assumed builds elsewhere).
+  modelled builds are multiplied before they enter Q, with two factors since 2026-11-25 (the buyers' share of
+  demand differs by country, statistics/cfe_share): what the 24/7 CFE buyers build (assets on the buyers' buses,
+  n.meta cfe) is scaled with the stages' share of the world's buyer demand, what the grid builds with their share
+  of world demand, both of the horizon whose builds are counted (coverage(); calibration/<year>/demand.csv and
+  cfe_share.csv). `extrapolate` = 1 / share, `midpoint` = sqrt(1 / share); a number = that number for everything
+  (file as before). Exogenous deployment is not scaled. Extra columns multiplier and new_extrapolated (the assumed
+  builds elsewhere) and, with the two factors, new_buyers (modelled buyer builds, part of the new_<stage> columns)
+  and multiplier_buyers.
 - Branches (catalyst.branch: {from: <parent>, year: Y}, merge_config.py): `init <market> <year0> <stages>` of a
   branch copies the parent market's market_<Y>.csv and steps over the parent's solved networks of Y with the
   branch's own multiplier, so market_<year0> is the branch's first own state.
@@ -45,6 +50,7 @@ horizon of every stage (run.sh uses --rerun-triggers mtime input).
 import io
 import math
 import os
+import shutil
 import sys
 
 import pandas as pd
@@ -55,7 +61,6 @@ sys.path.insert(0, os.path.join(HERE, "..", "technology-assumptions", "scripts")
 import merge_config  # noqa: E402
 import palette  # noqa: E402
 
-DEMAND = os.path.join(HERE, "..", "calibration", "2024", "demand.csv")
 
 
 def path(market, year):
@@ -88,50 +93,66 @@ def initial(rows):
 
 
 def builds(n, rows, threshold):
-    """{technology: {"GW": new power, "GWh": new energy}} of the extendable assets of a solved network."""
+    """{technology: {"GW": new power, "GWh": new energy, "GW buyers", "GWh buyers": the part of both on the buses of
+    the 24/7 CFE buyers}} of the extendable assets of a solved network."""
+    buyer_buses = set(((n.meta or {}).get("cfe") or {}).get("buyers", {}))
     out = {}
     for r in rows:
-        mw = mwh = 0.0
+        mw = mwh = mw_b = mwh_b = 0.0
         for comp in ("Generator", "StorageUnit"):
             df = n.df(comp)
             ext = df[df.carrier.isin(palette.carriers(r)) & df.p_nom_extendable & (df.p_nom_opt >= threshold)]
             new = (ext.p_nom_opt - ext.p_nom_min).clip(lower=0.0)
+            own = ext.bus.isin(buyer_buses)
             mw += new.sum()
+            mw_b += new[own].sum()
             if comp == "StorageUnit":
                 mwh += (new * ext.max_hours).sum()
-        out[r["technology"]] = {"GW": mw / 1e3, "GWh": mwh / 1e3}
+                mwh_b += (new * ext.max_hours)[own].sum()
+        out[r["technology"]] = {"GW": mw / 1e3, "GWh": mwh / 1e3, "GW buyers": mw_b / 1e3, "GWh buyers": mwh_b / 1e3}
     return out
 
 
-def coverage(stages):
-    """Share of 2024 world demand (Ember, calibration/2024/demand.csv) in the countries of the stages. A stage that
-    models a part of a country (catalyst: tables: region, e.g. US West) counts with the demand of its part
-    (merge_config.stage_table); a country or part named by several stages counts once."""
-    world = pd.read_csv(DEMAND).demand_twh.sum()
+def coverage(stages, year=2024):
+    """(share of world demand, share of the world's 24/7 CFE buyer demand) of `year` in the countries of the stages
+    (calibration/<year>/demand.csv; buyer demand = demand x calibration/<year>/cfe_share.csv, None where that table
+    does not exist). A stage that models a part of a country (catalyst: tables: region, e.g. US West) counts with
+    the demand of its part (merge_config.stage_table) and the country's buyer share; a country or part named by
+    several stages counts once."""
+    cal = os.path.join(HERE, "..", "calibration", str(year))
+    world = pd.read_csv(os.path.join(cal, "demand.csv")).set_index("country").demand_twh
     covered = {}
     for s in stages:
         cfg = merge_config.stage_config("overlay", s)
         region = ((cfg.get("catalyst") or {}).get("tables") or {}).get("region")
-        d = merge_config.stage_table(cfg, "demand", 2024).set_index("country").demand_twh
+        d = merge_config.stage_table(cfg, "demand", year).set_index("country").demand_twh
         for c in cfg["countries"]:
             covered[(c, region)] = d.get(c, 0.0)
-    return sum(covered.values()) / world
+    demand = sum(covered.values()) / world.sum()
+    if not os.path.exists(os.path.join(cal, "cfe_share.csv")):
+        return demand, None
+    share = pd.read_csv(os.path.join(cal, "cfe_share.csv")).set_index("country").share
+    buyers = sum(v * share.get(c, 0.0) for (c, _), v in covered.items())
+    return demand, buyers / (world * share.reindex(world.index).fillna(0.0)).sum()
 
 
-def multiplier(stages):
-    """(m, label) of the stages' catalyst.learning_spillover; m = None when unset (only modelled builds count)."""
+def multiplier(stages, year):
+    """(m for what the grid builds, m for what the buyers build, label) of the stages' catalyst.learning_spillover
+    for the builds of horizon `year`; m = None when unset (only modelled builds count)."""
     vals = {str((merge_config.stage_config("overlay", s)["catalyst"]).get("learning_spillover")) for s in stages}
     if len(vals) > 1:
         raise ValueError(f"stages of one market with different learning_spillover: {sorted(vals)}")
     v = vals.pop()
     if v == "None":
-        return None, None
-    share = coverage(stages)
-    if v == "extrapolate":
-        return 1.0 / share, f"extrapolate: modelled builds x 1/share = x{1.0 / share:.3g}"
-    if v == "midpoint":
-        return share ** -0.5, f"midpoint: modelled builds x sqrt(1/share) = x{share ** -0.5:.3g}"
-    return float(v), f"modelled builds x {float(v):.3g}"
+        return None, None, None
+    if v not in ("extrapolate", "midpoint"):
+        return float(v), None, f"modelled builds x {float(v):.3g}"
+    demand, buyers = coverage(stages, year)
+    power = -1.0 if v == "extrapolate" else -0.5
+    m, mb = demand ** power, (buyers if buyers else demand) ** power
+    rule = "1/share" if v == "extrapolate" else "sqrt(1/share)"
+    return m, mb, (f"{v}: grid builds x {rule} of world demand {year} ({demand:.1%}) = x{m:.3g}, buyers' builds x "
+                   f"{rule} of the world's 24/7 CFE buyer demand {year} ({(buyers or demand):.1%}) = x{mb:.3g}")
 
 
 def write(df, header, out):
@@ -166,6 +187,7 @@ def init(market, year0, stages=()):
             os.makedirs(os.path.dirname(out), exist_ok=True)
             with open(out, "w") as f:
                 f.write(text)
+            shutil.copystat(src, out)   # the parent's time: a copy of the parent's inputs is not outdated by it
             print(f"clear_market: wrote {out} (copy of {src})")
         return step(market, by, year0, list(stages))
     df = initial(palette.read())
@@ -196,28 +218,35 @@ def step(market, year, year_next, stages, exogenous=None):
         e = pd.read_csv(exogenous, comment="#")
         for t, g in e[e.year == int(year)].groupby("technology").gw.sum().items():
             exo[t] = g
-    m, rule = multiplier(stages)
+    m, mb, rule = multiplier(stages, int(year))
     df = initial(rows).set_index(["pool", "component"])
     prev = prev.set_index(["pool", "component"])
     for (pool, comp), r in df.iterrows():
         unit = r.unit
         per_stage = {s: sum(new[s][t][unit] for t in pools[pool]["members"]) for s in stages}
+        of_buyers = sum(new[s][t][f"{unit} buyers"] for t in pools[pool]["members"] for s in stages)
         ex = sum(exo.get(t, 0.0) * (palette.num(by_key[t], "duration_h", 0.0) if unit == "GWh" else 1.0)
                  for t in pools[pool]["members"])
         modelled = sum(per_stage.values())
-        added = (modelled * m if m is not None else modelled) + ex
+        # mb is None for a plain number (one factor for everything; the file is then as before 2026-11-25)
+        scaled = modelled if m is None else modelled * m if mb is None else (modelled - of_buyers) * m + of_buyers * mb
+        added = scaled + ex
         cum = (prev.at[(pool, comp), "cumulative_capacity"] if (pool, comp) in prev.index else r.reference_capacity) + added
         fac = factor(cum, r.reference_capacity, r.learning_rate)
         for s, v in per_stage.items():
             df.at[(pool, comp), f"new_{s}"] = v
         df.at[(pool, comp), "new_exogenous"] = ex
+        if mb is not None:
+            df.at[(pool, comp), "new_buyers"] = of_buyers
         if m is not None:
             df.at[(pool, comp), "multiplier"] = m
-            df.at[(pool, comp), "new_extrapolated"] = modelled * (m - 1.0)
+            if mb is not None:
+                df.at[(pool, comp), "multiplier_buyers"] = mb
+            df.at[(pool, comp), "new_extrapolated"] = scaled - modelled
         df.loc[(pool, comp), ["new_capacity", "cumulative_capacity", "doublings", "factor", "capex"]] = [
             added, cum, math.log2(max(cum / r.reference_capacity, 1.0)), fac, round(r.capex_ref * fac, 4)]
     df = df.reset_index()
-    cov = coverage(stages)
+    cov, _ = coverage(stages)     # the 2024 share, as in every file before 2026-11-25 (an unchanged file is not rewritten)
     header = [f"learning market '{market}': state at the start of horizon {year_next}; new_* = builds of horizon {year}",
               f"stages: {' '.join(stages)} ({cov:.1%} of 2024 world electricity demand, Ember); "
               + (f"learning spillover {rule}" if m is not None else "only modelled builds count"),

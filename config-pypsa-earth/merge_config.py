@@ -345,6 +345,12 @@ if __name__ == "__main__":
     if sys.argv[1] == "horizons":
         print(" ".join(str(y) for y in horizons(sys.argv[2])))
         sys.exit()
+    if sys.argv[1] == "parent":   # the stage whose prepared inputs a stage starts from (run.sh copy_parent), or nothing:
+        # the parent of a branch, else <R>-<catalyst.inputs_from>
+        cat = stage_config("overlay", sys.argv[2])["catalyst"]
+        src = (cat.get("branch") or {}).get("from") or cat.get("inputs_from")
+        print(f"{cat['base_run']}-{src}" if src else "")
+        sys.exit()
     kind, stage, out = sys.argv[1:4]
     horizon = sys.argv[4] if len(sys.argv) > 4 else None
     cfg = stage_config(kind, stage)

@@ -3,8 +3,9 @@
 # Catalyst pathway scenario "myopic" = electricity-only myopic capacity expansion in five-year steps (fork rules
 # add_brownfield_elec / solve_network_myopic_elec, `foresight: myopic`): every horizon is solved on its own and
 # inherits what the previous one built; existing plants retire only at a retirement year reported by the power plant
-# data (SOW: keep existing capacity, firm dated retirements), 2025 is a dispatch of the calibrated system (SOW: 2025
-# validation run, expansion from 2030); new assets are built at the technology costs of the horizon. The starting point is the calibrated 2024 system of overlay.now.yaml
+# data (SOW: keep existing capacity, firm dated retirements); the first horizon is 2030 (since 2026-11-25: the validation
+# run of the existing system is the 2024 dispatch of overlay.now.yaml; a 2025 dispatch-only horizon before 2030 carried
+# nothing into 2030, the existing fleet is in the prepared network); new assets are built at the technology costs of the horizon. The starting point is the calibrated 2024 system of overlay.now.yaml
 # (fleet, hydro energy, fuel and CO2 prices, capacity-factor envelopes), with expansion allowed and no CO2 cap.
 # Demand of each horizon comes from the demand pathway (calibration/<year>/demand.csv, scripts/build_demand_pathway.py).
 # Applied by config-pypsa-earth/run.sh on top of config.<R>.yaml for a stage named <R>-myopic; the stage target is
@@ -21,10 +22,10 @@ scenario:
   simpl: [""]
   ll: [copt]
   opts: [3h]            # no CO2 cap; 3h: see overlay.now.yaml
-  planning_horizons: [2025, 2030, 2035, 2040, 2045, 2050]
+  planning_horizons: [2030, 2035, 2040, 2045, 2050]   # until 2026-11-25 with 2025 in front, as a dispatch-only horizon
 
 costs:
-  year: 2025            # costs the network is built with; add_brownfield_elec moves new assets to the horizon's costs
+  year: 2025            # costs the network is built with (never learn, no market file); add_brownfield_elec moves new assets to the horizon's costs
 
 load_options:
   horizon_totals: true   # demand profiles per horizon: tables demand_<horizon>.csv = calibration/<horizon>/demand.csv
@@ -60,7 +61,7 @@ electricity:
   powerplants_lifetimes: costs
 
 existing_capacities:
-  dispatch_only_horizons: [2025]  # SOW: 2025 validation run of the existing system, expansion from 2030 (fork patch)
+  dispatch_only_horizons: []      # fork patch: horizons solved as a dispatch of the existing system; none since 2026-11-25 (was [2025])
   grouping_years_power: [1960, 1965, 1970, 1975, 1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040]  # covers the planned start years
 
 enable:

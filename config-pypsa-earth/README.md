@@ -1578,7 +1578,8 @@ The shared interface is the year. Demand, the myopic loop, the palette and the l
   4. solves 2025 without expansion (`existing_capacities.dispatch_only_horizons: [2025]`, fork patch
      2026-10-09): every extendable capacity is fixed at its lower bound, so 2025 is the dispatch of the
      calibrated 2024 fleet with 2025 demand (SOW: "a 2025 validation run, then capacity expansion"), and the
-     first build decision is 2030.
+     first build decision is 2030. Since 2026-11-25 the chain starts at 2030 and no horizon is dispatch-only (the
+     fork option stays); see "The pathway starts at 2030" below.
 
   `run.sh` targets the solved network of the last horizon (`results/<R>-myopic/networks/<stem>_2050.nc`);
   the earlier ones are solved on the way and sit next to it. There is no dashboard for these stages yet.
@@ -1778,6 +1779,15 @@ What the rest of the world builds is an assumption of the market, set per overla
   = 1/share, share = the stages' share of 2024 world demand (header line 2). Exogenous deployment is not scaled. Extra
   columns `multiplier` and `new_extrapolated` (= (m − 1) × modelled, the builds assumed elsewhere). Japan alone:
   share 3.29 %, midpoint ×5.5, extrapolate ×30.4.
+  **Since 2026-11-25 two factors** (the buyers' share of demand differs by country since 2026-11-19, so one
+  factor for everything is outdated): what the 24/7 CFE buyers build (assets on the buyers' buses, `n.meta` cfe;
+  column `new_buyers`) is scaled with the stages' share of the world's buyer demand (`multiplier_buyers`), what the
+  grid builds with their share of world demand (`multiplier`), both of the horizon whose builds are counted
+  (`calibration/<year>/demand.csv`, `cfe_share.csv`; before: 2024 demand for every horizon). For the seven regions
+  of the first full run (SG, USW, USE, BR, IN, NWE, CN) in 2030: 63.0 % of world demand and 73.5 % of the world's
+  buyer demand, so grid builds x1.59 and buyer builds x1.36 (one factor would have been x1.59 for both). Singapore
+  alone, as a test of the mechanics: x480 and x142. Results of the test-region pools of 10 to 12 November were made
+  with the one-factor rule. Not done: weights per archetype (each region scaled to the countries of its archetype).
 - **Overlay inheritance**: `inherit: <scen>` merges `overlay.<scen>.yaml` first (`merge_config.load_overlay`), so a
   sensitivity carries only what differs.
 - **Branches**: `catalyst.branch: {from: <scen>, year: Y}` makes `<R>-<x>` share every horizon up to Y with
@@ -1786,6 +1796,24 @@ What the rest of the world builds is an assumption of the market, set per overla
   the branch's first horizon from the parent's solved network of Y, wrapped in `ancient()`; `clear_market.py init`
   copies the parent's `market_<Y>.csv` and steps over the parent's networks of Y with the branch's multiplier.
   The trunk runs with `PATHWAY_UNTIL=Y` (run.sh stops after that horizon).
+  Since 2026-11-25 a branch stage also starts from a copy of its parent stage's prepared inputs (`run.sh copy_parent`,
+  next item), and `clear_market.py init` keeps the parent's file time on the copied `market_<Y>.csv`.
+- **The pathway starts at 2030, and the CFE stage takes the reference stage's inputs** (2026-11-25). Until then the
+  chain began with a dispatch-only 2025 horizon. It carried nothing into 2030 (nothing is built in it; the existing
+  fleet, the plants under construction and the retirements are in the prepared network and applied per horizon by
+  `add_brownfield`), and the validation run of the existing system is the 2024 dispatch (`overlay.now.yaml`). So
+  `overlay.myopic.yaml` now has `planning_horizons: [2030, ..., 2050]` and no dispatch-only horizon. Test on
+  Singapore: the 2030 results of the reference and of the CFE run are the same as with 2025 in front (every
+  capacity equal, objective within 2e-6).
+  `catalyst: inputs_from: ref` (overlay `cfe`; `cfenorc`: `refnorc`) names the stage whose prepared inputs a stage
+  starts from: the buyers are added per horizon, so everything up to the prepared network is the reference's.
+  `run.sh copy_parent` copies `resources/<parent>/` and `networks/<parent>/` once, with their modification times
+  (for a branch: from its parent), minus the cost tables of the stage's own horizons, which follow its own market.
+  Snakemake then runs only cost tables, `add_brownfield_elec` and the solve (Singapore: 36 s, 6 min before). The
+  reason is the plant list: powerplantmatching links the records of its sources for the whole country on every
+  call (US West 55, US East 47, China 80 min), and each pathway stage built its own. Where the parent stage does
+  not exist the stage builds its inputs itself, as before. A pathway of both scenarios to 2030 is two solves and one
+  plant list per region. Results on disk from before that day have a 2025 file, which nothing reads any more.
 - **Plots**: `scripts/plot_branches.py <R> <scen>...` (with `scripts/summarise_cfe.py`): advanced power and energy
   capacity as stacked areas, learning factors, CFE premium, one panel or line per sensitivity, x = year →
   `results/learning/<R>-branches/{power,energy,learning,premium}.{png,pdf}` and the tables behind them.

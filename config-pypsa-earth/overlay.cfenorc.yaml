@@ -5,6 +5,9 @@
 # partner of the classes, which are on by default since 2026-11-12 (statistics.yaml; README "Resource classes").
 inherit: cfe
 
+catalyst:
+  inputs_from: refnorc   # prepared inputs of the reference without resource classes (overlay cfe: from ref)
+
 renewable:
   onwind:
     resource_classes: 1   # 1 = off: no class rules in the DAG
