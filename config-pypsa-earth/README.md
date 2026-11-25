@@ -1595,6 +1595,23 @@ The shared interface is the year. Demand, the myopic loop, the palette and the l
   2030 and 2 % in 2050 (gas 546 -> 194 GW, nuclear 97 -> 18 GW by 2030), 51 % / 2 % in NWE, 91 % / 34 % in China;
   with powerplantmatching's lifetimes 68 % / 13 %, 77 % / 13 %, 95 % / 62 %. The fork commit of the old rule
   (`fill_missing_dateout`) is gone from the history.
+  **Gas plants: 40 years since 2026-11-25** (decided on the first 2030 results): the cost table's 25 years are the
+  financing life of a new plant. With them the 2030 reference of US East had 119 of 297 GW of combined-cycle and
+  54 of 159 GW of open-cycle plants left and built 187 GW of new open-cycle turbines that ran at 82 % (US West
+  30 GW), CO2 +16 % and the mean price doubled against 2024; the gas fleet of the United States was built around
+  2000 to 2005. Fork option `electricity: powerplants_lifetime_years: {Natural Gas: 40}` (lifetime per fuel type of
+  the plant data that replaces the cost table's; `overlay.myopic.yaml`). By commissioning year alone 85 % of US
+  East's and 74 % of US West's gas capacity is then alive in 2030 (27 % and 23 % with 25 years). Singapore: no
+  new gas in 2030 (6.0 GW with 25 years), the buyers' portfolio is unchanged, reference cost 7.2 instead of 8.2
+  bn $/a. Coal, nuclear and the other fuel types keep the cost table's lifetimes. The results with 25 years are
+  the cluster run of 2026-11-25.
+  **The matched plant list is reused** (`electricity: powerplants_update: false`, fork option, `overlay.myopic.yaml`):
+  powerplantmatching stores its matched list per configuration (countries, filter) under
+  `~/.local/share/powerplantmatching/data/out/<hash>/`, and upstream's `build_powerplants` matched again on every
+  call (`update=True`; US West 55, US East 47, China 80 min, both US halves the whole country). With the switch a
+  stored list is read where there is one (Singapore: 0.1 s against 118 s, same rows and values) and lifetimes,
+  shapes and statistics are applied to it as before. Delete that folder to force new matching, e.g. after an
+  update of the plant data.
   Retirement rule of 2026-10-09 (superseded; SOW: "keep existing power generation capacity, announced retirements where
   they are firm and dated"): only a retirement year reported by the power plant data retires a plant. Such
   years come mostly from GEM's trackers ("Retired year" / "Planned retire"), a few from GEO, none from GPD. By

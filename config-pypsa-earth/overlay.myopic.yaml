@@ -59,6 +59,14 @@ electricity:
   # in the cost table, as PyPSA-Eur's pathway code (coal, nuclear 40, gas, oil 25, biomass, geothermal 30 years); plants
   # already past it are dropped and the capacity statistic is scaled onto the others; hydro is never retired (fork patch)
   powerplants_lifetimes: costs
+  # since 2026-11-25: gas plants without a reported retirement year run 40 years, not the cost table's 25 (its
+  # financing life of a new plant). With 25 years the United States lost 60 % of their combined-cycle fleet (built
+  # around 2000 to 2005) by 2030 and the 2030 reference rebuilt it: 217 GW of new gas turbines, CO2 up 16 % (fork option)
+  powerplants_lifetime_years: {Natural Gas: 40}
+  # the matched plant list of powerplantmatching is read from its store where an earlier stage with the same countries
+  # and filter has written it (matching takes 47 to 80 min for the United States and China; fork option). Delete
+  # ~/.local/share/powerplantmatching/data/out/ to force new matching, e.g. after an update of the plant data
+  powerplants_update: false
 
 existing_capacities:
   dispatch_only_horizons: []      # fork patch: horizons solved as a dispatch of the existing system; none since 2026-11-25 (was [2025])
