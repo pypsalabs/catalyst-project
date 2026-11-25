@@ -22,6 +22,7 @@ Where heavy industry sits in units with few people, the load ends up in the wron
 In China, 15\,\% of national demand lay in the wrong province: Inner Mongolia, Xinjiang, Ningxia and Qinghai had a third of their published consumption, Heilongjiang and Jilin twice theirs (Figure~\ref{fig:demandplacement}).
 The model then moved the missing demand's generation east: Inner Mongolia exported \SI{711}{TWh} on a load of \SI{188}{TWh}.
 In the two US regions, 16\,\% (East) and 17\,\% (West) of demand lay in the wrong state: New York and New Jersey had 2.2 times their share of the retail sales of electricity, California 1.5 times and Texas 0.64 times.
+In India it was 13\,\% (Uttar Pradesh and West Bengal 1.3 to 1.4 times their share, Gujarat, Rajasthan and Telangana about 0.7 times) and in Brazil 11\,\% (Rio de Janeiro 1.4 times, Paraná 0.5 times).
 
 \textit{What was done.}
 A table gives the share of the country's demand per administrative unit.
@@ -32,7 +33,9 @@ For China the table holds the consumption of the 31 provinces in 2024, Hong Kong
 No table of 2024 could be read as text, so the provinces are measured off a published bar chart of the China Electricity Council's figures and scaled to the national total; for the eight provinces with an exact figure from another source the reading is within 2\,\%.
 For the United States the table holds the retail sales of electricity per state in 2024 \citep{eia861}.
 A US region holds the states of its part only, and their shares are scaled to one.
-The feature becomes active in rule \texttt{build\_demand\_profiles}, for China and the two US regions:
+For India it holds the energy requirement of the states and union territories from April 2024 to March 2025 \citep{mop2025ls178}; the Damodar Valley Corporation, which supplies parts of two states and has a row of its own, is split half and half between Jharkhand and West Bengal.
+For Brazil it holds the consumption of the 27 states in 2024 \citep{epe2025anuario}.
+The feature becomes active in rule \texttt{build\_demand\_profiles}, for China, India, Brazil and the two US regions:
 \yamlblock{demand_shares}
 
 \textit{Check.}
@@ -40,7 +43,7 @@ With the shares, 0.2\,\% of China's demand lies in another province than publish
 In the dispatch of 2024 Inner Mongolia then exports \SI{358}{TWh} and Xinjiang \SI{108}{TWh}; their published generation minus consumption of 2024 is about 300 and \SI{105}{TWh}.
 In US East, 1.6\,\% of demand lies in another state than published, for the same reason.
 All units of a country share one national hourly demand shape, and the shares do not change over the horizons.
-India and Brazil keep the weights from GDP and population; their state statistics are not collected yet.
+The countries of North-West Europe keep the weights from GDP and population.
 
 \paragraph{Place demand inside an administrative unit where people live} (\commit{7a76b806})
 

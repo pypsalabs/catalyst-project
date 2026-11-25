@@ -1,0 +1,38 @@
+# Electricity consumption of Brazil's 27 states (unidades da federacao) in 2024, the source of Brazil's state demand
+# shares (scripts/build_demand_shares.py -> calibration/2024/demand_shares.csv). key = GADM level-1 id as in
+# resources/<run>/shapes/gadm_shapes.geojson.
+#
+# Source: EPE, Anuario Estatistico de Energia Eletrica 2025 (base year 2024), workbook, Tabela 3.12 "Consumo por
+# subsistema eletrico, regiao geografica e UFs (GWh)", column 2024, data SIMPLES (EPE)
+# (https://www.epe.gov.br/sites-pt/publicacoes-dados-abertos/publicacoes/PublicacoesArquivos/publicacao-160/topico-168/anuario-workbook-2025.xlsx,
+# read 2026-11-24). Parsed from the workbook, not typed. The 27 rows add up to the table's Brasil row (561,590 GWh).
+# Consumption from the grid: self-consumption from distributed generation and autoproduction that is not transported
+# are not included (the table's footnote).
+key,name,demand_gwh
+BR.25_1,São Paulo,148930.37
+BR.13_1,Minas Gerais,67546.47
+BR.16_1,Paraná,39653.58
+BR.19_1,Rio de Janeiro,39287.91
+BR.21_1,Rio Grande do Sul,32341.92
+BR.24_1,Santa Catarina,31806.83
+BR.5_1,Bahia,27946.26
+BR.14_1,Pará,24492.93
+BR.9_1,Goiás,20310.64
+BR.17_1,Pernambuco,15821.73
+BR.10_1,Maranhão,14992.56
+BR.6_1,Ceará,14049.89
+BR.8_1,Espírito Santo,12865.19
+BR.12_1,Mato Grosso,11229.89
+BR.4_1,Amazonas,8025.47
+BR.11_1,Mato Grosso do Sul,7066.40
+BR.7_1,Distrito Federal,6616.18
+BR.15_1,Paraíba,6465.38
+BR.20_1,Rio Grande do Norte,6111.05
+BR.2_1,Alagoas,5736.50
+BR.18_1,Piauí,4714.70
+BR.26_1,Sergipe,4199.85
+BR.22_1,Rondônia,4084.23
+BR.27_1,Tocantins,3148.18
+BR.3_1,Amapá,1425.08
+BR.23_1,Roraima,1403.22
+BR.1_1,Acre,1317.97

@@ -41,7 +41,7 @@ SNIPPETS = {
     "geodesic_length": [("config.NWE.yaml", [("osm", "build_osm_network", "geodesic_length")], REGIONS)],
     "dc_ratings": [("statistics.yaml", [("links", "dc_ratings")], [])],
     "loadability": [("statistics.yaml", [("lines", "loadability"), ("lines", "s_max_pu")], [])],
-    "demand_shares": [("config.CN.yaml", [("load_options", "subnational_shares")], ["config.USW.yaml", "config.USE.yaml"])],
+    "demand_shares": [("config.CN.yaml", [("load_options", "subnational_shares")], ["config.USW.yaml", "config.USE.yaml", "config.IN.yaml", "config.BR.yaml"])],
     "population_within_units": [("statistics.yaml", [("load_options", "population_within_units")], [])],
     "expansion_limit": [("statistics.yaml", [("catalyst", "grid_expansion")], []), ("overlay.zero.yaml", [("lines", "expansion_limit")], [])],
     "time_shift": [("config.USW.yaml", [("load_options", "time_shift")], ["config.USE.yaml"])],

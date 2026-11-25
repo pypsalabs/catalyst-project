@@ -42,6 +42,13 @@ osm:
   build_osm_network:
     geodesic_length: true         # Web Mercator stretches lengths by 1 / cos(latitude)
 
+load_options:
+  # build_demand_profiles: India's demand is split over its states and union territories with their shares of the energy requirement of
+  # 2024-25 (Ministry of Power / CEA; data/demand_provinces/in_states_2024_25.csv) through the table
+  # demand_shares.csv = calibration/2024/demand_shares.csv (scripts/build_demand_shares.py) instead of 0.6 x GDP +
+  # 0.4 x population; the same shares for every horizon. README "Demand placement"; REFACTOR_LATER.md item J
+  subnational_shares: true
+
 links:
   dc_projects:                    # HVDC capacity per project, README "Grid corrections"; overrides dc_ratings of statistics.yaml
     enable: true                  # table dc_projects.csv = data/hvdc/hvdc_project_table.csv (tables.smk)

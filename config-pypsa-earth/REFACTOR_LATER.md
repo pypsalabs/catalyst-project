@@ -182,16 +182,17 @@ doc section "Demand for 24/7 Carbon-Free Electricity"). Open, in the order in wh
   is still "to be written".
 - **Not pushed**: fork commit 0127cc6c and the parent commits of this work.
 
-### J. Demand placed inside a country: India, Brazil, North-West Europe (noted 2026-11-23, US done 2026-11-24)
+### J. Demand placed inside a country: what is left (noted 2026-11-23; US, India, Brazil done 2026-11-24)
 
-China and the two US regions take their state / province shares from the table `calibration/2024/demand_shares.csv`
-(fork option `load_options: subnational_shares`), and every region places a unit's load by population
-(`load_options: population_within_units`; README "Demand placement"). Open:
+China, India, Brazil and the two US regions take their state / province shares from the table
+`calibration/2024/demand_shares.csv` (fork option `load_options: subnational_shares`), and every region places a
+unit's load by population (`load_options: population_within_units`; README "Demand placement"). Open:
 
-- **India and Brazil**: state shares from statistics (India: CEA; Brazil: EPE) as rows of the same table. First the
-  read-only check (`scripts/check_demand_placement.py`); decided 2026-11-24: after the US result is confirmed.
 - **North-West Europe**: the units are large (England is one), population inside them is now used; whether the
-  weights of the units (GDP and population) are off has not been checked against national statistics per region.
+  weights of the units (GDP and population) are off has not been checked against statistics per region.
+- **India, Damodar Valley Corporation**: its 25.9 TWh are split half and half between Jharkhand and West Bengal
+  (ASSUMPTION); a split from DVC's own sales would replace it. The reply's table also leaves 0.76 % of All India
+  unlisted (mostly in the Western Region).
 - **Shares over time**: constant over the horizons in every region.
 
 ### E, rest. Each US half's own demand shape (noted 2026-11-17, time shift done 2026-11-23)

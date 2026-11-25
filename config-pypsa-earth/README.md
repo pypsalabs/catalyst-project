@@ -849,8 +849,17 @@ What was changed:
 - **State shares for the US**: `calibration/2024/demand_shares.csv` now also holds the 51 US rows (EIA form 861 retail
   sales of 2024, `scripts/build_demand_shares.py` through `build_region_tables.eia_sales`); `load_options:
   subnational_shares: true` in `config.USW.yaml` and `config.USE.yaml`. One national table serves both halves: a run
-  holds the states of its half only, and the option scales their shares to one. China as before; India and Brazil
-  keep GDP and population (`REFACTOR_LATER.md` item J).
+  holds the states of its half only, and the option scales their shares to one. China as before.
+- **State shares for India and Brazil** (same day, after the US test): rows of the same table from
+  `data/demand_provinces/in_states_2024_25.csv` (energy requirement April 2024 to March 2025 per state and union
+  territory, Ministry of Power's reply to Lok Sabha starred question 178 of 31 July 2025 = CEA's power supply
+  position; CEA's own reports returned 404; the listed rows are 99.24 % of All India; the Damodar Valley
+  Corporation's row is split half and half between Jharkhand and West Bengal, ASSUMPTION; Dadra & Nagar Haveli and
+  Daman & Diu split by population) and `data/demand_provinces/br_states_2024.csv` (EPE yearbook 2025, Tabela 3.12,
+  27 states, adds up to the national 561.6 TWh); `subnational_shares: true` in `config.IN.yaml` and `config.BR.yaml`.
+  Before, 12.7 % of India's demand lay in the wrong state (Uttar Pradesh 1.33, West Bengal 1.37, Gujarat 0.70,
+  Rajasthan 0.73, Telangana 0.67 times their share) and 10.6 % of Brazil's (Rio de Janeiro 1.39, Parana 0.50, Santa
+  Catarina 0.66, Para 0.67). North-West Europe keeps GDP and population (`REFACTOR_LATER.md` item J).
 - **Population inside a unit**: fork option `load_options: population_within_units` (commit 7a76b806, a switch, off
   by default, upstream candidate; on in `statistics.yaml` for every stage). The new rule `build_region_population`
   counts the people per pair of base-bus region and unit from the WorldPop raster PyPSA-Earth already downloads (3
@@ -907,6 +916,36 @@ of 23 November, which is kept in `results/z3/USE-now/`):
   `networks/archive/USW-now-20261117/`).
 - `scripts/plot_validation.py`: the cost tile counted the whole existing grid as "transmission expansion" when lines
   are not extendable; fixed.
+
+**All six regions with the grid frozen** (z3 job 6566741 of 2026-11-24, 48 min for the six `-now` stages; copied to
+`results/z3-1124/`; population placement everywhere, state shares for the US and China only), and Brazil and India
+again on the laptop with their state shares (2026-11-25, `results/{BR,IN}-now/`):
+
+| | USW | USE | BR | BR + shares | IN | IN + shares | NWE | CN |
+|---|---|---|---|---|---|---|---|---|
+| load shed (TWh) | 0 | 0 | 0 | 0.21 | 0.75 | 0.61 | 0 | 39.3 |
+| hours with shedding | 0 % | 0 % | 0 % | 20 % | 2.8 % | 1.3 % | 0 % | 79 % |
+| cost without shedding (bn $/a; 23 Nov with lines extendable) | 8.81 (8.99) | 59.6 (62.7) | 17.5 (10.7) | 14.9 | 36.1 (36.0) | 36.0 | 69.6 (68.7) | 326.8 (330.2) |
+| lines at their limit in more than 10 % of hours | 9 | 16 | 25 | 29 | 7 | 2 | 15 | 38 |
+| hours with one price | 45 % | 23 % | 0 % | 0 % | 96 % | 100 % | 0 % | 0.1 % |
+| largest deviation of a fuel's share | gas +1.1 pp | coal -1.7 | gas +4.5 | gas +3.4 | gas -0.3 | gas -0.3 | nuclear +0.7 | coal +0.4 |
+
+- **China**: 35.5 of the 39.3 TWh are shed at one cluster, south-west Xinjiang (`CN_XJ0 1`, 78.7 E 38.9 N): by
+  population it carries 152 TWh (36 % of the province's demand, peak 27 GW) against 3.5 GW of firm plant and 5.3 GW
+  of usable lines. By area it had 117 TWh, and the run of 23 November doubled its lines. Xinjiang's consumption is
+  heavy industry near the coal plants of the north; neither area nor population places it. Open (item J).
+- **Brazil**: with a frozen grid gas runs at 84 TWh (76 with state shares) against 49 TWh in the statistic, mostly
+  at the two Rio de Janeiro clusters, and 12 TWh of north-eastern wind is curtailed; corridors of 0.3 to 1.4 GW
+  usable capacity sit at their limit in more than half of the hours (Bahia to Minas Gerais 2 x 1.1 GW). With state
+  shares the Belem cluster (peak 2.9 GW, one line of 2.2 GW usable, 0.2 GW of plant) sheds 0.2 TWh. The grid of the
+  Brazilian model is too weak for the 2024 dispatch; the run of 23 November built 6.7 % of grid volume to get to
+  57 TWh of gas. Open.
+- **India**: demand in the wrong state 12.7 % -> 1.4 % with the shares; the grid then hardly binds (one price in
+  every hour, 2 lines at their limit). The shedding left is a national shortfall in 1.3 % of the hours (up to
+  11 GW), as before.
+- **North-West Europe**: nothing shed; the mean price is 91 $/MWh with the frozen grid (71 with lines extendable).
+- Brazil's local stage directory predated the sweep of 16 November (no `statistics/` inputs of `base_network`), so
+  the stage rebuilt base network, bus regions and profiles for itself; the base run `BR` is untouched.
 
 ## Screening solves (stages `<R>-now`, `<R>-zero`, `dashboard:<R>`; 2026-09-19/20)
 

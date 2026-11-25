@@ -16,6 +16,11 @@ read by build_region_tables.eia_sales, which also splits the national demand ove
 sales are consumption without grid losses and without the plants' own use; only their shares are used. One national
 table serves both halves: a run holds the states of its half only, and the option scales their shares to one.
 
+India (in_states_2024_25.csv): energy requirement per state and union territory, April 2024 to March 2025, from the
+Ministry of Power's reply to a Lok Sabha question (CEA's power supply position); the row of the Damodar Valley
+Corporation is split half and half between Jharkhand and West Bengal (ASSUMPTION). Brazil (br_states_2024.csv):
+consumption per state in 2024 from EPE's statistical yearbook. Both files name their source in the header.
+
 Usage (from config-pypsa-earth): ../models/pypsa-earth/.pixi/envs/default/bin/python scripts/build_demand_shares.py
 """
 import os
@@ -52,8 +57,28 @@ def united_states(year=2024):
     return d
 
 
+def india():
+    d = pd.read_csv(os.path.join(HERE, "data", "demand_provinces", "in_states_2024_25.csv"), comment="#")
+    d["demand_twh"] = d.requirement_mu / 1e3
+    dvc = d.demand_twh[d.key == "DVC"].sum()
+    d = d[d.key != "DVC"].copy()
+    for name in ["Jharkhand", "West Bengal"]:       # ASSUMPTION: half of DVC's requirement in each state
+        d.loc[d.name == name, "demand_twh"] += dvc / 2
+    assert len(d) == 36 and dvc > 0
+    print(f"India: {len(d)} states and territories, {d.demand_twh.sum():.0f} TWh in 2024-25 ({dvc:.1f} TWh of DVC split)")
+    return d.assign(country="IN")[["key", "country", "name", "demand_twh"]]
+
+
+def brazil():
+    d = pd.read_csv(os.path.join(HERE, "data", "demand_provinces", "br_states_2024.csv"), comment="#")
+    d["demand_twh"] = d.demand_gwh / 1e3
+    assert len(d) == 27
+    print(f"Brazil: {len(d)} states, {d.demand_twh.sum():.0f} TWh in 2024 (EPE)")
+    return d.assign(country="BR")[["key", "country", "name", "demand_twh"]]
+
+
 def main():
-    out = pd.concat([china(), united_states()], ignore_index=True)
+    out = pd.concat([china(), united_states(), india(), brazil()], ignore_index=True)
     assert not out.key.duplicated().any() and out.demand_twh.gt(0).all()
     out["share"] = out.demand_twh / out.groupby("country").demand_twh.transform("sum")
     out["demand_twh"] = out.demand_twh.round(1)

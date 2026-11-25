@@ -1,0 +1,58 @@
+# Electricity requirement of India's states and union territories, April 2024 to March 2025, the source of India's
+# state demand shares (scripts/build_demand_shares.py -> calibration/2024/demand_shares.csv). key = GADM level-1 id
+# as in resources/<run>/shapes/gadm_shapes.geojson.
+#
+# Source: Ministry of Power, reply to Lok Sabha starred question no. 178 of 31 July 2025, annexure "States/UTs/Regions-
+# wise All India Power Supply Position ... in terms of Energy", columns April 2024 - March 2025, Energy Requirement (MU);
+# compiled by the Central Electricity Authority from the state utilities
+# (https://www.powermin.gov.in/static/uploads/2025/08/fd987c80e5c9ce92325a72ffcca6ab08.pdf, read 2026-11-24; CEA's
+# own Power Supply Position reports on cea.nic.in returned 404 that day). Parsed from the PDF's text, not typed.
+#
+# - Fiscal year, not calendar 2024; requirement at the state periphery (losses inside the state included).
+# - The listed rows add up to 1,681,075 MU without the two island systems, 99.24 % of the All India figure of
+#   1,693,959 MU: the reply's table leaves out entities that the regional totals contain (11,314 MU of them in the
+#   Western Region). They are not placed; the shares are of the listed rows.
+# - DVC (Damodar Valley Corporation) supplies parts of Jharkhand and West Bengal and has its own row; the script splits
+#   it half and half (ASSUMPTION, no state split was found).
+# - Dadra & Nagar Haveli and Daman & Diu share one row (10,852 MU); split by the population of the two GADM units in
+#   the model's shapes (resources/IN/shapes/gadm_shapes.geojson, WorldPop 2020).
+# - Jammu & Kashmir is the reply's row of that name (GADM 4.1 has no separate Ladakh unit).
+# - Lakshadweep and Andaman & Nicobar are stand-alone systems outside the All India total; no bus region touches them.
+key,name,requirement_mu,note
+IN.20_1,Maharashtra,201816,
+IN.34_1,Uttar Pradesh,165090,
+IN.11_1,Gujarat,151878,
+IN.31_1,Tamil Nadu,130413,
+IN.29_1,Rajasthan,113833,
+IN.19_1,Madhya Pradesh,104445,
+IN.16_1,Karnataka,92450,
+IN.32_1,Telangana,88262,
+IN.2_1,Andhra Pradesh,79028,
+IN.28_1,Punjab,77423,
+IN.36_1,West Bengal,71180,
+IN.12_1,Haryana,70149,
+IN.5_1,Bihar,44393,
+IN.7_1,Chhattisgarh,43208,
+IN.26_1,Odisha,42882,
+IN.25_1,NCT of Delhi,38255,
+IN.17_1,Kerala,31624,
+DVC,Damodar Valley Corporation,25891,split half to Jharkhand and half to West Bengal by the script (ASSUMPTION)
+IN.14_1,Jammu and Kashmir,20374,
+IN.35_1,Uttarakhand,16770,
+IN.15_1,Jharkhand,15203,
+IN.13_1,Himachal Pradesh,13566,
+IN.4_1,Assam,12843,
+IN.8_1,Dadra and Nagar Haveli,7625,70.3% of the joint row of 10852 MU (population share)
+IN.10_1,Goa,5411,
+IN.27_1,Puducherry,3549,
+IN.9_1,Daman and Diu,3227,29.7% of the joint row of 10852 MU (population share)
+IN.22_1,Meghalaya,2046,
+IN.6_1,Chandigarh,1952,
+IN.33_1,Tripura,1939,
+IN.21_1,Manipur,1079,
+IN.3_1,Arunachal Pradesh,1050,
+IN.24_1,Nagaland,938,
+IN.23_1,Mizoram,709,
+IN.30_1,Sikkim,574,
+IN.1_1,Andaman and Nicobar,425,
+IN.18_1,Lakshadweep,68,
